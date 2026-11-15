@@ -51,6 +51,13 @@ public sealed class ItemManifest
     /// <summary>Paths moved when a condition holds, applied in order before tokens (a starter's folder layout per mode).</summary>
     public IReadOnlyList<RenameRule> Rename { get; init; } = [];
 
+    /// <summary>
+    /// Paths (after renames and tokens, as globs) that must stay in the server project when an app's pages run in
+    /// the browser: files that read the request (<c>HttpContext</c>) or that server code renders. Program.cs,
+    /// root C# files, appsettings, <c>Components/App.razor</c> and <c>Components/Account/**</c> always do.
+    /// </summary>
+    public IReadOnlyList<string> Server { get; init; } = [];
+
     /// <summary>When packages are restored after a starter is made: a condition over the settings, or null for never.</summary>
     public string? Restore { get; init; }
 
@@ -93,7 +100,7 @@ public sealed class ItemManifest
                 Required(e!.AsObject(), "if"),
                 (e["paths"] as JsonArray)?.Select(p => (string)p!).ToList() ?? [])).ToList() ?? [],
             Packages = (root["packages"] as JsonArray)?.Select(p => new PackageSpec(
-                Required(p!.AsObject(), "id"), Required(p.AsObject(), "version"), (string?)p["if"])).ToList() ?? [],
+                Required(p!.AsObject(), "id"), Required(p.AsObject(), "version"), (string?)p["if"]) { Project = (string?)p["project"] ?? "" }).ToList() ?? [],
             Inserts = (root["inserts"] as JsonArray)?.Select(i => InsertSpec.Parse(i!.AsObject())).ToList() is { } inserts
                 ? inserts.Count(i => i.Place) <= 1 || inserts.Where(i => i.Place).All(i => i.If is not null)
                     ? inserts : throw new GenerationException("Only one insert can be the item's place, unless each place has an \"if\".")
@@ -101,6 +108,7 @@ public sealed class ItemManifest
             Rename = (root["rename"] as JsonArray)?.Select(r => new RenameRule(
                 Required(r!.AsObject(), "if"),
                 (r["paths"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>())).ToList() ?? [],
+            Server = (root["server"] as JsonArray)?.Select(p => (string)p!).ToList() ?? [],
             Restore = (string?)root["restore"],
             Checks = (root["checks"] as JsonArray)?.Select(c => new CheckSpec(
                 (string?)c!["if"], Required(c.AsObject(), "file"), Required(c.AsObject(), "pattern"), Required(c.AsObject(), "message"))).ToList() ?? [],
@@ -170,7 +178,11 @@ public sealed record RenameRule(string If, IReadOnlyDictionary<string, string> P
 /// <param name="Id">The package id.</param>
 /// <param name="Version">The version to reference.</param>
 /// <param name="If">A condition expression; the package is added only when it holds. Null adds it always.</param>
-public sealed record PackageSpec(string Id, string Version, string? If);
+public sealed record PackageSpec(string Id, string Version, string? If)
+{
+    /// <summary>The project it goes in, as a folder from the app's (a token such as <c>{{Client}}</c>); empty for the server project.</summary>
+    public string Project { get; init; } = "";
+}
 
 /// <summary>
 /// Text added to a file, beside the line that holds an anchor. Skipped when the file already holds the text, so

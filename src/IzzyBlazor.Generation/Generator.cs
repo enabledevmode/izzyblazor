@@ -38,7 +38,12 @@ public static class Generator
         }
         var values = Resolve(manifest, settings);
         if (!item.IncludesPro) RefusePro(manifest, values);
+        // What the project is like, for conditions: a setting of the same name wins.
+        foreach (var (name, fact) in Facts(project))
+            values.TryAdd(name, fact);
         var tokens = Tokens(manifest, values, project);
+        var server = manifest.Server.Select(g => new Glob(TemplateText.ReplaceTokens(g, tokens))).ToList();
+        string InApp(string path) => ToApp(path, project, server);
 
         var excluded = new List<Glob>();
         foreach (var rule in manifest.Exclude)
@@ -54,7 +59,7 @@ public static class Generator
         foreach (var (path, bytes) in item.Files)
         {
             if (excluded.Any(e => e.Matches(path)) || snippets.Contains(path)) continue;
-            var target = TemplateText.ReplaceTokens(Renamed(path, renames), tokens);
+            var target = InApp(TemplateText.ReplaceTokens(Renamed(path, renames), tokens));
             if (TemplateText.IsBinary(path))
             {
                 creates.Add(new FileCreate(target, null, bytes));
@@ -79,6 +84,7 @@ public static class Generator
         {
             if (written.If is not null && !Condition.Evaluate(written.If, values)) continue;
             var path = TemplateText.ReplaceTokens(written.File, tokens);
+            if (path.Length > 0) path = InApp(path);
             var text = written.TextFrom is { } from
                 ? TemplateText.Apply(from, Text(from, item.Files[from]), values, tokens)
                 : TemplateText.ReplaceTokens(written.Text, tokens);
@@ -127,9 +133,11 @@ public static class Generator
         foreach (var check in manifest.Checks)
         {
             if (check.If is not null && !Condition.Evaluate(check.If, values)) continue;
-            var text = project.ReadFile(TemplateText.ReplaceTokens(check.File, tokens));
+            var file = TemplateText.ReplaceTokens(check.File, tokens);
+            var text = project.ReadFile(InApp(file));
+            // The message names the file as the app has it (MyApp.Client/Pages/Home.razor).
             if (text is not null && System.Text.RegularExpressions.Regex.IsMatch(text, check.Pattern, System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1)))
-                warnings.Add($"{manifest.Id}: {TemplateText.ReplaceTokens(check.Message, tokens)}");
+                warnings.Add($"{manifest.Id}: {TemplateText.ReplaceTokens(check.Message, tokens).Replace(file, InApp(file), StringComparison.Ordinal)}");
         }
 
         // A file already in the project with the same text needs nothing; with other text it's a conflict.
@@ -145,8 +153,14 @@ public static class Generator
 
         var packages = manifest.Packages
             .Where(p => p.If is null || Condition.Evaluate(p.If, values))
-            .Select(p => new PackageReference(p.Id, p.Version))
+            .Select(p => new PackageReference(p.Id, TemplateText.ReplaceTokens(p.Version, tokens)) { Project = TemplateText.ReplaceTokens(p.Project, tokens) is { Length: > 0 } folder ? folder : project.Host })
             .ToList();
+
+        // A component in the server project can't be used from a page in the .Client project, which doesn't reference it.
+        if (project.Client is { } client)
+            foreach (var placed in inserts.Where(i => i.Path.StartsWith(client, StringComparison.Ordinal)))
+                if (creates.FirstOrDefault(c => c.Path.EndsWith(".razor", StringComparison.Ordinal) && !c.Path.StartsWith(client, StringComparison.Ordinal) && placed.Text.Contains($"<{Path.GetFileNameWithoutExtension(c.Path)}", StringComparison.Ordinal)) is { } component)
+                    throw new GenerationException($"{manifest.Id}'s {component.Path} is in the server project, and {placed.Path} is in {client}, which can't use it. Place it on a page in the server project.");
 
         return new Changeset
         {
@@ -205,12 +219,43 @@ public static class Generator
             ["RootNamespace"] = project.RootNamespace,
             ["HostName"] = Names.HostName(project.Name),
             ["IzzyBlazorVersion"] = IzzyBlazorVersion,
+            // Where an item's Components/ files go: the .Client project when the pages run in the browser.
+            ["UiNamespace"] = project.LayoutInBrowser && project.ClientNamespace is { } ui ? ui : project.RootNamespace + ".Components",
+            ["Client"] = project.Client ?? "",
+            ["ClientNamespace"] = project.ClientNamespace ?? "",
         };
+        foreach (var (name, value) in project.Tokens) tokens.TryAdd(name, value);
         // A setting's value can name the project ("{{ProjectName}} gives your team..."), not other settings.
         var named = new Dictionary<string, string>(tokens, StringComparer.Ordinal);
         foreach (var p in manifest.Parameters.Where(p => p.Type != ParameterType.Bool))
             tokens[p.Name] = TemplateText.ReplaceTokens(Convert.ToString(values[p.Name], CultureInfo.InvariantCulture)!, named);
         return tokens;
+    }
+
+    /// <summary>What conditions can ask about the project, besides the item's settings.</summary>
+    static IEnumerable<KeyValuePair<string, object>> Facts(ProjectInfo project)
+    {
+        yield return new("LayoutInBrowser", project.LayoutInBrowser);
+        yield return new("HasClient", project.Client is not null);
+        foreach (var fact in project.Facts) yield return fact;
+    }
+
+    /// <summary>
+    /// An item's path (written for one project: Program.cs, Components/Pages/Home.razor) as a path in the app.
+    /// A path already in one of its projects stays. With the pages in the .Client project, Components/ files go
+    /// there (Components/Pages/Home.razor is MyApp.Client/Pages/Home.razor), except App.razor, the Identity pages
+    /// and what the item marks as server-only; everything else is the server project's.
+    /// </summary>
+    static string ToApp(string path, ProjectInfo project, List<Glob> server)
+    {
+        if (project.Client is { } client && path.StartsWith(client, StringComparison.Ordinal)) return path;
+        if (project.Host.Length > 0 && path.StartsWith(project.Host, StringComparison.Ordinal)) return path;
+        const string components = "Components/";
+        if (project.LayoutInBrowser && project.Client is { } inBrowser && path.StartsWith(components, StringComparison.Ordinal)
+            && path != "Components/App.razor" && !path.StartsWith("Components/Account/", StringComparison.Ordinal)
+            && !server.Any(g => g.Matches(path)))
+            return inBrowser + path[components.Length..];
+        return project.Host + path;
     }
 
     /// <summary>

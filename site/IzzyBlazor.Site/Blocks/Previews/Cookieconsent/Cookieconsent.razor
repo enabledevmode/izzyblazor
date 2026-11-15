@@ -1,5 +1,7 @@
 @* Generated from catalog/cookies by BlockPreviewTests: don't edit. *@
+@implements IDisposable
 @inject NavigationManager Navigation
+@inject PersistentComponentState State
 
 @* Asks before anything that isn't essential, from izzy add cookies: a card at the bottom of the
    window (a sheet on phones) until the visitor chooses. Rejecting is as easy as accepting. The
@@ -41,8 +43,10 @@ else
 @code {
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 
-    // Decided on the server while the page renders, and kept for an interactive render after it.
-    [PersistentState] public bool Show { get; set; }
+    // Decided on the server while the page renders, and handed to an interactive render after it.
+    private bool Show { get; set; }
+
+    private PersistingComponentStateSubscription _persisting;
 
     private string ReturnUrl => "~/" + Navigation.ToBaseRelativePath(Navigation.Uri);
 
@@ -51,7 +55,18 @@ else
     protected override void OnInitialized()
     {
         Show = Choice is null;
+        // A method of this component, not [PersistentState]: Blazor then skips it when the notice is static,
+        // where [PersistentState] throws in an app with both Server and WebAssembly.
+        _persisting = State.RegisterOnPersisting(PersistShow);
     }
+
+    private Task PersistShow()
+    {
+        State.PersistAsJson("Cookieconsent", Show);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose() => _persisting.Dispose();
 
     // The docs preview's buttons put the choice in the address instead of posting it.
     [SupplyParameterFromQuery(Name = "choice")]

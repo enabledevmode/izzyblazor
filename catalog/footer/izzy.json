@@ -39,6 +39,6 @@
   "rename": [ { "if": "Layout == \"Simple\"", "paths": { "layouts/Simple.razor": "Components/Blocks/{{Name}}.razor" } } ],
   "inserts": [
     { "file": "{{Into}}", "pattern": "</ErrorGuard>", "position": "after", "place": true, "text": "<{{Name}} />\n" },
-    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+    { "file": "Components/_Imports.razor", "anchor": "@using {{UiNamespace}}", "position": "after", "text": "@using {{UiNamespace}}.Blocks\n" }
   ]
 }

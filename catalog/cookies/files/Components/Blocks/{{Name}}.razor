@@ -1,4 +1,6 @@
+@implements IDisposable
 @inject NavigationManager Navigation
+@inject PersistentComponentState State
 
 @* Asks before anything that isn't essential, from izzy add cookies: a card at the bottom of the
    window (a sheet on phones) until the visitor chooses. Rejecting is as easy as accepting. The
@@ -51,8 +53,10 @@ else
 @code {
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 
-    // Decided on the server while the page renders, and kept for an interactive render after it.
-    [PersistentState] public bool Show { get; set; }
+    // Decided on the server while the page renders, and handed to an interactive render after it.
+    private bool Show { get; set; }
+
+    private PersistingComponentStateSubscription _persisting;
 
     private string ReturnUrl => "~/" + Navigation.ToBaseRelativePath(Navigation.Uri);
 
@@ -61,15 +65,30 @@ else
     protected override void OnInitialized()
     {
 @*#if (Routable) *@
+        if (State.TryTakeFromJson<bool>("{{Name}}", out var shown))
+        {
+            Show = shown;
+        }
         // Not on the settings page itself: it asks the same thing in full.
-        if (HttpContext is not null)
+        else if (HttpContext is not null)
         {
             Show = !Consent.Chosen(HttpContext) && !Navigation.ToBaseRelativePath(Navigation.Uri).StartsWith("{{SettingsRoute}}", StringComparison.OrdinalIgnoreCase);
         }
 @*#else *@
         Show = Choice is null;
 @*#endif *@
+        // A method of this component, not [PersistentState]: Blazor then skips it when the notice is static,
+        // where [PersistentState] throws in an app with both Server and WebAssembly.
+        _persisting = State.RegisterOnPersisting(PersistShow);
     }
+
+    private Task PersistShow()
+    {
+        State.PersistAsJson("{{Name}}", Show);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose() => _persisting.Dispose();
 @*#if (!Routable) *@
 
     // The docs preview's buttons put the choice in the address instead of posting it.
