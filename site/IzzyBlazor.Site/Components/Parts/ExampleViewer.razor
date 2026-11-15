@@ -14,13 +14,13 @@
     An example pinned to one mode (components.json "modes") shows in it whatever the page's; a
     Interactive-only one on a no-script page, which has no Blazor, shows a link to the page as Interactive instead.
 
-    A demo scenario (components.json "page") is a page of its own, sized by the window: it shows in
-    a frame of /frame/{example} at a fixed height, scrolling inside like a window, with a phone
-    width when WidthSwitch is on. no-script frame are sandboxed without allow-scripts.
+    A page example (components.json "page"), such as an AppShell's, is a page of its own, sized by
+    the window: it shows in a frame of /frame/{example} at a fixed height, scrolling inside like a
+    window, with a phone width when WidthSwitch is on. no-script frames are sandboxed without allow-scripts.
 
     Around the preview: one row (Preview · Code tabs at the left; "Always Interactive" and any width or
-    mode switch at the right), the box, then the example's note for its mode. With SourceOpen
-    (demos) there are no tabs: the code shows under the preview, with a Hide code toggle.
+    mode switch at the right), the box, then the example's note for its mode. An example with no
+    source has no tabs.
 
     The preview is a CodeExample with no source: it keeps the example's headings out of the page's
     "On this page". A ThemeScope gives it the library's default accent inside the site's
@@ -30,7 +30,7 @@
 @if (_example is not null)
 {
     <section class="@_class" id="@_uid" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
-        @if (SourceOpen || _source is null)
+        @if (_source is null)
         {
             <span class="ex-title">@Title</span>
         }
@@ -41,19 +41,6 @@
             {
                 @* Shown in its one mode whatever the page's (an example of Interactive-only behavior). *@
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-fixed-mode">Always @ModeChip.Name(_example.Modes[0])</TextBlock>
-            }
-            @if (SourceOpen && _source is not null)
-            {
-                @* Demos show the code under the preview; this hides it. It sits above both, so hiding
-                   the code doesn't move it. *@
-                @* One name for screen readers, "Show code", checked while it shows; the visible text
-                   says what clicking does. *@
-                <label class="ex-code-toggle">
-                    <input type="checkbox" class="ex-code-input" checked aria-label="Show code" />
-                    <Icon Name="Lucide.CodeXml" />
-                    <span class="ex-code-hide" aria-hidden="true">Hide code</span>
-                    <span class="ex-code-show" aria-hidden="true">Show code</span>
-                </label>
             }
             @if (WidthSwitch || _example.WidthSwitch)
             {
@@ -69,14 +56,10 @@
                 <IzzyBlazor.Site.Components.Parts.ModeSwitch Placement="example" Compact />
             }
         </div>
-        @if (SourceOpen || _source is null)
+        @if (_source is null)
         {
             <div class="ex-panels">
                 @Preview
-                @if (_source is not null)
-                {
-                    @Source
-                }
             </div>
         }
         else
@@ -98,15 +81,12 @@
     /// <summary>The example's id in components.json, such as <c>button-variants</c>.</summary>
     [Parameter, EditorRequired] public string Example { get; set; } = "";
 
-    /// <summary>Shows the code under the preview, with no Preview · Code tabs, as on demos.</summary>
-    [Parameter] public bool SourceOpen { get; set; }
-
-    /// <summary>Adds a Desktop/Phone width switch, for demo scenarios. An example can ask for one in components.json.</summary>
+    /// <summary>Adds a Desktop/Phone width switch, for page examples. An example can ask for one in components.json.</summary>
     [Parameter] public bool WidthSwitch { get; set; }
 
     /// <summary>
-    /// Puts the page's mode switch in this viewer's row, for a page that is this one example (a
-    /// demo, the docs overview). Elsewhere the page has its own.
+    /// Puts the page's mode switch in this viewer's row, for a page with no switch of its own,
+    /// such as an article. Elsewhere the page has its own.
     /// </summary>
     [Parameter] public bool ModeSwitch { get; set; }
 

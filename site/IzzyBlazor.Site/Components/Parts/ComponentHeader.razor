@@ -1,5 +1,5 @@
 @* The top of a component's pages, the same on each: breadcrumb, name with tier and version, the
-   summary, and Overview · API · Demos as links. *@
+   summary, and Overview · API as links. *@
 
 <Stack Gap="4" Class="site-pagehead">
     <Breadcrumb>
@@ -39,10 +39,6 @@
     <TabNav Label="@($"{Topic?.Title ?? Component.DisplayName} pages")">
         <TabLink Href="@(Topic is null ? Registry.OverviewHref(Component) : Registry.TopicHref(Component, Topic))" Label="Overview" Match="NavLinkMatch.All" />
         <TabLink Href="@(Topic is { Members.Count: > 0 } ? Registry.TopicApiHref(Component, Topic) : Registry.ApiPageHref(Component))" Label="API" Match="NavLinkMatch.All" />
-        @if (Component.Scenarios.Count > 0)
-        {
-            <TabLink Href="@Registry.DemosHref(Component)" Label="Demos" />
-        }
     </TabNav>
 </Stack>
 

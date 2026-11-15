@@ -1,9 +1,9 @@
 @inject ApiMetadata Api
 
 @* SiteNav's Overview, written by hand after AppShell's and AppSidebar's: links that fold into a
-   menu, what goes under them, and SiteNav beside a sidebar, each a page of its own in a frame with a
-   phone width. Parts, Accessibility and See also come from the metadata and the doc comments; See
-   also adds the content site demo. *@
+   menu, what goes under them (with a content site), and SiteNav beside a sidebar, each a page of
+   its own in a frame with a phone width. Parts, Accessibility and See also come from the metadata
+   and the doc comments. *@
 
 <TextBlock>A site nav is a row of links in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>'s header. It suits a site with no sidebar. Its links are <Code>NavItem</Code>s, marked current on the server as in a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor>.</TextBlock>
 
@@ -16,11 +16,12 @@
 <TextBlock>The panel can have content under the links, such as a call-to-action button. Add a <Code>SiteNavFooter</Code>. It shows only on phones, in the panel.</TextBlock>
 <Code Block Language="razor">@Footer</Code>
 <TextBlock>On wide screens the footer isn't shown, so put anything the user needs there somewhere else on the page as well.</TextBlock>
+<ExampleViewer Example="site-nav-content-site" WidthSwitch />
 
 <Heading Level="2">With a sidebar</Heading>
 <TextBlock>A site nav can sit in the header of a shell with an <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor>, for links to the rest of the site beside the app's own. On phones, its menu button stays hidden, and the links show at the top of the sidebar's drawer or panel instead, so there's one menu.</TextBlock>
 <Code Block Language="razor">@WithSidebar</Code>
-<TextBlock>The <Anchor Href="demos/app-sidebar/menu-panel">guide demo</Anchor> has site links over a sidebar of chapters.</TextBlock>
+<TextBlock>The <Anchor Href="docs/components/app-sidebar#ex-app-sidebar-panel">guide</Anchor> on the AppSidebar page has site links over a sidebar of chapters.</TextBlock>
 
 <Heading Level="2">Where the menu button goes</Heading>
 <TextBlock>On phones, the menu button sits at the end of the header, where users look for it, whatever comes after the links. To put it before the brand, such as on pages whose header starts with a <Code>SidebarToggle</Code>, set <Code>MenuButtonPosition</Code> to <Code>Start</Code>. To leave it where the links are, set <Code>InPlace</Code>.</TextBlock>

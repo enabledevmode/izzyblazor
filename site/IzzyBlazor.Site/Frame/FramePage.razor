@@ -5,7 +5,7 @@
 @inject NavigationManager Navigation
 
 @*
-    A demo scenario (components.json "page") on a bare page, for the example viewer's frame: a page
+    A page example (components.json "page") on a bare page, for the example viewer's frame: a page
     of its own, sized by the window. No script and Static render it in static SSR (no script is the same page
     in a sandbox without script, and App leaves the script tags out); Interactive renders it in an
     interactive render mode from this static page. Other examples render in the docs page itself.
@@ -48,7 +48,7 @@
     {
         _type = Catalog.TypeOf(ExampleId);
         var entry = Registry.Example(ExampleId);
-        // Demos show in a frame (ExampleViewer); other examples render in the docs page, and here
+        // Page examples show in a frame (ExampleViewer); other examples render in the docs page, and here
         // only for what fetches its own example again, such as a live chart's RefreshFrom.
         if (_type is null || entry is null)
         {

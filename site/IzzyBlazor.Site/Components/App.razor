@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="@Assets["site.css"]" />
     @* The site's chrome is Ink (monochrome): the brand's Ember is kept for brand moments (the logo,
        the hero, its call to action, the pictograms), and examples keep the component default (Blue:
-       ExampleViewer's ThemeScope, and a demo's frame), so the examples are the docs' only
+       ExampleViewer's ThemeScope, and a page example's frame), so the examples are the docs' only
        colored accent and show what the library gives. *@
     <IzzyTheme Brand="@(IsFrame ? null : "ink")" />
     @if (Blazor)
@@ -63,7 +63,7 @@
 
     private bool IsFrame => HttpContext?.Request.Path.StartsWithSegments("/frame") == true;
 
-    // A demo's frame in no-script mode sends no script at all: the frame is sandboxed without
+    // A page example's frame in no-script mode sends no script at all: the frame is sandboxed without
     // allow-scripts anyway, and leaving the tags out keeps the console quiet.
     private bool NoScriptFrame => IsFrame && HttpContext?.Request.Query["mode"].ToString() == "noscript";
 

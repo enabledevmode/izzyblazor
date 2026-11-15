@@ -58,6 +58,7 @@
     <ListItem>The Load more button under the last row is for keyboard users. It stays out of sight until it has focus. To change its text, set <Code>LoadMoreText</Code>.</ListItem>
     <ListItem>With JavaScript off, Load more shows as a link. It reloads the table with one more page of rows: <Code>?page=3</Code> shows the first three pages, loaded from the provider in one request.</ListItem>
     <ListItem>With an <Code>ItemKey</Code>, a row already shown isn't added twice.</ListItem>
+    <ListItem>Column filters reach the provider in <Code>request.Filter</Code>, with the cursor, so an API can filter as it pages. When a filter changes, the table drops the cursor and loads from the first page.</ListItem>
     <ListItem>When the parent re-renders, the added pages stay. To start over, call <Code>ReloadAsync()</Code>.</ListItem>
     <ListItem><Code>NextPrevious</Code> and <Code>LoadOnScroll</Code> also work with <Code>Items</Code>. The table then pages by row offset.</ListItem>
     <ListItem>A visible Load more button suits a list rather than a table. For one, use a <Anchor Href="docs/components/list-view">ListView</Anchor>.</ListItem>

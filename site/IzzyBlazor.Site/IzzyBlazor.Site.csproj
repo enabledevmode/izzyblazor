@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <!--
-    The documentation site: docs (/docs) and demos (/demos) in one Blazor Web App, built with
+    The documentation site: docs (/docs) and blocks (/blocks) in one Blazor Web App, built with
     IzzyBlazor. Pages render in static SSR; only Live examples open a circuit.
 
     The build runs DocsGen, which writes the API metadata (izzyblazor.api.json) from the library

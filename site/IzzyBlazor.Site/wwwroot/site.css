@@ -387,7 +387,7 @@
 .site-key-or { margin-inline: var(--ib-space-2); color: var(--ib-color-muted); font-size: var(--ib-text-sm); }
 
 /*
- * Docs and demos: the sidebar, content and outline centered as one group (as on Chakra's docs),
+ * Docs: the sidebar, content and outline centered as one group (as on Chakra's docs),
  * once the sidebar is a column (768px, AppSidebar's Md breakpoint). Widths match SiteWidths.cs.
  */
 @media (min-width: 48rem) {
@@ -408,7 +408,6 @@
   :is(.site-shell, .site-shell-home) > :is(.ib-shell-header, .ib-shell-footer) {
     padding-inline: max(var(--ib-space-6), round(down, var(--ib-shell-measure-pad), 1px));
   }
-  .site-shell-demos .site-article { padding-inline-end: var(--ib-space-6); }
   /* Home on wide screens: 32px at the sides, as the design's column has (D3, D4). The header keeps
      the docs' inset, so it doesn't move between pages. */
   @media (min-width: 64rem) {
@@ -424,8 +423,6 @@
   @media (min-width: 96rem) {
     .ib-shell.site-shell-docs { grid-template-columns: minmax(0, 1fr) auto minmax(0, 72rem) 15rem minmax(0, 1fr); }
   }
-  /* Demos have no outline: the frame gets its width. */
-  .ib-shell.site-shell-demos { grid-template-columns: minmax(0, 1fr) auto minmax(0, 87rem) minmax(0, 1fr); grid-template-areas: "banner banner banner banner" "header header header header" ". sidebar main ." "footer footer footer footer"; }
 }
 
 /* Pages: headings break the flow into sections. */
@@ -437,7 +434,7 @@
   margin-inline: auto;
   padding-block: var(--ib-space-8) var(--ib-space-16);
 }
-/* Phones: the docs and demos content keeps the page gutter (wider screens set it below). */
+/* Phones: the docs content keeps the page gutter (wider screens set it below). */
 :where(.site-shell) .site-article { padding-inline: var(--ib-space-4); }
 .site-article > h2 { margin-block-start: var(--ib-space-6); }
 .site-article > .ib-prevnext, .site-article > nav:last-child { margin-block-start: var(--ib-space-8); }
@@ -446,8 +443,6 @@
 .site-footer { width: 100%; }
 /* The footer's links wrap on a phone, rather than scrolling sideways as a horizontal NavMenu does. */
 .site-footer .ib-nav-horizontal { flex-wrap: wrap; overflow-x: visible; }
-
-/* Scenario links under a component in the demos sidebar. */
 
 /* Pictograms: an icon on a tile tinted with the accent. */
 .site-picto {
@@ -667,8 +662,8 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 /*
  * The example viewer: one row (Preview · Code tabs at the left; "Always Live" and any width or
  * mode switch at the right), then a box holding only the preview or the code, then the example's
- * note for its mode. On demos (no tabs) the row has the title, and the code box follows the
- * preview. The preview renders in the page, in the page's mode (ExampleViewer).
+ * note for its mode. An example with no source has no tabs: the row has its title. The preview
+ * renders in the page, in the page's mode (ExampleViewer).
  */
 .ex {
   display: grid;
@@ -757,13 +752,8 @@ html:has(.frame-no-scrollbar) { scrollbar-width: none; }
   .ex-below { grid-row: 4; }
 }
 
-/* Demos: hiding the code under the preview. */
-.ex:has(.ex-code-input:not(:checked)) .ex-source { display: none; }
-.ex-code-show, .ex-code-toggle:has(input:not(:checked)) .ex-code-hide { display: none; }
-.ex-code-toggle:has(input:not(:checked)) .ex-code-show { display: inline; }
-
-/* The code toggle and the width switch: buttons drawn around native inputs. */
-.ex-code-toggle, .ex-widths a {
+/* The width switch: links drawn as small buttons. */
+.ex-widths a {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -777,19 +767,12 @@ html:has(.frame-no-scrollbar) { scrollbar-width: none; }
   cursor: pointer;
   user-select: none;
 }
-.ex-code-toggle input, .ex-widths input {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-.ex-code-toggle:hover, .ex-widths a:hover { background: var(--ib-color-fill); color: var(--ib-color-on-surface); }
+.ex-widths a:hover { background: var(--ib-color-fill); color: var(--ib-color-on-surface); }
 .ex-widths a[aria-current] {
   background: var(--ib-color-fill-strong);
   color: var(--ib-color-on-surface);
 }
-.ex-code-toggle:has(input:focus-visible), .ex-widths a:focus-visible {
+.ex-widths a:focus-visible {
   outline: 2px solid var(--ib-color-focus);
   outline-offset: 1px;
 }
@@ -933,13 +916,13 @@ html:has(> body > .frame) body { margin: 0; }
   .site-search-foot { display: none; }
 }
 
-/* The header: the areas start 40px after the wordmark, so the brand reads apart from the four links
+/* The header: the areas start 40px after the wordmark, so the brand reads apart from the three links
    (24px apart); at the end, search, then 8px to GitHub, then 4px to the scheme switch. */
 /* SiteNav itself has no box (display: contents): the gap goes on its bar. Header gap 12px + item
    padding 12px + 16px = 40px. */
 .site-header-nav > .ib-site-nav-bar { margin-inline-start: var(--ib-space-4); }
 
-/* The version, at the top of the docs and demos sidebars: the version and "Latest" at the start of
+/* The version, at the top of the docs sidebar: the version and "Latest" at the start of
    the button, the chevron at its end; in the menu, "Latest" muted at the end of its item. */
 .site-version-trigger { justify-content: space-between; margin-block-end: var(--ib-space-3); }
 .site-version-trigger .ib-btn-label { display: flex; flex: 1 1 auto; align-items: center; gap: var(--ib-space-2); }

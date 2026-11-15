@@ -1,9 +1,10 @@
 @inject ApiMetadata Api
 
 @* AppShell's Overview, written by hand after the selection and form field Overviews: the parts and
-   variants, each a page of its own in a frame with a phone width, then bar colors and the brand as
-   code. Width and scrolling, and asides, are topics of their own (Docs/Topics/AppShell*Topic).
-   Parts, Accessibility and See also come from the metadata and the doc comments; See also adds the demos. *@
+   variants (with a list page and a dashboard), each a page of its own in a frame with a phone
+   width, then bar colors and the brand as code, and a whole app. Width and scrolling, and asides,
+   are topics of their own (Docs/Topics/AppShell*Topic). Parts, Accessibility and See also come
+   from the metadata and the doc comments. *@
 
 <TextBlock>An app shell is the frame around every page of an app: a header, a sidebar and the main area, and optionally an aside and a footer. It suits apps whose pages share the same navigation.</TextBlock>
 
@@ -35,17 +36,25 @@
 </Prose>
 <ExampleViewer Example="app-shell-variants" WidthSwitch />
 <TextBlock>On a <Code>Canvas</Code> page, put content in <Anchor Href="docs/components/card">Cards</Anchor>. A filled area placed directly on the tinted background looks like a hole in the page. To remove the lines between the parts when their colors already tell them apart, set <Code>Dividers="false"</Code>.</TextBlock>
+<TextBlock>A list page suits <Code>Tinted</Code>: the table sits on white with no card around it, and the tinted sidebar sets it apart.</TextBlock>
+<ExampleViewer Example="app-shell-rules-list" WidthSwitch />
+<TextBlock>A dashboard suits <Code>Canvas</Code>, with each panel in a card.</TextBlock>
+<ExampleViewer Example="app-shell-dashboard" WidthSwitch />
 
 <Heading Level="2">Bars and colors</Heading>
 <TextBlock>Each part can have its own background or color scheme, such as a dark sidebar in a light app. Set <Code>Bg</Code> or <Code>ColorScheme</Code> on the part.</TextBlock>
 <Code Block Language="razor">@Bars</Code>
 <TextBlock>The header stays in view as the page scrolls, and the footer scrolls away. To change either, set <Code>Sticky</Code> on <Code>AppHeader</Code> or <Code>AppFooter</Code>.</TextBlock>
-<TextBlock>Text on a <Code>Bg</Code> uses the color's matching text color when it has one. Everything inside a part with a <Code>ColorScheme</Code> follows that scheme, its menus included. The <Anchor Href="demos/app-sidebar/full-height">full-height sidebar demo</Anchor> has a dark sidebar in a light app.</TextBlock>
+<TextBlock>Text on a <Code>Bg</Code> uses the color's matching text color when it has one. Everything inside a part with a <Code>ColorScheme</Code> follows that scheme, its menus included. The <Anchor Href="docs/components/app-sidebar#ex-app-sidebar-full-height">full-height sidebar</Anchor> on the AppSidebar page is dark in a light app.</TextBlock>
 
 <Heading Level="2">The brand</Heading>
 <TextBlock>The brand is the app's name in the header, with an icon or logo before it. Add an <Code>AppBrand</Code> and set <Code>Icon</Code> or <Code>Logo</Code>. To link it home, set <Code>Href</Code>; to show only a logo that already spells the name, set <Code>HideLabel</Code>.</TextBlock>
 <Code Block Language="razor">@Brand</Code>
 <TextBlock>The name stays on one line. On a narrow screen it's cut short with an ellipsis rather than pushing the header's buttons off. A sidebar with no <Code>SidebarHeader</Code> shows the brand in its drawer's top row too.</TextBlock>
+
+<Heading Level="2">A whole app</Heading>
+<TextBlock>A store's operations dashboard puts the shell around a full page of components: charts, a form, a data grid and an agenda. Its range switch, sorting, paging and sidebar are links, so every control works on a static page.</TextBlock>
+<ExampleViewer Example="home-store" WidthSwitch />
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The shell's "Skip to content" link has no parameter. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>. The sidebar's names are on the <Anchor Href="docs/components/app-sidebar#labels-and-localization">AppSidebar</Anchor> page.</TextBlock>

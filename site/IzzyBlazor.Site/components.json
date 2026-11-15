@@ -1,5 +1,5 @@
 // The site's registry: every documented component's id (its URL), category and one-line summary,
-// the parts documented on its page, and its examples and demo scenarios. Navigation, the
+// the parts documented on its page, and its examples. Navigation, the
 // Components index and cross-links read it; the API metadata (izzyblazor.api.json) supplies the
 // rest. Every public component is either listed here or a part of one that is (a test checks).
 //
@@ -143,12 +143,9 @@
             "static": "Tiles move in place, and the form posts the layout when it's submitted.",
             "interactive": "Tiles move in place, and `@bind-State` gets the new layout after each move."
           } },
-        { "id": "tile-layout-saved-layout", "title": "A saved layout", "lead": "To show a layout someone arranged, pass it as `State`. It places and sizes each tile by its `Id`, over the tile's own values.", "after": ["`ToString` writes a `TileLayoutState` as a short string, for a cookie or a database column, and `TileLayoutState.Parse` reads it back.", "Tiles the state doesn't name keep their own place, and entries for tiles that aren't there are ignored."] }
-      ],
-      "scenarios": [
-        { "id": "store-overview", "title": "A dashboard each person arranges", "member": "Editable",
-          "description": "A store's overview in an app shell: four figures, revenue by channel with its Download button in the tile's header, top products, visitors and recent orders. Edit layout turns on editing, with the grid outlined; tiles drag and resize, and their handles' menus move them. Done saves the layout (here in a cookie), Cancel drops the changes and Reset layout goes back to the default. With JavaScript off each move posts the form.",
-          "example": { "id": "tile-layout-store", "title": "Store overview", "height": 980, "page": true } }
+        { "id": "tile-layout-saved-layout", "title": "A saved layout", "lead": "To show a layout someone arranged, pass it as `State`. It places and sizes each tile by its `Id`, over the tile's own values.", "after": ["`ToString` writes a `TileLayoutState` as a short string, for a cookie or a database column, and `TileLayoutState.Parse` reads it back.", "Tiles the state doesn't name keep their own place, and entries for tiles that aren't there are ignored."] },
+        { "id": "tile-layout-store", "title": "A dashboard each person arranges", "height": 980, "page": true, "widthSwitch": true,
+          "lead": "To let people arrange a dashboard and keep it, turn `Editable` and `ShowGrid` on from an Edit layout button, and save `State` when they press Done. Cancel puts the saved layout back, and Reset layout goes back to the default.", "after": ["On static pages the buttons post the form, with the layout in it, and with JavaScript off each move posts it too. This example keeps the layout in a cookie; an app would save it with the user."] }
       ]
     },
 
@@ -175,16 +172,48 @@
               "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
             } },
-        { "id": "app-shell-variants", "title": "Variants", "height": 400, "page": true }
+        { "id": "app-shell-variants", "title": "Variants", "height": 400, "page": true },
+        { "id": "app-shell-rules-list", "title": "Rules", "height": 620, "page": true,
+            "notes": {
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
+            } },
+        { "id": "app-shell-dashboard", "title": "Dashboard", "height": 600, "page": true,
+            "notes": {
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
+            } },
+        { "id": "home-store", "title": "Northwind store", "height": 720, "page": true,
+            "notes": {
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. The range switch, sorting and paging are links and work as they are.",
+              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. The chart's tooltips and the grid's keyboard handling come from IzzyBlazor's script."
+            } }
       ],
       "topics": [
         {
           "id": "width-and-scrolling", "title": "Width and scrolling", "summary": "The shell either centers a reading column or fills the window, with only the main area scrolling.", "members": ["ContentWidth", "ScrollMode", "AppHeader.ContentWidth", "AppMain.ContentWidth", "AppFooter.ContentWidth"],
-          "examples": [], "scenarios": ["reading-column", "desktop-app-scrolling"]
+          "examples": [
+            { "id": "app-shell-reading", "title": "Article", "height": 640, "page": true,
+            "notes": {
+              "noscript": "At phone width the menu opens the links in a native popover, and focus stays on the button. Subscribe posts the form, and the page reloads.",
+              "static": "Opening the menu moves focus to the first link. Subscribe posts without a full reload.",
+              "interactive": "Subscribe checks the email address and runs C#, and nothing is posted."
+            } },
+            { "id": "app-shell-inbox", "title": "Inbox", "height": 520, "page": true,
+            "notes": {
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
+            } }
+          ]
         },
         {
           "id": "aside", "title": "Asides", "summary": "An aside is a column beside the main area, for an outline or a panel of the page's own. On phones it hides, moves below the main area, or opens as a drawer.", "members": ["AppAside", "AsideToggle"],
           "examples": [
+            { "id": "app-shell-docs", "title": "Docs article", "height": 640, "page": true,
+            "notes": {
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
+            } },
             { "id": "app-shell-detail-panel", "title": "A panel for the chosen row", "height": 520, "page": true },
             { "id": "app-shell-aside-drawer", "title": "A panel the user opens", "height": 420, "page": true,
           "notes": {
@@ -193,51 +222,6 @@
             } }
           ]
         }
-      ],
-      "scenarios": [
-        { "id": "dashboard", "title": "Dashboard on a tinted canvas", "member": "Variant",
-          "description": "An analytics overview made of stat cards and panels. Canvas tints the main area so each white card has an edge; at phone width the sidebar becomes a drawer behind the menu button.",
-          "example": { "id": "app-shell-dashboard", "title": "Dashboard", "height": 600, "page": true,
-            "notes": {
-              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
-            } } },
-        { "id": "store-operations", "title": "A store's operations dashboard", "member": "Variant",
-          "description": "The home page's app: stat tiles with sparklines, a stacked bar chart with a range switch, a discount form, top products with ratings, a grid of recent orders, the next three days' agenda, a goal gauge and an activity timeline. The range switch, sorting, paging and the sidebar are links, so every control works on a static page.",
-          "example": { "id": "home-store", "title": "Northwind store", "height": 720, "page": true,
-            "notes": {
-              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. The range switch, sorting and paging are links and work as they are.",
-              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. The chart's tooltips and the grid's keyboard handling come from IzzyBlazor's script."
-            } } },
-        { "id": "full-width-table", "title": "Full-width table", "member": "Variant",
-          "description": "A list page where the table is the page. In Tinted, the default, the sidebar has the page tint and the table sits on white with no card around it. Sorting and paging are links, so they work with JavaScript off.",
-          "example": { "id": "app-shell-rules-list", "title": "Rules", "height": 620, "page": true,
-            "notes": {
-              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
-            } } },
-        { "id": "docs-outline", "title": "Docs with an outline", "member": "Variant",
-          "description": "A documentation article on one white page (Flat). Its headings list themselves in OnThisPage in the AppAside from 1024px up, and on phones the sidebar's drawer opens from the right, where the menu button moves.",
-          "example": { "id": "app-shell-docs", "title": "Docs article", "height": 640, "page": true,
-            "notes": {
-              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
-            } } },
-        { "id": "reading-column", "title": "Reading column", "member": "ContentWidth",
-          "description": "A blog article with no sidebar. ContentWidth centers the header, the article and the footer on one column so their edges line up, while the bars, their lines and a full-bleed band stay full width.",
-          "example": { "id": "app-shell-reading", "title": "Article", "height": 640, "page": true,
-            "notes": {
-              "noscript": "At phone width the menu opens the links in a native popover, and focus stays on the button. Subscribe posts the form, and the page reloads.",
-              "static": "Opening the menu moves focus to the first link. Subscribe posts without a full reload.",
-              "interactive": "Subscribe checks the email address and runs C#, and nothing is posted."
-            } } },
-        { "id": "desktop-app-scrolling", "title": "Scrolling like a desktop app", "member": "ScrollMode",
-          "description": "A mail client. ScrollMode.Main makes the shell fill the window and scrolls only the message list, so the header, the folders and the footer never move.",
-          "example": { "id": "app-shell-inbox", "title": "Inbox", "height": 520, "page": true,
-            "notes": {
-              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
-            } } }
       ]
     },
 
@@ -256,33 +240,23 @@
           "notes": {
               "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
-            } }
-      ],
-      "scenarios": [
-        { "id": "icon-rail", "title": "Collapsible icon rail", "member": "Collapsible",
-          "description": "On wide screens the menu button shrinks the sidebar to an icon rail, with labels as tooltips and the account pinned in SidebarFooter. Inset raises the work area as one panel in a tinted frame.",
-          "example": { "id": "app-sidebar-icon-rail", "title": "Icon rail", "height": 520, "page": true,
-            "notes": {
-              "noscript": "The menu button collapses the sidebar with a checkbox and CSS, and a reload forgets it. A group opened in the rail stays narrow, so its items don't show.",
-              "static": "The choice is saved in a cookie the server reads, so the sidebar stays collapsed after a reload and on the next page. Opening a group in the rail expands the sidebar."
-            } } },
-        { "id": "full-height", "title": "Full-height dark sidebar", "member": "FullHeight",
-          "description": "A hosting dashboard whose sidebar runs the full height of the window, with the brand in SidebarHeader lined up with the header beside it. ColorScheme makes the sidebar dark in a light app.",
-          "example": { "id": "app-sidebar-full-height", "title": "Full-height sidebar", "height": 600, "page": true,
-            "notes": {
-              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
-            } } },
-        { "id": "menu-panel", "title": "Menu panel with header links", "member": "SmallScreen",
-          "description": "A guide with site links in the header and chapters in the sidebar. At phone width the sidebar opens as a panel under the header, with the header's links at its top so there is one menu, and the menu button becomes its close button.",
-          "example": { "id": "app-sidebar-panel", "title": "Guide", "height": 580, "page": true,
+            } },
+        { "id": "app-sidebar-panel", "title": "Guide", "height": 580, "page": true,
             "notes": {
               "noscript": "At phone width the menu button and its close button are links, so the panel opens and closes, but focus doesn't move and Escape does nothing.",
               "static": "The panel opens without changing the URL, focus moves into it, and Escape closes it."
-            } } },
-        { "id": "collapsed-from-csharp", "title": "Collapsed from C#", "member": "Collapsed",
-          "description": "A notes app with a focus-mode button. @bind-Collapsed follows the icon rail on interactive pages, and C# can collapse or expand it.",
-          "example": { "id": "app-sidebar-bound-collapse", "title": "Focus mode", "height": 440, "page": true, "modes": ["interactive"] } }
+            } },
+        { "id": "app-sidebar-icon-rail", "title": "Icon rail", "height": 520, "page": true,
+            "notes": {
+              "noscript": "The menu button collapses the sidebar with a checkbox and CSS, and a reload forgets it. A group opened in the rail stays narrow, so its items don't show.",
+              "static": "The choice is saved in a cookie the server reads, so the sidebar stays collapsed after a reload and on the next page. Opening a group in the rail expands the sidebar."
+            } },
+        { "id": "app-sidebar-bound-collapse", "title": "Focus mode", "height": 440, "page": true, "modes": ["interactive"] },
+        { "id": "app-sidebar-full-height", "title": "Full-height sidebar", "height": 600, "page": true,
+            "notes": {
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer with CSS. Its close button or a tap beside it closes the drawer. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the URL, and focus moves into it. Its close button, Escape or a tap beside it closes the drawer and returns focus to the menu button. Following a link closes it too."
+            } }
       ]
     },
 
@@ -299,16 +273,12 @@
           "notes": {
             "noscript": "At phone width the menu button opens the links in a native popover, and focus stays on the button.",
             "static": "Opening the panel moves focus to the first link, and following a link closes the panel."
-          } }
-      ],
-      "scenarios": [
-        { "id": "content-site", "title": "Content site", "member": "Breakpoint",
-          "description": "A site with no sidebar: a hero and a band of project cards on a 72rem column. From 768px up SiteNav is a row of links in the header; below it a menu button opens the same links in a panel, with SiteNavFooter's button under them.",
-          "example": { "id": "site-nav-content-site", "title": "Content site", "height": 860, "page": true,
+          } },
+        { "id": "site-nav-content-site", "title": "Content site", "height": 860, "page": true,
             "notes": {
               "noscript": "At phone width the menu button opens the links in a native popover, and focus stays on the button.",
               "static": "Opening the panel moves focus to the first link, and following a link closes the panel."
-            } } }
+            } }
       ]
     },
 
@@ -371,11 +341,6 @@
       "examples": [
         { "id": "prose-usage", "title": "HTML from Markdown", "lead": "To style plain HTML you trust, such as rendered Markdown, put it inside a `Prose`. Its headings, links, lists, quotes, code and tables take the library's look.", "after": ["For HTML people write, such as a rich text field, use `RichText`, which sanitizes it first."] },
         { "id": "prose-sizes", "title": "Sizes", "lead": "Prose comes in three text sizes: `Sm` for asides, `Md` (the default), and `Lg` for long reading. To choose one, set `Size`." }
-      ],
-      "scenarios": [
-        { "id": "release-notes", "title": "Release notes", "member": "Size",
-          "description": "A changelog post: the title, byline and links are components, and the body is HTML from Markdown, set large for reading in an article-width column.",
-          "example": { "id": "prose-release-notes", "title": "Release notes", "height": 1100, "page": true } }
       ]
     },
 
@@ -420,14 +385,6 @@
           "notes": {
             "noscript": "There's no copy button. Selecting the code still leaves the line numbers out."
           } }
-      ],
-      "scenarios": [
-        { "id": "install-guide", "title": "Install guide", "member": "Title",
-          "description": "A setup page in a docs site, centered at a reading width: numbered steps, a command with its own copy button, and files named in their header with the lines to change highlighted.",
-          "example": { "id": "code-install-guide", "title": "Install guide", "height": 1300, "page": true,
-            "notes": {
-              "noscript": "The copy buttons don't appear, but the command and the code can still be selected."
-            } } }
       ]
     },
 
@@ -445,11 +402,6 @@
         { "id": "diff-every-line", "title": "Showing unchanged lines", "lead": "A short text reads better whole. To show every unchanged line, set `Fold=\"false\"`; to leave the line numbers out, set `LineNumbers=\"false\"`." },
         { "id": "diff-computed", "title": "A diff computed first", "lead": "To show a diff you computed first, such as to count the changes, pass it to `Lines`. It can come from `TextDiff.Compare` or elsewhere." },
         { "id": "diff-notes", "title": "No changes, or too many", "lead": "To change the note shown when the texts are the same, set `SameText`. To change the one shown when they differ by more than `MaxChanges` lines, set `TooManyText`." }
-      ],
-      "scenarios": [
-        { "id": "version-history", "title": "Version history", "member": "Layout",
-          "description": "A ruleset's versions down the side and the one chosen compared with the one before it, unified or side by side. The version and the layout are links in the URL.",
-          "example": { "id": "diff-history", "title": "Version history", "height": 900, "page": true } }
       ]
     },
 
@@ -540,6 +492,7 @@
             "static": "Blazor's enhanced form handling posts it without a full reload.",
             "interactive": "The form validates and runs OnValidSubmit over the circuit."
           } },
+        { "id": "button-multi-submit", "title": "Publish, save or discard", "height": 540, "page": true },
         { "id": "button-links", "title": "Links that look like buttons" },
         { "id": "button-sizes-icons", "title": "Sizes and icons" },
         { "id": "button-states", "title": "Loading and disabled" },
@@ -556,14 +509,6 @@
             "static": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
             "interactive": "The buttons are the same links. The component follows the URL and keeps no count of its own."
           } }
-      ],
-      "scenarios": [
-        { "id": "several-submit-buttons", "title": "Several submit buttons", "member": "Name",
-          "description": "One form, three actions: each submit button posts its own Name and Value, so a single handler knows which was pressed. Works with JavaScript off.",
-          "example": { "id": "button-multi-submit", "title": "Publish, save or discard", "height": 540, "page": true } },
-        { "id": "toolbar", "title": "Editor toolbar", "member": "Variant",
-          "description": "A document toolbar in a Toolbar: a joined group of formatting buttons, icon buttons with labels, and the main action on the right. At phone width what doesn't fit moves into the … menu, with JavaScript off too.",
-          "example": { "id": "button-toolbar", "title": "Editor toolbar", "height": 440, "page": true } }
       ]
     },
 
@@ -697,7 +642,8 @@
             "static": "IzzyBlazor's script measures the widths and adds the keys: Tab reaches the toolbar once, and the arrow keys move along it."
           } },
         { "id": "toolbar-regions", "title": "Start, center and end" },
-        { "id": "toolbar-filters", "title": "Other controls in a toolbar" }
+        { "id": "toolbar-filters", "title": "Other controls in a toolbar" },
+        { "id": "toolbar-app-header", "title": "Mail app header", "height": 320, "page": true }
       ],
       "topics": [
         {
@@ -726,11 +672,6 @@
           } }
           ]
         }
-      ],
-      "scenarios": [
-        { "id": "app-header", "title": "In an app header",
-          "description": "An app header's actions in a Toolbar that fills the free space: on phones they move into the … menu, and Compose, with the highest priority, stays longest.",
-          "example": { "id": "toolbar-app-header", "title": "Mail app header", "height": 320, "page": true } }
       ]
     },
 
@@ -826,16 +767,6 @@
             "static": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
             "interactive": "NavigateTo changes the URL without a full reload."
           } }
-      ],
-      "scenarios": [
-        { "id": "sign-up", "title": "Sign-up form", "member": "OnValidSubmit",
-          "description": "A complete sign-up: labels, required marks, lengths and input types come from the model's DataAnnotations, the server checks the rest, such as the terms, and every control posts with JavaScript off.",
-          "example": { "id": "form-signup", "title": "Create your account", "height": 1100, "page": true,
-            "notes": {
-              "noscript": "The browser checks the required fields and lengths before posting, with its default messages. The server checks the rest, such as the terms, and the page reloads with its messages.",
-              "static": "The browser's checks use your model's messages, and the form posts without a full reload. The password gets a show/hide button, and the count under About you follows the typing.",
-              "interactive": "Each field is checked when it changes, and Create account runs C# without a full reload."
-            } } }
       ]
     },
 
@@ -1177,11 +1108,6 @@
             "interactive": "Each switch saves at once, with no button."
           } },
         { "id": "switch-states", "title": "Sizes and disabled", "lead": "To line up with other controls, set `Size`. A `Disabled` switch doesn't post." }
-      ],
-      "scenarios": [
-        { "id": "notification-settings", "title": "Notification settings", "member": "ControlPosition",
-          "description": "A settings page: switches (and one checkbox) at the end of each row with hints under their labels, grouped in fieldsets with dividers and section icons, and one form that saves them all. Every switch posts like a checkbox, so it works with JavaScript off.",
-          "example": { "id": "switch-notification-settings", "title": "Notification settings", "height": 940, "page": true } }
       ]
     },
 
@@ -1571,16 +1497,6 @@
             "static": "Filters apply as the user types, without a full reload; the sort stays and the table goes back to page 1.",
             "interactive": "Filters apply through Blazor's navigation, and the table follows the URL."
           } }
-      ],
-      "scenarios": [
-        { "id": "order-list", "title": "Filtered order list", "member": "Live",
-          "description": "An orders page: a search, a status menu, a date range and a checkbox above a sortable, paged table. The filters live in the URL, so a filtered view can be bookmarked, and filtering keeps the sort and starts again at page 1.",
-          "example": { "id": "filter-form-order-list", "title": "Orders", "height": 680, "page": true,
-            "notes": {
-              "noscript": "Press Enter or Apply to filter. Headers and page numbers are links; filtering keeps the sort and goes back to page 1.",
-              "static": "Filters apply as the user types, without a full reload.",
-              "interactive": "Filters apply through Blazor's navigation, and the table follows the URL."
-            } } }
       ]
     },
 
@@ -1931,17 +1847,13 @@
           } },
         { "id": "tabs-closable", "title": "Closing and adding tabs", "lead": "To put a close button on each tab, handle `OnClose`, and remove the tab from your list there; to keep it, such as after asking about unsaved changes, don't. To show an add button after the tabs, handle `OnAdd`. `Closable=\"false\"` keeps a tab open.", "modes": ["interactive"] },
         { "id": "tabs-closable-links", "title": "Closing and adding with links", "lead": "On static pages, set each `Tab`'s `CloseHref` and the tabs' `AddHref` to links that drop or add the tab, here by keeping the open invoices in the URL." },
-        { "id": "tabs-padding", "title": "Panel padding", "lead": "To pad every panel on all sides, set `ContentPadding`. To run a table edge to edge in one panel, set that `Tab`'s `ContentPadding=\"0\"`." }
-      ],
-      "scenarios": [
-        { "id": "form-tabs", "title": "Tabs in a form", "member": "Selected",
-          "description": "Account details split across two tabs that still post as one form: after a failed save, the first tab with errors opens and each tab counts its own. With JavaScript off there are no tabs, and both sections show, one under the other.",
-          "example": { "id": "tabs-account-form", "title": "Account details", "height": 680, "page": true,
+        { "id": "tabs-account-form", "title": "Account details", "height": 680, "page": true,
             "notes": {
               "noscript": "There are no tabs: both sections show, one under the other. Save posts the form, and the page reloads with the server's messages.",
               "static": "Save posts without a full reload, and the Address tab opens with a count of its errors.",
               "interactive": "Save runs C# and opens the Address tab; each tab's count follows its errors as the user fixes them."
-            } } }
+            } },
+        { "id": "tabs-padding", "title": "Panel padding", "lead": "To pad every panel on all sides, set `ContentPadding`. To run a table edge to edge in one panel, set that `Tab`'s `ContentPadding=\"0\"`." }
       ]
     },
 
@@ -2007,14 +1919,10 @@
       "id": "stepper", "icon": "ListOrdered", "name": "Stepper", "category": "Navigation", "summary": "Shows where the user is in a process of steps.", "keywords": ["wizard", "steps"], "parts": ["Step"],
       "examples": [
         { "id": "stepper-usage", "title": "The current step", "lead": "Put a `Step` for each step in a `Stepper`, and set `Current`, counting from 1; the steps before it show as done. To link back to a finished step, set its `Href`." },
+        { "id": "stepper-checkout", "title": "Checkout", "height": 680, "page": true },
         { "id": "stepper-vertical", "title": "Vertical, with descriptions", "lead": "To keep the steps in a column on every screen, set `Orientation` to `Orientation.Vertical`. A `Step` can have a `Description`, and an `Icon` that shows until the step is done." },
         { "id": "stepper-sizes", "title": "Sizes", "lead": "To scale the markers and text, set `Size`." },
         { "id": "stepper-optional", "title": "A step that only sometimes applies", "lead": "To leave out a step that doesn't apply this time, such as a gift message, set `Visible` to false. The steps after it keep their numbers in order." }
-      ],
-      "scenarios": [
-        { "id": "checkout", "title": "Checkout", "member": "Current",
-          "description": "A four-step checkout with the step in the URL: each step's form posts and the server sends the browser on to the next, finished steps link back, and an order summary sits beside it. Works with JavaScript off.",
-          "example": { "id": "stepper-checkout", "title": "Checkout", "height": 680, "page": true } }
       ]
     },
 
@@ -2060,16 +1968,12 @@
           "notes": {
             "noscript": "The close button hides the banner on this page only: with JavaScript off, nothing is remembered. If it was closed in another render mode first, the cookie keeps it out of this one too.",
             "static": "Closing writes a cookie, and the server leaves the banner out of later pages until the browser closes."
-          } }
-      ],
-      "scenarios": [
-        { "id": "stays-dismissed", "title": "Banner that stays dismissed", "member": "Remember",
-          "description": "A maintenance notice above a small app: close it, move between pages and reload, and the server leaves it out for a year, until a new notice gets a new key. With JavaScript off it closes, but comes back on the next page.",
-          "example": { "id": "banner-remembered", "title": "Maintenance notice", "height": 400, "page": true,
+          } },
+        { "id": "banner-remembered", "title": "Maintenance notice", "height": 400, "page": true,
             "notes": {
               "noscript": "Closing hides the banner on this page only: it's back after Exports or Billing. If it was closed in another render mode first, the cookie keeps it out of this one too; Post a new notice brings it back.",
               "static": "Closing writes a cookie for a year, so the server leaves it out of every later page."
-            } } }
+            } }
       ]
     },
 
@@ -2089,6 +1993,12 @@
             "static": "The post updates the page without a full reload. The success toast closes after 5 seconds; the error stays until closed.",
             "interactive": "ToastService adds the toast in the browser straight away, with no post."
           } },
+        { "id": "toast-region-inbox", "title": "Archive with undo", "height": 520, "page": true,
+            "notes": {
+              "noscript": "Archive posts and redirects; Undo is a link to the URL without that conversation.",
+              "static": "Archive posts without a full reload, and the toast closes itself after a few seconds.",
+              "interactive": "Archive and Undo run C# without a full reload."
+            } },
         { "id": "toast-region-undo", "title": "An action on the toast", "lead": "A `ToastAction` puts a button on the toast. On static pages it follows its `Href`; on interactive pages it runs its `OnClick`.",
           "notes": {
             "noscript": "Undo is a link to this page with ?restored=1, since there's no connection to run C# over.",
@@ -2100,16 +2010,6 @@
             "noscript": "The post redirects, and the toast follows to the next page in a short-lived cookie.",
             "static": "The post redirects, the toast follows to the next page, and it closes itself after 5 seconds."
           } }
-      ],
-      "scenarios": [
-        { "id": "inbox-undo", "title": "Inbox with undo",
-          "description": "An inbox where each Archive button posts a form and a toast offers Undo. On static pages the post redirects with the archived ids in the URL, the toast follows, and Undo is a link; on interactive pages Undo runs C#. Works with JavaScript off.",
-          "example": { "id": "toast-region-inbox", "title": "Archive with undo", "height": 520, "page": true,
-            "notes": {
-              "noscript": "Archive posts and redirects; Undo is a link to the URL without that conversation.",
-              "static": "Archive posts without a full reload, and the toast closes itself after a few seconds.",
-              "interactive": "Archive and Undo run C# without a full reload."
-            } } }
       ]
     },
 
@@ -2166,11 +2066,6 @@
             "static": "Save posts the form without a full reload.",
             "interactive": "Save runs C# on the server, and nothing is posted." } },
         { "id": "card-projects", "title": "Cards in a grid", "lead": "To fit as many cards to a row as there's room for, put them in a `Grid` with `MinChildWidth`. Cards in a row share its height, and each `CardFooter` stays at the bottom." }
-      ],
-      "scenarios": [
-        { "id": "profile-card", "title": "Profile card",
-          "description": "A team member's card: a cover, an avatar with an online dot, a role badge, contact details in a DescriptionList, skills as tags and two actions in the footer.",
-          "example": { "id": "card-profile", "title": "Team member", "height": 600, "page": true } }
       ]
     },
 
@@ -2180,11 +2075,6 @@
         { "id": "stat-usage", "title": "Trends", "lead": "Set `Label` and `Value`. A trend shows which way the figure moved and by how much: set `Trend` for the direction and `Change` for the amount. When a drop is good news, such as for costs, set `ChangeStatus` to color it as good news." },
         { "id": "stat-sizes", "title": "Sizes", "lead": "To change the text size of the label and the figure, set `Size`." },
         { "id": "stat-spark", "title": "A sparkline", "lead": "To show the figure's recent history under it, give `Sparkline` the values, such as the last twelve weeks. `SparklineType` draws them as a line, an area or bars. Screen readers hear it as an image named by `SparklineLabel`, with its first, last, lowest and highest values formatted by `SparklineFormat`; give the period there, as \"Weekly revenue, last 12 weeks\" does." }
-      ],
-      "scenarios": [
-        { "id": "store-dashboard", "title": "Store dashboard", "member": "Trend",
-          "description": "Stat cards for revenue, orders, refunds and conversion over a monthly goal and top products. The period is a link, so it works in every mode, and refunds going down shows as good news.",
-          "example": { "id": "stat-dashboard", "title": "Store overview", "height": 600, "page": true } }
       ]
     },
 
@@ -2455,16 +2345,6 @@
             "interactive": "Retry asks again. Once the API is back, the table reloads." } }
           ]
         }
-      ],
-      "scenarios": [
-        { "id": "activity-log", "title": "Activity log", "member": "Paging",
-          "description": "An admin's activity log from an API that pages by cursor, with no total: the next page loads as you scroll, and the column filters go to the API with the cursor.",
-          "example": { "id": "table-activity-log", "title": "Activity", "height": 720, "page": true,
-            "notes": {
-              "noscript": "Load more is a link: the page reloads with one more page of rows. The filters apply with their button.",
-              "static": "Load more is a link, swapped in without a full reload.",
-              "interactive": "Scroll down: each page loads under the last as its last row comes into view. A filter starts the list over."
-            } } }
       ]
     },
 
@@ -3347,17 +3227,14 @@
         { "feature": "The moves bound to C#", "member": "Items" }
       ],
       "examples": [
-        { "id": "drop-zone-group-usage", "title": "A board", "lead": "Put a `ListView` with a `Zone` in the group for each column, anywhere in its layout. The group holds the items in `@bind-Items`, and `ZoneOf` returns the zone each one is in.", "after": ["To show a list's items as cards, set `Cards` on its `ListView`.", "On interactive pages, `@bind-Items` keeps the order, and `OnMove` (with `FromZone` and `ToZone`) is where you save a move.", "On static pages, give the group a `Name` and pass the posted `ListOrder` back as `Order`. `SubmitOnMove` posts each move, and `Order.Arrange` gives each item's zone and place to save.", "To limit what a zone accepts, set `Accepts` and `MaxItems`. The Kanban board demo shows them, with cards that drag from anywhere."],
+        { "id": "drop-zone-group-usage", "title": "A board", "lead": "Put a `ListView` with a `Zone` in the group for each column, anywhere in its layout. The group holds the items in `@bind-Items`, and `ZoneOf` returns the zone each one is in.", "after": ["To show a list's items as cards, set `Cards` on its `ListView`.", "On interactive pages, `@bind-Items` keeps the order, and `OnMove` (with `FromZone` and `ToZone`) is where you save a move.", "On static pages, give the group a `Name` and pass the posted `ListOrder` back as `Order`. `SubmitOnMove` posts each move, and `Order.Arrange` gives each item's zone and place to save.", "To limit what a zone accepts, set `Accepts` and `MaxItems`."],
           "notes": {
             "noscript": "Each move in a handle's menu (Move to and a column, or up and down) posts the form, and the page reloads with the task moved and its handle focused.",
             "static": "Drag a handle into another column, or use its menu: the task moves, the move is announced, and the form posts.",
             "interactive": "Drag a handle into another column, or use its menu: C# moves the task at once and the move is announced."
-          } }
-      ],
-      "scenarios": [
-        { "id": "kanban", "title": "Kanban board", "member": "SubmitOnMove",
-          "description": "A team's board in an app shell: four columns with counts, In progress limited to three, and cards with a label, a due date and an owner. Cards drag from anywhere, and the column under the pointer opens a space where the card will land. A click opens a card beside the board (a link), and every move saves, so the link shows the board as it was left. The ⋯ menu has Assign to me and Archive, which post the form on static pages.",
-          "example": { "id": "drop-zone-group-kanban", "title": "Spring conference", "height": 760, "page": true } }
+          } },
+        { "id": "drop-zone-group-kanban", "title": "A Kanban board", "height": 760, "page": true, "widthSwitch": true,
+          "lead": "To cap how many items a zone holds, set `MaxItems` on its `ListView`: In progress takes three cards at most. `DragWholeItem` lets a card drag from anywhere on it, and `ItemHref` opens it on a click." }
       ]
     },
 

@@ -8,12 +8,11 @@ namespace IzzyBlazor.Site.Tests;
 public partial class SearchTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
     [Fact]
-    public void The_index_has_every_component_article_and_demo()
+    public void The_index_has_every_component_and_article()
     {
         var hrefs = site.Search.Entries.Select(e => e.Href).ToHashSet();
         var missing = site.Registry.Components.Select(Registry.OverviewHref)
             .Concat(site.Registry.Components.SelectMany(c => c.Parts.Select(p => site.Registry.ApiHref(p, null)!)))
-            .Concat(site.Registry.Components.SelectMany(c => c.Scenarios.Select(s => Registry.ScenarioHref(c, s))))
             .Concat(Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf)))
             .Where(href => !hrefs.Contains(href))
             .ToList();

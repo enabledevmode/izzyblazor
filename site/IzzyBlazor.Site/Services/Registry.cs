@@ -5,8 +5,8 @@ namespace IzzyBlazor.Site.Services;
 
 /// <summary>
 /// components.json, the hand-kept list the site is organized by: each documented component's id,
-/// category and one-line summary, the parts documented on its page, its examples and demo
-/// scenarios, and what works in each mode feature by feature.
+/// category and one-line summary, the parts documented on its page, its examples, and what works
+/// in each mode feature by feature.
 /// </summary>
 public sealed class Registry
 {
@@ -45,7 +45,7 @@ public sealed class Registry
         // A part on two pages (ToolbarSplitButton: SplitButton's and Toolbar's) belongs to the first, where its API is.
         _byPart = AllComponents.SelectMany(c => c.Parts.Select(p => (Part: p, Component: c))).DistinctBy(x => x.Part).ToDictionary(x => x.Part, x => x.Component, StringComparer.Ordinal);
         _examples = AllComponents
-            .SelectMany(c => c.AllExamples.Concat(c.Scenarios.Select(s => s.Example)).Select(e => (Component: c, Example: e)))
+            .SelectMany(c => c.AllExamples.Select(e => (Component: c, Example: e)))
             .ToDictionary(x => x.Example.Id, StringComparer.Ordinal);
     }
 
@@ -100,11 +100,9 @@ public sealed class Registry
 
     /// <summary>The page an example is shown on: its topic's, or the component's Overview.</summary>
     public static string ExamplePageHref(RegistryComponent component, RegistryExample example) =>
-        component.Topics.FirstOrDefault(t => t.Examples.Contains(example)
-            || component.Scenarios.Any(s => s.Example == example && t.Scenarios.Contains(s.Id))) is { } topic
+        component.Topics.FirstOrDefault(t => t.Examples.Contains(example)) is { } topic
             ? TopicHref(component, topic) : OverviewHref(component);
 
-    /// <summary>Where a component's Demos tab goes: its first scenario (it has no demos page of its own).</summary>
     /// <summary>A Lucide icon's name for each category, one that stands for the kind of component in it.</summary>
     public static string CategoryIcon(string category) => category switch
     {
@@ -126,10 +124,6 @@ public sealed class Registry
     /// <summary>A category's slug, such as <c>data</c> for "Data": the components page's <c>?group=</c>.</summary>
     public static string CategoryAnchor(string category) =>
         System.Text.RegularExpressions.Regex.Replace(category.ToLowerInvariant(), "[^a-z0-9]+", "-").Trim('-');
-
-    public static string DemosHref(RegistryComponent component) => ScenarioHref(component, component.Scenarios[0]);
-
-    public static string ScenarioHref(RegistryComponent component, RegistryScenario scenario) => $"demos/{component.Id}/{scenario.Id}";
 
     /// <summary>The API page (and anchor) for a component, a part or one of their members.</summary>
     public string? ApiHref(string type, string? member)
@@ -223,7 +217,6 @@ public sealed record RegistryComponent
 
     /// <summary>The examples on its Overview. Those on a topic's page are <see cref="RegistryTopic.Examples"/>.</summary>
     public List<RegistryExample> Examples { get; init; } = [];
-    public List<RegistryScenario> Scenarios { get; init; } = [];
 
     /// <summary>Pages of its own for what's too big for its Overview, as a grid's editing is, in the sidebar under it.</summary>
     public List<RegistryTopic> Topics { get; init; } = [];
@@ -245,9 +238,6 @@ public sealed record RegistryTopic
     /// <summary>Paragraphs before its examples, with <c>`code`</c> as in an example's lead.</summary>
     public List<string> Intro { get; init; } = [];
     public List<RegistryExample> Examples { get; init; } = [];
-
-    /// <summary>The component's scenarios (by id) whose examples it shows, as AppShell's Width and scrolling does.</summary>
-    public List<string> Scenarios { get; init; } = [];
 
     /// <summary>
     /// The API it's about, for its own API page: the component's members (<c>SmallScreen</c>), a part
@@ -307,7 +297,7 @@ public sealed record RegistryExample
     /// </summary>
     public RegistryInfo? Info { get; init; }
 
-    /// <summary>A demo's (<see cref="Page"/>) window height in pixels; it scrolls inside past that.</summary>
+    /// <summary>A page example's (<see cref="Page"/>) window height in pixels; it scrolls inside past that.</summary>
     public int Height { get; init; } = 600;
 
     /// <summary>The modes it's shown in. Defaults to all three.</summary>
@@ -320,7 +310,7 @@ public sealed record RegistryExample
     public Dictionary<string, string> Notes { get; init; } = [];
 
     /// <summary>
-    /// A page of its own (a demo scenario), sized by the window: shown in a frame <see cref="Height"/>
+    /// A page of its own, such as an AppShell's, sized by the window: shown in a frame <see cref="Height"/>
     /// tall, rather than in the docs page as a centered sample.
     /// </summary>
     public bool Page { get; init; }
@@ -332,17 +322,4 @@ public sealed record RegistryExample
     public bool WidthSwitch { get; init; }
 
     public string StartMode => Mode ?? (Modes.Contains("static") ? "static" : Modes[0]);
-}
-
-public sealed record RegistryScenario
-{
-    public required string Id { get; init; }
-    public required string Title { get; init; }
-
-    /// <summary>A sentence saying what it shows.</summary>
-    public required string Description { get; init; }
-    public required RegistryExample Example { get; init; }
-
-    /// <summary>The API member the scenario is about, for the link back.</summary>
-    public string? Member { get; init; }
 }

@@ -21,8 +21,9 @@
 <ExampleViewer Example="button-submit-reset" />
 
 <Heading Level="2">Several submit buttons</Heading>
-<TextBlock>A form can have several submit buttons, such as Publish and Save draft, and the server needs to know which was pressed. Give each one the same <Code>Name</Code> and its own <Code>Value</Code>; the form posts the value of the button pressed. <Anchor Href="demos/button/several-submit-buttons">See it run</Anchor>.</TextBlock>
+<TextBlock>A form can have several submit buttons, such as Publish and Save draft, and the server needs to know which was pressed. Give each one the same <Code>Name</Code> and its own <Code>Value</Code>; the form posts the value of the button pressed.</TextBlock>
 <Code Block Language="razor">@SeveralSubmit</Code>
+<ExampleViewer Example="button-multi-submit" />
 
 <Heading Level="2">Links</Heading>
 <TextBlock>A button can be a link that looks like a button, for an action that opens a page. Set <Code>Href</Code> to render a link. To open it in a new tab, set <Code>External</Code>.</TextBlock>
@@ -71,7 +72,6 @@
     <ListItem><Anchor Href="docs/components/button-group">ButtonGroup</Anchor>: related buttons joined into one control.</ListItem>
     <ListItem><Anchor Href="docs/components/toolbar">Toolbar</Anchor>: one row of controls; what doesn't fit moves into a … menu.</ListItem>
     <ListItem><Anchor Href="docs/components/confirm-button">ConfirmButton</Anchor>: asks before acting, with JavaScript off too.</ListItem>
-    <ListItem>Demos: <Anchor Href="demos/button/several-submit-buttons">Several submit buttons</Anchor>, <Anchor Href="demos/button/toolbar">Editor toolbar</Anchor>.</ListItem>
     <TroubleshootingLinks Component="Button" />
 </List>
 

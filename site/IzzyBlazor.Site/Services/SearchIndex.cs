@@ -146,7 +146,6 @@ public sealed partial class SearchIndex
         SearchKind.Type or SearchKind.StyleProp => 5,
         SearchKind.Member => 4,
         SearchKind.TypeMember => 3,
-        SearchKind.Demo => 2,
         _ => 1,
     };
 
@@ -353,11 +352,6 @@ public sealed partial class SearchIndex
                 {
                     Add(SearchKind.Section, topic.Examples[i].Title, $"{component.DisplayName}: {topic.Title}", Lead(topic.Examples[i].Lead), $"{topicPage}#{topicIds[i]}", details: Details(topic.Examples[i]));
                 }
-            }
-
-            foreach (var scenario in component.Scenarios)
-            {
-                Add(SearchKind.Demo, scenario.Title, $"{component.DisplayName} demo", scenario.Description, Registry.ScenarioHref(component, scenario));
             }
         }
     }
@@ -656,7 +650,7 @@ public sealed partial class SearchIndex
 }
 
 /// <summary>What a search entry is.</summary>
-public enum SearchKind { Component, Part, Section, Article, Troubleshooting, Member, StyleProp, Type, TypeMember, Example, Demo }
+public enum SearchKind { Component, Part, Section, Article, Troubleshooting, Member, StyleProp, Type, TypeMember, Example }
 
 /// <summary>The groups results are shown in, in their order when two groups' best results tie.</summary>
 public enum SearchGroup { Components, Api, Articles, Troubleshooting, Examples }
