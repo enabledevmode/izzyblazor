@@ -2,9 +2,10 @@
 @* Where sign-in sends someone who is signed in but lacks the role a page needs, from izzy add
    access-denied. Centered, as the other one-message pages: what happened, which role it needs and
    who can give it, the one way on, then the usual cause, the wrong account. *@
-<Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" MarginTop="new() { Base = 0, Md = 12 }">
+@* The docs preview: the stack in the middle of its frame. *@
+<Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" PaddingY="12">
     <Column Gap="5">
-        <EmptyState Size="ControlSize.Lg" PaddingBottom="0" Status="Status.Warning" Icon="Lucide.Lock" TitleLevel="1" Title="You don't have access to this page"
+        <EmptyState Size="ControlSize.Lg" Padding="0" Status="Status.Warning" Icon="Lucide.Lock" TitleLevel="1" Title="You don't have access to this page"
                     Description="@Message">
             <EmptyStateActions>
                 <Button Href="#" Width="new() { Base = Length.Percent(100), Sm = Length.Auto }" MinWidth="Length.Rem(12.5)">Go to the home page</Button>

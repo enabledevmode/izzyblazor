@@ -2,8 +2,9 @@
 @using System.Globalization
     @* A page that's only a message: centered in a narrow column, the tinted wrench, when it ends,
        the one way on (full width on phones), then a word that nothing is lost. *@
-    <Column PaddingX="4" PaddingTop="new() { Base = 6, Md = 4 }" PaddingBottom="12">
-        <Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" MarginTop="new() { Base = 12, Md = 16 }">
+    @* The docs preview: the stack in the middle of its frame. *@
+    <Column PaddingX="4" PaddingY="12">
+        <Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false">
             <Column Gap="5">
                 <EmptyState Size="ControlSize.Lg" Padding="0" Status="Status.Info" Icon="Lucide.Wrench" TitleLevel="1" Title="We'll be right back" Description="@Message">
                     @if (!string.IsNullOrEmpty(StatusPage))
