@@ -15,7 +15,8 @@ namespace IzzyBlazor.Cli;
 /// <param name="workingDirectory">Where relative paths start and the project is looked for.</param>
 /// <param name="output">Results.</param>
 /// <param name="error">Errors and warnings.</param>
-sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error)
+/// <param name="proRoot">The Pro catalogue, for working on it (IZZY_PRO_CATALOG); null for the free catalogue only.</param>
+sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null)
 {
     const string Help = """
         izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalogue.
@@ -24,12 +25,12 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy list [--kind starter|page|block|section|recipe] [--json]
           izzy describe <item> [--json]
           izzy add <item> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
-          izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Pages|Grid] [--store Ef|Memory] [--context <DbContext>] [--authorize]
+          izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize]
           izzy new <starter> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
 
-        izzy add crud makes list, detail and form pages (or one grid page, --mode Grid) for a model class in
-        your app, read from its source: no build needed.
+        izzy add crud makes a page whose grid adds, edits and deletes a model's records (list, detail and
+        form pages are --mode pages, Pro), for a model class in your app read from its source: no build needed.
         izzy init sets up IzzyBlazor in the app you have: a Blazor Web App, or an MVC or Razor Pages app, which
         gets a Blazor root beside its pages. It builds the app afterwards and says how to fix a name clash.
         Settings are the item's, as izzy describe <item> lists them, such as --layout Split.
@@ -77,7 +78,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
     }
 
-    Catalog Catalog => field ??= Catalog.Load(catalogRoot);
+    Catalog Catalog => field ??= Catalog.Load(catalogRoot, proRoot);
 
     int List(Args args)
     {
