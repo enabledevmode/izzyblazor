@@ -47,16 +47,15 @@
            lays out as it would there. Their pages scroll inside them, so whatever takes focus in a
            part the hero cuts off comes into view. The desktop window is left out below 1024px,
            where only the phone fits. *@
+        @* The window's bar says it's live, in its address, and links to the code at its end; below
+           1024px, with the phone alone, a line under the phone does both. *@
         <div class="site-hero-demo">
-            <p class="site-hero-live">
-                <i aria-hidden="true"></i><span>Live demo · Static SSR · No circuit</span><span aria-hidden="true">·</span>
-                <Anchor Href="demos/app-shell/store-operations" Underline="AnchorUnderline.Hover" Class="site-hero-action">See the code<Icon Name="Lucide.ArrowRight" /></Anchor>
-            </p>
             <div class="site-hero-stage">
                 <div class="site-hero-window">
-                    <div class="site-hero-window-bar" aria-hidden="true">
-                        <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
-                        <span class="site-hero-window-url">northwind.example</span>
+                    <div class="site-hero-window-bar">
+                        <span class="site-hero-window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                        <span class="site-hero-window-url"><i class="site-hero-live-dot" aria-hidden="true"></i>Live · northwind.example</span>
+                        <Anchor Href="@CodeHref" Underline="AnchorUnderline.Hover" Class="site-action site-hero-code">See the code<Icon Name="Lucide.ArrowRight" /></Anchor>
                     </div>
                     <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" loading="lazy" title="Northwind, a store's dashboard built with IzzyBlazor, at a desktop's width"></iframe></div>
                 </div>
@@ -64,40 +63,32 @@
                     <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" title="Northwind, a store's dashboard built with IzzyBlazor, at a phone's width"></iframe></div>
                 </div>
             </div>
+            <p class="site-hero-note">
+                <i class="site-hero-live-dot" aria-hidden="true"></i><span>Live demo</span><span aria-hidden="true">·</span>
+                <Anchor Href="@CodeHref" Underline="AnchorUnderline.Hover" Class="site-action">See the code<Icon Name="Lucide.ArrowRight" /></Anchor>
+            </p>
         </div>
     </div>
 </Section>
 
+@* How it works: the band's title and intro, then a picture of each mode. *@
 <Section Bg="Color.FillSubtle" Class="site-band">
     <Stack Gap="6">
         <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl2">Pick the render mode per page, not per library.</Heading>
+            <Heading Level="2" Size="TextSize.Xl3">Use interactivity only where you need it.</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-why-intro">
-                Many Blazor components rely on interactive rendering for their behavior. Every IzzyBlazor component works in static SSR as well as the interactive render modes, so a page that doesn't need C# can stay static, and a page that does can be interactive.
+                Many Blazor components require interactive rendering to function. IzzyBlazor works with static SSR, Interactive Server, WebAssembly, and Auto, so you can add Blazor interactivity where it's needed without requiring it everywhere.
             </TextBlock>
         </Stack>
-        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="8" Class="site-why">
-            <Stack Gap="2">
-                <Row Gap="3" Align="Align.Center">
-                    <Pictogram Icon="Lucide.Layers" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">One library. Every render mode.</Heading>
-                </Row>
-                <TextBlock Color="Color.Muted">The same components work in static SSR, Interactive Server, WebAssembly and Auto, so each page's mode follows what that page does.</TextBlock>
-            </Stack>
-            <Stack Gap="2">
-                <Row Gap="3" Align="Align.Center">
-                    <Pictogram Icon="Lucide.MemoryStick" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">No circuit on static pages</Heading>
-                </Row>
-                <TextBlock Color="Color.Muted">A static page needs no SignalR circuit and no WebAssembly runtime. Each request is served and done, and a deployment disconnects no one.</TextBlock>
-            </Stack>
-            <Stack Gap="2">
-                <Row Gap="3" Align="Align.Center">
-                    <Pictogram Icon="Lucide.MousePointerClick" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">Interactive when you need it</Heading>
-                </Row>
-                <TextBlock Color="Color.Muted">Make a page interactive when it needs C# events and state. The same components take <Code Style="white-space: nowrap">@("@bind-Value")</Code> and event handlers there.</TextBlock>
-            </Stack>
+        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
+            <Card Title="Static: no circuit" Variant="CardVariant.Outline">
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Static</Badge></span></div></CardMedia>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Pages render as HTML on the server. The browser's own elements, links and forms do the work, and IzzyBlazor's small script adds keyboard controls, live values and dragging. No SignalR connection, no WebAssembly runtime.</TextBlock>
+            </Card>
+            <Card Title="Interactive: bound to C#" Variant="CardVariant.Outline">
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-interactive" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Interactive</Badge></span></div></CardMedia>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Choose Server, WebAssembly or Auto for a page that needs C#. The same components take <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, and prerender as the same working HTML.</TextBlock>
+            </Card>
         </Grid>
     </Stack>
 </Section>
@@ -111,7 +102,7 @@
                 <Heading Level="2" Size="TextSize.Xl3">Components for real applications</Heading>
                 <TextBlock Size="TextSize.Lg" Color="Color.Muted">@Registry.ComponentCountLabel components, each with live examples, their code and the full API.</TextBlock>
             </Stack>
-            <Anchor Href="docs/components">Browse all components</Anchor>
+            <Anchor Href="docs/components" Underline="AnchorUnderline.Hover" Class="site-action site-action-accent">Browse all components<Icon Name="Lucide.ArrowRight" /></Anchor>
         </Row>
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="5">
             @foreach (var group in Showcase)
@@ -195,43 +186,10 @@
 
 <Section>
     <Stack Gap="6">
-        <Heading Level="2" Size="TextSize.Xl2">Static when you want it. Interactive when you need it.</Heading>
-        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
-            <Card Title="Static: no circuit" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Static</Badge></span></div></CardMedia>
-                <TextBlock>Pages render as HTML on the server. The browser's own elements, links and forms do the work, and IzzyBlazor's small script adds keyboard controls, live values and dragging. No SignalR connection, no WebAssembly runtime.</TextBlock>
-            </Card>
-            <Card Title="Interactive: bound to C#" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-interactive" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Interactive</Badge></span></div></CardMedia>
-                <TextBlock>Choose Server, WebAssembly or Auto for a page that needs C#. The same components take <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, and prerender as the same working HTML.</TextBlock>
-            </Card>
-        </Grid>
-    </Stack>
-</Section>
-
-<Section>
-    <Stack Gap="6">
-        <Heading Level="2" Size="TextSize.Xl">Start from your project</Heading>
-        <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="4">
-            <Card Title="New Blazor Web App" Href="docs/get-started/blazor-web-app" Description="Install IzzyBlazor, then add its stylesheet and IzzyTheme." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
-            </Card>
-            <Card Title="Existing application" Href="docs/get-started/existing-app" Description="Add it page by page, next to Bootstrap and your own components." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.PackagePlus" /></CardHeader>
-            </Card>
-            <Card Title="WebAssembly or Auto" Href="docs/get-started/webassembly-and-auto" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.Cpu" /></CardHeader>
-            </Card>
-            <Card Title="Browse components" Href="docs/components" Description="Live examples, their code and the full API for every component." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.LayoutGrid" /></CardHeader>
-            </Card>
-        </Grid>
-    </Stack>
-</Section>
-
-<Section>
-    <Stack Gap="6">
-        <Heading Level="2" Size="TextSize.Xl">Built for developers. Ready for agents.</Heading>
+        <Stack Gap="2">
+            <Heading Level="2" Size="TextSize.Xl3">Built for developers. Ready for agents.</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Accessible from the first render, and documented for your coding agent.</TextBlock>
+        </Stack>
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
             <Card Title="Accessible from the start" Href="docs/accessibility/overview" Size="ControlSize.Sm" Class="site-linkcard"
                   Description="Components build to WCAG 2.2 level AA on the browser's own elements, with keyboard support, visible focus and screen reader announcements. Each documents its keyboard and ARIA behavior, and the guide lists the gaps that remain.">
@@ -249,11 +207,40 @@
     </Stack>
 </Section>
 
+
+@* The close: how to start, with the install command, then the three ways in. *@
+<Section>
+    <Stack Gap="6">
+        <Stack Gap="3">
+            <Heading Level="2" Size="TextSize.Xl3">Start from your project</Heading>
+            <Row Gap="2" Align="Align.Center" Class="site-install">
+                <TextBlock As="span" Color="Color.Muted" aria-hidden="true">$</TextBlock>
+                <Code>@Install</Code>
+                <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
+            </Row>
+        </Stack>
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
+            <Card Title="New Blazor Web App" Href="docs/get-started/blazor-web-app" Description="Install IzzyBlazor, then add its stylesheet and IzzyTheme." Size="ControlSize.Sm" Class="site-linkcard">
+                <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
+            </Card>
+            <Card Title="Existing application" Href="docs/get-started/existing-app" Description="Add it page by page, next to Bootstrap and your own components." Size="ControlSize.Sm" Class="site-linkcard">
+                <CardHeader><Pictogram Icon="Lucide.PackagePlus" /></CardHeader>
+            </Card>
+            <Card Title="WebAssembly or Auto" Href="docs/get-started/webassembly-and-auto" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." Size="ControlSize.Sm" Class="site-linkcard">
+                <CardHeader><Pictogram Icon="Lucide.Cpu" /></CardHeader>
+            </Card>
+        </Grid>
+    </Stack>
+</Section>
+
 @code {
     // The brand's Ember, on the hero's call to action only (it isn't a component accent).
     private static readonly Accent Ember = Accent.Of("#F26A1B");
 
     private const string Install = "dotnet add package IzzyBlazor --prerelease";
+
+    // The hero's dashboard, interactive, with its code.
+    private const string CodeHref = "demos/app-shell/store-operations";
 
     private string Description => $"Open-source Blazor components, {Registry.ComponentCountLabel} of them, that work in static SSR, Interactive Server, WebAssembly and Auto. Pick each page's render mode for the page.";
 
