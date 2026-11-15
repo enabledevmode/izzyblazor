@@ -1,12 +1,13 @@
-@* The grid's own tools among yours, in the order written. Export has its text; the others are as usual. *@
+@* The grid's own tools among yours, in the order written: what shapes the view at the start, what acts on the
+   data at the end, with the main action last. Export has its text; the others are as usual. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders with placed tools" Searchable ColumnPicker LayoutKey="order-tools" QueryPrefix="placed-" ExportCsvHref="/examples/orders.csv" ExportExcelHref="/examples/orders.xlsx" Grow>
     <ToolbarContent>
-        <ToolbarButton StartIcon="Lucide.Plus" Variant="ButtonVariant.Outline" Priority="1">Add order</ToolbarButton>
         <DataGridSearch />
-        <DataGridColumnPicker Position="ToolbarPosition.End" />
+        <DataGridColumnPicker />
         <ToolbarIconButton Icon="Lucide.CircleQuestionMark" Label="Help" Position="ToolbarPosition.End" />
         <DataGridExport Position="ToolbarPosition.End" ShowLabel />
+        <ToolbarButton StartIcon="Lucide.Plus" Position="ToolbarPosition.End" Priority="1">Add order</ToolbarButton>
     </ToolbarContent>
     <Columns>
         <PropertyColumn Property="o => o.Number" Align="CellAlign.Start" Width="8.Rem" />
