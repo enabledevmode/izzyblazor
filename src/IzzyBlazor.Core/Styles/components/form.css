@@ -2327,9 +2327,14 @@
     fill: var(--ib-star, currentColor);
   }
 
+  /* At least 24px to click, as WCAG 2.2 asks: a small or Compact star (about 23px with its padding)
+     gets the room around it, at the same size. */
   .ib-rating-star {
     position: relative;
     display: grid;
+    place-items: center;
+    min-width: 24px;
+    min-height: 24px;
     padding: 2px;
     border-radius: var(--ib-radius-sm);
     cursor: pointer;
