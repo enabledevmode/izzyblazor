@@ -26,7 +26,7 @@
     "Reject analytics and Accept all are the same size and style, so rejecting is as easy as accepting.",
     "On the settings page each switch is named by its category; Essential is on and can't be turned off, and says so."
   ],
-  "preview": { "Floating": "false", "Routable": "false", "SettingsRoute": "blocks/cookies", "PolicyHref": "blocks/cookies" },
+  "preview": { "Floating": "false", "Routable": "false", "SettingsRoute": "#", "PolicyHref": "#" },
   "inserts": [
     { "file": "{{Into}}", "pattern": "</AppShell>", "position": "before", "place": true, "text": "    <{{Name}} />\n" },
     { "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "app.MapConsent();\n\n" },

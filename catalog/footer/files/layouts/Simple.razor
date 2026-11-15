@@ -4,7 +4,7 @@
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="new() { Base = 3, Md = 6 }" Align="new() { Base = Align.Start, Md = Align.Center }">
             @*#if (ShowBrand) *@
-            <AppBrand Href="" Icon="Lucide.Box" Label="{{ProjectName}}" />
+            <AppBrand Href="{{HomeHref}}" Icon="Lucide.Box" Label="{{ProjectName}}" />
             @*#endif *@
             @*#if (HasHolder) *@
             <TextBlock Size="TextSize.Sm" Color="Color.Muted">© @DateTime.UtcNow.Year {{Holder}}</TextBlock>

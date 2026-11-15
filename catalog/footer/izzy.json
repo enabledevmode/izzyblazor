@@ -19,6 +19,7 @@
       "ShowBrand": { "type": "boolean", "default": true, "description": "Shows the app's name and icon at the start." },
       "Holder": { "type": "string", "default": "{{ProjectName}}, Inc.", "description": "Who holds the copyright. Empty uses the project's name." },
       "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each link's address; the docs previews use it to keep their links on the page." },
+      "HomeHref": { "type": "string", "default": "", "x-hidden": true, "description": "Where the brand goes, the home page; the docs previews point it nowhere." },
       "Name": { "type": "string", "default": "SiteFooter", "description": "The component's name." },
       "Into": { "type": "string", "default": "", "description": "A page or layout to add it to, at the end. Empty adds it nowhere: put it in your layout." }
     }
@@ -33,7 +34,7 @@
   "variations": [
     { "key": "brand", "label": "Brand", "setting": "ShowBrand", "options": { "On": "true", "Off": "false" } }
   ],
-  "preview": { "LinkBase": "blocks/footer?link=" },
+  "preview": { "LinkBase": "#", "HomeHref": "#" },
   "exclude": [ { "if": "Layout != \"Simple\"", "paths": ["layouts/Simple.razor"] } ],
   "rename": [ { "if": "Layout == \"Simple\"", "paths": { "layouts/Simple.razor": "Components/Blocks/{{Name}}.razor" } } ],
   "inserts": [

@@ -11,7 +11,7 @@
             <Heading Level="2" id="Cookieconsent-title" Size="TextSize.Md">Cookies on MyApp</Heading>
             <TextBlock Size="TextSize.Sm" Color="Color.Muted">
                 We use essential cookies to keep you signed in. With your OK, we'd also use analytics cookies to learn how MyApp is used.
-                <TextBlock As="span" Color="Color.OnSurface"><Anchor Href="blocks/cookies" InheritColor>Cookie policy</Anchor></TextBlock>
+                <TextBlock As="span" Color="Color.OnSurface"><Anchor Href="#" InheritColor>Cookie policy</Anchor></TextBlock>
             </TextBlock>
             @* The docs preview has no /consent: its buttons only reload the preview. *@
             <form method="get" action="">
@@ -46,7 +46,7 @@ else
 
     private string ReturnUrl => "~/" + Navigation.ToBaseRelativePath(Navigation.Uri);
 
-    private string SettingsHref => "blocks/cookies?returnUrl=" + Uri.EscapeDataString(ReturnUrl);
+    private string SettingsHref => "#?returnUrl=" + Uri.EscapeDataString(ReturnUrl);
 
     protected override void OnInitialized()
     {

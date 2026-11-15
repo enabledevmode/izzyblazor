@@ -2,7 +2,7 @@
 
 <Form Model="Model" FormName="checkbox-usage" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
     <Checkbox @bind-Value="Model!.AcceptLicense">
-        Publish under the <Anchor Href="https://opensource.org/license/mit" External>MIT license</Anchor>
+        Publish under the <Anchor Href="#" External>MIT license</Anchor>
     </Checkbox>
     <Row><Button Submit>Publish package</Button></Row>
     @if (_published)

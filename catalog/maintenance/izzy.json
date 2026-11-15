@@ -24,7 +24,7 @@
     "The wrench is decorative; the title and the message say what's happening.",
     "The page is plain HTML with no script, so it works in any browser while the app is down."
   ],
-  "preview": { "Standalone": "false", "StatusPage": "blocks/maintenance" },
+  "preview": { "Standalone": "false", "StatusPage": "#" },
   "checks": [
     {
       "file": "Components/App.razor", "pattern": "<IzzyTheme\\s+[A-Z]",

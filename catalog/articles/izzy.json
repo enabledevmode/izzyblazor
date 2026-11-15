@@ -32,7 +32,7 @@
   "variations": [
     { "key": "all", "label": "All posts link", "setting": "AllText", "options": { "On": "All posts", "Off": "" } }
   ],
-  "preview": { "AllHref": "blocks/articles", "LinkBase": "blocks/articles?post=" },
+  "preview": { "AllHref": "#", "LinkBase": "#" },
   "inserts": [
     { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }

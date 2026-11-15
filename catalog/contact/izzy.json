@@ -27,7 +27,7 @@
     "After a post with errors, the summary at the top of the form takes focus and lists them; each field shows its own message too.",
     "The honeypot field is hidden from screen readers and skipped by the Tab key."
   ],
-  "preview": { "LinkBase": "blocks/contact?way=", "PrivacyHref": "blocks/contact" },
+  "preview": { "LinkBase": "#", "PrivacyHref": "#" },
   "inserts": [
     { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }

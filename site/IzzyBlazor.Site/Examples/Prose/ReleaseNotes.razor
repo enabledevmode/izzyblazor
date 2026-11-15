@@ -4,7 +4,7 @@
 <Container As="main" Size="ContainerSize.Md" PaddingY="new() { Base = 4, Md = 10 }" Grow>
     <Stack Gap="8">
         <Stack Gap="4">
-            <TextBlock Size="TextSize.Sm"><Anchor Href="https://example.com/releases" Underline="AnchorUnderline.Hover">← All releases</Anchor></TextBlock>
+            <TextBlock Size="TextSize.Sm"><Anchor Href="#" Underline="AnchorUnderline.Hover">← All releases</Anchor></TextBlock>
             <Row Gap="2" Align="Align.Center" Wrap>
                 <Badge Accent="Accent.Primary">Version 2.4</Badge>
                 <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">October 14, 2026</TextBlock>
@@ -23,7 +23,7 @@
         <Prose Size="ProseSize.Lg" As="article">@((MarkupString)Html)</Prose>
         <Divider />
         <Stack Gap="4">
-            <TextBlock Color="Color.Muted">Questions or feedback? <Anchor Href="https://example.com/forum" External>Discuss in the forum</Anchor></TextBlock>
+            <TextBlock Color="Color.Muted">Questions or feedback? <Anchor Href="#" External>Discuss in the forum</Anchor></TextBlock>
             <PrevNext PreviousHref="https://example.com/releases/2.3" PreviousTitle="Version 2.3: shared folders" />
         </Stack>
     </Stack>
@@ -49,7 +49,7 @@
           <li>Pasting a table from a spreadsheet keeps its header row.</li>
           <li>The editor no longer jumps to the top after an image upload.</li>
         </ol>
-        <p>Read the full list in the <a href="https://example.com/changelog">changelog</a>.</p>
+        <p>Read the full list in the <a href="#">changelog</a>.</p>
         """;
 }
 @* /hide *@

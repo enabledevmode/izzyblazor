@@ -36,7 +36,7 @@
     protected override void OnParametersSet()
     {
         Until ??= DateTimeOffset.UtcNow.AddMinutes(45);
-        StatusPage ??= "blocks/maintenance";
+        StatusPage ??= "#";
     }
 
     // "03:00 UTC" today, with the date when it's another day: "Nov 16, 03:00 UTC".

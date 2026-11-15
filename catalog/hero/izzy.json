@@ -61,7 +61,7 @@
     { "key": "second", "label": "Second button", "setting": "SecondaryText", "options": { "On": "See how it works", "Off": "" } }
   ],
   // Previews sit under the docs page's own h1, and their buttons stay on the docs page.
-  "preview": { "HeadingLevel": "2", "PrimaryHref": "blocks/hero", "SecondaryHref": "blocks/hero" },
+  "preview": { "HeadingLevel": "2", "PrimaryHref": "#", "SecondaryHref": "#" },
   "exclude": [
     { "if": "!ShotPlaceholder", "paths": ["wwwroot/images/hero-screenshot.svg"] },
     { "if": "!PicturePlaceholder", "paths": ["wwwroot/images/hero-image.svg"] }
