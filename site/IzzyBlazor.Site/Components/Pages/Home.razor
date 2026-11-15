@@ -13,7 +13,7 @@
 </PageMeta>
 
 @* The brand's hero (design board D4, option A): Paper in light mode, Ink in dark. A centered column
-   (the headline with its ember line, what it is, the two ways in and the install command) over the app the library builds, live: a desktop window as wide as the page, its phone
+   (the headline with its ember line, what it is and the two ways in) over the app the library builds, live: a desktop window as wide as the page, its phone
    over the window's lower start corner, both cut off by the hero's end. Each is a frame of the same
    page, scaled down as pictures are. The glowing knob is a faint watermark behind the headline. *@
 <Section Spacing="SectionSpacing.None" Class="site-hero">
@@ -37,11 +37,6 @@
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
                 <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
             </div>
-            <Row Gap="2" Align="Align.Center" Class="site-install">
-                <TextBlock As="span" Color="Color.Muted" aria-hidden="true">$</TextBlock>
-                <Code>@Install</Code>
-                <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
-            </Row>
         </div>
         @* Both frames are the page /frame/home-store, at a desktop's width and a phone's, so each
            lays out as it would there. Their pages scroll inside them, so whatever takes focus in a
@@ -208,17 +203,10 @@
 </Section>
 
 
-@* The close: how to start, with the install command, then the three ways in. *@
+@* The close: how to start, the three ways in (each Get started page has the install command). *@
 <Section>
     <Stack Gap="6">
-        <Stack Gap="3">
-            <Heading Level="2" Size="TextSize.Xl3">Start from your project</Heading>
-            <Row Gap="2" Align="Align.Center" Class="site-install">
-                <TextBlock As="span" Color="Color.Muted" aria-hidden="true">$</TextBlock>
-                <Code>@Install</Code>
-                <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
-            </Row>
-        </Stack>
+        <Heading Level="2" Size="TextSize.Xl3">Start from your project</Heading>
         <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
             <Card Title="New Blazor Web App" Href="docs/get-started/blazor-web-app" Description="Install IzzyBlazor, then add its stylesheet and IzzyTheme." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
@@ -236,8 +224,6 @@
 @code {
     // The brand's Ember, on the hero's call to action only (it isn't a component accent).
     private static readonly Accent Ember = Accent.Of("#F26A1B");
-
-    private const string Install = "dotnet add package IzzyBlazor --prerelease";
 
     // The hero's dashboard, interactive, with its code.
     private const string CodeHref = "demos/app-shell/store-operations";

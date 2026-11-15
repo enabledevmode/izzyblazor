@@ -1,8 +1,8 @@
 @inherits LayoutComponentBase
 
-@* The same header and footer width as the docs and demos (SiteWidths.Bars), so the logo doesn't
-   move between pages, with the page's content lined up to it. *@
-<AppShell ContentWidth="Length.Rem(SiteWidths.Bars)" Class="site-shell-home">
+@* The design's column (SiteWidths.Home, boards D3 and D4): the header, the hero and every section
+   on the same 1216px, centered. *@
+<AppShell ContentWidth="Length.Rem(SiteWidths.Home)" Class="site-shell-home">
     <SiteHeader />
     <AppMain>
         @Body
