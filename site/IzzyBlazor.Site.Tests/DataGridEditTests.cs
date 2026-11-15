@@ -64,7 +64,7 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         var (browser, page) = await OpenAsync(mode);
         await using var _ = browser;
         var rows = page.Locator(Grid).Locator(".ib-table-scroll tbody tr");
-        await page.Locator(Grid).Locator(".ib-grid-toolbar [data-ib-edit]").ClickAsync();
+        await page.Locator(Grid).Locator(".ib-grid-toolbar .ib-toolbar-unit [data-ib-edit]").ClickAsync();
         var dialog = page.Locator($"{Grid} dialog[open]");
         await dialog.GetByLabel("Customer").FillAsync("Brand New");
         await dialog.GetByLabel("Status").SelectOptionAsync("Pending");

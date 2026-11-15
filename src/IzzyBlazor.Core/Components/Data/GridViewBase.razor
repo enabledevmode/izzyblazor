@@ -938,6 +938,20 @@
         }
     };
 
+    // In the "…" menu when the bar has no room: the same link, or on an interactive page the same action.
+    RenderFragment IDataGridToolbar.AddMenu => __builder =>
+    {
+        var plus = IconSet.Current.Get(IconPurpose.Plus);
+        @if (UseState)
+        {
+            <MenuItem Icon="plus" OnClick="@(() => { EndCell(); (_stateAdding, _stateAddUnder) = (true, null); })" data-ib-edit>@(AddText ?? TextDefaults.Add)</MenuItem>
+        }
+        else
+        {
+            <MenuItem Icon="plus" Href="@AddRootHref" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)">@(AddText ?? TextDefaults.Add)</MenuItem>
+        }
+    };
+
     private RenderFragment EditBinding(string key) => builder =>
     {
         builder.OpenComponent<DataGridEditBinding<TItem>>(0);
@@ -2427,10 +2441,7 @@
 
     RenderFragment IDataGridToolbar.ColumnPickerBar(bool showText) => __builder =>
     {
-        var pickable = InOrder(AllColumns.Where(c => c.Pickable).ToList());
-        var hidden = pickable.Count(c => !Shown.Contains(c));
         <div class="ib-toolbar-item ib-col-picker">
-            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/column-picker.css"]" />
             <Popover Title="@TextDefaults.ColumnPickerTitle" ShowCloseButton="true" Class="ib-col-picker-pop" data-ib-user-controlled>
                 <Trigger>
                     @if (showText)
@@ -2442,40 +2453,62 @@
                         <IconButton Icon="IconSet.Current.Get(IconPurpose.Columns)" Label="@TextDefaults.ColumnPicker" @attributes="context" />
                     }
                 </Trigger>
-                <ChildContent>
-                    <ib-col-picker class="ib-col-picker-panel">
-                        <div class="ib-col-picker-top">
-                            @if (HasBands)
-                            {
-                                @* Named for what it does next: every band starts open. *@
-                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" data-ib-open="" aria-label="@TextDefaults.ColumnsCollapseAll" data-ib-text-open="@TextDefaults.ColumnsExpandAll" data-ib-text-close="@TextDefaults.ColumnsCollapseAll" data-ib-picker-expand-all><Icon Name="Lucide.ChevronDown" /></button>
-                            }
-                            <input type="checkbox" class="ib-check-input" aria-label="@TextDefaults.ColumnsShowAll" checked="@(hidden == 0)" data-ib-mixed="@(hidden > 0 && hidden < pickable.Count ? "" : null)" data-ib-picker-all />
-                            <div class="ib-field ib-field-sm">
-                                <div class="ib-field-control">
-                                    <input type="search" class="ib-field-input" aria-label="@TextDefaults.ColumnsSearch" placeholder="@TextDefaults.SearchPlaceholder" autocomplete="off" data-ib-picker-search />
-                                </div>
-                            </div>
-                        </div>
-                        <ul class="ib-col-picker-list ib-scroll" aria-label="@TextDefaults.ColumnPicker">
-                            @PickerRows(pickable, 0)
-                        </ul>
-                        @* Only with something to say: what's hidden, or a layout to go back from. *@
-                        @if (hidden > 0 || CurrentLayout is not null)
-                        {
-                            <div class="ib-col-picker-foot">
-                                <span>@(hidden > 0 ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnsHidden, hidden, pickable.Count) : null)</span>
-                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
-                            </div>
-                        }
-                    </ib-col-picker>
-                </ChildContent>
+                <ChildContent>@PickerPanel("")</ChildContent>
             </Popover>
         </div>
     };
 
+    // In the "…" menu when the bar has no room: Columns opens the same list in a dialog, which is in the
+    // grid, not the toolbar, so it opens while the bar's button is hidden.
+    RenderFragment IDataGridToolbar.ColumnPickerMenu => __builder =>
+    {
+        <MenuItem Icon="IconSet.Current.Get(IconPurpose.Columns)" commandfor="@PickerDialogId" command="show-modal">@TextDefaults.ColumnPicker</MenuItem>
+    };
+
+    private string PickerDialogId => $"{_pickerId ??= IdGenerator.Next("ib-pick")}-dialog";
+
+    private RenderFragment PickerDialog => __builder =>
+    {
+        <Dialog Id="@PickerDialogId" Title="@TextDefaults.ColumnPickerTitle" Size="DialogSize.Sm" QueryKey="@null">@PickerPanel("-d")</Dialog>
+    };
+
+    // The list of columns, in the bar's popover or the menu's dialog; scope keeps the two copies' ids apart.
+    private RenderFragment PickerPanel(string scope) => __builder =>
+    {
+        var pickable = InOrder(AllColumns.Where(c => c.Pickable).ToList());
+        var hidden = pickable.Count(c => !Shown.Contains(c));
+        @* With each copy (the bar's popover, the menu's dialog); the browser loads it once. *@
+        <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/column-picker.css"]" />
+        <ib-col-picker class="ib-col-picker-panel">
+            <div class="ib-col-picker-top">
+                @if (HasBands)
+                {
+                    @* Named for what it does next: every band starts open. *@
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" data-ib-open="" aria-label="@TextDefaults.ColumnsCollapseAll" data-ib-text-open="@TextDefaults.ColumnsExpandAll" data-ib-text-close="@TextDefaults.ColumnsCollapseAll" data-ib-picker-expand-all><Icon Name="Lucide.ChevronDown" /></button>
+                }
+                <input type="checkbox" class="ib-check-input" aria-label="@TextDefaults.ColumnsShowAll" checked="@(hidden == 0)" data-ib-mixed="@(hidden > 0 && hidden < pickable.Count ? "" : null)" data-ib-picker-all />
+                <div class="ib-field ib-field-sm">
+                    <div class="ib-field-control">
+                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.ColumnsSearch" placeholder="@TextDefaults.SearchPlaceholder" autocomplete="off" data-ib-picker-search />
+                    </div>
+                </div>
+            </div>
+            <ul class="ib-col-picker-list ib-scroll" aria-label="@TextDefaults.ColumnPicker">
+                @PickerRows(pickable, 0, scope)
+            </ul>
+            @* Only with something to say: what's hidden, or a layout to go back from. *@
+            @if (hidden > 0 || CurrentLayout is not null)
+            {
+                <div class="ib-col-picker-foot">
+                    <span>@(hidden > 0 ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnsHidden, hidden, pickable.Count) : null)</span>
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
+                </div>
+            }
+        </ib-col-picker>
+    };
+
     // The picker's rows from here down: each band's columns in a list of their own under its row.
-    private RenderFragment PickerRows(List<ColumnBase<TItem>> columns, int depth) => __builder =>
+    private RenderFragment PickerRows(List<ColumnBase<TItem>> columns, int depth, string scope) => __builder =>
     {
         for (var i = 0; i < columns.Count;)
         {
@@ -2487,7 +2520,7 @@
                 i += run.Count;
                 var shown = run.Count(Shown.Contains);
                 var id = BandId(band);
-                var list = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-b{id}";
+                var list = $"{_pickerId ??= IdGenerator.Next("ib-pick")}{scope}-b{id}";
                 <li class="ib-col-picker-band" data-ib-picker-item="band:@id" data-ib-title="@band.Title">
                     <div class="ib-col-picker-row">
                         <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-col-picker-chevron" aria-expanded="true" aria-controls="@list" aria-label="@BandFullName(band)" data-ib-picker-toggle><Icon Name="Lucide.ChevronDown" /></button>
@@ -2496,7 +2529,7 @@
                         @PickerHandle(shown > 0 && BandMoves(band), band, null, BandFullName(band))
                         <label for="@($"{list}-c")">@band.Title</label>
                     </div>
-                    <ul id="@list" aria-label="@BandFullName(band)">@PickerRows(run, depth + 1)</ul>
+                    <ul id="@list" aria-label="@BandFullName(band)">@PickerRows(run, depth + 1, scope)</ul>
                 </li>
             }
             else
@@ -2504,7 +2537,7 @@
                 var column = columns[i++];
                 var key = KeyOf(column);
                 var shown = Shown.Contains(column);
-                var box = $"{_pickerId ??= IdGenerator.Next("ib-pick")}-c{AllColumns.ToList().IndexOf(column)}";
+                var box = $"{_pickerId ??= IdGenerator.Next("ib-pick")}{scope}-c{AllColumns.ToList().IndexOf(column)}";
                 var frozen = shown && FrozenOf(column) != ColumnFrozen.None;
                 var name = column.Band is null ? column.HeaderText : column.FullName;
                 name = frozen ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnFrozenNote, name) : name;
@@ -2659,18 +2692,20 @@
                         {
                             <DataGridSearch />
                         }
+                        @* What shapes the view at the start (search, filters, columns); what acts on the data at
+                           the end (export, then Add, the main action, last). *@
                         @if (!placed.Contains(typeof(DataGridFilterBuilder)))
                         {
                             <DataGridFilterBuilder />
+                        }
+                        @if (!placed.Contains(typeof(DataGridColumnPicker)))
+                        {
+                            <DataGridColumnPicker />
                         }
                         @ToolbarContent
                         @if (!placed.Contains(typeof(DataGridExport)))
                         {
                             <DataGridExport />
-                        }
-                        @if (!placed.Contains(typeof(DataGridColumnPicker)))
-                        {
-                            <DataGridColumnPicker />
                         }
                         @if (!placed.Contains(typeof(DataGridAdd)))
                         {
@@ -2678,6 +2713,10 @@
                         }
                     </Toolbar>
                 </CascadingValue>
+                @if (HasPicker)
+                {
+                    @PickerDialog
+                }
             </div>
         }
 

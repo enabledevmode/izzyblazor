@@ -1138,8 +1138,10 @@
     text-align: center;
   }
 
-  /* The editor's dialog is in the top layer: no flex item, no gap, nothing moves as it opens. */
-  .ib-datagrid > ib-dialog {
+  /* The editor's dialog, and the Columns dialog beside the toolbar, are in the top layer: no flex item,
+     no gap, nothing moves as they open. */
+  .ib-datagrid > ib-dialog,
+  .ib-grid-toolbar > ib-dialog {
     display: contents;
   }
 
@@ -1471,20 +1473,20 @@
     display: none;
   }
 
-  .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]) {
+  /* The grid's search, not the Columns button, whose popover has a search of its own. */
+  .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]):not(:has(.ib-col-picker)) {
     flex: 0 1 14rem;
     width: auto !important;
     min-width: 6rem;
   }
 
-  .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]) > * {
+  .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]):not(:has(.ib-col-picker)) > * {
     flex: 1;
     min-width: 0;
   }
 
   .ib-grid-toolbar .ib-col-picker {
     display: flex;
-    justify-content: flex-end;
   }
 
   @media (scripting: none) {
@@ -1972,7 +1974,7 @@
   .ib-listview-select,
   .ib-listview-select-all,
   .ib-tree-select,
-  .ib-col-picker .ib-check-input {
+  .ib-col-picker-panel .ib-check-input {
     --ib-check-size: 1rem;
     margin: 0;
   }

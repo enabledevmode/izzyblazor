@@ -22,6 +22,10 @@ internal interface IDataGridToolbar
 
     RenderFragment AddBar(bool showText);
 
+    RenderFragment ColumnPickerMenu { get; }
+
+    RenderFragment AddMenu { get; }
+
     bool HasExport { get; }
 
     /// <summary>Whether export opens a menu of its formats, with a chevron beside its icon: a little wider.</summary>
@@ -250,13 +254,23 @@ public sealed class DataGridFilterBuilder : DataGridToolbarItem
 
 /// <summary>
 /// Puts a <c>DataGrid</c>'s Columns button, from <c>ColumnPicker</c>, among your toolbar items. It
-/// stays in the bar, at the end unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
+/// stays in the bar, at the start with the other tools that shape the view (search, filters) unless
+/// <see cref="DataGridToolbarItem.Position"/> says otherwise; what acts on the data (export, add) is at the end.
 /// </summary>
 [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off it isn't shown: its checkboxes need script.")]
 public sealed class DataGridColumnPicker : DataGridToolbarItem
 {
-    /// <summary>Creates it, at the toolbar's end.</summary>
-    public DataGridColumnPicker() => Position = ToolbarPosition.End;
+    /// <summary>Creates it, at the toolbar's start.</summary>
+    public DataGridColumnPicker() => Position = ToolbarPosition.Start;
+
+    /// <summary>Which items stay longest when there's no room: higher stays longer. Defaults to 0.</summary>
+    [Parameter] public int Priority { get; set; }
+
+    /// <summary>
+    /// When it moves into the "…" menu, where Columns opens the list in a dialog. Defaults to
+    /// <see cref="ToolbarOverflow.Auto"/>.
+    /// </summary>
+    [Parameter] public ToolbarOverflow Overflow { get; set; }
 
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
     [Parameter] public bool? ShowLabel { get; set; }
@@ -265,7 +279,13 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
 
     private protected override bool On => Grid.HasColumnPicker;
 
+    private protected override int ItemPriority => Priority;
+
+    private protected override ToolbarOverflow ItemOverflow => Overflow;
+
     private protected override RenderFragment ItemBar => Grid.ColumnPickerBar(Text);
+
+    private protected override RenderFragment ItemMenu => Grid.ColumnPickerMenu;
 
     private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ColumnPickerLabel, startIcon: true, endIcon: false) + (Text ? TableIconExtra : 0);
 }
@@ -280,6 +300,15 @@ public sealed class DataGridAdd : DataGridToolbarItem
     /// <summary>Creates it, at the toolbar's end.</summary>
     public DataGridAdd() => Position = ToolbarPosition.End;
 
+    /// <summary>
+    /// Which items stay longest when there's no room: higher stays longer. Defaults to 1, so the grid's main
+    /// action outlasts its other tools (0).
+    /// </summary>
+    [Parameter] public int Priority { get; set; } = 1;
+
+    /// <summary>When it moves into the "…" menu, as a link there. Defaults to <see cref="ToolbarOverflow.Auto"/>.</summary>
+    [Parameter] public ToolbarOverflow Overflow { get; set; }
+
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
     [Parameter] public bool? ShowLabel { get; set; }
 
@@ -287,7 +316,13 @@ public sealed class DataGridAdd : DataGridToolbarItem
 
     private protected override bool On => Grid.HasAdd;
 
+    private protected override int ItemPriority => Priority;
+
+    private protected override ToolbarOverflow ItemOverflow => Overflow;
+
     private protected override RenderFragment ItemBar => Grid.AddBar(Text);
+
+    private protected override RenderFragment ItemMenu => Grid.AddMenu;
 
     private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.AddLabel, startIcon: true, endIcon: false);
 }
