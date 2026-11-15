@@ -516,6 +516,9 @@
 .site-params td:last-child { vertical-align: top; }
 /* Sentences in both columns (the accessibility pages): let the first wrap too, so a phone fits it. */
 .site-params-wrap td:not(:last-child) { white-space: normal; }
+/* A third for the first column, so its sentence wraps over a few lines, not a word a line. */
+.site-params-wrap :is(td, th):first-child { width: 33%; }
+.site-params-wrap :is(td, th):last-child { width: auto; }
 .site-params .site-param-text { margin-block-start: var(--ib-space-1); }
 /* Compact (Overviews): prop and its first sentence in one cell, type and default beside it. */
 .site-params-compact td:first-child, .site-params-compact th:first-child { width: 100%; white-space: normal; }
