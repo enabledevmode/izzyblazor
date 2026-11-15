@@ -147,14 +147,14 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var item = Item(args, "izzy add <item>");
         if (item.Manifest.Kind == ItemKind.Starter)
             throw new UsageException($"{item.Manifest.Id} makes a new project: izzy new {item.Manifest.Id} -n <name>.");
-        var (directory, csproj) = FindProject(args.Take("project"));
-        if (!ReferencesIzzyBlazor(File.ReadAllText(csproj)))
-            throw new UsageException($"{Path.GetFileName(csproj)} doesn't reference IzzyBlazor. Add the IzzyBlazor package first.");
-        var at = Placement(args.Take("at"), directory);
+        var project = ProjectInfo.FromProject(FindProject(args.Take("project")));
+        var host = Path.Combine(project.Directory!, project.Host, project.Name + ".csproj");
+        if (!ReferencesIzzyBlazor(File.ReadAllText(host)))
+            throw new UsageException($"{Path.GetFileName(host)} doesn't reference IzzyBlazor. Run izzy init first.");
+        var at = Placement(args.Take("at"), project);
         var flags = Flags(args);
-        var project = ProjectInfo.FromDirectory(directory);
         var changes = Generator.Generate(item, Settings(item.Manifest, args), project, at);
-        return Finish(item, changes, project, directory, csproj, flags);
+        return Finish(item, changes, project, project.Directory!, existing: true, flags);
     }
 
     int New(Args args)
@@ -169,11 +169,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var flags = Flags(args);
         var project = ProjectInfo.ForNewProject(name) with { ReadFile = path => ReadFile(directory, path) };
         var changes = Generator.Generate(item, Settings(item.Manifest, args), project);
-        return Finish(item, changes, project, directory, csproj: null, flags);
+        return Finish(item, changes, project, directory, existing: false, flags);
     }
 
     // Shows or writes a changeset, then adds packages, restores and records the item.
-    int Finish(ItemDefinition item, Changeset changes, ProjectInfo project, string directory, string? csproj, (bool Json, bool DryRun, bool Diff, bool Overwrite) flags)
+    int Finish(ItemDefinition item, Changeset changes, ProjectInfo project, string directory, bool existing, (bool Json, bool DryRun, bool Diff, bool Overwrite) flags)
     {
         var blocked = changes.Conflicts.Count > 0 && !flags.Overwrite;
         var write = !flags.DryRun && !blocked;
@@ -201,12 +201,16 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         ChangesetWriter.Apply(changes, directory, flags.Overwrite);
         var quiet = flags.Json;
         if (!quiet) Summary(changes, "Created", "Changed", "Added package");
-        if (csproj is not null)
-        {
-            var text = File.ReadAllText(csproj);
-            foreach (var package in changes.Packages.Where(p => !Regex.IsMatch(text, $"Include=\"{Regex.Escape(p.Id)}\"", RegexOptions.IgnoreCase)))
-                Dotnet(directory, quiet, "add", csproj, "package", package.Id, "--version", package.Version);
-        }
+        // A new starter's packages are in the project files it wrote; an existing app's go in the project each names.
+        if (existing)
+            foreach (var package in changes.Packages)
+            {
+                var folder = Path.Combine(directory, package.Project);
+                var csproj = Directory.GetFiles(folder, "*.csproj").FirstOrDefault()
+                    ?? throw new UsageException($"No .csproj file in {package.Project} for {package.Id}.");
+                if (!Regex.IsMatch(File.ReadAllText(csproj), $"Include=\"{Regex.Escape(package.Id)}\"", RegexOptions.IgnoreCase))
+                    Dotnet(directory, quiet, "add", csproj, "package", package.Id, "--version", package.Version);
+            }
         if (changes.Restore) Dotnet(directory, quiet, "restore");
         Record(directory, item.Manifest.Id, changes.Settings);
         return 0;
@@ -281,42 +285,47 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         return settings;
     }
 
-    // The project: --project (a folder or .csproj), else the nearest folder up from here with one .csproj.
-    (string Directory, string Csproj) FindProject(string? given)
+    // The project: --project (a folder or .csproj), else the nearest folder up from here with one .csproj, or
+    // with a solution whose one web project is it. Either project of an app with a .Client project will do.
+    string FindProject(string? given)
     {
         if (given is not null)
         {
             var full = Path.GetFullPath(given, workingDirectory);
-            if (full.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) && File.Exists(full)) return (Path.GetDirectoryName(full)!, full);
+            if (full.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) && File.Exists(full)) return full;
             if (!Directory.Exists(full)) throw new UsageException($"No project at {given}.");
-            return (full, OneProject(full) ?? throw new UsageException($"No .csproj file in {given}."));
+            return OneProject(full) ?? throw new UsageException($"No .csproj file in {given}.");
         }
         for (var dir = new DirectoryInfo(workingDirectory); dir is not null; dir = dir.Parent)
-            if (OneProject(dir.FullName) is { } csproj) return (dir.FullName, csproj);
+            if (OneProject(dir.FullName) is { } csproj) return csproj;
         throw new UsageException("No .csproj file here or in a folder above. Run izzy in your project, or give --project <path>.");
     }
 
     static string? OneProject(string directory)
     {
         var projects = Directory.GetFiles(directory, "*.csproj");
-        return projects.Length switch
-        {
-            0 => null,
-            1 => projects[0],
-            _ => throw new UsageException($"More than one .csproj file in {directory}; pick one with --project."),
-        };
+        if (projects.Length > 1) throw new UsageException($"More than one .csproj file in {directory}; pick one with --project.");
+        if (projects.Length == 1) return projects[0];
+        // A solution folder: the web project it lists (MyApp, not MyApp.Client).
+        var solutions = Directory.GetFiles(directory, "*.sln").Concat(Directory.GetFiles(directory, "*.slnx")).ToList();
+        if (solutions.Count != 1) return null;
+        var web = Regex.Matches(File.ReadAllText(solutions[0]), @"[\w.\-\\/ ]+\.csproj")
+            .Select(m => Path.GetFullPath(Path.Combine(directory, m.Value.Trim().Replace('\\', Path.DirectorySeparatorChar))))
+            .Where(File.Exists).Distinct()
+            .Where(p => File.ReadAllText(p).Contains("Sdk=\"Microsoft.NET.Sdk.Web\"", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        return web.Count == 1 ? web[0] : null;
     }
 
     // --at <file>:<line>, the file relative to here (or absolute, as an editor gives it), inside the project.
-    Placement? Placement(string? at, string projectDirectory)
+    Placement? Placement(string? at, ProjectInfo project)
     {
         if (at is null) return null;
         var colon = at.LastIndexOf(':');
         if (colon <= 0 || !int.TryParse(at[(colon + 1)..], out var line) || line < 1)
             throw new UsageException($"--at is <file>:<line>, such as Components/Pages/Home.razor:12, not \"{at}\".");
-        var path = Path.GetRelativePath(projectDirectory, Path.GetFullPath(at[..colon], workingDirectory)).Replace('\\', '/');
-        if (path.StartsWith("../", StringComparison.Ordinal) || Path.IsPathRooted(path)) throw new UsageException($"{at[..colon]} isn't in the project.");
-        return new Placement(path, line);
+        try { return new Placement(project.Relative(Path.GetFullPath(at[..colon], workingDirectory)), line); }
+        catch (GenerationException) { throw new UsageException($"{at[..colon]} isn't in the project."); }
     }
 
     static bool ReferencesIzzyBlazor(string csproj) =>

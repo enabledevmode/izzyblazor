@@ -70,7 +70,7 @@
     // The page's main heading comes first: after <PageTitle>, or under the page's own heading for an h2.
     { "file": "{{Into}}", "pattern": "<PageTitle>", "position": "after", "place": true, "if": "HeadingLevel == \"1\"", "text": "\n<{{Name}} />\n" },
     { "file": "{{Into}}", "pattern": "<PageHeader[^>]*/>|</PageHeader>|</h1>", "position": "after", "place": true, "if": "HeadingLevel == \"2\"", "text": "<{{Name}} />\n" },
-    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+    { "file": "Components/_Imports.razor", "anchor": "@using {{UiNamespace}}", "position": "after", "text": "@using {{UiNamespace}}.Blocks\n" }
   ],
   "checks": [
     {

@@ -35,6 +35,6 @@
   "preview": { "AllHref": "#", "LinkBase": "#" },
   "inserts": [
     { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
-    { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
+    { "file": "Components/_Imports.razor", "anchor": "@using {{UiNamespace}}", "position": "after", "text": "@using {{UiNamespace}}.Blocks\n" }
   ]
 }

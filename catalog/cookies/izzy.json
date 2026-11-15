@@ -1,6 +1,7 @@
 // The free cookie consent: a notice at the bottom of the window until the visitor chooses, a
 // settings page with a switch per category, and the code that saves and reads the choice, written
-// into the project as code you own (CookieNotice.razor, Pages/Cookies.razor, Consent.cs).
+// into the project as code you own (CookieNotice.razor, Pages/Cookies.razor, Consent.cs). They read the
+// request's cookies, so they stay in the server project when the pages are in a .Client one.
 {
   "id": "cookies",
   "name": "Cookie consent",
@@ -18,7 +19,7 @@
       "Routable": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the settings page's route and title; the docs previews leave them out." },
       "Name": { "type": "string", "default": "CookieNotice", "description": "The notice's component name." },
       "PageName": { "type": "string", "default": "Cookies", "description": "The settings page's component name." },
-      "Into": { "type": "string", "default": "Components/Layout/MainLayout.razor", "description": "The layout the notice is placed in, at the end of its AppShell." }
+      "Into": { "type": "string", "default": "Components/Layout/MainLayout.razor", "description": "The layout the notice is placed in, at the end of its AppShell. When every page runs in the browser, it goes in App.razor after Routes instead, rendered on the server." }
     }
   },
   "accessibility": [
@@ -27,6 +28,7 @@
     "On the settings page each switch is named by its category; Essential is on and can't be turned off, and says so."
   ],
   "preview": { "Floating": "false", "Routable": "false", "SettingsRoute": "#", "PolicyHref": "#" },
+  "server": ["Components/**"],
   "checks": [
     {
       "file": "Components/App.razor", "pattern": "<Routes\\s+@rendermode=\"Interactive",
@@ -34,7 +36,8 @@
     }
   ],
   "inserts": [
-    { "file": "{{Into}}", "pattern": "</AppShell>", "position": "before", "place": true, "text": "    <{{Name}} />\n" },
+    { "file": "{{Into}}", "pattern": "</AppShell>", "position": "before", "place": true, "if": "!LayoutInBrowser", "text": "    <{{Name}} />\n" },
+    { "file": "Components/App.razor", "pattern": "<Routes[\\s/>]", "position": "after", "place": true, "if": "LayoutInBrowser", "text": "<{{Name}} />\n" },
     { "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "app.MapConsent();\n\n" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }
   ]
