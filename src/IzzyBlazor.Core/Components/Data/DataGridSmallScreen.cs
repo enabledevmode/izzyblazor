@@ -9,12 +9,13 @@ namespace IzzyBlazor;
 /// <summary>What a <c>DataGrid</c> does when its columns don't fit.</summary>
 public enum DataGridSmallScreen
 {
-    /// <summary>It scrolls sideways. The default.</summary>
+    /// <summary>It scrolls sideways, at any width. The default.</summary>
     Scroll,
 
     /// <summary>
-    /// Columns hide, lowest <c>Priority</c> first, and their values show in the row's detail, opened by
-    /// the button at the row's start.
+    /// It scrolls sideways until it's narrower than a phone's screen (40rem, 640px); then columns hide,
+    /// lowest <c>Priority</c> first, and their values show in the row's detail, opened by the button at
+    /// the row's start. Wider, every column and the row's actions keep their place.
     /// </summary>
     HideColumns,
 }
@@ -26,14 +27,20 @@ public enum DataGridSmallScreen
 public abstract partial class GridViewBase<TItem>
 {
     /// <summary>
-    /// What it does when its columns don't fit its width: <see cref="DataGridSmallScreen.Scroll"/> (the
-    /// default) scrolls sideways; <see cref="DataGridSmallScreen.HideColumns"/> hides columns by their
-    /// <c>Priority</c> and shows their values in the row's detail. Hiding needs an <c>ItemKey</c>, can't
-    /// be used with <c>Virtualize</c>, and makes the grid as wide as its space. A hidden column's header
+    /// What it does when its columns don't fit its width. <see cref="DataGridSmallScreen.Scroll"/> (the
+    /// default) scrolls sideways; <see cref="DataGridSmallScreen.HideColumns"/> scrolls until the grid is
+    /// narrower than a phone's screen (40rem), then hides columns by their <c>Priority</c> and shows their
+    /// values in the row's detail. Hiding needs an <c>ItemKey</c>, can't be used with <c>Virtualize</c>, and
+    /// makes the grid as wide as its space. A hidden column's header
     /// is hidden with it, so sort or filter it from the column picker or the filter chips. Widths
     /// dragged by <c>ResizableColumns</c> count from the next time the server draws the grid.
     /// </summary>
     [Parameter] public DataGridSmallScreen SmallScreen { get; set; }
+
+    // Below this a grid hides columns; wider, it scrolls, so a laptop's grid keeps every column and its actions.
+    private const double PhoneRem = 40;
+
+    private bool HidesColumns => SmallScreen == DataGridSmallScreen.HideColumns;
 
     /// <summary>
     /// A CSP nonce for the style element that holds the widths where columns hide. Defaults to the
@@ -47,7 +54,7 @@ public abstract partial class GridViewBase<TItem>
     private string? _hidePlanFor;
 
     // Not with nothing that can hide: the first column and frozen ones stay.
-    internal bool Hiding => SmallScreen == DataGridSmallScreen.HideColumns && Shown.Skip(1).Any(c => FrozenOf(c) == ColumnFrozen.None);
+    internal bool Hiding => HidesColumns && Shown.Skip(1).Any(c => FrozenOf(c) == ColumnFrozen.None);
 
     // A detail button for each row: for a DetailTemplate, or for the values of hidden columns.
     private bool HasExpander => HasDetails || Hiding;
@@ -215,16 +222,19 @@ public abstract partial class GridViewBase<TItem>
         for (var level = 1; level < plan.Widths.Length; level++)
         {
             // A column's value in a detail shows only while its column is hidden.
-            css.Append(CultureInfo.InvariantCulture, $"@container (width >= {Rems(plan.Widths[level - 1])}){{{t}>*>tr>*>*>dl>.ib-h{level}{{display:none}}}}");
+            css.Append(CultureInfo.InvariantCulture, $"@container (width >= {Rems(Phone(plan.Widths[level - 1]))}){{{t}>*>tr>*>*>dl>.ib-h{level}{{display:none}}}}");
             // Once one is hidden, buttons that fold are in the row's menu, and the column narrows.
             var fold = level == 1 && HasActionCell
                 ? $"{t}>*>tr>td>.ib-grid-actions .ib-fold-on{{display:none}}{t}{{--ib-datagrid-menu:{Rems(ActionWidth(true))}!important}}"
                 : "";
             css.Append(CultureInfo.InvariantCulture,
-                $"@container (width < {Rems(plan.Widths[level - 1])}){{{fold}{Grow(level)}{t}>colgroup>.ib-h{level}{{width:0!important}}{t}>*>tr>.ib-h{level}{{{GoneCell}}}{t}>*>tr>.ib-h{level}>*{{display:none}}{t}{{{width}:{Rems(plan.Widths[level])}!important}}}}");
+                $"@container (width < {Rems(Phone(plan.Widths[level - 1]))}){{{fold}{Grow(level)}{t}>colgroup>.ib-h{level}{{width:0!important}}{t}>*>tr>.ib-h{level}{{{GoneCell}}}{t}>*>tr>.ib-h{level}>*{{display:none}}{t}{{{width}:{Rems(plan.Widths[level])}!important}}}}");
         }
 
-        css.Append(CultureInfo.InvariantCulture, $"@container (width >= {Rems(plan.Widths[0])}){{{none}}}");
+        css.Append(CultureInfo.InvariantCulture, $"@container (width >= {Rems(Phone(plan.Widths[0]))}){{{none}}}");
+        // A column hides only below a phone's width: wider, the grid scrolls (the widths fall, so below 40rem
+        // this is the same rule as before, and at or above it nothing hides).
+        static double Phone(double width) => Math.Min(width, PhoneRem);
 
         // Once only columns with widths are left, the room they don't need goes to the first, not
         // to all of them (the buttons' columns among them), as fixed layout would share it.
