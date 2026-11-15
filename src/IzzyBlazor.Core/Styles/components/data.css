@@ -1473,6 +1473,18 @@
     display: none;
   }
 
+  /* No rows at all: the headers go too, and the empty state sits in the card. */
+  table:has(> tbody > tr.ib-table-none) > thead {
+    display: none;
+  }
+
+  /* On a phone the grid's search fills the row up to its "…" (not while the toolbar measures). */
+  @media (width < 40rem) {
+    .ib-grid-toolbar .ib-toolbar:not([data-ib-measuring]) .ib-toolbar-unit:has(input[type="search"]):not(:has(.ib-col-picker)) {
+      flex-grow: 1;
+    }
+  }
+
   /* While its Add floats (DataGridAdd FloatBelow), room under the grid, so the button never covers the
      last row or the pager. */
   @media (width < 40rem) {

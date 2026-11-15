@@ -342,7 +342,8 @@
                         }
                         else if (_items.Count == 0)
                         {
-                            <tr class="ib-table-empty" role="@StackRole("row")">
+                            @* With no rows at all (no search or filter to blame), its headers hide too (data.css). *@
+                            <tr class="@(NoData ? "ib-table-empty ib-table-none" : "ib-table-empty")" role="@StackRole("row")">
                                 <td role="@StackRole("cell")" colspan="@Math.Max(1, Shown.Count + StartSpan + LeadSpan + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content">
                                         @if (NoneTicked() is { } unticked)
@@ -813,6 +814,9 @@
             .Where(q => !own.Contains(q.Key))
             .SelectMany(q => q.Value.Select(v => (q.Key, v ?? "")));
     }
+
+    /// <summary>No rows at all: loaded, and not because of a search or filter.</summary>
+    internal bool NoData => !IsLoading && _items.Count == 0 && EmptySearch is null && !(HasFilters && ActiveFilterCount > 0) && NoneTicked() is null;
 
     /// <summary>A grid's search when it matches no rows; null when there's none (a Table has none).</summary>
     internal virtual string? EmptySearch => null;

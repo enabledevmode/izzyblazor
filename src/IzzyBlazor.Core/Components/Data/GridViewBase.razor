@@ -941,6 +941,12 @@
     // Floating below its breakpoint (DataGridAdd FloatBelow): the same link, or on an interactive page the same action.
     RenderFragment IDataGridToolbar.AddFloating(Breakpoint below) => __builder =>
     {
+        // Not over an empty list: there the empty state holds the action (EmptyContent).
+        if (NoData)
+        {
+            return;
+        }
+
         var plus = IconSet.Current.Get(IconPurpose.Plus);
         @if (UseState)
         {
@@ -2382,7 +2388,8 @@
 
     bool IDataGridToolbar.HasSearch => HasSearchTool;
 
-    bool IDataGridToolbar.HasColumnPicker => HasPicker;
+    // With no rows at all, Columns and Export have nothing to act on: off, so a phone's "…" menu goes with them.
+    bool IDataGridToolbar.HasColumnPicker => HasPicker && !NoData;
 
     /// <inheritdoc />
     internal override bool SelectionTakesToolbar => HasOwnToolbar;
@@ -2438,7 +2445,7 @@
         _partLinks.AddRange(asked.Where(link => link.Claim(this, _partsRedraw, _partsRetry)));
     }
 
-    bool IDataGridToolbar.HasExport => HasExportTool;
+    bool IDataGridToolbar.HasExport => HasExportTool && !NoData;
 
     bool IDataGridToolbar.ExportHasMenu => ExportHasMenu;
 
