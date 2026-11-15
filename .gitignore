@@ -43,3 +43,7 @@ src/IzzyBlazor.Core/wwwroot/fonts/
 src/IzzyBlazor.Core/Styles/_generated/
 src/IzzyBlazor.Core/Icons/_generated/
 artifacts/
+
+# Local scratch pages and Claude output, not part of the site
+site/IzzyBlazor.Site/Components/Pages/Scratch/
+Claude outputs/
