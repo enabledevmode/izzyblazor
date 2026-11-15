@@ -13,8 +13,7 @@
 </PageMeta>
 
 @* The brand's hero (design board D4, option A): Paper in light mode, Ink in dark. A centered column
-   (the headline with its ember line, what it is, the two ways in, the install command and the
-   release) over the app the library builds, live: a desktop window as wide as the page, its phone
+   (the headline with its ember line, what it is, the two ways in and the install command) over the app the library builds, live: a desktop window as wide as the page, its phone
    over the window's lower start corner, both cut off by the hero's end. Each is a frame of the same
    page, scaled down as pictures are. The glowing knob is a faint watermark behind the headline. *@
 <Section Spacing="SectionSpacing.None" Class="site-hero">
@@ -43,11 +42,6 @@
                 <Code>@Install</Code>
                 <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
             </Row>
-            <p class="site-hero-version">
-                <span title="@Api.Version">@VersionMenu.Short(Api.Version)</span>
-                <span aria-hidden="true">·</span>
-                <Anchor Href="@VersionMenu.Releases" Underline="AnchorUnderline.Hover" Class="site-hero-action">Release notes<Icon Name="Lucide.ArrowRight" /></Anchor>
-            </p>
         </div>
         @* Both frames are the page /frame/home-store, at a desktop's width and a phone's, so each
            lays out as it would there. Their pages scroll inside them, so whatever takes focus in a

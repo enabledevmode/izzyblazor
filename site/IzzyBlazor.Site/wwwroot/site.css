@@ -122,20 +122,9 @@
 .site-hero-sub { max-width: 34em; margin-block-start: 1.375rem; }
 .site-hero-actions { display: flex; gap: var(--ib-space-3); margin-block-start: var(--ib-space-8); }
 .site-hero .site-install { margin-block-start: var(--ib-space-5); background: light-dark(#fff, #1b1d22); border-color: light-dark(#d6d3cc, #2c2f36); }
-.site-hero-version {
-  display: flex;
-  align-items: center;
-  gap: var(--ib-space-2);
-  margin: 0.875rem 0 0;
-  font-size: var(--ib-text-sm);
-  color: var(--ib-color-muted);
-}
-.site-hero-version > span:first-child { font-weight: 600; color: var(--ib-color-on-surface); }
-/* Standalone links: an arrow, no underline until hover. Release notes in Ember, the hero's one
-   accent; See the code in the text color, inside the muted label. */
+/* A standalone link: an arrow, no underline until hover; in the text color, inside the muted label. */
 .site-hero-action { display: inline-flex; align-items: center; gap: var(--ib-space-1); font-weight: 500; }
 .site-hero-action .ib-icon { width: 0.875rem; height: 0.875rem; }
-.site-hero-version .site-hero-action { color: var(--site-ember-text); }
 .site-hero-live .site-hero-action { color: var(--ib-color-on-surface); }
 @media (max-width: 63.98rem) {
   /* Phones and tablets: the buttons and the command full width, the main button first. */
