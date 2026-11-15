@@ -39,7 +39,7 @@
   "variations": [
     { "key": "period", "label": "Billing", "setting": "Billing", "options": { "Monthly and yearly": "MonthlyAndYearly", "Monthly only": "MonthlyOnly" } }
   ],
-  "preview": { "CompareHref": "blocks/pricing", "LinkBase": "blocks/pricing?plan-link=" },
+  "preview": { "CompareHref": "#", "LinkBase": "#" },
   "inserts": [
     { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }

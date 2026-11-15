@@ -7,9 +7,24 @@
 //     so its examples really run without it,
 //   - Ctrl+K opens the header's search, which shows results as you type,
 //   - a demo's frame follows the page's color scheme when it changes,
-//   - inside a demo's frame, links to other pages open in the whole window rather than the frame.
+//   - inside a demo's frame, links to other pages open in the whole window rather than the frame,
+//   - a demo's links that go nowhere ("#", or "#name" with nothing so named) do nothing.
 (() => {
   "use strict";
+
+  // Examples and block previews point links that would leave the demo at "#" (a block's at
+  // "#pricing" and the like), so people stay on the page and crawlers have nothing to follow.
+  // Clicking one does nothing: with the page's <base href="/">, "#" would otherwise go home. "#name"
+  // links to a section the demo has (a legal page's contents) still go there. Caught before Blazor's
+  // own link handling, which would follow it.
+  document.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest('a[href^="#"]') : null;
+    if (!link || !(link.closest(".ib-example-preview") || location.pathname.includes("/frame/"))) return;
+    let name = link.getAttribute("href").slice(1);
+    try { name = decodeURIComponent(name); } catch { /* not encoded */ }
+    if (name && document.getElementById(name)) return;
+    event.preventDefault();
+  }, true);
 
   // Inside a demo's frame: send links to other pages to the top window.
   if (window.top !== window) {

@@ -39,7 +39,7 @@
                     <TextArea @bind-Value="Model!.Message" Rows="5" />
                     <Column Gap="3">
                         <Button Submit Size="ControlSize.Lg" AlignSelf="Align.Start">Send message</Button>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">We'll only use your details to reply. <TextBlock As="span" Color="Color.OnSurface" Style="white-space: nowrap"><Anchor Href="blocks/contact" InheritColor>Privacy policy</Anchor></TextBlock></TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">We'll only use your details to reply. <TextBlock As="span" Color="Color.OnSurface" Style="white-space: nowrap"><Anchor Href="#" InheritColor>Privacy policy</Anchor></TextBlock></TextBlock>
                     </Column>
                 </Form>
             </Box>
@@ -52,8 +52,8 @@
     private static readonly Way[] Ways =
     [
         new(Lucide.Mail, "Email us", "For questions about plans, billing or your account.", "hello@example.com", "mailto:hello@example.com"),
-        new(Lucide.CalendarDays, "Book a demo", "30 minutes with someone from our team.", "Pick a time", "blocks/contact?way=demo"),
-        new(Lucide.LifeBuoy, "Help center", "Guides and answers, any time.", "Browse articles", "blocks/contact?way=help"),
+        new(Lucide.CalendarDays, "Book a demo", "30 minutes with someone from our team.", "Pick a time", "#demo"),
+        new(Lucide.LifeBuoy, "Help center", "Guides and answers, any time.", "Browse articles", "#help"),
     ];
 
     [SupplyParameterFromForm(FormName = "Contact-message")]

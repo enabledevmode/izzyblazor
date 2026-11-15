@@ -8,7 +8,7 @@
             <ToolbarButton StartIcon="Lucide.Table">Table</ToolbarButton>
             <ToolbarSplitButton Label="Save" StartIcon="Lucide.Save" Submit Name="intent" Value="save" OnClick='() => _pressed = "save"' MenuLabel="More save options" Variant="ButtonVariant.Outline" Disabled="_disabled" id="toolbar-save">
                 <MenuItem Submit Name="intent" Value="draft" OnClick='() => _pressed = "draft"'>Save as draft</MenuItem>
-                <MenuItem Href="docs/components/split-button">Open drafts</MenuItem>
+                <MenuItem Href="#">Open drafts</MenuItem>
             </ToolbarSplitButton>
             @* Only ever in the … menu. *@
             <ToolbarSplitButton Label="Export" StartIcon="Lucide.Download" Href="favicon.svg" download="izzy.svg" MenuLabel="Export formats" Overflow="ToolbarOverflow.Always">

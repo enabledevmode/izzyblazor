@@ -40,7 +40,7 @@
     { "key": "first", "label": "First answer", "setting": "OpenFirst", "options": { "Open": "true", "Closed": "false" } },
     { "key": "contact", "label": "Contact link", "setting": "ContactText", "options": { "On": "Contact support", "Off": "" } }
   ],
-  "preview": { "ContactHref": "blocks/faq" },
+  "preview": { "ContactHref": "#" },
   "exclude": [ { "if": "Layout != \"Stacked\"", "paths": ["layouts/Stacked.razor"] } ],
   "rename": [ { "if": "Layout == \"Stacked\"", "paths": { "layouts/Stacked.razor": "Components/Blocks/{{Name}}.razor" } } ],
   "inserts": [

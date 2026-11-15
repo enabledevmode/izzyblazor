@@ -30,7 +30,7 @@
   "variations": [
     { "key": "hiring", "label": "Hiring link", "setting": "HiringText", "options": { "On": "We're hiring: see open roles", "Off": "" } }
   ],
-  "preview": { "HiringHref": "blocks/team" },
+  "preview": { "HiringHref": "#" },
   "inserts": [
     { "file": "{{Into}}", "position": "end", "place": true, "text": "\n<{{Name}} />\n" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{RootNamespace}}.Components", "position": "after", "text": "@using {{RootNamespace}}.Components.Blocks\n" }

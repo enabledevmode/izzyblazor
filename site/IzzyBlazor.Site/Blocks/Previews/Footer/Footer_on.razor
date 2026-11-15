@@ -4,7 +4,7 @@
 <Section Spacing="SectionSpacing.None" PaddingY="new() { Base = 6, Md = 4 }" BorderTop="1">
     <Container Size="ContainerSize.Lg" Align="ContainerAlign.Center" Gutters="false">
         <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="new() { Base = 3, Md = 6 }" Align="new() { Base = Align.Start, Md = Align.Center }">
-            <AppBrand Href="" Icon="Lucide.Box" Label="MyApp" />
+            <AppBrand Href="#" Icon="Lucide.Box" Label="MyApp" />
             <TextBlock Size="TextSize.Sm" Color="Color.Muted">© @DateTime.UtcNow.Year MyApp, Inc.</TextBlock>
             <Spacer />
             <nav aria-label="Footer">
@@ -23,9 +23,9 @@
     // The links at the end: text and address.
     private static readonly (string Text, string Href)[] Links =
     [
-        ("Privacy", "blocks/footer?link=privacy"),
-        ("Terms", "blocks/footer?link=terms"),
-        ("Cookie settings", "blocks/footer?link=cookies"),
-        ("Contact", "blocks/footer?link=contact"),
+        ("Privacy", "#privacy"),
+        ("Terms", "#terms"),
+        ("Cookie settings", "#cookies"),
+        ("Contact", "#contact"),
     ];
 }
