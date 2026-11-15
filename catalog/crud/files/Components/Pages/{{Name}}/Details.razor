@@ -50,7 +50,7 @@
 @*#elif (Field.Kind == "Email") *@
                 <DescriptionItem Term="{{Field.Label}}">@if (!string.IsNullOrEmpty(_item.{{Field.Name}})) { <Anchor Href="@($"mailto:{_item.{{Field.Name}}}")">@_item.{{Field.Name}}</Anchor> } else { @NotSet }</DescriptionItem>
 @*#elif (Field.Kind == "Url") *@
-                <DescriptionItem Term="{{Field.Label}}">@if (!string.IsNullOrEmpty(_item.{{Field.Name}})) { <Anchor Href="@_item.{{Field.Name}}">@_item.{{Field.Name}}</Anchor> } else { @NotSet }</DescriptionItem>
+                <DescriptionItem Term="{{Field.Label}}">@if (IsWebAddress(_item.{{Field.Name}})) { <Anchor Href="@_item.{{Field.Name}}">@_item.{{Field.Name}}</Anchor> } else { @Show(_item.{{Field.Name}}) }</DescriptionItem>
 @*#elif (Field.Kind == "Bool") *@
                 <DescriptionItem Term="{{Field.Label}}">@(_item.{{Field.Name}} == true ? "Yes" : "No")</DescriptionItem>
 @*#elif (Field.Wide) *@
@@ -96,6 +96,10 @@
         Toasts.Success("{{Singular}} deleted");
         Navigation.NavigateTo("{{Route}}");
     }
+
+    // Linked only when it's a web address: anything else, such as javascript:, shows as text.
+    private static bool IsWebAddress(string? text) =>
+        Uri.TryCreate(text, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
 
     private static string Show(object? value, string? format = null) => value switch
     {

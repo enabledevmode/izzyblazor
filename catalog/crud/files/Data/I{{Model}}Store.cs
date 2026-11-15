@@ -36,8 +36,11 @@ public interface I{{Model}}Store
     /// <summary>The {{SingularLower}} with this {{Key}}, or null when there's none.</summary>
     Task<{{ModelType}}?> GetAsync({{KeyType}} id, CancellationToken cancellationToken = default);
 
-    /// <summary>Adds a {{SingularLower}}, giving it its {{Key}}.</summary>
-    Task AddAsync({{ModelType}} item, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Adds a {{SingularLower}}, giving it its {{Key}} when it has none. False when it can't be added, such as when
+    /// its {{Key}} is taken.
+    /// </summary>
+    Task<bool> AddAsync({{ModelType}} item, CancellationToken cancellationToken = default);
 
     /// <summary>Saves a {{SingularLower}} read with <see cref="GetAsync"/> and changed.</summary>
     Task UpdateAsync({{ModelType}} item, CancellationToken cancellationToken = default);

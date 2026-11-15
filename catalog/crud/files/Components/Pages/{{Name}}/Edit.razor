@@ -33,11 +33,15 @@
 @*#if (KeyInput) *@
                 @if (IsNew)
                 {
+@*#if (KeyIsText) *@
                     <TextField @bind-Value="Model.{{Key}}" Label="{{KeyLabel}}" Required />
+@*#else *@
+                    <NumberField @bind-Value="Model.{{Key}}" Label="{{KeyLabel}}" Required />
+@*#endif *@
                 }
                 else
                 {
-                    <TextField Value="@Id" ValueExpression="() => Id" Label="{{KeyLabel}}" ReadOnly Hint="It's the {{SingularLower}}'s address, so it stays." />
+                    <TextField Value="@KeyText" ValueExpression="() => KeyText" Label="{{KeyLabel}}" ReadOnly Hint="It's the {{SingularLower}}'s address, so it stays." />
                 }
 @*#endif *@
 @*#each (Field in FormFields) *@
@@ -53,6 +57,8 @@
                 <TextArea @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Rows="4" ColSpan="2"{{Field.RequiredAttr}} />
 @*#elif (Field.Numeric) *@
                 <NumberField @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}"{{Field.RequiredAttr}} />
+@*#elif (Field.NullableBool) *@
+                <Select @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" Items="YesNo" ItemText="YesNoText" Placeholder="Not set" Clearable />
 @*#elif (Field.Kind == "Bool") *@
                 <Switch @bind-Value="Model.{{Field.Name}}" Label="{{Field.Label}}" ColSpan="2" />
 @*#elif (Field.Kind == "Date") *@
@@ -85,6 +91,10 @@
     private bool IsNew => Id is null;
     private string Title => IsNew ? "New {{SingularLower}}" : "Edit {{SingularLower}}";
     private string Back => IsNew ? "{{Route}}" : Url({{IdValue}});
+    private string? KeyText => Id?.ToString();
+
+    // The page's own errors (beside the model's attributes), cleared when the form is checked again.
+    private ValidationMessageStore? _errors;
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,22 +117,52 @@
 
     private async Task SaveAsync(EditContext form)
     {
+        if (_errors is null)
+        {
+            _errors = new ValidationMessageStore(form);
+            form.OnValidationRequested += (_, _) => _errors.Clear();
+        }
+        _errors.Clear();
 @*#each (Field in FormFields) *@
 @*#if (Field.CheckRequired) *@
         if (string.IsNullOrWhiteSpace(Model!.{{Field.Name}})) Error(form, nameof({{ModelType}}.{{Field.Name}}), "Enter {{Field.Article}} {{Field.LabelLower}}.");
 @*#endif *@
+@*#if (Field.Kind == "Url") *@
+        // Only web addresses: a javascript: address shown as a link would run when it's clicked.
+        if (!string.IsNullOrWhiteSpace(Model!.{{Field.Name}}) && !IsWebAddress(Model.{{Field.Name}}))
+            Error(form, nameof({{ModelType}}.{{Field.Name}}), "Enter a web address that starts with https://.");
+@*#endif *@
 @*#endeach *@
 @*#if (KeyInput) *@
-        if (IsNew && string.IsNullOrWhiteSpace(Model!.{{Key}})) Error(form, nameof({{ModelType}}.{{Key}}), "Enter {{Article}} {{SingularLower}} {{KeyLabelLower}}.");
-        else if (IsNew && await Store.GetAsync(Model!.{{Key}}.Trim()) is not null) Error(form, nameof({{ModelType}}.{{Key}}), "There's already {{Article}} {{SingularLower}} with this {{KeyLabelLower}}.");
+@*#if (KeyIsText) *@
+        if (IsNew) Model!.{{Key}} = Model.{{Key}}?.Trim() ?? "";
+        if (IsNew && string.IsNullOrEmpty(Model!.{{Key}})) Error(form, nameof({{ModelType}}.{{Key}}), "Enter {{Article}} {{SingularLower}} {{KeyLabelLower}}.");
+        else if (IsNew && await Store.GetAsync(Model!.{{Key}}) is not null) Error(form, nameof({{ModelType}}.{{Key}}), Taken);
+@*#else *@
+        if (IsNew && await Store.GetAsync(Model!.{{Key}}) is not null) Error(form, nameof({{ModelType}}.{{Key}}), Taken);
+@*#endif *@
 @*#endif *@
         if (form.GetValidationMessages().Any()) return;
 
         if (IsNew)
         {
-            await Store.AddAsync(Model!);
+            // A new one gets only the form's fields: anything else in the post is ignored.
+            var item = new {{ModelType}}();
+@*#if (KeyInput) *@
+            item.{{Key}} = Model!.{{Key}};
+@*#endif *@
+            Copy(Model!, item);
+            if (!await Store.AddAsync(item))
+            {
+@*#if (KeyInput) *@
+                Error(form, nameof({{ModelType}}.{{Key}}), Taken);
+@*#else *@
+                Error(form, "", "This {{SingularLower}} couldn't be saved. Try again.");
+@*#endif *@
+                return;
+            }
             Toasts.Success("{{Singular}} saved");
-            Navigation.NavigateTo(Url(Model!.{{Key}}));
+            Navigation.NavigateTo(Url(item.{{Key}}));
             return;
         }
         var saved = await Store.GetAsync({{IdValue}});
@@ -147,13 +187,23 @@
 
     // A {{SingularLower}}'s address, its key escaped for a URL.
     private static string Url({{KeyType}} key) => $"{{Route}}/{{{UrlKey}}}";
+@*#if (KeyInput) *@
 
-    private static void Error(EditContext form, string field, string message)
+    private const string Taken = "There's already {{Article}} {{SingularLower}} with this {{KeyLabelLower}}.";
+@*#endif *@
+
+    private void Error(EditContext form, string field, string message)
     {
-        var messages = new ValidationMessageStore(form);
-        messages.Add(form.Field(field), message);
+        _errors!.Add(form.Field(field), message);
         form.NotifyValidationStateChanged();
     }
+
+    private static bool IsWebAddress(string text) =>
+        Uri.TryCreate(text, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+
+    private static readonly bool?[] YesNo = [true, false];
+
+    private static string YesNoText(bool? value) => value == true ? "Yes" : "No";
 @*#each (Field in FormFields) *@
 @*#if (Field.Kind == "Enum") *@
 
