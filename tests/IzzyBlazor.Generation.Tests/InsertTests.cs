@@ -109,6 +109,11 @@ public sealed class InsertTests : IDisposable
         ChangesetWriter.Apply(changes, _project);
         Assert.Equal("<h1>List</h1>\n<p>No match</p>\n<p>The end.</p>\n", Read("Components/Pages/List.razor"));
 
+        // A page with two lists gets it twice.
+        ChangesetWriter.Apply(Generator.Generate(recipe, new Dictionary<string, string> { ["Kind"] = "NoResults" },
+            ProjectInfo.FromDirectory(_project), new Placement("Components/Pages/List.razor", 4)), _project);
+        Assert.Equal("<h1>List</h1>\n<p>No match</p>\n<p>The end.</p>\n<p>No match</p>\n", Read("Components/Pages/List.razor"));
+
         // With no line and no page, it says where to put it and shows the markup.
         var unplaced = Generator.Generate(recipe, new Dictionary<string, string>(), ProjectInfo.FromDirectory(_project));
         Assert.Contains("<p>None yet</p>", Assert.Single(unplaced.Warnings));

@@ -95,7 +95,8 @@ public sealed class ItemManifest
             Packages = (root["packages"] as JsonArray)?.Select(p => new PackageSpec(
                 Required(p!.AsObject(), "id"), Required(p.AsObject(), "version"), (string?)p["if"])).ToList() ?? [],
             Inserts = (root["inserts"] as JsonArray)?.Select(i => InsertSpec.Parse(i!.AsObject())).ToList() is { } inserts
-                ? inserts.Count(i => i.Place) <= 1 ? inserts : throw new GenerationException("Only one insert can be the item's place.")
+                ? inserts.Count(i => i.Place) <= 1 || inserts.Where(i => i.Place).All(i => i.If is not null)
+                    ? inserts : throw new GenerationException("Only one insert can be the item's place, unless each place has an \"if\".")
                 : [],
             Rename = (root["rename"] as JsonArray)?.Select(r => new RenameRule(
                 Required(r!.AsObject(), "if"),
@@ -185,7 +186,8 @@ public sealed record InsertSpec(string File, string? Anchor, string? Pattern, In
 {
     /// <summary>
     /// Whether this is where the item itself goes on a page (<c>"place": true</c>), such as a block's tag; a
-    /// <see cref="Placement"/> (the CLI's <c>--at</c>, an editor's cursor) moves it there. One per item.
+    /// <see cref="Placement"/> (the CLI's <c>--at</c>, an editor's cursor) moves it there. One per item, or
+    /// several in the same file with an <c>if</c> each, such as a hero placed under the page's own heading.
     /// </summary>
     public bool Place { get; init; }
 

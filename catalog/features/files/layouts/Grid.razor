@@ -10,7 +10,7 @@
             <SectionHeader Title="{{Title}}" TitleId="{{Name}}-title" Align="new() { Base = TextAlign.Start, Md = TextAlign.Center }" AlignSelf="Align.Stretch" />
             @*#endif *@
             <Grid As="ul" Columns="new() { Base = 1, Md = 2, Lg = {{Columns}} }" Gap="10" AlignSelf="Align.Stretch">
-                @foreach (var feature in Features)
+                @foreach (var feature in Items)
                 {
                     <Column As="li" Gap="2" Align="Align.Start">
                         <Center Width="Length.Rem(2.5)" Height="Length.Rem(2.5)" Bg="Color.PrimarySoft" Radius="Radius.Md">
@@ -27,7 +27,7 @@
 
 @code {
     // Each feature: an icon (any Lucide icon), a title and one sentence.
-    private static readonly Feature[] Features =
+    private static readonly Feature[] Items =
     [
         new(Lucide.Calendar, "Plans that stay current", "Roadmaps update as work moves, so nobody chases status."),
         new(Lucide.Zap, "Fast by default", "Pages render on the server and load in a blink."),

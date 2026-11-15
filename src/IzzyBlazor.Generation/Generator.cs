@@ -60,14 +60,18 @@ public static class Generator
                 creates.Add(new FileCreate(target, null, bytes));
                 continue;
             }
-            if (bytes is [0xEF, 0xBB, 0xBF, ..])
-                throw new GenerationException($"{manifest.Id}: {path} starts with a byte order mark; save it as UTF-8 without one.");
-            string text;
-            try { text = StrictUtf8.GetString(bytes); }
-            catch (DecoderFallbackException) { throw new GenerationException($"{manifest.Id}: {path} is not UTF-8 text; add its extension to the binary list or re-save it."); }
-            creates.Add(new FileCreate(target, TemplateText.Apply(path, text, values, tokens), null));
+            creates.Add(new FileCreate(target, TemplateText.Apply(path, Text(path, bytes), values, tokens), null));
         }
         creates.Sort((a, b) => string.CompareOrdinal(a.Path, b.Path));
+
+        // A template's text: UTF-8 with no byte order mark, which would land in the file it's written into.
+        string Text(string path, byte[] bytes)
+        {
+            if (bytes is [0xEF, 0xBB, 0xBF, ..])
+                throw new GenerationException($"{manifest.Id}: {path} starts with a byte order mark; save it as UTF-8 without one.");
+            try { return StrictUtf8.GetString(bytes); }
+            catch (DecoderFallbackException) { throw new GenerationException($"{manifest.Id}: {path} is not UTF-8 text; add its extension to the binary list or re-save it."); }
+        }
 
         var warnings = new List<string>();
         var inserts = new List<TextInsert>();
@@ -76,21 +80,21 @@ public static class Generator
             if (written.If is not null && !Condition.Evaluate(written.If, values)) continue;
             var path = TemplateText.ReplaceTokens(written.File, tokens);
             var text = written.TextFrom is { } from
-                ? TemplateText.Apply(from, StrictUtf8.GetString(item.Files[from]), values, tokens)
+                ? TemplateText.Apply(from, Text(from, item.Files[from]), values, tokens)
                 : TemplateText.ReplaceTokens(written.Text, tokens);
             // A block that belongs to a layout (a footer) has no page of its own unless one is named.
-            if (written == place && at is null && path.Length == 0)
+            if (written.Place && at is null && path.Length == 0)
             {
                 warnings.Add(text.Trim().Contains('\n')
                     ? $"{manifest.Id} isn't placed on a page: add this where it goes, or place it with --at <file>:<line>.\n{text.TrimEnd()}"
                     : $"{manifest.Id} isn't placed on a page: add {text.Trim()} where it goes, or place it with --at <file>:<line>.");
                 continue;
             }
-            if (at is not null && written == place)
+            if (at is not null && written.Place)
             {
                 path = at.Path;
+                // No check for it already being there: the line was given, and a recipe can go on a page twice.
                 var target = project.ReadFile(path) ?? throw new GenerationException($"{path} isn't in the project.");
-                if (Inserts.AlreadyThere(target, text)) continue;
                 var (offset, body) = Inserts.AtLine(target, path, at.Line, text);
                 inserts.Add(new TextInsert(path, offset, body, Inserts.Hash(target)));
                 continue;

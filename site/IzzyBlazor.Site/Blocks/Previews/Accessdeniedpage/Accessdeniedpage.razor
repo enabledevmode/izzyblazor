@@ -24,9 +24,11 @@
     // The docs preview has no one signed in: the design's sample.
     private string? SignedInAs => "ada@example.com";
 
-    private IReadOnlyList<string> Roles => ["Admin"];
+    private IReadOnlyList<IReadOnlyList<string>> Roles => [["Admin"]];
 
+    // Each [Authorize] names roles any one of which will do, and the page needs every [Authorize]:
+    // "It needs the Admin or Owner role", "It needs the Staff role and the Billing role".
     private string Message => Roles.Count == 0
         ? "Ask an admin on your team to give it to you."
-        : $"It needs the {string.Join(" or ", Roles)} role. Ask an admin on your team to give it to you.";
+        : $"It needs {string.Join(" and ", Roles.Select(any => $"the {string.Join(" or ", any)} role"))}. Ask an admin on your team to give it to you.";
 }

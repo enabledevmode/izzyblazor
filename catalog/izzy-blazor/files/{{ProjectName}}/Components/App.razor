@@ -25,28 +25,16 @@
     @*#endif *@
     @*#if (!InteractiveAtRoot) *@
     <HeadOutlet />
-    @*#elif (IndividualLocalAuth) *@
-    <HeadOutlet @rendermode="PageRenderMode" />
-    @*#elif (UseServer && UseWebAssembly) *@
-    <HeadOutlet @rendermode="InteractiveAuto" />
-    @*#elif (UseServer) *@
-    <HeadOutlet @rendermode="InteractiveServer" />
     @*#else *@
-    <HeadOutlet @rendermode="InteractiveWebAssembly" />
+    <HeadOutlet @rendermode="PageRenderMode" />
     @*#endif *@
 </head>
 
 <body>
     @*#if (!InteractiveAtRoot) *@
     <Routes />
-    @*#elif (IndividualLocalAuth) *@
-    <Routes @rendermode="PageRenderMode" />
-    @*#elif (UseServer && UseWebAssembly) *@
-    <Routes @rendermode="InteractiveAuto" />
-    @*#elif (UseServer) *@
-    <Routes @rendermode="InteractiveServer" />
     @*#else *@
-    <Routes @rendermode="InteractiveWebAssembly" />
+    <Routes @rendermode="PageRenderMode" />
     @*#endif *@
     @*#if (UseServer) *@
     <ReconnectDialog />
@@ -58,14 +46,14 @@
 </body>
 
 </html>
-@*#if (InteractiveAtRoot && IndividualLocalAuth) *@
+@*#if (InteractiveAtRoot) *@
 
 @code {
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    // The account pages are static (ExcludeFromInteractiveRouting): they set cookies, which needs the
-    // HTTP response.
+    // Every page is interactive except those marked [ExcludeFromInteractiveRouting], such as the
+    // account pages: they set cookies, which needs the HTTP response.
 @*#if (UseServer && UseWebAssembly) *@
     private IComponentRenderMode? PageRenderMode =>
         HttpContext.AcceptsInteractiveRouting() ? InteractiveAuto : null;
