@@ -1,0 +1,6 @@
+bin/
+obj/
+Data/app.db*
+.vs/
+.vscode/
+*.user
