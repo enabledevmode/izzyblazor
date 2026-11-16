@@ -70,7 +70,12 @@ public static class SeedData
                 IpAddress = by is null ? null : $"203.0.113.{Array.IndexOf<ApplicationUser>([admin, manager, viewer, leaver], by) + 10}",
             });
         }
-        DateTime At(DateOnly day) => day.ToDateTime(new TimeOnly(9 + random.Next(8), random.Next(60)), DateTimeKind.Utc);
+        // A time in working hours on that day, and never later than now (today's come out earlier today).
+        DateTime At(DateOnly day)
+        {
+            var at = day.ToDateTime(new TimeOnly(9 + random.Next(8), random.Next(60)), DateTimeKind.Utc);
+            return at < now ? at : now.AddMinutes(-30 - random.Next(120));
+        }
 
         Record(now.AddDays(-2).AddHours(-3), admin, AuditActions.Invited, "User", invitee.Id, invitee.Name,
             [new("Roles", null, Roles.Manager)]);
@@ -182,9 +187,12 @@ public static class SeedData
         foreach (var i in invoices)
         {
             var by = staff[random.Next(staff.Length)];
-            Record(At(i.Issued), by, AuditActions.Created, nameof(Invoice), i.Id.ToString(), i.Number,
+            var created = At(i.Issued);
+            Record(created, by, AuditActions.Created, nameof(Invoice), i.Id.ToString(), i.Number,
                 [new("Customer", null, $"{i.Customer!.FirstName} {i.Customer.LastName}"), new("Total", null, i.Total.ToString("0.00")), new("Due", null, i.Due.ToString("yyyy-MM-dd"))]);
-            if (i.Sent is { } sent) Record(At(sent).AddMinutes(20), by, AuditActions.InvoiceSent, nameof(Invoice), i.Id.ToString(), i.Number, note: $"To {i.Customer.Email}.");
+            // Sent the day it was made, a few minutes after.
+            if (i.Sent is { } sent) Record(sent == i.Issued ? created.AddMinutes(5 + random.Next(20)) : At(sent), by, AuditActions.InvoiceSent, nameof(Invoice), i.Id.ToString(), i.Number,
+                [new("Status", "Draft", "Sent")], note: $"To {i.Customer.Email}.");
             if (i.LastReminder is { } reminded) Record(At(reminded), by, AuditActions.ReminderSent, nameof(Invoice), i.Id.ToString(), i.Number, note: $"To {i.Customer.Email}.");
             if (i.Status == InvoiceStatus.Void) Record(At(i.Issued.AddDays(2)), admin, AuditActions.Updated, nameof(Invoice), i.Id.ToString(), i.Number, [new("Status", "Sent", "Void")]);
             if (i.Paid is { } paid) Record(At(paid), by, AuditActions.Updated, nameof(Invoice), i.Id.ToString(), i.Number,

@@ -35,6 +35,9 @@ builder.Services.AddScoped<Audit>();
 // What admins do to accounts: invite, roles, deactivate, delete (Admin/UserAdmin.cs).
 builder.Services.AddScoped<UserAdmin>();
 
+// What people do to invoices: send, remind, mark paid, void, duplicate (Billing/InvoiceActions.cs).
+builder.Services.AddScoped<{{RootNamespace}}.Billing.InvoiceActions>();
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>((services, options) =>
     options.UseSqlite(connectionString).AddInterceptors(services.GetRequiredService<AuditInterceptor>()));
