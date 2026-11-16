@@ -65,21 +65,10 @@
                     }
                 </FilterTemplate>
             </TemplateColumn>
-            <TemplateColumn Title="Status" SortKey="status" Priority="1" FilterBy="u => u.Status.ToString()" Filterable Width="Length.Rem(9)" Context="user">
-                <ChildContent>
-                    <Badge Status="StatusColor(user.Status)" Dot>@user.Status</Badge>
-                </ChildContent>
-                <FilterTemplate Context="filter">
-                    @foreach (var status in Enum.GetNames<UserStatus>())
-                    {
-                        <label class="ib-check">
-                            <input class="ib-check-input" @attributes="filter.CheckboxAttributes(status)" />
-                            <span>@status</span>
-                        </label>
-                    }
-                </FilterTemplate>
-            </TemplateColumn>
-            <TemplateColumn Title="Last sign-in" SortBy="u => u.LastSignIn" Sortable Width="Length.Rem(9)" Context="user">
+            <PropertyColumn Property="u => u.Status" Filterable Priority="1" Width="Length.Rem(9)" Context="user">
+                <Badge Status="StatusColor(user.Status)" Dot>@user.Status</Badge>
+            </PropertyColumn>
+            <PropertyColumn Property="u => u.LastSignIn" Title="Last sign-in" Sortable Width="Length.Rem(9)" Context="user">
                 @if (user.LastSignIn is { } at)
                 {
                     <RelativeTime Value="new DateTimeOffset(DateTime.SpecifyKind(at, DateTimeKind.Utc))" Color="Color.Muted" />
@@ -88,7 +77,7 @@
                 {
                     <TextBlock Color="Color.Muted" Italic>Never</TextBlock>
                 }
-            </TemplateColumn>
+            </PropertyColumn>
             <ActionColumn Context="user" Overflow="RowActionOverflow.Always">
                 <RowAction Label="View" Href="@($"admin/users/{user.Id}")" />
                 <RowAction Label="@(user.Status == UserStatus.Invited ? "Resend invite" : "Send password reset")" Form="user-action" Name="reset" Value="@user.Id" Visible="user.Status != UserStatus.Deactivated" />
