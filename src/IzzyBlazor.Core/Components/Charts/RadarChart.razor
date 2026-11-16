@@ -269,7 +269,7 @@
         var roomX = Math.Min(96, Math.Ceiling(widest) + 2);
         // On a phone names wrap sooner, but never inside a word.
         var word = spokeTexts.SelectMany(t => t.Split(' ')).Select(w => TextWidths.AtSize(w, 12)).DefaultIfEmpty(0).Max();
-        var style = $"--ib-radar-rx:{Num(roomX)}px;--ib-radar-rw:{Num(Math.Min(roomX, Math.Ceiling(word) + 2))}px;--ib-radar-size:{Size?.Css ?? "20rem"};{Palette?.Style(series.Count)}";
+        var style = $"--ib-radar-rx:{Num(roomX)}px;--ib-radar-rw:{Num(Math.Min(roomX, Math.Ceiling(word) + 2))}px;--ib-radar-size:{Size?.Css ?? "20rem"};{(Palette ?? ChartPalette.Colors).Style(series.Count)}";
         var legendClass = Place switch
         {
             ChartLegend.Top => "ib-chart-lg-top",

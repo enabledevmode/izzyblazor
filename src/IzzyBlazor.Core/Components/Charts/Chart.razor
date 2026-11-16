@@ -1586,7 +1586,7 @@
     // The palette, and a waterfall's or a price series' colors for rises and falls (on the chart, so the tooltips have them).
     private string? RootStyle(ChartModel model, ChartSeriesData? waterfall)
     {
-        var style = (Palette?.Style(model.Series.Count(s => s.Data.ColorFrom is null)) ?? "")
+        var style = ((Palette ?? ChartPalette.Colors).Style(model.Series.Count(s => s.Data.ColorFrom is null)) ?? "")
             + (waterfall?.IncreaseColor is { } up ? $"--ib-chart-increase:{StyleValues.Raw(up, "color")};" : "")
             + (waterfall?.DecreaseColor is { } down ? $"--ib-chart-decrease:{StyleValues.Raw(down, "color")};" : "")
             + (model.SizeKeyPx > 0 ? $"--ib-chart-key-w:{Num(model.SizeKeyPx)}px;" : "")
@@ -1745,7 +1745,7 @@
     private static string ItemColor(SeriesShape s, int index) => s.Bars.FirstOrDefault(b => b.Index == index)?.Change switch
     {
         "up" => "var(--ib-chart-increase, var(--ib-chart-1))",
-        "down" => "var(--ib-chart-decrease, var(--ib-chart-8))",
+        "down" => "var(--ib-chart-decrease, var(--ib-chart-6))",
         "total" => s.Data.Color is { } c ? StyleValues.Raw(c, "color") : "var(--ib-color-neutral)",
         _ => SeriesColor(s),
     };

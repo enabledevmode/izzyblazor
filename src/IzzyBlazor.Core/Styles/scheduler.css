@@ -12,17 +12,7 @@
  * numbers (--ib-sched-lanes), each day's appointments listed under them.
  */
 
-/* The chart palette, which an appointment's color defaults to (as chart.css declares it). */
-:where(:root) {
-  --ib-chart-1: light-dark(#2a78d6, #5fa0f5);
-  --ib-chart-2: light-dark(#008300, #32bd2d);
-  --ib-chart-3: light-dark(#e87ba4, #f77cab);
-  --ib-chart-4: light-dark(#eda100, #f6ae37);
-  --ib-chart-5: light-dark(#1baf7a, #37c78e);
-  --ib-chart-6: light-dark(#eb6834, #f77c4e);
-  --ib-chart-7: light-dark(#6250d6, #8d88f5);
-  --ib-chart-8: light-dark(#e34948, #f66c66);
-}
+/* An appointment's color defaults to the chart palette (tokens.css). */
 
 @layer izzy.components {
   .ib-sched {

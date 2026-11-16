@@ -49,6 +49,37 @@ internal static class ThemeColors
     }
 }
 
+/// <summary>
+/// The chart palette for the app or part of a page: which colors charts, gauges and the scheduler
+/// use when a chart doesn't set its own <see cref="ChartPalette"/>. Each is checked for color-blind
+/// readers in light and dark.
+/// </summary>
+public enum ThemeChartPalette
+{
+    /// <summary>
+    /// The default: eight colors of one lightness, each 3:1 or more on the surface, with sets picked
+    /// for charts of two, three or four series.
+    /// </summary>
+    Contrast,
+
+    /// <summary>Okabe-Ito, the widely used color-blind-safe set: seven colors, then gray.</summary>
+    OkabeIto,
+
+    /// <summary>Muted colors, for finance and dashboards read all day.</summary>
+    Calm,
+}
+
+/// <summary>The names <see cref="ThemeChartPalette"/> values take in CSS (<c>data-ib-chart-palette</c>).</summary>
+internal static class ChartPaletteNames
+{
+    public static string Name(ThemeChartPalette palette) => palette switch
+    {
+        ThemeChartPalette.OkabeIto => "okabe-ito",
+        ThemeChartPalette.Calm => "calm",
+        _ => "contrast",
+    };
+}
+
 /// <summary>The radius scale: controls, cards and dialogs shift together.</summary>
 public enum ThemeRadius
 {

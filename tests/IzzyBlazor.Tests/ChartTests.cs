@@ -556,7 +556,18 @@ public class ChartRedrawTests
     [Fact]
     public void A_palette_spreads_its_ramp_over_the_series_and_leaves_the_default_to_the_theme()
     {
-        Assert.Null(ChartPalette.Colors.Style(3));
+        // The default: a set picked for two, three or four series; the theme's eight otherwise.
+        Assert.Null(ChartPalette.Colors.Style(1));
+        Assert.Null(ChartPalette.Colors.Style(5));
+        Assert.Equal("--ib-chart-1:var(--ib-chart-of3-1);--ib-chart-2:var(--ib-chart-of3-2);--ib-chart-3:var(--ib-chart-of3-3);", ChartPalette.Colors.Style(3));
+        Assert.Contains("--ib-chart-4:var(--ib-chart-of4-4);", ChartPalette.Colors.Style(4));
+
+        // A named palette holds whatever the theme's is: Contrast keeps its small sets, the others
+        // take their colors in order.
+        Assert.Equal("--ib-chart-1:var(--ib-chart-contrast-of2-1);--ib-chart-2:var(--ib-chart-contrast-of2-2);", ChartPalette.Contrast.Style(2));
+        Assert.Contains("--ib-chart-6:var(--ib-chart-contrast-6);", ChartPalette.Contrast.Style(6));
+        Assert.Equal("--ib-chart-1:var(--ib-chart-calm-1);--ib-chart-2:var(--ib-chart-calm-2);", ChartPalette.Calm.Style(2));
+        Assert.Contains("--ib-chart-8:var(--ib-chart-okabe-ito-8);", ChartPalette.OkabeIto.Style(8));
 
         // Three shades: light, the color itself, dark, each turned round for dark mode.
         var shades = ChartPalette.Shades(Color.Primary).Style(3)!;

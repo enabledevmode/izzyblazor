@@ -5,14 +5,16 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// The colors a <see cref="Chart{TItem}"/> or <see cref="PieChart{TItem}"/> gives its series or
-/// slices, or a <see cref="Gauge"/> its bands, in order: <see cref="Colors"/> (the default), <see cref="Shades"/> of one color,
+/// slices, or a <see cref="Gauge"/> its bands, in order: <see cref="Colors"/> (the default: the theme's
+/// palette, set with <see cref="ThemeBase.ChartPalette"/>), one palette whatever the theme's
+/// (<see cref="Contrast"/>, <see cref="OkabeIto"/>, <see cref="Calm"/>), <see cref="Shades"/> of one color,
 /// <see cref="Diverging"/> between two, or your own with <see cref="Of"/>. Shades and diverging
 /// ramps are sampled for the number of series, so three get three even steps, and they turn
 /// round in dark mode, where the strongest color is the lightest.
 /// </summary>
 public sealed class ChartPalette
 {
-    private enum Kind { Colors, Shades, Tints, Diverging, Of }
+    private enum Kind { Colors, Named, Shades, Tints, Diverging, Of }
 
     private readonly Kind _kind;
     private readonly string[] _colors;
@@ -24,10 +26,29 @@ public sealed class ChartPalette
     }
 
     /// <summary>
-    /// Eight distinct colors, for series that aren't in an order, such as regions or products: the
-    /// theme's <c>--ib-chart-1</c> to <c>--ib-chart-8</c>. The default.
+    /// Distinct colors, for series that aren't in an order, such as regions or products. The
+    /// default. A chart of exactly two, three or four series gets a set picked for that count, so
+    /// every pair stays apart for color-blind readers (<c>--ib-chart-of2-1</c> and on); any other
+    /// count takes the theme's eight in order (<c>--ib-chart-1</c> to <c>--ib-chart-8</c>). Which
+    /// palette that is follows <see cref="ThemeBase.ChartPalette"/> (Contrast unless set). The
+    /// count is the series a chart defines, so hiding one never repaints the rest.
     /// </summary>
     public static ChartPalette Colors { get; } = new(Kind.Colors);
+
+    /// <summary>
+    /// The Contrast palette whatever the theme's: eight colors of one lightness, each 3:1 or more on
+    /// the surface, with sets picked for two, three or four series. The theme's default.
+    /// </summary>
+    public static ChartPalette Contrast { get; } = new(Kind.Named, "contrast");
+
+    /// <summary>
+    /// The Okabe-Ito palette whatever the theme's: the widely used color-blind-safe set, seven colors
+    /// and then gray.
+    /// </summary>
+    public static ChartPalette OkabeIto { get; } = new(Kind.Named, "okabe-ito");
+
+    /// <summary>The Calm palette whatever the theme's: muted colors, for dashboards read all day.</summary>
+    public static ChartPalette Calm { get; } = new(Kind.Named, "calm");
 
     /// <summary>
     /// Light to dark shades of one color, for series in an order, such as age bands or plan tiers:
@@ -67,11 +88,11 @@ public sealed class ChartPalette
 
     /// <summary>
     /// The style that sets <c>--ib-chart-1</c> onward for <paramref name="count"/> series (up to
-    /// eight), or null for the theme's colors.
+    /// eight), or null for the theme's eight as they are.
     /// </summary>
     internal string? Style(int count)
     {
-        if (_kind == Kind.Colors || count <= 0) return null;
+        if (count <= 0 || _kind == Kind.Colors && !HasSet(count)) return null;
         var n = Math.Min(count, 8);
         var sb = new StringBuilder();
         for (var i = 0; i < n; i++)
@@ -83,7 +104,7 @@ public sealed class ChartPalette
     }
 
     /// <summary>The theme's distinct colors, which say which, not how much: no use on a heatmap.</summary>
-    internal bool IsCategorical => _kind == Kind.Colors;
+    internal bool IsCategorical => _kind is Kind.Colors or Kind.Named;
 
     internal bool IsDiverging => _kind == Kind.Diverging;
 
@@ -119,8 +140,14 @@ public sealed class ChartPalette
         return sb.ToString();
     }
 
+    // The two-, three- and four-series sets (tokens.css).
+    private static bool HasSet(int n) => n is >= 2 and <= 4;
+
     internal string Color(int i, int n) => _kind switch
     {
+        Kind.Colors when HasSet(n) => $"var(--ib-chart-of{n}-{i % n + 1})",
+        Kind.Named when _colors[0] == "contrast" && HasSet(n) => $"var(--ib-chart-contrast-of{n}-{i % n + 1})",
+        Kind.Named => $"var(--ib-chart-{_colors[0]}-{i % 8 + 1})",
         Kind.Shades => Shade(_colors[0], n == 1 ? 0.5 : (double)i / (n - 1)),
         Kind.Tints => n == 1 ? _colors[0] : Tint(_colors[0], (double)i / (n - 1)),
         Kind.Diverging => Diverge(_colors[0], _colors[1], n == 1 ? 0 : -1 + 2.0 * i / (n - 1)),

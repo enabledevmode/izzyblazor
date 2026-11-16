@@ -23,6 +23,29 @@ public class ThemeScopeTests : BunitContext
         Assert.Equal("rose", part.GetAttribute("data-ib-brand"));
         Assert.Null(part.GetAttribute("data-ib-gray"));
         Assert.Equal("Report", part.QuerySelector("p")!.TextContent);
+        Assert.Null(part.GetAttribute("data-ib-chart-palette"));
+    }
+
+    [Theory]
+    [InlineData(ThemeChartPalette.Contrast, "contrast")]
+    [InlineData(ThemeChartPalette.OkabeIto, "okabe-ito")]
+    [InlineData(ThemeChartPalette.Calm, "calm")]
+    public void A_chart_palette_is_named_for_the_css(ThemeChartPalette palette, string name)
+    {
+        var part = Render<ThemeScope>(p => p.Add(t => t.ChartPalette, palette).AddChildContent("<p>Chart</p>")).Find("div");
+        Assert.Equal(name, part.GetAttribute("data-ib-chart-palette"));
+
+        var theme = Render<IzzyTheme>(p => p.Add(t => t.ChartPalette, palette));
+        Assert.Equal(name, theme.Find("meta[name='ib-chart-palette']").GetAttribute("content"));
+
+        // Every name the theme writes has its rule, and every slot it reads is declared.
+        var css = File.ReadAllText(StyleSheets().Single(f => f.EndsWith("themes.css", StringComparison.Ordinal)));
+        Assert.Contains($"[data-ib-chart-palette=\"{name}\"]", css);
+        var tokens = File.ReadAllText(StyleSheets().Single(f => f.EndsWith("tokens.css", StringComparison.Ordinal)));
+        for (var i = 1; i <= 8; i++)
+        {
+            Assert.Contains($"--ib-chart-{name}-{i}:", tokens);
+        }
     }
 
     // The colors made from other colors are worked out where they're used (a fallback in each

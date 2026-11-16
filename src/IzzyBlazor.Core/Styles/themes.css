@@ -300,4 +300,71 @@
     --ib-font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --ib-font-heading: Newsreader, Georgia, "Times New Roman", serif;
   }
+
+  /* Chart palettes (IzzyTheme's and ThemeScope's ChartPalette, or data-ib-chart-palette): which
+     palette --ib-chart-1 to -8 and the two-, three- and four-series sets read (tokens.css).
+     Contrast is the default; Okabe-Ito and Calm have no sets of their own, so a chart of two to
+     four series takes their first colors. */
+  [data-ib-chart-palette][data-ib-chart-palette][data-ib-chart-palette][data-ib-chart-palette="contrast"],
+  :root:root:root:where(:has(> head > meta[name="ib-chart-palette"][content="contrast"])) {
+    --ib-chart-1: var(--ib-chart-contrast-1);
+    --ib-chart-2: var(--ib-chart-contrast-2);
+    --ib-chart-3: var(--ib-chart-contrast-3);
+    --ib-chart-4: var(--ib-chart-contrast-4);
+    --ib-chart-5: var(--ib-chart-contrast-5);
+    --ib-chart-6: var(--ib-chart-contrast-6);
+    --ib-chart-7: var(--ib-chart-contrast-7);
+    --ib-chart-8: var(--ib-chart-contrast-8);
+    --ib-chart-of2-1: var(--ib-chart-contrast-of2-1);
+    --ib-chart-of2-2: var(--ib-chart-contrast-of2-2);
+    --ib-chart-of3-1: var(--ib-chart-contrast-of3-1);
+    --ib-chart-of3-2: var(--ib-chart-contrast-of3-2);
+    --ib-chart-of3-3: var(--ib-chart-contrast-of3-3);
+    --ib-chart-of4-1: var(--ib-chart-contrast-of4-1);
+    --ib-chart-of4-2: var(--ib-chart-contrast-of4-2);
+    --ib-chart-of4-3: var(--ib-chart-contrast-of4-3);
+    --ib-chart-of4-4: var(--ib-chart-contrast-of4-4);
+  }
+
+  [data-ib-chart-palette][data-ib-chart-palette][data-ib-chart-palette][data-ib-chart-palette="okabe-ito"],
+  :root:root:root:where(:has(> head > meta[name="ib-chart-palette"][content="okabe-ito"])) {
+    --ib-chart-1: var(--ib-chart-okabe-ito-1);
+    --ib-chart-2: var(--ib-chart-okabe-ito-2);
+    --ib-chart-3: var(--ib-chart-okabe-ito-3);
+    --ib-chart-4: var(--ib-chart-okabe-ito-4);
+    --ib-chart-5: var(--ib-chart-okabe-ito-5);
+    --ib-chart-6: var(--ib-chart-okabe-ito-6);
+    --ib-chart-7: var(--ib-chart-okabe-ito-7);
+    --ib-chart-8: var(--ib-chart-okabe-ito-8);
+    --ib-chart-of2-1: var(--ib-chart-okabe-ito-1);
+    --ib-chart-of2-2: var(--ib-chart-okabe-ito-2);
+    --ib-chart-of3-1: var(--ib-chart-okabe-ito-1);
+    --ib-chart-of3-2: var(--ib-chart-okabe-ito-2);
+    --ib-chart-of3-3: var(--ib-chart-okabe-ito-3);
+    --ib-chart-of4-1: var(--ib-chart-okabe-ito-1);
+    --ib-chart-of4-2: var(--ib-chart-okabe-ito-2);
+    --ib-chart-of4-3: var(--ib-chart-okabe-ito-3);
+    --ib-chart-of4-4: var(--ib-chart-okabe-ito-4);
+  }
+
+  [data-ib-chart-palette][data-ib-chart-palette][data-ib-chart-palette][data-ib-chart-palette="calm"],
+  :root:root:root:where(:has(> head > meta[name="ib-chart-palette"][content="calm"])) {
+    --ib-chart-1: var(--ib-chart-calm-1);
+    --ib-chart-2: var(--ib-chart-calm-2);
+    --ib-chart-3: var(--ib-chart-calm-3);
+    --ib-chart-4: var(--ib-chart-calm-4);
+    --ib-chart-5: var(--ib-chart-calm-5);
+    --ib-chart-6: var(--ib-chart-calm-6);
+    --ib-chart-7: var(--ib-chart-calm-7);
+    --ib-chart-8: var(--ib-chart-calm-8);
+    --ib-chart-of2-1: var(--ib-chart-calm-1);
+    --ib-chart-of2-2: var(--ib-chart-calm-2);
+    --ib-chart-of3-1: var(--ib-chart-calm-1);
+    --ib-chart-of3-2: var(--ib-chart-calm-2);
+    --ib-chart-of3-3: var(--ib-chart-calm-3);
+    --ib-chart-of4-1: var(--ib-chart-calm-1);
+    --ib-chart-of4-2: var(--ib-chart-calm-2);
+    --ib-chart-of4-3: var(--ib-chart-calm-3);
+    --ib-chart-of4-4: var(--ib-chart-calm-4);
+  }
 }

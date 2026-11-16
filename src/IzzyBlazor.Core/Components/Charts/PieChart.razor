@@ -88,7 +88,7 @@
     {
         @ChartDrill.Crumbs(drilled, TextDefaults.ChartDrillTop, Title, TextDefaults)
     }
-    <ib-chart data-ib-box="@BoxData" data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@Palette?.Style(items.Count)"
+    <ib-chart data-ib-box="@BoxData" data-ib-refresh="@_refresh.Every" data-ib-refresh-from="@_refresh.From" style="@((Palette ?? ChartPalette.Colors).Style(items.Count))"
               data-ib-drilled="@drilled?.Said" data-ib-drill="@drilled?.Key" data-ib-deeper="@(drilled?.Hrefs is not null ? "" : null)"
               data-ib-pie="@(Donut ? Num(ChartShapes.DonutHole) : "0")"
               data-ib-count="@items.Count"
