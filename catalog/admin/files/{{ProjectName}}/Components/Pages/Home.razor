@@ -34,7 +34,7 @@
                     {
                         <Stat Label="@stat.Label" Value="@stat.Value" Change="@stat.Change" Trend="stat.Trend"
                               ChangeStatus="stat.Good ? Status.Success : Status.Danger" Description="@($"vs last {_period.Name}")"
-                              Sparkline="stat.Spark" SparklineLabel="@($"{stat.Label}, {SparkSpan}")" />
+                              Sparkline="stat.Spark" SparklineType="stat.SparkType" SparklineLabel="@($"{stat.Label}, {SparkSpan}")" />
                     }
                 </Skeleton>
             </Card>
@@ -221,7 +221,7 @@
             Compare("Revenue", (double)Revenue(start, today), (double)Revenue(before, start), v => v.ToString("$#,0"),
                 ends.Select(e => (double?)(double)Revenue(BucketStart(e), e))),
             Compare("New customers", Joined(start, today), Joined(before, start), v => v.ToString("N0"),
-                ends.Select(e => (double?)Joined(BucketStart(e), e))),
+                ends.Select(e => (double?)Joined(BucketStart(e), e)), type: SparklineType.Bar),
             Compare("Active customers", Active(today), Active(start), v => v.ToString("N0"),
                 ends.Select(e => (double?)Active(e))),
             Compare("Churn rate", Churn(start, today), Churn(before, start), v => v.ToString("0.0") + "%",
@@ -276,12 +276,12 @@
     }
 
     private static StatValue Compare(string label, double now, double before, Func<double, string> format,
-        IEnumerable<double?> spark, bool points = false, bool lowerIsBetter = false)
+        IEnumerable<double?> spark, bool points = false, bool lowerIsBetter = false, SparklineType type = SparklineType.Line)
     {
         var trend = now > before ? StatTrend.Up : now < before ? StatTrend.Down : StatTrend.Flat;
         var change = points ? $"{Math.Abs(now - before):0.0} pts"
             : before == 0 ? null : $"{Math.Abs((now - before) / before):0%}";
-        return new(label, format(now), change, trend, lowerIsBetter ? now <= before : now >= before, spark.ToList());
+        return new(label, format(now), change, trend, lowerIsBetter ? now <= before : now >= before, spark.ToList(), type);
     }
 
     private static Status StatusOf(CustomerStatus status) => status switch
@@ -292,7 +292,7 @@
     };
 
     private sealed record StatValue(string Label, string Value, string? Change = null, StatTrend Trend = StatTrend.Flat,
-        bool Good = true, IReadOnlyList<double?>? Spark = null);
+        bool Good = true, IReadOnlyList<double?>? Spark = null, SparklineType SparkType = SparklineType.Line);
 
     private sealed record Bucket(string Label, decimal Amount);
 
