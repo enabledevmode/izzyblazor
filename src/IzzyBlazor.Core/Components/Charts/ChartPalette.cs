@@ -7,23 +7,30 @@ namespace IzzyBlazor;
 /// The colors a <see cref="Chart{TItem}"/> or <see cref="PieChart{TItem}"/> gives its series or
 /// slices, or a <see cref="Gauge"/> its bands, in order: <see cref="Colors"/> (the default: the theme's
 /// palette, set with <see cref="ThemeBase.ChartPalette"/>), one palette whatever the theme's
-/// (<see cref="Contrast"/>, <see cref="OkabeIto"/>, <see cref="Calm"/>), <see cref="Shades"/> of one color,
-/// <see cref="Diverging"/> between two, or your own with <see cref="Of"/>. Shades and diverging
+/// (<see cref="Contrast"/>, <see cref="OkabeIto"/>, <see cref="Calm"/>), one series picked out with
+/// <see cref="Emphasis"/>, <see cref="Shades"/> of one color, <see cref="Diverging"/> between two, or your own
+/// with <see cref="Of"/>. Shades and diverging
 /// ramps are sampled for the number of series, so three get three even steps, and they turn
 /// round in dark mode, where the strongest color is the lightest.
 /// </summary>
 public sealed class ChartPalette
 {
-    private enum Kind { Colors, Named, Shades, Tints, Diverging, Of }
+    private enum Kind { Colors, Named, Emphasis, Shades, Tints, Diverging, Of }
 
     private readonly Kind _kind;
     private readonly string[] _colors;
+    private readonly int _index;
 
     private ChartPalette(Kind kind, params string[] colors)
     {
         _kind = kind;
         _colors = colors;
     }
+
+    private ChartPalette(int index, string color) : this(Kind.Emphasis, color) => _index = index;
+
+    /// <summary>How much of the text color an <see cref="Emphasis"/> gray mixes into the surface.</summary>
+    internal const int EmphasisGrayPercent = 45;
 
     /// <summary>
     /// Distinct colors, for series that aren't in an order, such as regions or products. The
@@ -49,6 +56,21 @@ public sealed class ChartPalette
 
     /// <summary>The Calm palette whatever the theme's: muted colors, for dashboards read all day.</summary>
     public static ChartPalette Calm { get; } = new(Kind.Named, "calm");
+
+    /// <summary>
+    /// One series in color and every other one in gray, for a chart that makes a point about one
+    /// series, such as this year against earlier years or one store against the rest. The gray is the
+    /// text color mixed into the surface, so it keeps 3:1 on the surface in both schemes and the other
+    /// series stay readable as context. The grays are alike, so give the series names: the legend and
+    /// tooltips tell them apart. On a line chart, define the picked series last so it's drawn on top.
+    /// </summary>
+    /// <param name="index">The picked series, from 0, in the order the chart defines them.</param>
+    /// <param name="color">Its color; the theme palette's first color if not set.</param>
+    public static ChartPalette Emphasis(int index, Color? color = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        return new(index, color is { } c ? StyleValues.Color(c) : "var(--ib-chart-of2-1)");
+    }
 
     /// <summary>
     /// Light to dark shades of one color, for series in an order, such as age bands or plan tiers:
@@ -104,7 +126,7 @@ public sealed class ChartPalette
     }
 
     /// <summary>The theme's distinct colors, which say which, not how much: no use on a heatmap.</summary>
-    internal bool IsCategorical => _kind is Kind.Colors or Kind.Named;
+    internal bool IsCategorical => _kind is Kind.Colors or Kind.Named or Kind.Emphasis;
 
     internal bool IsDiverging => _kind == Kind.Diverging;
 
@@ -148,6 +170,7 @@ public sealed class ChartPalette
         Kind.Colors when HasSet(n) => $"var(--ib-chart-of{n}-{i % n + 1})",
         Kind.Named when _colors[0] == "contrast" && HasSet(n) => $"var(--ib-chart-contrast-of{n}-{i % n + 1})",
         Kind.Named => $"var(--ib-chart-{_colors[0]}-{i % 8 + 1})",
+        Kind.Emphasis => i == _index ? _colors[0] : EmphasisGray,
         Kind.Shades => Shade(_colors[0], n == 1 ? 0.5 : (double)i / (n - 1)),
         Kind.Tints => n == 1 ? _colors[0] : Tint(_colors[0], (double)i / (n - 1)),
         Kind.Diverging => Diverge(_colors[0], _colors[1], n == 1 ? 0 : -1 + 2.0 * i / (n - 1)),
@@ -180,6 +203,10 @@ public sealed class ChartPalette
         var percent = n <= FewGrays.Length ? FewGrays[Math.Max(n, 1) - 1][i] : 50 - 40.0 * i / (n - 1);
         return $"light-dark({Mix("var(--ib-color-on-surface)", percent, "var(--ib-color-surface)")}, {Mix("var(--ib-color-on-surface)", percent * 0.6, "var(--ib-color-surface)")})";
     }
+
+    // An Emphasis palette's gray for the series not picked: 3:1 or more on the surface in both schemes
+    // (ChartPaletteSeparationTests).
+    private static readonly string EmphasisGray = Mix("var(--ib-color-on-surface)", EmphasisGrayPercent, "var(--ib-color-surface)");
 
     private static string Mix(string color, double percent, string with) =>
         $"color-mix(in oklab, {color} {percent.ToString("0.#", CultureInfo.InvariantCulture)}%, {with})";

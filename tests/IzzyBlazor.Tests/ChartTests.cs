@@ -580,6 +580,23 @@ public class ChartRedrawTests
         Assert.Equal(8, ChartPalette.Shades(Color.Primary).Style(12)!.Split(';', StringSplitOptions.RemoveEmptyEntries).Length);
     }
 
+    [Fact]
+    public void Emphasis_colors_the_picked_series_and_grays_the_rest()
+    {
+        // The third of four in the theme palette's first color, the others in one gray.
+        var gray = "color-mix(in oklab, var(--ib-color-on-surface) 45%, var(--ib-color-surface))";
+        var style = ChartPalette.Emphasis(2).Style(4)!;
+        Assert.Equal($"--ib-chart-1:{gray};--ib-chart-2:{gray};--ib-chart-3:var(--ib-chart-of2-1);--ib-chart-4:{gray};", style);
+
+        // Your own color for it; a picked series past the last leaves them all gray.
+        Assert.StartsWith("--ib-chart-1:#0f766e;", ChartPalette.Emphasis(0, Color.Of("#0f766e")).Style(3));
+        Assert.DoesNotContain("of2", ChartPalette.Emphasis(5).Style(3));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ChartPalette.Emphasis(-1));
+
+        // It says which, not how much: a heatmap refuses it, as it refuses the default.
+        Assert.True(ChartPalette.Emphasis(0).IsCategorical);
+    }
+
     [Theory]
     [InlineData("C0", "en-US", "$", "", "-$", ",", ".", 0, 1)]
     [InlineData("P0", "en-US", "", "%", "-", ",", ".", 0, 100)]

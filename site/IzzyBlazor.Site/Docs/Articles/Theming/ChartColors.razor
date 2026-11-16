@@ -1,0 +1,152 @@
+@page "/docs/theming/chart-colors"
+
+@* The chart palettes: the theme's (Contrast, Okabe-Ito, Calm), choosing one for the app, part of a
+   page or one chart, the per-chart palettes (Emphasis, Shades, Diverging, Of), your own colors, and
+   how the palettes are checked (ChartPaletteSeparationTests). Values from tokens.css and
+   ChartPalette.cs. *@
+
+<ArticlePage Section="theming" Slug="chart-colors">
+    <Lead>
+        Charts, gauges and the scheduler color their series from the theme's chart palette. The default, Contrast, keeps
+        every series apart for color-blind readers and visible on the surface in light and dark. You can pick another
+        palette for the app, for part of a page or for one chart.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">The palettes</Heading>
+        <TextBlock>
+            Each palette has eight colors in a fixed order. A chart's first series takes the first color, its second the
+            second, and so on. The order is part of the palette: neighbors are chosen to stay apart, so a chart never skips
+            or shuffles them.
+        </TextBlock>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Palette</th><th>Colors</th><th>Use it for</th></tr></thead>
+                <tbody>
+                    @foreach (var p in Palettes)
+                    {
+                        <tr>
+                            <td><code>@p.Name</code></td>
+                            <td><span style="display: inline-flex; gap: 4px; vertical-align: middle">@for (var i = 1; i <= 8; i++) { var slot = $"background: var(--ib-chart-{p.Token}-{i}); width: 16px; height: 16px; border-radius: 4px; display: inline-block"; <span style="@slot"></span> }</span></td>
+                            <td>@p.Use</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            Contrast, the default, has eight colors of one lightness, each at least 3:1 on the surface in both schemes, so
+            thin lines and small markers stay visible. A chart with exactly two, three or four series gets a set chosen for
+            that count, where every pair stays apart, not only neighbors. The count is the series the chart defines, so
+            hiding one from the legend never repaints the others.
+        </TextBlock>
+        <TextBlock>
+            Okabe-Ito and Calm have some lighter colors under 3:1 in light mode. Keep a legend, labels or a table view with
+            them, so no series depends on its color alone.
+        </TextBlock>
+
+        <Heading Level="2">Choose the app's palette</Heading>
+        <TextBlock>Set <Code>ChartPalette</Code> on the <Code>IzzyTheme</Code> in the <Code>head</Code>:</TextBlock>
+        <Code Block Language="razor" Title="Components/App.razor">@ThemeSnippet</Code>
+        <TextBlock>
+            For part of a page, set it on a <Code>ThemeScope</Code>. For one chart whatever the theme's, set the chart's
+            <Code>Palette</Code> to <Code>ChartPalette.Contrast</Code>, <Code>ChartPalette.OkabeIto</Code> or
+            <Code>ChartPalette.Calm</Code>.
+        </TextBlock>
+        <Code Block Language="razor">@ScopeSnippet</Code>
+
+        <Heading Level="2">Palettes for one chart</Heading>
+        <TextBlock>
+            Distinct colors say which series is which. When the series mean something more, set the chart's
+            <Code>Palette</Code> to one of these.
+        </TextBlock>
+        <Heading Level="3">One series picked out</Heading>
+        <TextBlock>
+            <Code>ChartPalette.Emphasis(index)</Code> colors one series and grays the rest, for a chart about one of them,
+            such as one store against the others. The gray keeps 3:1 on the surface, so the others still read as data.
+        </TextBlock>
+        <ExampleViewer Example="chart-emphasis" />
+        <Heading Level="3">Series in an order</Heading>
+        <TextBlock>
+            <Code>ChartPalette.Shades(color)</Code> runs from light to dark for series in an order, such as plan tiers.
+            Past about six, shades are hard to tell apart.
+        </TextBlock>
+        <ExampleViewer Example="chart-shades" />
+        <Heading Level="3">Two sides of a middle</Heading>
+        <TextBlock>
+            <Code>ChartPalette.Diverging(low, high)</Code> meets at a gray middle, for answers from disagree to agree or a
+            change below and above zero.
+        </TextBlock>
+        <ExampleViewer Example="chart-diverging" />
+        <Heading Level="3">Your own colors</Heading>
+        <TextBlock>
+            <Code>ChartPalette.Of(...)</Code> takes your colors in order, for dashboards where each entity always has the
+            same color, such as a product line. A series' <Code>Color</Code> still sets that one series.
+        </TextBlock>
+
+        <Heading Level="2">Your own palette for the app</Heading>
+        <TextBlock>
+            Charts read <Code>--ib-chart-1</Code> to <Code>--ib-chart-8</Code>, and <Code>--ib-chart-of2-1</Code> to
+            <Code>--ib-chart-of4-4</Code> for the two-, three- and four-series sets. Set them in your stylesheet, each as a
+            <Code>light-dark()</Code> pair:
+        </TextBlock>
+        <Code Block Language="css">@CssSnippet</Code>
+        <TextBlock>
+            Check your colors before you ship them. Neighbors should differ for color-blind readers as well as everyone
+            else, and each color should be at least 3:1 on the surface in both schemes.
+        </TextBlock>
+
+        <Heading Level="2">How the palettes are checked</Heading>
+        <TextBlock>
+            Every build checks the palettes in <Code>tokens.css</Code>. Distance is measured in OKLab, and color blindness
+            is simulated with the Machado, Oliveira and Fernandes (2009) model. Neighbors must stay at least 8 apart for
+            protanopia and deuteranopia, and 15 apart for typical vision. The two-, three- and four-series sets check every
+            pair. Contrast and its sets must keep 3:1 on the surface, as must the Emphasis gray.
+        </TextBlock>
+
+        <Heading Level="2">Good practice</Heading>
+        <List Gap="2">
+            <ListItem>Keep a legend for two or more series, and label up to four series directly, so color is never the only cue.</ListItem>
+            <ListItem>Past eight series, fold the smallest into "Other" or split the chart into small multiples; never add colors.</ListItem>
+            <ListItem>Keep text in text colors. Values and labels beside a series stay in the text color; the mark carries the color.</ListItem>
+            <ListItem>Leave status colors (success, warning, danger) for status, not for a fourth series.</ListItem>
+        </List>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/chart">Chart</Anchor>: series, axes and the <Code>Palette</Code> parameter.</ListItem>
+            <ListItem><Anchor Href="docs/theming/themes">Themes and presets</Anchor>: everything else <Code>IzzyTheme</Code> sets.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/color-and-motion">Color, contrast and motion</Anchor>: contrast across the library.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record PaletteRow(string Name, string Token, string Use);
+
+    private static readonly PaletteRow[] Palettes =
+    [
+        new("Contrast", "contrast", "The default. Any chart; every color stays visible on the surface."),
+        new("OkabeIto", "okabe-ito", "The widely used color-blind-safe set: seven colors, then gray. Familiar in science and reports."),
+        new("Calm", "calm", "Muted colors for dashboards people read all day."),
+    ];
+
+    private const string ThemeSnippet = """
+        <IzzyTheme ChartPalette="ThemeChartPalette.OkabeIto" />
+        """;
+
+    private const string ScopeSnippet = """
+        <ThemeScope ChartPalette="ThemeChartPalette.Calm">
+            <Chart ...>...</Chart>
+        </ThemeScope>
+
+        <Chart Items="_sales" Palette="ChartPalette.Contrast">...</Chart>
+        """;
+
+    private const string CssSnippet = """
+        :root {
+          --ib-chart-1: light-dark(#1f6fd1, #4a92f0);
+          --ib-chart-2: light-dark(#b8520f, #e07a3a);
+          /* … to --ib-chart-8, and --ib-chart-of2-1 to --ib-chart-of4-4 */
+        }
+        """;
+}
