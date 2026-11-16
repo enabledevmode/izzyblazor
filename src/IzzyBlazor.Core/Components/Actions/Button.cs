@@ -115,6 +115,14 @@ public class Button : ButtonBase
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder) => RenderButton(builder);
 
+    private ElementReference _element;
+
+    /// <summary>
+    /// Moves focus to the button, on an interactive page after it has rendered: where an action leaves the
+    /// focus, such as on Add once the last row is removed.
+    /// </summary>
+    public ValueTask FocusAsync() => _element.Context is null ? ValueTask.CompletedTask : _element.FocusAsync();
+
     private void RenderButton(RenderTreeBuilder builder)
     {
         if (Href is not null)
@@ -153,7 +161,8 @@ public class Button : ButtonBase
         builder.AddAttribute(14, "class", cssClass);
         builder.AddAttribute(15, "style", style);
         builder.AddAttribute(16, "data-ib-print", PrintButtons.Attribute(Print, Submit || Reset, GetType().Name));
-        builder.OpenRegion(17);
+        builder.AddElementReferenceCapture(17, element => _element = element);
+        builder.OpenRegion(18);
         RenderContent(builder);
         builder.CloseRegion();
         builder.CloseElement();
@@ -209,7 +218,8 @@ public class Button : ButtonBase
         builder.AddMultipleAttributes(29, AdditionalAttributes);
         builder.AddAttribute(30, "class", cssClass);
         builder.AddAttribute(31, "style", style);
-        builder.OpenRegion(32);
+        builder.AddElementReferenceCapture(32, element => _element = element);
+        builder.OpenRegion(33);
         RenderContent(builder);
         builder.CloseRegion();
 

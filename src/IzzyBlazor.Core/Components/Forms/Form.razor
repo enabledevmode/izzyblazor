@@ -38,9 +38,7 @@
     <EditForm EditContext="EditContext"
               FormName="@FormName"
               Enhance="Enhance"
-              OnValidSubmit="ValidSubmit"
-              OnInvalidSubmit="OnInvalidSubmit"
-              OnSubmit="Submit"
+              OnSubmit="Dispatch"
               novalidate="@(NativeValidation ? null : "novalidate")"
               enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
@@ -58,9 +56,7 @@ else
     <EditForm Model="Model"
               FormName="@FormName"
               Enhance="Enhance"
-              OnValidSubmit="ValidSubmit"
-              OnInvalidSubmit="OnInvalidSubmit"
-              OnSubmit="Submit"
+              OnSubmit="Dispatch"
               novalidate="@(NativeValidation ? null : "novalidate")"
               enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
@@ -211,6 +207,32 @@ else
 
     private Task SubmitAny(EditContext context) => Honeypot && _spam ? OnSpam.InvokeAsync(context) : OnSubmit.InvokeAsync(context);
 
+    // Set from the post when a FieldRepeater's Add or Remove sent it: the post only redraws the rows.
+    private bool _repeat;
+
+    // Every submit comes here, as EditForm would run it: OnSubmit as is, else validation then OnValidSubmit or
+    // OnInvalidSubmit. A FieldRepeater's Add or Remove post does neither: it keeps what was typed and redraws.
+    private async Task Dispatch(EditContext context)
+    {
+        if (_repeat)
+        {
+            return;
+        }
+
+        if (OnSubmit.HasDelegate)
+        {
+            await Submit.InvokeAsync(context);
+        }
+        else if (context.Validate())
+        {
+            await ValidSubmit.InvokeAsync(context);
+        }
+        else
+        {
+            await OnInvalidSubmit.InvokeAsync(context);
+        }
+    }
+
     private async Task SubmitValid(EditContext context)
     {
         if (Honeypot && _spam)
@@ -243,10 +265,16 @@ else
             builder.CloseComponent();
         }
 
-        builder.AddContent(5, Fields);
+        // A FieldRepeater's Add or Remove post (static pages; on an interactive page nothing posts it).
+        builder.OpenComponent<FormRepeatCommand>(5);
+        builder.AddComponentParameter(6, nameof(FormRepeatCommand.Report), _reportRepeat ??= posted => _repeat = posted);
+        builder.CloseComponent();
+
+        builder.AddContent(7, Fields);
     };
 
     private Action<bool>? _report;
+    private Action<bool>? _reportRepeat;
 
     private static RenderFragment LeaveGuard(EditContext context) => builder =>
     {

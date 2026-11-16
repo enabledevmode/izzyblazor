@@ -1214,6 +1214,27 @@ public class IzzyText
     /// <summary>Stepper's name.</summary>
     public virtual string Progress { get; set; } = "Progress";
 
+    /// <summary>FieldRepeater's Add button, unless it sets AddText.</summary>
+    public virtual string RepeaterAdd { get; set; } = "Add";
+
+    /// <summary>A FieldRepeater row's name, from 1: "Item 3".</summary>
+    public virtual string RepeaterItem { get; set; } = "Item {0}";
+
+    /// <summary>A FieldRepeater row's Remove button: "Remove Item 3".</summary>
+    public virtual string RepeaterRemove { get; set; } = "Remove {0}";
+
+    /// <summary>A FieldRepeater with fewer rows than MinItems: "Add at least 2 items."</summary>
+    public virtual string RepeaterTooFew { get; set; } = "Add at least {0}.";
+
+    /// <summary>One row, in <see cref="RepeaterTooFew"/>.</summary>
+    public virtual string RepeaterOneItem { get; set; } = "1 item";
+
+    /// <summary>Several rows, in <see cref="RepeaterTooFew"/>: "2 items".</summary>
+    public virtual string RepeaterItems { get; set; } = "{0} items";
+
+    /// <summary>A FieldRepeater field's name in the form's error summary: "Item 3, Quantity".</summary>
+    public virtual string RepeaterSummaryName { get; set; } = "{0}, {1}";
+
     /// <summary>Read after a finished step's label.</summary>
     public virtual string Completed { get; set; } = "(completed)";
 
