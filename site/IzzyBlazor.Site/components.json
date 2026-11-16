@@ -647,9 +647,12 @@
       ],
       "topics": [
         {
-          "id": "overflow", "title": "What doesn't fit", "summary": "When a toolbar runs out of room, its controls move into a … menu in the order you set, or the toolbar wraps.", "members": ["Wrap", "CollapseLabels", "MoreLabel", "ToolbarButton.StartIcon", "ToolbarMenu.StartIcon", "ToolbarSplitButton.StartIcon", "ToolbarButton.Priority", "ToolbarButton.Overflow", "ToolbarIconButton.Priority", "ToolbarIconButton.Overflow", "ToolbarButtonGroup.Priority", "ToolbarButtonGroup.Overflow", "ToolbarMenu.Priority", "ToolbarMenu.Overflow", "ToolbarSplitButton.Priority", "ToolbarSplitButton.Overflow", "ToolbarItem.Priority", "ToolbarItem.Overflow"],
+          "id": "adaptability", "title": "Adaptability", "summary": "When a toolbar runs out of room, its controls move into a … menu in the order you set, or the toolbar wraps. On a phone, the main action can float.", "members": ["Wrap", "CollapseLabels", "MoreLabel", "FloatLabel", "ToolbarButton.FloatBelow", "ToolbarButton.FloatLabel", "ToolbarButton.StartIcon", "ToolbarMenu.StartIcon", "ToolbarSplitButton.StartIcon", "ToolbarButton.Priority", "ToolbarButton.Overflow", "ToolbarIconButton.Priority", "ToolbarIconButton.Overflow", "ToolbarButtonGroup.Priority", "ToolbarButtonGroup.Overflow", "ToolbarMenu.Priority", "ToolbarMenu.Overflow", "ToolbarSplitButton.Priority", "ToolbarSplitButton.Overflow", "ToolbarItem.Priority", "ToolbarItem.Overflow"],
           "examples": [
             { "id": "toolbar-priority", "title": "What moves first" },
+            { "id": "toolbar-by-width", "title": "By screen width", "height": 200, "page": true, "widthSwitch": true },
+            { "id": "toolbar-float", "title": "Floating on a phone", "height": 420, "page": true, "widthSwitch": true },
+            { "id": "toolbar-float-dial", "title": "Sharing a speed dial", "height": 420, "page": true, "widthSwitch": true },
             { "id": "toolbar-collapse-labels", "title": "Icons before the menu" },
             { "id": "toolbar-wrap", "title": "Wrapping instead" }
           ]
@@ -2998,7 +3001,7 @@
           "id": "toolbar", "title": "Toolbar", "summary": "The toolbar above the grid holds your buttons, a search box and the grid's own tools, in the order you choose.", "members": ["ToolbarContent", "Searchable", "ToolbarLabels", "DataGridSearch", "DataGridExport", "DataGridColumnPicker"],
           "examples": [
             { "id": "data-grid-toolbar", "title": "Toolbar and search", "lead": "The toolbar sits above the grid. To add buttons, put `ToolbarButton`s in `ToolbarContent`; to add a box that searches the text columns, set `Searchable`.", "after": ["The search is kept in the URL, so a link or a reload keeps it. It looks for the words in every text column."] },
-            { "id": "data-grid-toolbar-order", "title": "Placing the toolbar's tools", "lead": "To place the grid's own tools among your buttons, add `DataGridSearch`, `DataGridExport` or `DataGridColumnPicker` to `ToolbarContent`. They appear in the order written.", "after": ["Add them directly, not inside a component of your own. A tool you don't add stays in its usual place, and the grid's parameter still turns it on.", "Export and Columns show only an icon with a tooltip. To add text to both, set `ToolbarLabels`; to add it to one, set its `ShowLabel`."] },
+            { "id": "data-grid-toolbar-order", "title": "Placing the toolbar's tools", "lead": "To place the grid's own tools among your buttons, add `DataGridSearch`, `DataGridExport` or `DataGridColumnPicker` to `ToolbarContent`. They appear in the order written.", "after": ["Add them directly, not inside a component of your own. A tool you don't add stays in its usual place, and the grid's parameter still turns it on.", "Export and Columns show only an icon with a tooltip. To add text to both, set `ToolbarLabels`; to add it to one, set its `ShowLabel`.", "To float the Add button in the screen's corner on a phone, add `DataGridAdd` with `FloatBelow=\"Breakpoint.Sm\"`. Columns and Export are in the … menu on a phone."] },
             { "id": "data-grid-in-tile", "title": "A grid in a tile", "lead": "To put the grid's tools in a `Tile`'s header, write them in its `HeaderEnd`. They act on the grid in the tile, and the grid leaves its toolbar out, so the tile has one header row.", "after": ["Outside a tile or card, set a tool's `For` to the grid's `id`. A search box outside the grid still posts the grid's form, so it works with JavaScript off."] }
           ]
         },
