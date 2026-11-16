@@ -26,6 +26,15 @@
 </List>
 <TextBlock>The field shows <Code>ItemText</Code> for the chosen value even when the results don't include it. So <Code>ItemText</Code> receives any value that's bound or posted: look it up without throwing, as the examples do. Before trusting a posted value, see <Anchor Href="docs/common/forms#values-a-form-post-can-change">Values a form post can change</Anchor>.</TextBlock>
 
+<Heading Level="2">An action at the end</Heading>
+<TextBlock>To end the list with something to do, such as "Add a new customer", set <Code>ActionText</Code> and <Code>ActionHref</Code>. It stays last whatever is typed. The arrow keys reach it and Enter follows its link, as choosing an option would. Link to this page with a query that opens a <Anchor Href="docs/components/dialog">Dialog</Anchor>, so it works on static pages too.</TextBlock>
+<ExampleViewer Example="combobox-action" />
+
+<Heading Level="2">A header and footer</Heading>
+<TextBlock>To show something above or under the options while the list is open, set <Code>ListHeader</Code> or <Code>ListFooter</Code>: what the search covers, a count, or a link to manage the list. The options scroll between them. The arrow keys move through the options only, so their links and buttons are for pointer and touch. Put an action people need from the keyboard in <Code>ActionText</Code>.</TextBlock>
+<ExampleViewer Example="combobox-header-footer" />
+<TextBlock>With JavaScript off the field is the browser's own select, which can't hold either: the header, the action and the footer show under it instead.</TextBlock>
+
 <Heading Level="2">Required, with a placeholder</Heading>
 <TextBlock>A required combobox starts empty, showing its placeholder, and the form doesn't post until the user picks an option. Bind a nullable property with <Code>[Required]</Code>, and set <Code>Placeholder</Code>.</TextBlock>
 <ExampleViewer Example="combobox-required" />

@@ -1,0 +1,64 @@
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+@* A customer picker whose list ends with "Add a new customer": it opens a small dialog through the
+   address (?new-customer=1), so it works on static pages too, and the new customer is chosen. *@
+<Form Model="Model" FormName="combobox-action" MaxWidth="24.Rem" Grow>
+    <Combobox @bind-Value="Model!.Customer" Items="_customers" Label="Customer" Placeholder="Search customers"
+              ActionText="Add a new customer" ActionHref="@Navigation.GetUriWithQueryParameter("new-customer", "1")" />
+</Form>
+
+@if (Adding is not null)
+{
+    <Dialog Open QueryKey="new-customer" Title="New customer" Size="DialogSize.Sm">
+        <Form Model="NewCustomer" FormName="combobox-new-customer" OnValidSubmit="AddCustomer">
+            <TextField @bind-Value="NewCustomer!.Name" Label="Name" />
+            <TextField @bind-Value="NewCustomer!.Email" Label="Email" Type="TextFieldType.Email" />
+            <DialogFooter>
+                <Button Href="@Navigation.GetUriWithQueryParameter("new-customer", (string?)null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+                <Button Submit>Add customer</Button>
+            </DialogFooter>
+        </Form>
+    </Dialog>
+}
+
+@code {
+    [SupplyParameterFromForm(FormName = "combobox-action")]
+    private Invoice? Model { get; set; }
+
+    [SupplyParameterFromForm(FormName = "combobox-new-customer")]
+    private Customer? NewCustomer { get; set; }
+
+    [SupplyParameterFromQuery(Name = "new-customer")]
+    private string? Adding { get; set; }
+
+    private readonly List<string> _customers = ["Daniel Okafor", "Grace Kim", "Maya Chen", "Priya Shah", "Tom Becker"];
+
+    protected override void OnInitialized()
+    {
+        Model ??= new();
+        NewCustomer ??= new();
+    }
+
+    private void AddCustomer()
+    {
+        // A real app saves the customer; here it joins the list and is chosen.
+        _customers.Add(NewCustomer!.Name!);
+        Model!.Customer = NewCustomer.Name;
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("new-customer", (string?)null));
+    }
+
+    public sealed class Invoice
+    {
+        public string? Customer { get; set; }
+    }
+
+    public sealed class Customer
+    {
+        [Required(ErrorMessage = "Enter a name.")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "Enter an email."), EmailAddress]
+        public string? Email { get; set; }
+    }
+}

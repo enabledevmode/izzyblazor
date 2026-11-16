@@ -41,6 +41,8 @@ class Combobox extends IzzyElement {
   #input!: HTMLInputElement;
   #select!: HTMLSelectElement;
   #list!: HTMLElement;
+  // The popover: the listbox, or the box holding it with a header and footer (ListHeader, ListFooter).
+  #pop!: HTMLElement;
   #active: HTMLElement | null = null;
   #untrack: (() => void) | null = null;
   #typed = false;
@@ -68,11 +70,12 @@ class Combobox extends IzzyElement {
   protected setup(signal: AbortSignal): void {
     const input = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-input, :scope > .ib-multiselect-box > .ib-combobox-input");
     const select = this.querySelector<HTMLSelectElement>(":scope > select");
-    const list = this.querySelector<HTMLElement>(":scope > [role=listbox]");
+    const list = this.querySelector<HTMLElement>(":scope > [role=listbox], :scope > .ib-combobox-pop > [role=listbox]");
     this.#free = this.hasAttribute("data-free");
     if (!supported || !input || !list || (!select && !this.#free)) return;
     this.#input = input;
     this.#list = list;
+    this.#pop = list.closest<HTMLElement>("[popover]") ?? list;
     this.dataset.ready = "";
     this.#fetchKey = this.hasAttribute("data-server") ? null : (this.dataset.ibSuggestKey ?? null);
     this.#first = this.entries.map((o) => o.cloneNode(true));
@@ -179,7 +182,7 @@ class Combobox extends IzzyElement {
 
     // Pressing the toggle or an option mustn't move focus out of the input (and commit it).
     const keepFocus = (event: Event) => event.preventDefault();
-    for (const el of [list, this.querySelector(".ib-combobox-toggle")]) {
+    for (const el of [this.#pop, this.querySelector(".ib-combobox-toggle")]) {
       el?.addEventListener("pointerdown", keepFocus, { signal });
       el?.addEventListener("mousedown", keepFocus, { signal });
     }
@@ -230,7 +233,7 @@ class Combobox extends IzzyElement {
   }
 
   private get isOpen(): boolean {
-    return this.#list?.matches(":popover-open") ?? false;
+    return this.#pop?.matches(":popover-open") ?? false;
   }
 
   private get options(): HTMLElement[] {
@@ -250,14 +253,14 @@ class Combobox extends IzzyElement {
     if (this.#input.disabled || this.#input.readOnly) return;
     if (!this.isOpen) {
       try {
-        this.#list.showPopover();
+        this.#pop.showPopover();
       } catch {
         return;
       }
       this.#input.setAttribute("aria-expanded", "true");
       // Where anchor-size() isn't supported, match the field's width here.
-      this.#list.style.minInlineSize = `${this.offsetWidth}px`;
-      this.#untrack = track(this.#list, this, "bottom-start");
+      this.#pop.style.minInlineSize = `${this.offsetWidth}px`;
+      this.#untrack = track(this.#pop, this, "bottom-start");
     }
     this.filter(showAll ? "" : this.#input.value);
     const selected = this.#multiple ? undefined : this.visible.find((o) => o.getAttribute("aria-selected") === "true");
@@ -271,7 +274,7 @@ class Combobox extends IzzyElement {
   private close(): void {
     this.#untrack?.();
     this.#untrack = null;
-    if (this.isOpen) this.#list.hidePopover();
+    if (this.isOpen) this.#pop.hidePopover();
     this.#input?.setAttribute("aria-expanded", "false");
     this.activate(null);
     this.announceEmpty(false);
@@ -291,6 +294,7 @@ class Combobox extends IzzyElement {
     const q = fold(query);
     let shown = 0;
     for (const option of this.options) {
+      if (option.hasAttribute("data-ib-action")) continue;
       const match = server || !q || fold(option.dataset.text ?? option.textContent ?? "").includes(q);
       option.hidden = !match;
       if (match) shown++;
@@ -354,7 +358,7 @@ class Combobox extends IzzyElement {
     this.busy(true);
     let answer: Element | null = null;
     try {
-      answer = await fetchPart(url, `ib-combobox[data-ib-suggest-key="${CSS.escape(key)}"] > [role=listbox][data-ib-answered]`, request.signal);
+      answer = await fetchPart(url, `ib-combobox[data-ib-suggest-key="${CSS.escape(key)}"] [role=listbox][data-ib-answered]`, request.signal);
     } catch {
       if (request.signal.aborted) return;
     }
@@ -550,6 +554,18 @@ class Combobox extends IzzyElement {
   }
 
   private choose(option: HTMLElement): void {
+    const action = option.getAttribute("data-ib-action");
+    if (action !== null) {
+      this.close();
+      this.syncText();
+      const link = document.createElement("a");
+      link.href = action;
+      link.hidden = true;
+      this.append(link);
+      link.click();
+      link.remove();
+      return;
+    }
     if (this.#multiple) {
       this.toggle(option.dataset.value ?? "");
       // Start the next search; the list stays open with every option.

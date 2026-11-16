@@ -1,0 +1,32 @@
+@* An assignee picker: a line above the people says how to search, and one under them links
+   to where people are managed. *@
+<Form Model="Model" FormName="combobox-header-footer" MaxWidth="24.Rem" Grow>
+    <Combobox @bind-Value="Model!.Assignee" Items="People.Keys" ItemGroup="name => People[name!]" Label="Assign to" Placeholder="Search people">
+        <ListHeader>Type a name to narrow the list.</ListHeader>
+        <ListFooter>
+            <Row Justify="Justify.Between" Align="Align.Center">
+                <span>@People.Count people</span>
+                <Anchor Href="#" Underline="AnchorUnderline.Hover">Manage people</Anchor>
+            </Row>
+        </ListFooter>
+    </Combobox>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "combobox-header-footer")]
+    private Ticket? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Ticket
+    {
+        public string? Assignee { get; set; }
+    }
+
+    private static readonly Dictionary<string, string> People = new()
+    {
+        ["Ada Lindqvist"] = "Support", ["Jonas Weber"] = "Support", ["Sara Costa"] = "Support",
+        ["Leo Park"] = "Billing", ["Nadia Rossi"] = "Billing",
+        ["Omar Haddad"] = "Engineering", ["Ravi Wagner"] = "Engineering", ["Yuki Tanaka"] = "Engineering",
+    };
+}

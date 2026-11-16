@@ -150,4 +150,30 @@ public class ComboboxRenderTests : BunitContext
 
         Assert.Equal("JP", bound);
     }
+
+    [Fact]
+    public void An_action_ends_the_list_and_a_header_moves_it_into_a_box()
+    {
+        var combo = Render<Combobox<string?>>(p => p
+            .AddCascadingValue(_context)
+            .Add(c => c.Value, _model.Country)
+            .Add(c => c.ValueExpression, () => _model.Country)
+            .Add(c => c.Items, Countries.Keys)
+            .Add(c => c.ActionText, "Add a country")
+            .Add(c => c.ActionHref, "countries/new")
+            .Add(c => c.ListHeader, b => b.AddContent(0, "Type to search")));
+
+        // The action is the listbox's last option (no value, so it's never chosen as one), not in the select.
+        var options = combo.FindAll("[role=listbox] > [role=option]");
+        Assert.Equal("countries/new", options[^1].GetAttribute("data-ib-action"));
+        Assert.False(options[^1].HasAttribute("data-value"));
+        Assert.DoesNotContain(combo.FindAll("select option"), o => o.TextContent.Contains("Add a country", StringComparison.Ordinal));
+
+        // A header sits beside the listbox in the popover, never inside it; without script both show under the field.
+        var pop = combo.Find("ib-combobox > .ib-combobox-pop[popover]");
+        Assert.Equal("Type to search", pop.QuerySelector(":scope > .ib-combobox-header")!.TextContent);
+        Assert.NotNull(pop.QuerySelector(":scope > [role=listbox]"));
+        Assert.Null(pop.QuerySelector("[role=listbox] .ib-combobox-header"));
+        Assert.Contains("Add a country", combo.Find(".ib-combobox-fallback").TextContent, StringComparison.Ordinal);
+    }
 }

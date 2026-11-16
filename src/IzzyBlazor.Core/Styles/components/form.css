@@ -1452,7 +1452,7 @@
     pointer-events: none;
   }
 
-  .ib-combobox:not([data-ready]) > .ib-combobox-list {
+  .ib-combobox:not([data-ready]) > :is(.ib-combobox-list, .ib-combobox-pop) {
     display: none;
   }
 
@@ -1529,8 +1529,74 @@
   }
 
   @supports (anchor-name: --a) {
-    .ib-pop.ib-combobox-list {
+    .ib-pop:is(.ib-combobox-list, .ib-combobox-pop) {
       min-inline-size: anchor-size(inline);
+    }
+  }
+
+  /* With a header or footer (ListHeader, ListFooter): they stay put and the options scroll between them. */
+  .ib-pop.ib-combobox-pop {
+    min-inline-size: 10rem;
+    max-block-size: min(24rem, 50dvh);
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .ib-pop.ib-combobox-pop:popover-open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ib-combobox-pop > .ib-combobox-list {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: var(--ib-space-1);
+  }
+
+  .ib-combobox-header,
+  .ib-combobox-footer {
+    flex: none;
+    padding: var(--ib-space-2) var(--ib-space-3);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-combobox-header {
+    border-block-end: 1px solid var(--ib-color-border);
+  }
+
+  .ib-combobox-footer {
+    border-block-start: 1px solid var(--ib-color-border);
+  }
+
+  /* The action (ActionText): last, after a line, in the accent, as a thing to do rather than a value. */
+  .ib-combobox-action {
+    color: var(--ib-color-primary-text);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-combobox-list > :is([role="option"], [role="group"]):not([hidden]):not(.ib-combobox-action) ~ .ib-combobox-action {
+    margin-block-start: var(--ib-space-1);
+    border-block-start: 1px solid var(--ib-color-border);
+    border-start-start-radius: 0;
+    border-start-end-radius: 0;
+  }
+
+  /* Without script the field is the browser's own select, which holds neither: they're under it. */
+  .ib-combobox-fallback {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    margin-block-start: var(--ib-space-1);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
+
+  @media (scripting: enabled) {
+    .ib-combobox-fallback {
+      display: none;
     }
   }
 
