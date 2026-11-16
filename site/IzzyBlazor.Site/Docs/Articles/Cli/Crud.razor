@@ -105,5 +105,7 @@
         new("--route <path>", "Sets the page's URL. Defaults to the name in kebab case, such as customers."),
         new("--store ef|memory", "Sets where the records are kept. ef needs a DbSet of the model. When two DbContexts have one, choose with --context."),
         new("--authorize", "Lets only signed-in people open the page. On by default when the app has accounts."),
+        new("--view-policy <name>", "Lets only people the authorization policy allows open the page, such as ViewSales."),
+        new("--edit-policy <name>", "Lets only people the policy allows add, edit and delete. Everyone else who can open the page sees the records read-only."),
     ];
 }

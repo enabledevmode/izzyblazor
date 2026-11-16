@@ -31,7 +31,9 @@
         "description": "Where the records are kept: Ef, through the DbContext with a DbSet of the model (the default when there's one), or Memory, until the app stops."
       },
       "Context": { "type": "string", "default": "", "description": "The DbContext, when more than one has a DbSet of the model." },
-      "Authorize": { "type": "boolean", "default": false, "description": "Only signed-in people can open the pages. On by default when the app signs people in." }
+      "Authorize": { "type": "boolean", "default": false, "description": "Only signed-in people can open the pages. On by default when the app signs people in." },
+      "ViewPolicy": { "type": "string", "default": "", "description": "The authorization policy people need to open the pages, such as ViewSales." },
+      "EditPolicy": { "type": "string", "default": "", "description": "The policy people need to add, edit and delete; others see the records read-only." }
     }
   },
   "accessibility": [
@@ -58,7 +60,7 @@
       "text": "builder.Services.{{StoreLifetime}}<{{RootNamespace}}.Data.I{{Model}}Store, {{RootNamespace}}.Data.{{StoreClass}}>();"
     },
     { "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "{{RootNamespace}}.Data.{{Model}}Export.Map(app);\n\n" },
-    { "if": "NavIcons", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"[^>]*\\bIcon=", "position": "after", "text": "<NavItem Href=\"{{Route}}\" Icon=\"Lucide.Rows3\">{{Plural}}</NavItem>\n" },
-    { "if": "!NavIcons", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"", "position": "after", "text": "<NavItem Href=\"{{Route}}\">{{Plural}}</NavItem>\n" }
+    { "if": "NavIcons && !HasNavLink", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"[^>]*\\bIcon=", "position": "after", "text": "<NavItem Href=\"{{Route}}\" Icon=\"Lucide.Rows3\">{{Plural}}</NavItem>\n" },
+    { "if": "!NavIcons && !HasNavLink", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"", "position": "after", "text": "<NavItem Href=\"{{Route}}\">{{Plural}}</NavItem>\n" }
   ]
 }
