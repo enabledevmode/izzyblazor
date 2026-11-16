@@ -15,14 +15,7 @@
 
         <DataGrid TItem="AuditEvent" ItemsProvider="LoadAsync" ItemKey="e => e.Id.ToString()" RowLabel="Title" Caption="Audit log"
                   PageSize="25" InitialSort="-time" Searchable SearchLabel="Record name" SmallScreen="DataGridSmallScreen.HideColumns"
-                  ToolbarLabels Grow>
-            <ToolbarContent>
-                <DataGridSearch />
-                <DataGridFilter Column="who" />
-                <DataGridFilter Column="action" />
-                <DataGridFilter Column="type" />
-                <DataGridFilter Column="time" />
-            </ToolbarContent>
+                  Grow>
             <EmptyContent>
                 <EmptyState Icon="Lucide.RotateCcwClock" Title="Nothing in this range" Description="No changes match these filters.">
                     <Button Href="admin/audit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
