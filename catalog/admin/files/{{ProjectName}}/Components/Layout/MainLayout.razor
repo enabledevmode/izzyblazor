@@ -4,8 +4,9 @@
 @* The admin console's shell: a sidebar the full height of the window, with the brand at its top, the
    pages in groups and Settings at its foot. On wide screens it collapses to an icon rail (the button at
    its foot, remembered in a cookie); on phones it's a drawer behind the menu button. The header holds
-   the page's breadcrumbs (PageCrumbs), the color scheme and your account. *@
-<AppShell>
+   the page's breadcrumbs (PageCrumbs), the color scheme and your account. Only the main area scrolls, as in
+   an app: the header and sidebar stay where they are. *@
+<AppShell ScrollMode="ShellScroll.Main">
     <AppHeader>
         <SidebarToggle HiddenFrom="Breakpoint.Md" />
         <Box VisibleFrom="Breakpoint.Md">

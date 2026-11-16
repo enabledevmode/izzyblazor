@@ -14,6 +14,15 @@ public static class Roles
 
     public static IReadOnlyList<string> All { get; } = [Admin, Manager, Viewer];
 
+    /// <summary>A role in a line, as the Users grid's Invite and Edit dialogs put it under each choice.</summary>
+    public static string Summary(string role) => role switch
+    {
+        Admin => "Everything, including users, roles and the audit log.",
+        Manager => "Create, edit and delete customers and invoices.",
+        Viewer => "See customers and invoices. Can’t change anything.",
+        _ => "",
+    };
+
     /// <summary>What each role can do, as the Roles page lists it.</summary>
     public static IReadOnlyList<string> Allows(string role) => role switch
     {
