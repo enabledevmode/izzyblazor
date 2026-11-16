@@ -57,6 +57,9 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 // reads the others' and no request has to go back to the one that served the last.
 builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
 
+// Customers' pages read and write through this store (from izzy add crud).
+builder.Services.AddScoped<{{RootNamespace}}.Data.ICustomerStore, {{RootNamespace}}.Data.EfCustomerStore>();
+
 var app = builder.Build();
 
 // Creates the database on first run and fills it with sample data (Data/SeedData.cs).
@@ -83,5 +86,7 @@ app.MapRazorComponents<App>();
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+{{RootNamespace}}.Data.CustomerExport.Map(app);
 
 app.Run();
