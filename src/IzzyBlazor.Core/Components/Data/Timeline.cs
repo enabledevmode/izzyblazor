@@ -41,8 +41,8 @@ public class Timeline : Box
     [Parameter] public TimelineMarker Marker { get; set; }
 
     /// <summary>
-    /// <see cref="ControlSize.Sm"/> for a compact list (smaller markers and text, closer items, the
-    /// rail in short segments between the markers), such as recent activity in a sidebar. Defaults to
+    /// <see cref="ControlSize.Sm"/> for a compact list (smaller markers and text, closer items), such
+    /// as recent activity in a sidebar. Defaults to
     /// <see cref="ControlSize.Md"/>.
     /// </summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;

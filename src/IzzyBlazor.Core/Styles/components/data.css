@@ -2287,12 +2287,6 @@
     background-color: var(--ib-color-outline);
   }
 
-  /* Compact: each item's rail is a short segment beside its own text, from under its dot to the end
-     of its content, so the gap between items stays open and each entry reads on its own. */
-  .ib-timeline-sm > .ib-timeline-item:not(:last-child)::before {
-    inset-block: calc(var(--ib-timeline-line) / 2 + var(--ib-timeline-dot) / 2 + 4px) var(--ib-timeline-gap);
-  }
-
   .ib-timeline-marker {
     position: relative;
     z-index: 1;
