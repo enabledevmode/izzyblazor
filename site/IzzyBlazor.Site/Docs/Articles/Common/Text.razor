@@ -5,14 +5,14 @@
 
 <ArticlePage Section="common" Slug="text">
     <Lead>
-        Components name their buttons and announce states in English: "Close", "Loading", "Next page", "No matches". Change
-        most of them on one component, or all of them app-wide with <Code>IzzyText</Code>.
+        Components name their buttons and announce states in English: "Close", "Loading", "Next page", "No matches". You can
+        change most of them on one component, or all of them across the app with <Code>IzzyText</Code>.
     </Lead>
     <ChildContent>
         <Heading Level="2">On one component</Heading>
         <TextBlock>
-            Most strings are also a parameter on the components that use them. A parameter you set wins over the app's
-            text:
+            Most strings are also a parameter on the components that use them. A parameter you set overrides the
+            app-wide text:
         </TextBlock>
         <Code Block Language="razor">@One</Code>
 
@@ -31,10 +31,10 @@
             Components in the browser use the English text unless that project registers one.
         </TextBlock>
 
-        <Heading Level="2">What's in it</Heading>
+        <Heading Level="2">Available strings</Heading>
         <TextBlock>
-            <Code>IzzyText</Code> has about 700 strings, each named for its text, and IntelliSense lists them. Here are some,
-            by where they're used:
+            <Code>IzzyText</Code> has about 700 strings. Each one is named for its text, and IntelliSense lists them. This
+            table lists some of them, grouped by where they're used:
         </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
@@ -51,13 +51,15 @@
         </Prose>
         <TextBlock>
             Strings with <Code>{0}</Code>, such as <Code>MoreAvatars</Code> ("{0} more"), are format strings.
-            <Code>IzzyText.English</Code> is a fresh copy of the built-in text, to start from or compare with.
+            <Code>IzzyText.English</Code> returns a new copy of the built-in English text. Use it as a starting point, or to
+            compare against.
         </TextBlock>
         <Alert Status="Status.Info">
             Validation messages come from your model's attributes. Set <Code>ErrorMessage</Code>, or localize them as you
-            would for any Blazor form. Some come from IzzyBlazor: for a value that can't be read (<Code>IzzyText.NumberInvalid</Code>,
-            <Code>DateInvalid</Code>, <Code>TimeInvalid</Code>, <Code>DurationInvalid</Code>, <Code>ColorInvalid</Code>, and
-            <Code>ValueInvalid</Code> for any other type), and for rules a component sets itself, such as
+            would for any Blazor form. IzzyBlazor provides some messages itself. Some cover a value that can't be parsed
+            (<Code>IzzyText.NumberInvalid</Code>, <Code>DateInvalid</Code>, <Code>TimeInvalid</Code>,
+            <Code>DurationInvalid</Code>, <Code>ColorInvalid</Code>, and <Code>ValueInvalid</Code> for any other type). Others
+            cover rules a component enforces itself, such as
             <Code>MaskIncomplete</Code>, <Code>DateRangeTooLong</Code>, <Code>ChoiceRequired</Code>,
             <Code>PasswordRulesUnmet</Code> and <Code>FileTooLarge</Code>.
         </Alert>

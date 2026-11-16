@@ -9,7 +9,7 @@
 <ArticlePage Section="common" Slug="forms">
     <Lead>
         <Code>Form</Code> wraps Blazor's <Code>EditForm</Code>, so one form works in every render mode. On static pages it
-        sends a form post, even with JavaScript off; on interactive pages it validates as the user types. Each field reads
+        sends a form post, even with JavaScript off. On interactive pages it validates as the user types. Each field reads
         its label and rules from your model.
     </Lead>
     <ChildContent>
@@ -22,15 +22,18 @@
         <Code Block Language="razor" HighlightLines="1,9-10">@Basic</Code>
         <TextBlock>
             <Code>OnValidSubmit</Code> runs on the server once the model is valid, in every render mode. On interactive
-            pages the form checks each field as it changes, and submits without a full reload. A form with a
-            <Anchor Href="docs/components/file-upload">FileUpload</Anchor> needs <Code>Multipart</Code>, or the post sends
-            only the file names.
+            pages the form checks each field as it changes, and submits without a full reload. If the form contains a
+            <Anchor Href="docs/components/file-upload">FileUpload</Anchor>, set <Code>Multipart</Code>. Otherwise the form
+            post sends only the file names.
         </TextBlock>
         <TextBlock>
-            On static pages the errors come from the last form post. A field's errors go once its value changes, and the
-            next form post checks it again. In a Combobox or MultiSelect, the errors go when the user chooses an option,
-            not while they type a search. A <Code>FormErrors</Code> summary keeps listing every error until the next form
-            post. With JavaScript off, the field errors stay too.
+            On static pages the errors come from the last form post. A field's errors clear once its value changes, and the
+            next form post checks it again. In a Combobox or MultiSelect, the errors clear when the user chooses an option,
+            not while they type a search.
+        </TextBlock>
+        <TextBlock>
+            A <Code>FormErrors</Code> summary keeps listing every error until the next form post. With JavaScript off, the
+            field errors also stay until then.
         </TextBlock>
 
         <Heading Level="2">Labels and rules from the model</Heading>
@@ -40,7 +43,7 @@
                 <thead><tr><th>Attribute</th><th>Sets</th></tr></thead>
                 <tbody>
                     <tr><td><code>[Display(Name)]</code>, <code>[DisplayName]</code></td><td>The label. Without it, the label is the property name split into words.</td></tr>
-                    <tr><td><code>[Required]</code></td><td>The required mark, and the check</td></tr>
+                    <tr><td><code>[Required]</code></td><td>The required mark and the required check</td></tr>
                     <tr><td><code>[EmailAddress]</code>, <code>[Phone]</code>, <code>[Url]</code></td><td>The input type</td></tr>
                     <tr><td><code>[StringLength]</code>, <code>[MinLength]</code>, <code>[MaxLength]</code>, <code>[Range]</code></td><td>The limits</td></tr>
                     <tr><td><code>[DataType(DataType.Password)]</code></td><td>A password field</td></tr>
@@ -54,15 +57,15 @@
             <Code>[Display(Name)]</Code>.
         </TextBlock>
 
-        <Heading Level="2">Checked before and after a form post</Heading>
+        <Heading Level="2">Validation before and after a form post</Heading>
         <TextBlock>
             The browser checks required fields, lengths, ranges, emails and URLs before the form posts. The server then
             checks every rule and shows its messages under each field. Rules the browser can't check, such as a custom
             attribute, run only on the server.
         </TextBlock>
         <TextBlock>
-            With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, the browser shows the message from
-            your attribute's <Code>ErrorMessage</Code>, such as your <Code>[Required]</Code> message, so it matches the server's.
+            With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, the browser shows your attribute's
+            <Code>ErrorMessage</Code>, such as your <Code>[Required]</Code> message, so it matches the server's message.
             With JavaScript off, the browser shows its default message.
         </TextBlock>
         <TextBlock>
@@ -72,12 +75,13 @@
 
         <Heading Level="2">Columns</Heading>
         <TextBlock>
-            A form can lay its fields out in up to four columns. The columns follow the form's own width, not the screen's,
-            so one form fits a page, a dialog and a drawer. Set <Code>Columns</Code> on the form to turn them on.
+            To lay a form's fields out in columns, set <Code>Columns</Code> on the form. A form can have up to four columns.
+            The number of columns follows the form's own width, not the screen's, so the same form fits a page, a dialog and
+            a drawer.
         </TextBlock>
         <ExampleViewer Example="form-columns" />
         <List Gap="2">
-            <ListItem>Two columns start at 32rem of form width, three at 48rem and four at 64rem. Below 32rem, the form has one column.</ListItem>
+            <ListItem>The form shows two columns from 32rem wide, three from 48rem and four from 64rem. Below 32rem, the form has one column.</ListItem>
             <ListItem>Each field fills one column. To give a field the whole row, set <Code>ColSpan="GridSpan.Full"</Code>.</ListItem>
             <ListItem>To start a field on a new row, set <Code>NewRow</Code>.</ListItem>
             <ListItem>Anything that isn't a field, such as text, <Code>FormErrors</Code> or <Code>FormActions</Code>, fills the whole row.</ListItem>
@@ -85,10 +89,10 @@
 
         <Heading Level="2">Groups, actions and errors</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/components/fieldset">Fieldset</Anchor> groups related fields under a <Code>Label</Code>. It can set its own <Code>Columns</Code>, or <Code>Dividers</Code> between rows.</ListItem>
+            <ListItem><Anchor Href="docs/components/fieldset">Fieldset</Anchor> groups related fields under a <Code>Label</Code>. It can set its own <Code>Columns</Code>, or show <Code>Dividers</Code> between rows.</ListItem>
             <ListItem><Code>FormActions</Code> is the row of buttons at the end of the form. When it comes last in a form that fills a dialog or drawer, it becomes the footer and stays in view.</ListItem>
-            <ListItem><Code>FormErrors</Code> lists every message under "Please fix the following". It takes focus after a failed submit, with JavaScript off too.</ListItem>
-            <ListItem><Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code> shows one property's messages, for an input of your own. Point the input's <Code>aria-describedby</Code> at its <Code>Id</Code>.</ListItem>
+            <ListItem><Code>FormErrors</Code> lists every message under "Please fix the following". It receives focus after a failed submit, even with JavaScript off.</ListItem>
+            <ListItem>To show one property's messages for an input of your own, use <Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code>. Set the input's <Code>aria-describedby</Code> to the FieldError's <Code>Id</Code>.</ListItem>
         </List>
 
         <Heading Level="2">Read-only and disabled</Heading>
@@ -107,24 +111,27 @@
             <Code>Disabled</Code> on the form.
         </TextBlock>
         <List Gap="2">
-            <ListItem>Neither setting changes the buttons, so show the ones that fit.</ListItem>
+            <ListItem>Neither setting changes the buttons, so show only the buttons that apply.</ListItem>
             <ListItem>A field's own <Code>Disabled</Code> works the same way as the form's.</ListItem>
             <ListItem>Text fields and selects also have their own <Code>ReadOnly</Code>. Checkboxes, switches, radios, segments and sliders don't.</ListItem>
         </List>
 
         <Heading Level="2">Unsaved changes</Heading>
         <TextBlock>
-            To ask before the user leaves with unsaved changes, set <Code>ConfirmLeave</Code> on the form. Following a link
-            or posting another form opens a "Leave this page?" dialog, and a reload or closing the tab shows the browser's
-            own prompt. It needs JavaScript. On static pages, back and forward don't ask.
+            To ask before the user leaves with unsaved changes, set <Code>ConfirmLeave</Code> on the form. When the user
+            follows a link or posts another form, a "Leave this page?" dialog opens. When they reload or close the tab, the
+            browser shows its own prompt.
+        </TextBlock>
+        <TextBlock>
+            <Code>ConfirmLeave</Code> needs JavaScript. On static pages, the browser's back and forward buttons don't ask.
         </TextBlock>
         <ExampleViewer Example="form-confirm-leave" />
 
         <Heading Level="2">Disabled fields and form posts</Heading>
         <TextBlock>
-            A disabled field posts nothing. After a form post on static pages, its property isn't set from the post: it keeps
-            the value a new model starts with, often <Code>null</Code>, <Code>0</Code> or <Code>false</Code>, not the value the field showed. Keep that value on the
-            server rather than saving it from the form post.
+            A disabled field posts nothing. On static pages, a form post doesn't set its property. The property keeps the
+            value a new model starts with, often <Code>null</Code>, <Code>0</Code> or <Code>false</Code>, not the value the
+            field showed. Keep that value on the server rather than saving it from the form post.
         </TextBlock>
 
         <Heading Level="2">Values a form post can change</Heading>
@@ -136,20 +143,20 @@
 
         <Heading Level="2">Keeping bots out</Heading>
         <TextBlock>
-            <Code>Honeypot</Code> adds a field that bots fill and people never see. A post with it filled calls
-            <Code>OnSpam</Code> instead of <Code>OnValidSubmit</Code>, so nothing is saved. Answer it as you answer a person,
-            such as with the same redirect, so the bot can't tell.
+            To keep bots out, set <Code>Honeypot</Code> on the form. It adds a field that bots fill in and users never see.
+            A form post with that field filled calls <Code>OnSpam</Code> instead of <Code>OnValidSubmit</Code>, so nothing is
+            saved. Answer it the same way you answer a user, such as with the same redirect, so the bot can't tell.
         </TextBlock>
         <ExampleViewer Example="form-honeypot" />
 
         <Heading Level="2">Required marks and label position</Heading>
         <TextBlock>
             A required mark tells the user which fields they must fill in. By default, required fields show an asterisk.
-            When most fields are required, mark the others "(optional)" instead, or show no marks. Set
-            <Code>RequiredMark</Code> on the form to choose.
+            When most fields are required, mark the others "(optional)" instead, or show no marks. To choose, set
+            <Code>RequiredMark</Code> on the form.
         </TextBlock>
         <List Gap="2">
-            <ListItem>To put labels beside the fields, at the start, set <Code>Layout="FormLayout.Horizontal"</Code>. Labels move beside the fields from 640px up. With <Code>Columns</Code>, they stay on top.</ListItem>
+            <ListItem>To put labels beside the fields, at the start, set <Code>Layout="FormLayout.Horizontal"</Code>. Labels move beside the fields at 640px and wider. In a form with <Code>Columns</Code>, they stay on top.</ListItem>
             <ListItem>To hide a field's label but keep it for screen readers, as in a one-field search form, set <Code>HideLabel</Code> on the field.</ListItem>
         </List>
 
