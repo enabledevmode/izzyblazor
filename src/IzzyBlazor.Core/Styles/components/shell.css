@@ -467,7 +467,10 @@
     grid-template-rows: auto auto minmax(0, 1fr) auto;
   }
 
+  /* Positioned, so what's absolutely positioned inside it (visually hidden text, such as a pager's labels)
+     is placed and clipped in it; placed against the page instead, it made the window scroll too. */
   .ib-shell-scroll-main > .ib-shell-main {
+    position: relative;
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
