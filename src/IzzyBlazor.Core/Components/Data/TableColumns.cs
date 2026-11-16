@@ -677,6 +677,13 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     /// <summary>A .NET format string for the value, such as <c>C</c>, <c>N0</c> or <c>yyyy-MM-dd</c>.</summary>
     [Parameter] public string? Format { get; set; }
 
+    /// <summary>
+    /// Draws the cell, such as the value as a <see cref="Badge"/>, in place of its text. The property still
+    /// sorts, filters, groups, edits and exports the column, as the formatted text.
+    /// </summary>
+    /// <example><code>&lt;PropertyColumn Property="o =&gt; o.Status" Filterable Context="order"&gt;&lt;Badge Status="StatusOf(order)" Dot&gt;@order.Status&lt;/Badge&gt;&lt;/PropertyColumn&gt;</code></example>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
     /// <inheritdoc />
     protected override object Shown => (base.Shown, Format);
 
@@ -762,7 +769,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         FilterValues = FilterValues,
     };
 
-    internal override RenderFragment Cell(TItem item) => builder => builder.AddContent(0, CellText(item));
+    internal override RenderFragment Cell(TItem item) => ChildContent?.Invoke(item) ?? (builder => builder.AddContent(0, CellText(item)));
 
     /// <inheritdoc />
     internal override string? CellText(TItem item)
@@ -900,8 +907,9 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
 }
 
 /// <summary>
-/// A column with any content per item, such as a badge or buttons. Give it <see cref="SortBy"/>
-/// to make it sortable.
+/// A column with any content per item, such as buttons. Give it <see cref="SortBy"/>
+/// to make it sortable. For one property drawn differently, such as a status as a badge, use
+/// <see cref="PropertyColumn{TItem, TValue}.ChildContent"/>: it keeps that property's sort, filter and editing.
 /// </summary>
 /// <example>
 /// <code>
