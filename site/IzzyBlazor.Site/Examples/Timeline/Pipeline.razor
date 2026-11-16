@@ -1,0 +1,15 @@
+@* A deploy's steps: finished ones with how long they took, the running one current, the last to come. *@
+<Timeline Marker="TimelineMarker.Ring" Grow MaxWidth="36.Rem">
+    <TimelineItem Title="Check out source" Badge="12s" BadgeStatus="Status.Success" Done>
+        Fetched main at <Code>4f2a9c1</Code>.
+    </TimelineItem>
+    <TimelineItem Title="Install dependencies" Badge="1m 45s" BadgeStatus="Status.Success" Done>
+        Restored 214 packages from the cache.
+    </TimelineItem>
+    <TimelineItem Title="Run tests" Badge="Running" BadgeStatus="Status.Info" Current>
+        1,207 tests across 3 projects.
+    </TimelineItem>
+    <TimelineItem Title="Deploy to production" Badge="Waiting">
+        Starts when the tests pass.
+    </TimelineItem>
+</Timeline>

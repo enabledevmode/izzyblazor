@@ -2231,25 +2231,46 @@
 }
 
 /*
- * Timeline: each item is a two-column grid, the marker in a 24px column and the body beside it.
- * The title line is 24px, so a 12px dot centers 6px down and a 24px icon marker fills it. The rail
- * is a 2px line from this marker's center to the next one's, behind the markers, which have a
- * background of their own (--ib-timeline-bg, the surface by default). All whole pixels.
+ * Timeline: each item is a grid, the marker in a column as wide as a line (24px) and the body beside
+ * it. The first line of the body (the time when it's above, else the title) is that tall, so a marker
+ * centers on it. The rail is a 2px line from this marker's center to the next one's, behind the
+ * markers, which have a background of their own (--ib-timeline-bg, the surface by default). Done
+ * items fill their markers and draw the rail in the accent; once any item is done, the rest are drawn
+ * as still to come. The time is first in the body (read first); the placements move it. All whole
+ * pixels.
  */
 @layer izzy.components {
   .ib-timeline {
     --ib-timeline-line: 1.5rem;
+    --ib-timeline-dot: 0.75rem;
+    --ib-timeline-gap: var(--ib-space-6);
+    --ib-timeline-time-w: 6rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
+  .ib-timeline-ring {
+    --ib-timeline-dot: 1.25rem;
+  }
+
+  .ib-timeline-sm {
+    --ib-timeline-line: 1.25rem;
+    --ib-timeline-dot: 0.5rem;
+    --ib-timeline-gap: var(--ib-space-3);
+    --ib-timeline-time-w: 5rem;
+  }
+
+  .ib-timeline-sm.ib-timeline-ring {
+    --ib-timeline-dot: 1rem;
+  }
+
   .ib-timeline-item {
     position: relative;
     display: grid;
-    grid-template-columns: 1.5rem minmax(0, 1fr);
+    grid-template-columns: var(--ib-timeline-line) minmax(0, 1fr);
     column-gap: var(--ib-space-3);
-    padding-block-end: var(--ib-space-6);
+    padding-block-end: var(--ib-timeline-gap);
   }
 
   .ib-timeline-item:last-child {
@@ -2260,10 +2281,15 @@
     content: "";
     position: absolute;
     inset-block: calc(var(--ib-timeline-line) / 2) calc(var(--ib-timeline-line) / -2);
-    inset-inline-start: calc(0.75rem - 1px);
+    inset-inline-start: calc(var(--ib-timeline-line) / 2 - 1px);
     width: 2px;
     /* A step stronger than a divider, so the line holds up between markers in dark mode. */
     background-color: var(--ib-color-outline);
+  }
+
+  /* Compact: the rail in short segments, clear of the markers. */
+  .ib-timeline-sm > .ib-timeline-item:not(:last-child)::before {
+    inset-block: calc(var(--ib-timeline-line) / 2 + var(--ib-timeline-dot) / 2 + 3px) calc(var(--ib-timeline-line) / -2 + var(--ib-timeline-dot) / 2 + 3px);
   }
 
   .ib-timeline-marker {
@@ -2271,13 +2297,29 @@
     z-index: 1;
     box-sizing: border-box;
     justify-self: center;
-    width: 0.75rem;
-    height: 0.75rem;
-    margin-block-start: calc((var(--ib-timeline-line) - 0.75rem) / 2);
+    width: var(--ib-timeline-dot);
+    height: var(--ib-timeline-dot);
+    margin-block-start: calc((var(--ib-timeline-line) - var(--ib-timeline-dot)) / 2);
     /* Neutral markers use the checkbox edge: clearer than the rail they sit on. */
     border: 2px solid var(--ib-timeline-accent, color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface)));
     border-radius: var(--ib-radius-full);
     background-color: var(--ib-timeline-bg, var(--ib-color-surface));
+    color: var(--ib-color-on-primary);
+  }
+
+  /* A done dot's check: only a ring has room for it. */
+  .ib-timeline:not(.ib-timeline-ring) > .ib-timeline-item:not(.ib-timeline-has-icon) > .ib-timeline-marker > .ib-icon {
+    display: none;
+  }
+
+  .ib-timeline-ring > .ib-timeline-item:not(.ib-timeline-has-icon, .ib-timeline-has-avatar) > .ib-timeline-marker {
+    display: grid;
+    place-items: center;
+  }
+
+  .ib-timeline-ring > .ib-timeline-item > .ib-timeline-marker > .ib-icon {
+    width: calc(var(--ib-timeline-dot) * 0.6);
+    height: calc(var(--ib-timeline-dot) * 0.6);
   }
 
   .ib-timeline-has-icon > .ib-timeline-marker {
@@ -2291,8 +2333,22 @@
   }
 
   .ib-timeline-has-icon > .ib-timeline-marker > .ib-icon {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: calc(var(--ib-timeline-line) * 0.58);
+    height: calc(var(--ib-timeline-line) * 0.58);
+  }
+
+  /* An avatar is the marker, a line tall; a ring of the background keeps the rail off its edge. */
+  .ib-timeline-has-avatar > .ib-timeline-marker {
+    width: var(--ib-timeline-line);
+    height: var(--ib-timeline-line);
+    margin-block-start: 0;
+    border: 0;
+    background: none;
+  }
+
+  .ib-timeline-marker > .ib-avatar {
+    --ib-avatar-size: var(--ib-timeline-line);
+    box-shadow: 0 0 0 2px var(--ib-timeline-bg, var(--ib-color-surface));
   }
 
   .ib-timeline-success { --ib-timeline-accent: var(--ib-color-success); --ib-timeline-accent-text: var(--ib-color-success-text); }
@@ -2305,8 +2361,29 @@
     background-color: var(--ib-timeline-accent);
   }
 
+  /* Done: the marker fills in the accent (or its status color), and the rail runs solid to the next item. */
+  .ib-timeline-done:not(.ib-timeline-has-avatar) > .ib-timeline-marker {
+    border-color: var(--ib-timeline-accent, var(--ib-color-primary));
+    background-color: var(--ib-timeline-accent, var(--ib-color-primary));
+    color: var(--ib-color-on-primary);
+  }
+
+  .ib-timeline-done:not(:last-child)::before {
+    background-color: var(--ib-color-primary);
+  }
+
+  /* Still to come, once anything is done: a faint marker and rail. */
+  .ib-timeline:has(> .ib-timeline-done) > .ib-timeline-item:not(.ib-timeline-done, .ib-timeline-current, .ib-timeline-has-avatar) > .ib-timeline-marker {
+    border-color: var(--ib-color-outline);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-timeline:has(> .ib-timeline-done) > .ib-timeline-item:not(.ib-timeline-done):not(:last-child)::before {
+    background-color: var(--ib-color-border);
+  }
+
   /* Current: the knob, an accent ring around a lit core, with a soft halo. */
-  .ib-timeline-current > .ib-timeline-marker {
+  .ib-timeline-current:not(.ib-timeline-has-avatar) > .ib-timeline-marker {
     border-color: var(--ib-color-primary);
     background-color: var(--ib-color-primary);
     box-shadow: inset 0 0 0 2px var(--ib-timeline-bg, var(--ib-color-surface)), 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
@@ -2318,15 +2395,21 @@
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
+  .ib-timeline-current.ib-timeline-has-avatar > .ib-timeline-marker > .ib-avatar {
+    box-shadow: 0 0 0 2px var(--ib-timeline-bg, var(--ib-color-surface)), 0 0 0 4px var(--ib-color-primary);
+  }
+
   .ib-timeline-body {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
   }
 
   .ib-timeline-head {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: var(--ib-space-2);
+    align-items: center;
+    gap: 0 var(--ib-space-2);
     min-height: var(--ib-timeline-line);
     line-height: var(--ib-timeline-line);
   }
@@ -2334,6 +2417,10 @@
   .ib-timeline-title {
     color: var(--ib-color-on-surface);
     font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-timeline-title-rich {
+    font-weight: var(--ib-weight-normal);
   }
 
   a.ib-timeline-title {
@@ -2346,9 +2433,76 @@
     text-underline-offset: 0.2em;
   }
 
+  /* Above the title (the default): its own line, the one the marker centers on. */
   .ib-timeline-time {
+    min-height: var(--ib-timeline-line);
     color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);
+    line-height: var(--ib-timeline-line);
+  }
+
+  /* Below: after the title and content, a smaller line. */
+  .ib-timeline-time-below .ib-timeline-time {
+    order: 1;
+    min-height: 0;
+    margin-block-start: var(--ib-space-1);
+    line-height: 1.25rem;
+  }
+
+  /* End: on the title's line, at its end. */
+  .ib-timeline-time-end .ib-timeline-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--ib-space-3);
+    align-content: start;
+  }
+
+  .ib-timeline-time-end .ib-timeline-time {
+    grid-column: 2;
+    grid-row: 1;
+    white-space: nowrap;
+  }
+
+  .ib-timeline-time-end :is(.ib-timeline-head, .ib-timeline-content) {
+    grid-column: 1 / -1;
+  }
+
+  .ib-timeline-time-end .ib-timeline-head {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  /* Start: a column of times before the markers, each on its title's line. */
+  .ib-timeline-time-start > .ib-timeline-item {
+    grid-template-columns: var(--ib-timeline-time-w) var(--ib-timeline-line) minmax(0, 1fr);
+  }
+
+  .ib-timeline-time-start > .ib-timeline-item:not(:last-child)::before {
+    inset-inline-start: calc(var(--ib-timeline-time-w) + var(--ib-space-3) + var(--ib-timeline-line) / 2 - 1px);
+  }
+
+  .ib-timeline-time-start .ib-timeline-marker {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .ib-timeline-time-start .ib-timeline-body {
+    display: contents;
+  }
+
+  .ib-timeline-time-start .ib-timeline-time {
+    grid-column: 1;
+    grid-row: 1;
+    text-align: end;
+  }
+
+  .ib-timeline-time-start :is(.ib-timeline-head, .ib-timeline-content) {
+    grid-column: 3;
+    min-width: 0;
+  }
+
+  .ib-timeline-time-start .ib-timeline-head {
+    grid-row: 1;
   }
 
   .ib-timeline-content {
@@ -2358,11 +2512,26 @@
     line-height: 1.25rem;
   }
 
+  .ib-timeline-sm :is(.ib-timeline-title, .ib-timeline-content) {
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-timeline-sm .ib-timeline-time {
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-timeline-sm .ib-timeline-content {
+    margin-block-start: 0;
+  }
+
   @media (forced-colors: active) {
-    .ib-timeline-current > .ib-timeline-marker {
+    .ib-timeline-current > .ib-timeline-marker,
+    .ib-timeline-done > .ib-timeline-marker,
+    .ib-timeline-done:not(:last-child)::before {
       forced-color-adjust: none;
       border-color: Highlight;
       background-color: Highlight;
+      color: HighlightText;
     }
   }
 }
