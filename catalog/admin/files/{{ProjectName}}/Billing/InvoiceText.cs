@@ -57,5 +57,11 @@ public static class InvoiceText
 
     public static string Money(decimal amount) => amount.ToString("C", CultureInfo.CurrentCulture);
 
+    /// <summary>Days from the issue date to the due date: 30 for Net 30.</summary>
+    public static int TermsDays(Invoice invoice) => invoice.Due.DayNumber - invoice.Issued.DayNumber;
+
+    /// <summary>Payment terms as invoices name them: "Net 30", or "Due on receipt" for none.</summary>
+    public static string Terms(int days) => days <= 0 ? "Due on receipt" : $"Net {days}";
+
     public static string CustomerName(Invoice invoice) => invoice.Customer is { } c ? $"{c.FirstName} {c.LastName}" : "";
 }

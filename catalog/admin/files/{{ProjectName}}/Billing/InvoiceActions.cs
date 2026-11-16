@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using {{RootNamespace}}.Auditing;
 using {{RootNamespace}}.Data;
@@ -16,28 +15,41 @@ namespace {{RootNamespace}}.Billing;
 /// </remarks>
 public sealed class InvoiceActions(ApplicationDbContext db, Audit audit)
 {
-    /// <summary>The terms new invoices get: due 30 days after they're sent.</summary>
-    public const int NetDays = 30;
+    /// <summary>The terms a new invoice starts with: due 30 days after its issue date.</summary>
+    public const int DefaultTerms = 30;
 
     /// <summary>One invoice with its customer and lines, or null.</summary>
     public Task<Invoice?> GetAsync(int id) =>
         db.Invoices.Include(i => i.Customer).Include(i => i.Lines).FirstOrDefaultAsync(i => i.Id == id);
 
-    /// <summary>Sends a draft: it's dated today and due <see cref="NetDays"/> days on.</summary>
+    /// <summary>Sends a draft. It keeps the issue and due dates it was given: they're what the customer was billed with.</summary>
     public async Task<string?> SendAsync(Invoice invoice)
     {
         if (invoice.Status != InvoiceStatus.Draft) return "Only a draft can be sent.";
-        var today = InvoiceText.Today;
-        List<AuditChange> changes =
-        [
-            new("Status", nameof(InvoiceStatus.Draft), nameof(InvoiceStatus.Sent)),
-            new("Issued", Iso(invoice.Issued), Iso(today)),
-            new("Due", Iso(invoice.Due), Iso(today.AddDays(NetDays))),
-        ];
-        (invoice.Status, invoice.Issued, invoice.Sent, invoice.Due) = (InvoiceStatus.Sent, today, today, today.AddDays(NetDays));
+        if (invoice.Lines.Count == 0) return "Add an item before sending.";
+        List<AuditChange> changes = [new("Status", nameof(InvoiceStatus.Draft), nameof(InvoiceStatus.Sent))];
+        (invoice.Status, invoice.Sent) = (InvoiceStatus.Sent, InvoiceText.Today);
         await SaveQuietlyAsync();
         await audit.RecordAsync(AuditActions.InvoiceSent, nameof(Invoice), invoice.Id.ToString(), invoice.Number, changes, $"To {invoice.Customer?.Email}.");
         return null;
+    }
+
+    /// <summary>A new draft for a customer, numbered next in the series, dated today on the default terms, with no lines yet; returns it.</summary>
+    public async Task<Invoice> StartDraftAsync(int customerId)
+    {
+        var today = InvoiceText.Today;
+        var draft = new Invoice
+        {
+            Number = await NextNumberAsync(),
+            CustomerId = customerId,
+            Status = InvoiceStatus.Draft,
+            Issued = today,
+            Due = today.AddDays(DefaultTerms),
+            TaxRate = Company.TaxRate,
+        };
+        db.Invoices.Add(draft);
+        await db.SaveChangesAsync();
+        return draft;
     }
 
     /// <summary>Reminds the customer of a sent invoice they haven't paid.</summary>
@@ -83,7 +95,7 @@ public sealed class InvoiceActions(ApplicationDbContext db, Audit audit)
         return null;
     }
 
-    /// <summary>A new draft with the same customer, lines and note; returns it.</summary>
+    /// <summary>A new draft with the same customer, lines, note and terms, dated today; returns it.</summary>
     public async Task<Invoice> DuplicateAsync(Invoice invoice)
     {
         var today = InvoiceText.Today;
@@ -93,7 +105,7 @@ public sealed class InvoiceActions(ApplicationDbContext db, Audit audit)
             CustomerId = invoice.CustomerId,
             Status = InvoiceStatus.Draft,
             Issued = today,
-            Due = today.AddDays(NetDays),
+            Due = today.AddDays(InvoiceText.TermsDays(invoice)),
             TaxRate = invoice.TaxRate,
             Note = invoice.Note,
             Lines = [.. invoice.Lines.Select(l => new InvoiceLine { Description = l.Description, Quantity = l.Quantity, UnitPrice = l.UnitPrice })],
@@ -118,6 +130,4 @@ public sealed class InvoiceActions(ApplicationDbContext db, Audit audit)
         try { await db.SaveChangesAsync(); }
         finally { db.Auditing = true; }
     }
-
-    static string Iso(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 }

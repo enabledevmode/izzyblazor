@@ -11,6 +11,9 @@ public class Invoice : IAudited
     /// <summary>The number the customer sees, such as INV-0042.</summary>
     [Required, StringLength(20)] public string Number { get; set; } = "";
 
+    /// <summary>The customer's purchase order number, when they gave one: shown on the invoice so they can match it.</summary>
+    [StringLength(40)] public string? PoNumber { get; set; }
+
     public int CustomerId { get; set; }
     public Customer? Customer { get; set; }
     public InvoiceStatus Status { get; set; }

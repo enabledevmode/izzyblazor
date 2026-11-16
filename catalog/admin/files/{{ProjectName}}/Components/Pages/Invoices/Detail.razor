@@ -35,6 +35,8 @@ else
             <PageHeaderActions>
                 @if (invoice.Status == InvoiceStatus.Draft && _canEdit)
                 {
+                    @* A draft opens in the wizard at Review, where each step has a Change link. *@
+                    <Button Href="@($"invoices/{invoice.Id}/edit?step=4")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil">Edit draft</Button>
                     <Button Submit Form="invoice-action" Name="send" Value="send" StartIcon="Lucide.Send">Send invoice</Button>
                 }
                 else
@@ -118,8 +120,12 @@ else
                             </DescriptionItem>
                         </DescriptionList>
                         <DescriptionList Orientation="Orientation.Vertical" Size="ControlSize.Sm">
-                            <DescriptionItem Term="Issued">@(invoice.Status == InvoiceStatus.Draft ? "Not sent yet" : InvoiceText.Date(invoice.Issued))</DescriptionItem>
-                            <DescriptionItem Term="Due">@(invoice.Status == InvoiceStatus.Draft ? $"Set when sent (Net {InvoiceActions.NetDays})" : InvoiceText.Date(invoice.Due))</DescriptionItem>
+                            <DescriptionItem Term="Issued">@InvoiceText.Date(invoice.Issued)</DescriptionItem>
+                            <DescriptionItem Term="Due">@InvoiceText.Date(invoice.Due)</DescriptionItem>
+                            @if (invoice.PoNumber is { Length: > 0 } po)
+                            {
+                                <DescriptionItem Term="PO number">@po</DescriptionItem>
+                            }
                         </DescriptionList>
                     </Grid>
 
@@ -171,7 +177,7 @@ else
                                 <DescriptionItem Term="Due">
                                     @if (invoice.Status == InvoiceStatus.Draft)
                                     {
-                                        @($"Net {InvoiceActions.NetDays} after sending")
+                                        @($"{InvoiceText.Date(invoice.Due)} ({InvoiceText.Terms(InvoiceText.TermsDays(invoice))})")
                                     }
                                     else if (state == InvoiceState.Overdue)
                                     {
