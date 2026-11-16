@@ -13,8 +13,7 @@
     "fixed": {
       "Interactivity": "None", "AllInteractive": "false", "Auth": "Individual", "UseLocalDB": "false",
       "Empty": "false", "Nav": "Sidebar", "UseProgramMain": "false", "NoHttps": "false"
-    },
-    "defaults": { "Preset": "Compact" }
+    }
   },
   "parameters": {
     "type": "object",
