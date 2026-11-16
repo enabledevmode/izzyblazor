@@ -53,12 +53,12 @@ public sealed class AuditingSignInManager(
         {
             user.LastSignIn = DateTime.UtcNow;
             await UserManager.UpdateAsync(user);
-            await audit.RecordAsync(AuditActions.SignedIn, "User", user.Id, user.Email, note: $"With a {with}.", actor: user);
+            await audit.RecordAsync(AuditActions.SignedIn, "User", user.Id, user.Name ?? user.Email, note: $"With a {with}.", actor: user);
         }
         else
         {
             var why = result.IsLockedOut ? "The account is locked." : result.IsNotAllowed ? "The account can't sign in yet (email not confirmed)." : $"Wrong {with}.";
-            await audit.RecordAsync(AuditActions.SignInFailed, "User", user.Id, user.Email, note: why, actor: user);
+            await audit.RecordAsync(AuditActions.SignInFailed, "User", user.Id, user.Name ?? user.Email, note: why, actor: user);
         }
         return result;
     }

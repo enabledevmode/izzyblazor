@@ -66,22 +66,28 @@ public sealed class AuditInterceptor(IHttpContextAccessor http) : SaveChangesInt
         var ip = http.HttpContext?.Connection.RemoteIpAddress?.ToString();
         var now = DateTime.UtcNow;
         var pending = new List<Pending>();
-        foreach (var entry in context.ChangeTracker.Entries())
+        var actorId = user?.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? actorName = null;
+        foreach (var entry in context.ChangeTracker.Entries().ToList())
         {
             if (entry.Entity is not IAudited audited) continue;
             var (action, changes) = entry.State switch
             {
                 EntityState.Added => (AuditActions.Created, Fields(entry, p => !p.Metadata.IsPrimaryKey(), p => null, p => p.CurrentValue)),
                 EntityState.Deleted => (AuditActions.Deleted, Fields(entry, p => !p.Metadata.IsPrimaryKey(), p => p.OriginalValue, p => null)),
-                EntityState.Modified => (AuditActions.Updated, Fields(entry, p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue), p => p.OriginalValue, p => p.CurrentValue)),
+                EntityState.Modified => (AuditActions.Updated, Updated(entry)),
                 _ => (null, []),
             };
             if (action is null || (action == AuditActions.Updated && changes.Count == 0)) continue;
+            // Their name as the app shows it, not the sign-in name (their email), read once per save.
+            actorName ??= actorId is null ? null
+                : ((ApplicationDbContext)context).Users.AsNoTracking().Where(u => u.Id == actorId).Select(u => u.Name ?? u.Email).FirstOrDefault()
+                  ?? user?.Identity?.Name;
             pending.Add(new Pending(entry, new AuditEvent
             {
                 Time = now,
-                ActorId = user?.FindFirstValue(ClaimTypes.NameIdentifier),
-                ActorName = user?.Identity?.Name,
+                ActorId = actorId,
+                ActorName = actorName,
                 Action = action,
                 EntityType = entry.Metadata.ClrType.Name,
                 EntityName = audited.AuditName,
@@ -104,6 +110,15 @@ public sealed class AuditInterceptor(IHttpContextAccessor http) : SaveChangesInt
             context.Add(audit);
         }
         return true;
+    }
+
+    // What an update changes. A record saved through Update() (a copy read without tracking, as crud's stores do)
+    // has no original values, only the new ones; then the database's values are the "before".
+    static List<AuditChange> Updated(EntityEntry entry)
+    {
+        var tracked = Fields(entry, p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue), p => p.OriginalValue, p => p.CurrentValue);
+        if (tracked.Count > 0 || entry.GetDatabaseValues() is not { } saved) return tracked;
+        return Fields(entry, p => !p.Metadata.IsPrimaryKey() && !Equals(saved[p.Metadata], p.CurrentValue), p => saved[p.Metadata], p => p.CurrentValue);
     }
 
     static List<AuditChange> Fields(EntityEntry entry, Func<PropertyEntry, bool> include, Func<PropertyEntry, object?> before, Func<PropertyEntry, object?> after) =>
