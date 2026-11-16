@@ -82,6 +82,11 @@
     padding: 0;
   }
 
+  /* An avatar in place of the icon (an account menu): round, to match it. */
+  .ib-btn-icon-only:has(> .ib-avatar) {
+    border-radius: var(--ib-radius-full);
+  }
+
   /* Narrowing what shows (data-active), as a filter or a categories menu with some hidden: the
      accent, and a dot on the icon's top end corner. */
   .ib-btn[data-active] {
