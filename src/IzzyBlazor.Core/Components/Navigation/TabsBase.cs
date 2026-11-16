@@ -44,7 +44,7 @@ public abstract class TabsBase : LayoutItemBase
     }
 
     /// <summary>A tab's icon, text and badge, then <paramref name="after"/>.</summary>
-    private protected static RenderFragment TabContent(IconData? icon, string label, string? badge, Status badgeStatus, RenderFragment? after = null) => builder =>
+    private protected static RenderFragment TabContent(IconData? icon, string label, string? badge, Status badgeStatus, Breakpoint? badgeFrom, RenderFragment? after = null) => builder =>
     {
         if (icon is { } shown)
         {
@@ -67,10 +67,15 @@ public abstract class TabsBase : LayoutItemBase
                 builder.AddComponentParameter(8, nameof(Badge.Status), badgeStatus);
                 builder.AddComponentParameter(9, nameof(Badge.Variant), BadgeVariant.Solid);
             }
-            builder.AddComponentParameter(10, nameof(Badge.ChildContent), (RenderFragment)(b => b.AddContent(0, badge)));
+            if (badgeFrom is { } from)
+            {
+                builder.AddComponentParameter(11, nameof(Badge.VisibleFrom), (Breakpoint?)from);
+            }
+
+            builder.AddComponentParameter(12, nameof(Badge.ChildContent), (RenderFragment)(b => b.AddContent(0, badge)));
             builder.CloseComponent();
         }
 
-        builder.AddContent(11, after);
+        builder.AddContent(13, after);
     };
 }

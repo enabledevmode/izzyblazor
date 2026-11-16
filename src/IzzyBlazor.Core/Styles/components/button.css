@@ -442,3 +442,12 @@
     color: var(--ib-color-success-text);
   }
 }
+
+/* Print buttons (Print on Button, IconButton or MenuItem) need the script to print: with it off, they're left out. */
+@layer izzy.components {
+  @media (scripting: none) {
+    [data-ib-print] {
+      display: none;
+    }
+  }
+}

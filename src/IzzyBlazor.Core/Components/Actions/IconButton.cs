@@ -43,6 +43,13 @@ public class IconButton : ButtonBase
     [Parameter] public bool Reset { get; set; }
 
     /// <summary>
+    /// Prints the page: opens the browser's print dialog, for a Print button on a receipt or an
+    /// invoice. Style what prints with <c>@media print</c>; an app shell leaves itself out. Needs JavaScript: with it off the button isn't shown. Can't be combined with
+    /// Submit, Reset or Href.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)] public bool Print { get; set; }
+
+    /// <summary>
     /// Posted with the form as <c>Name=Value</c> when this button submits it, so one handler can tell
     /// which button was pressed, such as which row's Delete. Not <c>action</c>, <c>method</c> or
     /// <c>target</c>: a control with one of those names hides the form's own property, and Blazor's
@@ -94,9 +101,9 @@ public class IconButton : ButtonBase
         builder.OpenElement(0, isLink ? "a" : "button");
         if (isLink)
         {
-            if (Submit || Reset || Name is not null || Value is not null || FormAction is not null || Form is not null)
+            if (Submit || Reset || Print || Name is not null || Value is not null || FormAction is not null || Form is not null)
             {
-                throw new InvalidOperationException("IconButton with Href is a link, so Submit, Reset, Name, Value, FormAction and Form don't apply. Leave out Href for a button.");
+                throw new InvalidOperationException("IconButton with Href is a link, so Submit, Reset, Print, Name, Value, FormAction and Form don't apply. Leave out Href for a button.");
             }
 
             // Like Button with Href: an inactive link has no href, so it keeps role="link" for its name.
@@ -118,6 +125,7 @@ public class IconButton : ButtonBase
             builder.AddAttribute(8, "value", Value);
             builder.AddAttribute(9, "formaction", FormAction);
             builder.AddAttribute(10, "form", Form);
+            builder.AddAttribute(11, "data-ib-print", PrintButtons.Attribute(Print, Submit || Reset, nameof(IconButton)));
             if (OnClick.HasDelegate && !Loading)
             {
                 builder.AddAttribute(12, "onclick", OnClick);

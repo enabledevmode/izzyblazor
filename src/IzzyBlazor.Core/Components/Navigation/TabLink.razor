@@ -31,6 +31,12 @@
     /// </summary>
     [Parameter] public Status BadgeStatus { get; set; } = Status.Neutral;
 
+    /// <summary>
+    /// Shows the badge only from this breakpoint up, so a row of tabs with counts fits a phone:
+    /// <c>BadgeVisibleFrom="Breakpoint.Sm"</c> on the counts that matter less.
+    /// </summary>
+    [Parameter] public Breakpoint? BadgeVisibleFrom { get; set; }
+
     /// <summary>Shows the tab but not as a link.</summary>
     [Parameter] public bool Disabled { get; set; }
 
@@ -55,7 +61,7 @@
 
     [CascadingParameter] internal TabNav? Context { get; set; }
 
-    private (string, string, IconData?, string?, Status, bool, NavLinkMatch, bool?)? _shown;
+    private (string, string, IconData?, string?, Status, Breakpoint?, bool, NavLinkMatch, bool?)? _shown;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -77,7 +83,7 @@
     protected override void OnParametersSet()
     {
         // TabNav renders the link, so tell it when what it shows has changed.
-        var shown = (Href, Label, Icon, Badge, BadgeStatus, Disabled, Match, Current);
+        var shown = (Href, Label, Icon, Badge, BadgeStatus, BadgeVisibleFrom, Disabled, Match, Current);
         if (_shown is { } previous && previous != shown)
         {
             Context?.Changed();

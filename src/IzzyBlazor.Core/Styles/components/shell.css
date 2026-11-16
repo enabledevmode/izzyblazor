@@ -3043,3 +3043,31 @@
     }
   }
 }
+
+/*
+ * Printing: the page's content alone. The header, sidebar, aside and footer are the app around it,
+ * so they're left out, and the main area flows onto as many sheets as it needs (with ScrollMode.Main
+ * it would otherwise print one window's height). Toasts are left out too.
+ */
+@layer izzy.components {
+  @media print {
+    .ib-shell,
+    .ib-shell-scroll-main {
+      display: block;
+      height: auto;
+      min-height: 0;
+    }
+
+    .ib-shell > :is(.ib-shell-header, .ib-shell-sidebar, .ib-shell-aside, .ib-shell-footer, .ib-shell-backdrop),
+    .ib-toast-region {
+      display: none;
+    }
+
+    .ib-shell > .ib-shell-main {
+      margin: 0;
+      overflow: visible;
+      border: 0;
+      box-shadow: none;
+    }
+  }
+}

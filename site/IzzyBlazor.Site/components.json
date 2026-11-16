@@ -517,7 +517,9 @@
             "static": "Delete waits until the box is ticked. The server checks the box too.",
             "interactive": "Delete waits until the box is ticked. The form checks the box too."
           } },
-        { "id": "button-on-click", "title": "Running C# on click", "modes": ["interactive"] },
+        { "id": "button-print", "title": "Printing the page",
+          "notes": { "noscript": "The button isn't shown: printing needs JavaScript." } },
+        { "id": "button-on-click", "title": "Handling click events", "modes": ["interactive"] },
         { "id": "button-state-in-address", "title": "A count in the URL",
           "notes": {
             "noscript": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
@@ -633,7 +635,7 @@
         { "id": "split-button-in-group", "title": "In a row of buttons" },
         { "id": "split-button-states", "title": "States" },
         { "id": "split-button-panel-width", "title": "Where the menu opens" },
-        { "id": "split-button-on-click", "title": "Running C# on click",
+        { "id": "split-button-on-click", "title": "Handling click events",
           "notes": {
             "noscript": "OnClick and the switches work only on interactive pages: nothing happens here.",
             "static": "OnClick and the switches work only on interactive pages: nothing happens here. See Interactive."
@@ -681,7 +683,7 @@
             "static": "Each button, in the bar or the … menu, posts intent=archive, read or delete without a full reload.",
             "interactive": "OnClick tells you which button was pressed, from the bar or the menu, and nothing is posted."
           } },
-            { "id": "toolbar-on-click", "title": "Running C# on click", "modes": ["interactive"] },
+            { "id": "toolbar-on-click", "title": "Handling click events", "modes": ["interactive"] },
             { "id": "toolbar-toggles", "title": "Toggle buttons", "modes": ["interactive"] },
             { "id": "toolbar-split-button", "title": "Split buttons",
           "notes": {
@@ -1889,7 +1891,8 @@
         { "feature": "A tab marked current from C# (TabLink Current)" }
       ],
       "examples": [
-        { "id": "tab-nav-usage", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL as current.", "after": ["`Variant`, `Size` and `FullWidth` work as on Tabs.", "A tab stays current on the pages below its link, so a `settings` tab is current on `settings/billing` too. To stop that, set `Match=\"NavLinkMatch.All\"`."] }
+        { "id": "tab-nav-usage", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL as current.", "after": ["`Variant`, `Size` and `FullWidth` work as on Tabs.", "A tab stays current on the pages below its link, so a `settings` tab is current on `settings/billing` too. To stop that, set `Match=\"NavLinkMatch.All\"`."] },
+        { "id": "tab-nav-counts", "title": "Counts that fit a phone", "lead": "`Badge` puts a count after a tab's label, and `BadgeStatus` colors one that needs attention. A row of five tabs with counts is too wide for a phone, so set `BadgeVisibleFrom=\"Breakpoint.Sm\"` on the counts that matter less: they show from Sm up." }
       ]
     },
 
