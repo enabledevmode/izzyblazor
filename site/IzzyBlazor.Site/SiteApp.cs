@@ -435,6 +435,11 @@ public static class SiteApp
                 stream => DataExport.WriteExcelAsync(stream, Examples.Table.Orders.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.Table.Order>(), "Orders", cancellationToken: context.RequestAborted),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx"))
             .RequireRateLimiting(PagesRateLimit);
+        // The CRUD pages demo's Export (Frame/CrudDemoFramePage.razor), as izzy add crud's CustomerExport.cs.
+        app.MapGet("/frame/cli/crud/export.xlsx", (HttpContext context) => Results.Stream(
+                stream => DataExport.WriteExcelAsync(stream, Frame.CrudDemoData.Customers().AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Frame.DemoCustomer>(), "Customers", cancellationToken: context.RequestAborted),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "customers.xlsx"))
+            .RequireRateLimiting(PagesRateLimit);
         // The TreeList totals example's downloads: the estimate as an outline.
         app.MapGet("/examples/estimate.csv", (HttpContext context) => Results.Stream(
                 stream => DataExport.WriteCsvAsync(stream, Examples.TreeList.Estimate.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.TreeList.WorkItem>(), cancellationToken: context.RequestAborted,
