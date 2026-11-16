@@ -3,7 +3,7 @@
 
 @* The CRUD pages article's demo: the page izzy add crud Customer creates (catalog/crud's Grid.razor), with
    its markup as generated, in the library's default theme. The customers come from CrudDemoData, made
-   fresh for each request, so a save posts but doesn't last. Links that would leave the demo go nowhere. *@
+   fresh for each request, so a save posts but doesn't last. Export downloads them (SiteApp's /frame/cli/crud/export.xlsx). *@
 
 <PageTitle>Customers (izzy add crud)</PageTitle>
 <HeadContent><meta name="robots" content="noindex" /></HeadContent>
@@ -13,7 +13,7 @@
         <PageHeader Title="Customers" />
 
         <DataGrid TItem="DemoCustomer" Items="_customers" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
-                  InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="crud-demo-customers" ExportExcelHref="#" ToolbarLabels
+                  InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="crud-demo-customers" ExportExcelHref="frame/cli/crud/export.xlsx" ToolbarLabels
                   EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
                   NewItem="() => new DemoCustomer()" AddText="Add customer" OnSave="Save" OnDelete="Delete"
                   NoMatchesText="No customers match “{0}”" Grow>
@@ -23,7 +23,7 @@
             </ToolbarContent>
             <EmptyContent>
                 <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
-                    <Button Href="?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add customer</Button>
+                    <Button Href="frame/cli/crud?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add customer</Button>
                 </EmptyState>
             </EmptyContent>
             <Columns>
