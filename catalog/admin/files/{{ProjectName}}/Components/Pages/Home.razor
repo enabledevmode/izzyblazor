@@ -1,0 +1,309 @@
+@page "/"
+@attribute [Authorize(Policy = Policies.ViewSales)]
+@attribute [StreamRendering]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+
+<PageTitle>Dashboard</PageTitle>
+
+@* The business at a glance over a period chosen in the address (?period=7d, 30d or 12m): four numbers
+   against the period before, revenue over time, customers by plan, the newest customers and recent
+   activity from the audit log. Streamed: the page arrives at once, the numbers when they're counted. *@
+<Stack Gap="new() { Base = 5, Md = 6 }">
+    <PageHeader Title="Dashboard" Description="@Lead">
+        <PageHeaderActions>
+            <TabNav Label="Period" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+                @foreach (var option in Periods.All)
+                {
+                    <TabLink Href="@($"?period={option.Key}")" Current="option == _period" Label="@option.Name" />
+                }
+            </TabNav>
+        </PageHeaderActions>
+    </PageHeader>
+
+    <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="new() { Base = 3, Md = 4 }">
+        @foreach (var stat in _stats ?? Placeholders)
+        {
+            <Card>
+                <Skeleton Loaded="_stats is not null" Lines="3">
+                    @if (_empty)
+                    {
+                        <Stat Label="@stat.Label" Value="@stat.Value" Description="No data yet" />
+                    }
+                    else
+                    {
+                        <Stat Label="@stat.Label" Value="@stat.Value" Change="@stat.Change" Trend="stat.Trend"
+                              ChangeStatus="stat.Good ? Status.Success : Status.Danger" Description="@($"vs last {_period.Name}")"
+                              Sparkline="stat.Spark" SparklineLabel="@($"{stat.Label}, {SparkSpan}")" />
+                    }
+                </Skeleton>
+            </Card>
+        }
+    </Grid>
+
+    <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="new() { Base = 4, Md = 6 }">
+        <Card Title="@($"Revenue by {_period.Bucket}")" TitleId="revenue-heading" TitleLevel="2" ColSpan="new() { Lg = 2 }">
+            @if (_revenue is null)
+            {
+                <Skeleton Height="Length.Rem(15)" />
+            }
+            else if (_empty)
+            {
+                <EmptyState Title="No revenue yet" Description="Weekly revenue shows here after your first paid order." Size="ControlSize.Sm" />
+            }
+            else
+            {
+                <Chart Items="_revenue" Argument="b => b.Label" TitledBy="revenue-heading" Height="Length.Rem(15)">
+                    <ChartValueAxis Format="$#,0" />
+                    <ChartBarSeries Value="b => b.Amount" Name="Revenue" />
+                </Chart>
+            }
+        </Card>
+
+        <Card Title="Customers by plan" TitleLevel="2">
+            @if (_plans is null)
+            {
+                <Skeleton Lines="3" />
+            }
+            else if (_empty)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Plans show here once you have customers.</TextBlock>
+            }
+            else
+            {
+                <Stack Gap="4">
+                    @foreach (var (plan, count) in _plans)
+                    {
+                        var share = _planTotal == 0 ? 0 : (int)Math.Round(count * 100.0 / _planTotal);
+                        <Stack Gap="2">
+                            <Row Justify="Justify.Between" Gap="3">
+                                <TextBlock Size="TextSize.Sm">@plan</TextBlock>
+                                <TextBlock Size="TextSize.Sm" TabularNums><strong>@count</strong> · @share%</TextBlock>
+                            </Row>
+                            <Progress Value="share" Max="100" aria-label="@plan" />
+                        </Stack>
+                    }
+                    <Anchor Href="customers">View customers</Anchor>
+                </Stack>
+            }
+        </Card>
+    </Grid>
+
+    <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="new() { Base = 4, Md = 6 }">
+        <Card Title="Newest customers" TitleLevel="2" ColSpan="new() { Lg = 2 }">
+            @if (_newest is not null && !_empty)
+            {
+                <CardActions><Anchor Href="customers">View all</Anchor></CardActions>
+            }
+            <CardBody Flush>
+                @if (_newest is null)
+                {
+                    <Box Padding="5"><Skeleton Lines="3" /></Box>
+                }
+                else if (_empty)
+                {
+                    <EmptyState Title="No customers yet" Description="Add your first one to get started." Size="ControlSize.Sm">
+                        <Button Href="customers?add=1" StartIcon="Lucide.Plus">New customer</Button>
+                    </EmptyState>
+                }
+                else
+                {
+                    <ListView Items="_newest" ItemKey="c => c.Id.ToString()" ItemLabel="c => c.Name" ItemHref="@(c => $"customers?edit={c.Id}")" Context="customer">
+                        <ChildContent>
+                            <Row Gap="3" Align="Align.Center">
+                                <Avatar Name="@customer.Name" Size="AvatarSize.Sm" Decorative />
+                                <Stack Gap="0" Grow>
+                                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" Truncate>@customer.Name</TextBlock>
+                                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@customer.Email</TextBlock>
+                                </Stack>
+                            </Row>
+                        </ChildContent>
+                        <ItemActions>
+                            <Badge Status="StatusOf(customer.Status)">@customer.Status</Badge>
+                        </ItemActions>
+                    </ListView>
+                }
+            </CardBody>
+        </Card>
+
+        <Card Title="Activity" TitleLevel="2">
+            @if (_activity is null)
+            {
+                <Skeleton Lines="3" />
+            }
+            else if (_activity.Count == 0)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Sign-ups, upgrades and payments show here as they happen.</TextBlock>
+            }
+            else
+            {
+                <Timeline>
+                    @foreach (var item in _activity)
+                    {
+                        <TimelineItem Title="@item.Text" Value="item.Time" Status="item.Status" />
+                    }
+                </Timeline>
+            }
+        </Card>
+    </Grid>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "period")] private string? PeriodKey { get; set; }
+
+    private Period _period = Periods.Days30;
+    private bool _empty;
+    private List<StatValue>? _stats;
+    private List<Bucket>? _revenue;
+    private List<(string Plan, int Count)>? _plans;
+    private int _planTotal;
+    private List<NewCustomer>? _newest;
+    private List<Activity>? _activity;
+    private string? _userName;
+
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private string Lead => _empty
+        ? $"Welcome, {_userName}. Numbers show here as customers sign up."
+        : $"Hello, {_userName}. Here’s the last {_period.Name}.";
+
+    private string SparkSpan => _period.Bucket == "month" ? "last 12 months" : "last 12 weeks";
+
+    private static readonly List<StatValue> Placeholders =
+        [new("Revenue", ""), new("New customers", ""), new("Active customers", ""), new("Churn rate", "")];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _period = Periods.All.FirstOrDefault(p => p.Key == PeriodKey) ?? Periods.Days30;
+        if (AuthState is not null)
+        {
+            var user = (await AuthState).User;
+            var id = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            _userName = (await Db.Users.Where(u => u.Id == id).Select(u => u.Name).FirstOrDefaultAsync())?.Split(' ')[0]
+                ?? user.Identity?.Name;
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var customers = await Db.Customers.AsNoTracking().ToListAsync();
+        var paid = await Db.Invoices.AsNoTracking().Include(i => i.Lines)
+            .Where(i => i.Status == InvoiceStatus.Paid && i.Paid != null).ToListAsync();
+        _empty = customers.Count == 0;
+
+        // When each churned customer left, from the audit log: Customer has no date for it.
+        var churnEvents = await Db.AuditEvents.AsNoTracking()
+            .Where(e => e.EntityType == nameof(Customer) && e.Action == AuditActions.Updated && e.Changes!.Contains("Churned"))
+            .Select(e => new { e.EntityId, e.Time }).ToListAsync();
+        var churned = churnEvents.GroupBy(e => e.EntityId).ToDictionary(g => g.Key!, g => DateOnly.FromDateTime(g.Max(e => e.Time)));
+        DateOnly? ChurnedOn(Customer c) => churned.TryGetValue(c.Id.ToString(), out var on) ? on : null;
+        bool ActiveOn(Customer c, DateOnly day) => c.Status != CustomerStatus.Trial && c.Joined <= day && !(ChurnedOn(c) <= day);
+
+        decimal Revenue(DateOnly from, DateOnly to) => paid.Where(i => i.Paid > from && i.Paid <= to).Sum(i => i.Total);
+        int Joined(DateOnly from, DateOnly to) => customers.Count(c => c.Joined > from && c.Joined <= to);
+        int Active(DateOnly day) => customers.Count(c => ActiveOn(c, day));
+        double Churn(DateOnly from, DateOnly to)
+        {
+            var atStart = Active(from);
+            return atStart == 0 ? 0 : customers.Count(c => ChurnedOn(c) is { } on && on > from && on <= to) * 100.0 / atStart;
+        }
+
+        var start = _period.Start(today);
+        var before = _period.Start(start);
+
+        // Twelve buckets for the chart and the sparklines: weeks, or months for a year.
+        var ends = Enumerable.Range(0, 12).Select(i => _period.Bucket == "month" ? today.AddMonths(i - 11) : today.AddDays(7 * (i - 11))).ToList();
+        DateOnly BucketStart(DateOnly end) => _period.Bucket == "month" ? end.AddMonths(-1) : end.AddDays(-7);
+
+        _stats =
+        [
+            Compare("Revenue", (double)Revenue(start, today), (double)Revenue(before, start), v => v.ToString("$#,0"),
+                ends.Select(e => (double?)(double)Revenue(BucketStart(e), e))),
+            Compare("New customers", Joined(start, today), Joined(before, start), v => v.ToString("N0"),
+                ends.Select(e => (double?)Joined(BucketStart(e), e))),
+            Compare("Active customers", Active(today), Active(start), v => v.ToString("N0"),
+                ends.Select(e => (double?)Active(e))),
+            Compare("Churn rate", Churn(start, today), Churn(before, start), v => v.ToString("0.0") + "%",
+                ends.Select(e => (double?)Churn(BucketStart(e), e)), points: true, lowerIsBetter: true),
+        ];
+        if (_empty)
+            _stats = [new("Revenue", "$0"), new("New customers", "0"), new("Active customers", "0"), new("Churn rate", "—")];
+
+        _revenue = ends.Select(e => new Bucket(e.ToString(_period.Bucket == "month" ? "MMM" : "MMM d"), Revenue(BucketStart(e), e))).ToList();
+
+        var current = customers.Where(c => c.Status != CustomerStatus.Churned).ToList();
+        _planTotal = current.Count;
+        _plans = Enum.GetValues<CustomerPlan>().Select(p => (p.ToString(), current.Count(c => c.Plan == p))).ToList();
+
+        _newest = customers.OrderByDescending(c => c.Joined).ThenByDescending(c => c.Id).Take(5)
+            .Select(c => new NewCustomer(c.Id, $"{c.FirstName} {c.LastName}", c.Email, c.Status)).ToList();
+
+        _activity = await RecentActivity(paid);
+    }
+
+    // Sign-ups, plan changes, cancellations and payments, newest first, as the audit log recorded them.
+    private async Task<List<Activity>> RecentActivity(List<Invoice> paid)
+    {
+        var events = await Db.AuditEvents.AsNoTracking()
+            .Where(e => e.EntityType == nameof(Customer) || (e.EntityType == nameof(Invoice) && e.Action == AuditActions.Updated))
+            .OrderByDescending(e => e.Time).Take(60).ToListAsync();
+        var totals = paid.ToDictionary(i => i.Id.ToString(), i => i.Total);
+        var list = new List<Activity>();
+        foreach (var e in events)
+        {
+            var changes = e.ReadChanges();
+            string? After(string field) => changes.FirstOrDefault(c => c.Field == field)?.After;
+            string? Before(string field) => changes.FirstOrDefault(c => c.Field == field)?.Before;
+            var time = new DateTimeOffset(DateTime.SpecifyKind(e.Time, DateTimeKind.Utc));
+            Activity? item = e switch
+            {
+                { EntityType: nameof(Customer), Action: AuditActions.Created } when After("Status") == "Trial"
+                    => new($"{e.EntityName} started a trial", time, Status.Info),
+                { EntityType: nameof(Customer), Action: AuditActions.Updated } when After("Status") == "Churned"
+                    => new($"{e.EntityName} cancelled", time, Status.Neutral),
+                { EntityType: nameof(Customer), Action: AuditActions.Updated } when After("Plan") is { } plan
+                    && Enum.TryParse<CustomerPlan>(plan, out var to) && Enum.TryParse<CustomerPlan>(Before("Plan"), out var from)
+                    => new($"{e.EntityName} {(to > from ? "upgraded" : "moved")} to {plan}", time, to > from ? Status.Success : Status.Neutral),
+                { EntityType: nameof(Invoice) } when After("Status") == "Paid"
+                    => new($"Invoice {e.EntityName} was paid{(totals.TryGetValue(e.EntityId ?? "", out var total) ? $" · {total:C}" : "")}", time, Status.Success),
+                _ => null,
+            };
+            if (item is not null) list.Add(item);
+            if (list.Count == 5) break;
+        }
+        return list;
+    }
+
+    private static StatValue Compare(string label, double now, double before, Func<double, string> format,
+        IEnumerable<double?> spark, bool points = false, bool lowerIsBetter = false)
+    {
+        var trend = now > before ? StatTrend.Up : now < before ? StatTrend.Down : StatTrend.Flat;
+        var change = points ? $"{Math.Abs(now - before):0.0} pts"
+            : before == 0 ? null : $"{Math.Abs((now - before) / before):0%}";
+        return new(label, format(now), change, trend, lowerIsBetter ? now <= before : now >= before, spark.ToList());
+    }
+
+    private static Status StatusOf(CustomerStatus status) => status switch
+    {
+        CustomerStatus.Active => Status.Success,
+        CustomerStatus.Trial => Status.Info,
+        _ => Status.Neutral,
+    };
+
+    private sealed record StatValue(string Label, string Value, string? Change = null, StatTrend Trend = StatTrend.Flat,
+        bool Good = true, IReadOnlyList<double?>? Spark = null);
+
+    private sealed record Bucket(string Label, decimal Amount);
+
+    private sealed record NewCustomer(int Id, string Name, string Email, CustomerStatus Status);
+
+    private sealed record Activity(string Text, DateTimeOffset Time, Status Status);
+
+    private sealed record Period(string Key, string Name, string Bucket, Func<DateOnly, DateOnly> Start);
+
+    private static class Periods
+    {
+        public static readonly Period Days7 = new("7d", "7 days", "week", d => d.AddDays(-7));
+        public static readonly Period Days30 = new("30d", "30 days", "week", d => d.AddDays(-30));
+        public static readonly Period Months12 = new("12m", "12 months", "month", d => d.AddMonths(-12));
+        public static readonly Period[] All = [Days7, Days30, Months12];
+    }
+}
