@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using {{RootNamespace}}.Admin;
 using {{RootNamespace}}.Auditing;
 using {{RootNamespace}}.Components;
 using {{RootNamespace}}.Components.Account;
@@ -30,6 +31,9 @@ builder.Services.AddAuthorizationBuilder().AddAppPolicies();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<AuditInterceptor>();
 builder.Services.AddScoped<Audit>();
+
+// What admins do to accounts: invite, roles, deactivate, delete (Admin/UserAdmin.cs).
+builder.Services.AddScoped<UserAdmin>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>((services, options) =>
