@@ -46,11 +46,11 @@
             </Columns>
         </Table>
 
-        <Heading Level="2">Full screens with Pro</Heading>
+        <Heading Level="2">A page for each task, with Pro</Heading>
         <TextBlock>
-            With IzzyBlazor Pro, <Code>--mode pages</Code> writes the full screens instead: a list with filters and empty
-            states, a page for each customer, and a form page with the errors listed at the top. It suits records with
-            many fields.
+            The grid page does everything in one place, and edits in a dialog. With IzzyBlazor Pro, <Code>--mode pages</Code>
+            spreads the same work over separate pages: a list with filters, a page for each customer, and a form page with
+            the errors listed at the top. Records with many fields have more room on a page of their own.
         </TextBlock>
 
         <Heading Level="2">After the model changes</Heading>
@@ -66,7 +66,7 @@
 
     private static readonly Row[] CrudOptions =
     [
-        new("--mode pages", "Pro: a list with filters, a page for each record and a form page, for records with many fields. Without it, one grid page."),
+        new("--mode pages", "Pro: separate pages to list, show and edit the records, for records with many fields. Without it, one grid page that edits in a dialog."),
         new("--name <Plural>", "The folder, the pages' names and the title. Defaults to the model's plural: Customers."),
         new("--singular <words>", "What one record is called on the pages, when it isn't the class's name: --singular \"team member\" for Member. --plural sets the other, when adding an s isn't it."),
         new("--route <path>", "The address the pages start at. Defaults to the name in kebab case: customers."),
