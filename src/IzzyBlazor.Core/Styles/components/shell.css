@@ -1024,6 +1024,16 @@
   }
 
   /*
+   * The icon rail's tooltips reach over the main area, so the sidebar paints above the page's content
+   * (which layers itself at z-index 3 or less), and under the sticky header (20) and drawers.
+   * Positioned for the z-index; a sticky sidebar stays sticky (its rule is more specific).
+   */
+  .ib-shell-sidebar-collapsible > .ib-shell-sidebar-inner {
+    position: relative;
+    z-index: 10;
+  }
+
+  /*
    * A collapsible sidebar keeps one icon column: nav icons sit on the rail's center line whether
    * it's expanded or collapsed, so nothing shifts sideways as it collapses (only the end edge of
    * each item moves), and on wide screens the menu button lines up with them (below).
