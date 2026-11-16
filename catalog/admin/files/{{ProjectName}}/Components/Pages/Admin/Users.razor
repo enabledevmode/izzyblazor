@@ -100,7 +100,7 @@
                         </DescriptionItem>
                     }
                 </DescriptionList>
-                <Anchor Href="@($"admin/audit?who={Uri.EscapeDataString(context.Id)}")">View their activity</Anchor>
+                <Anchor Href="@($"admin/audit?f-who={Uri.EscapeDataString(context.Id)}")">View their activity</Anchor>
             </Stack>
         </DetailTemplate>
     </DataGrid>

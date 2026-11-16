@@ -72,14 +72,14 @@ public static class SeedData
         }
         DateTime At(DateOnly day) => day.ToDateTime(new TimeOnly(9 + random.Next(8), random.Next(60)), DateTimeKind.Utc);
 
-        Record(now.AddDays(-2).AddHours(-3), admin, AuditActions.Invited, "User", invitee.Id, invitee.Email,
+        Record(now.AddDays(-2).AddHours(-3), admin, AuditActions.Invited, "User", invitee.Id, invitee.Name,
             [new("Roles", null, Roles.Manager)]);
-        Record(now.AddDays(-21), admin, AuditActions.Deactivated, "User", leaver.Id, leaver.Email, note: "Left the company.");
+        Record(now.AddDays(-21), admin, AuditActions.Deactivated, "User", leaver.Id, leaver.Name, note: "Left the company.");
         foreach (var (user, every) in new[] { (admin, 1), (manager, 1), (viewer, 3) })
             for (var day = 13; day >= 0; day -= every)
             {
                 var signIn = At(today.AddDays(-day));
-                Record(signIn, user, AuditActions.SignedIn, "User", user.Id, user.Email, note: "With a password.");
+                Record(signIn, user, AuditActions.SignedIn, "User", user.Id, user.Name ?? user.Email, note: "With a password.");
                 user.LastSignIn = signIn > now ? user.LastSignIn : signIn;
             }
         Record(now.AddDays(-5), null, AuditActions.SignInFailed, null, null, null, note: $"No account for jordan@{domain}.");

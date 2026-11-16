@@ -1,0 +1,214 @@
+@page "/admin/audit"
+@attribute [Authorize(Policy = Policies.ViewAudit)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+
+<PageTitle>Audit log</PageTitle>
+
+@* Who changed what, and when: every change to an audited record and every account action, newest first, read
+   a page at a time from the database. The filters are in the address, so "what did this person do last week"
+   is a link. A row opens to the whole event: where it came from, and each field before and after. *@
+<Stack Gap="new() { Base = 6, Md = 8 }">
+    <PageHeader Title="Audit log" Description="Every change in {{ProjectName}}, newest first." />
+
+    <DataGrid TItem="AuditEvent" ItemsProvider="LoadAsync" ItemKey="e => e.Id.ToString()" RowLabel="Title" Caption="Audit log"
+              PageSize="25" InitialSort="-time" Searchable SearchLabel="Record name" SmallScreen="DataGridSmallScreen.HideColumns"
+              ToolbarLabels Grow>
+        <ToolbarContent>
+            <DataGridSearch />
+            <DataGridFilter Column="who" />
+            <DataGridFilter Column="action" />
+            <DataGridFilter Column="type" />
+            <DataGridFilter Column="time" />
+        </ToolbarContent>
+        <EmptyContent>
+            <EmptyState Icon="Lucide.RotateCcwClock" Title="Nothing in this range" Description="No changes match these filters.">
+                <Button Href="admin/audit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
+            </EmptyState>
+        </EmptyContent>
+        <Columns>
+            <PropertyColumn Property="e => e.Time" Title="Time" Sortable Filterable Filter="WhenFilter" FilterText="WhenText" Width="Length.Rem(9)" Context="e">
+                <ChildContent>
+                    <RelativeTime Value="Utc(e.Time)" title="@Utc(e.Time).ToString("MMM d, yyyy, h:mm tt 'UTC'")" />
+                </ChildContent>
+                <FilterTemplate Context="filter">
+                    <select class="ib-field-input" aria-label="When" @attributes="filter.Attributes">
+                        <option value="">Any time</option>
+                        @foreach (var (days, text) in Periods)
+                        {
+                            <option value="@days" selected="@(filter.Value == days)">@text</option>
+                        }
+                    </select>
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="e => e.ActorId" Title="Who" SortKey="who" Filterable FilterOperators="[FilterOperator.Equals]" FilterText="WhoText" Priority="1" Context="e">
+                <ChildContent>
+                    <Row Gap="2" Align="Align.Center">
+                        <Avatar Name="@(e.ActorName ?? "System")" Size="AvatarSize.Xs" Decorative />
+                        <TextBlock Truncate>@(e.ActorName ?? "System")</TextBlock>
+                    </Row>
+                </ChildContent>
+                <FilterTemplate Context="filter">
+                    <select class="ib-field-input" aria-label="Who" @attributes="filter.Attributes">
+                        <option value="">Anyone</option>
+                        @foreach (var (id, name) in _people)
+                        {
+                            <option value="@id" selected="@(filter.Value == id)">@name</option>
+                        }
+                    </select>
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="e => e.Action" Filterable FilterText="ActionText" Width="Length.Rem(11)" Priority="1" Context="e">
+                <ChildContent>
+                    <Badge Status="AuditText.Tone(e.Action)" Dot>@AuditText.Label(e.Action)</Badge>
+                </ChildContent>
+                <FilterTemplate Context="filter">
+                    @foreach (var action in AuditText.Actions)
+                    {
+                        <label class="ib-check">
+                            <input class="ib-check-input" @attributes="filter.CheckboxAttributes(action)" />
+                            <span>@AuditText.Label(action)</span>
+                        </label>
+                    }
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="e => e.EntityType" Title="Type" SortKey="type" Filterable Width="Length.Rem(7)" Context="e">
+                <ChildContent>@(e.EntityType ?? "Sign-in")</ChildContent>
+                <FilterTemplate Context="filter">
+                    @foreach (var type in Types)
+                    {
+                        <label class="ib-check">
+                            <input class="ib-check-input" @attributes="filter.CheckboxAttributes(type)" />
+                            <span>@type</span>
+                        </label>
+                    }
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="e => e.EntityName" Title="Record" Sortable Context="e">
+                @if (LinkTo(e) is { } href)
+                {
+                    <Anchor Href="@href" Underline="AnchorUnderline.Hover">@e.EntityName</Anchor>
+                }
+                else
+                {
+                    @* Deleted since, or a sign-in to an unknown account: named, not linked. *@
+                    <TextBlock Color="Color.Muted">@(e.EntityName ?? "—")</TextBlock>
+                }
+            </PropertyColumn>
+            <TemplateColumn Title="Changed" Context="e">
+                <TextBlock Color="Color.Muted" Truncate>@AuditText.Summary(e)</TextBlock>
+            </TemplateColumn>
+        </Columns>
+        <DetailTemplate>
+            @{ var changes = context.ReadChanges(); }
+            <Stack Gap="4">
+                <DescriptionList Columns="2">
+                    <DescriptionItem Term="When">@Utc(context.Time).ToString("MMM d, yyyy, h:mm:ss tt 'UTC'")</DescriptionItem>
+                    <DescriptionItem Term="IP address">@(context.IpAddress ?? "—")</DescriptionItem>
+                    @if (context.Note is { } note)
+                    {
+                        <DescriptionItem Term="Note">@note</DescriptionItem>
+                    }
+                </DescriptionList>
+                @if (changes.Count > 0)
+                {
+                    @* Created shows each value; deleted, each last value; updated, before and after. *@
+                    var created = context.Action == AuditActions.Created;
+                    var deleted = context.Action == AuditActions.Deleted;
+                    <Table Items="changes" Caption="Changed fields" Size="ControlSize.Sm">
+                        <Columns>
+                            <PropertyColumn Property="c => c.Field" Width="Length.Rem(10)" Context="c">@AuditText.Field(c.Field)</PropertyColumn>
+                            @if (!created)
+                            {
+                                <PropertyColumn Property="c => c.Before" Title="@(deleted ? "Last value" : "Before")" Context="c">
+                                    @if (c.Before is null)
+                                    {
+                                        <TextBlock Color="Color.Muted" Italic>(empty)</TextBlock>
+                                    }
+                                    else if (deleted)
+                                    {
+                                        @c.Before
+                                    }
+                                    else
+                                    {
+                                        <TextBlock Color="Color.Muted" Decoration="TextDecoration.LineThrough">@c.Before</TextBlock>
+                                    }
+                                </PropertyColumn>
+                            }
+                            @if (!deleted)
+                            {
+                                <PropertyColumn Property="c => c.After" Title="@(created ? "Value" : "After")" Context="c">
+                                    @if (c.After is null)
+                                    {
+                                        <TextBlock Color="Color.Muted" Italic>(empty)</TextBlock>
+                                    }
+                                    else
+                                    {
+                                        @c.After
+                                    }
+                                </PropertyColumn>
+                            }
+                        </Columns>
+                    </Table>
+                }
+            </Stack>
+        </DetailTemplate>
+    </DataGrid>
+</Stack>
+
+@code {
+    private static readonly (string Days, string Text)[] Periods = [("1", "Today"), ("7", "Last 7 days"), ("30", "Last 30 days")];
+    private static readonly string[] Types = [nameof(Customer), nameof(Invoice), "User"];
+
+    // Everyone who has done something, for the Who filter.
+    private List<(string Id, string Name)> _people = [];
+
+    // The records on this page that still exist, so only those are linked.
+    private HashSet<string> _live = [];
+
+    protected override async Task OnInitializedAsync() =>
+        _people = (await Db.AuditEvents.AsNoTracking().Where(e => e.ActorId != null)
+                .GroupBy(e => e.ActorId!).Select(g => new { Id = g.Key, Name = g.Max(e => e.ActorName) }).ToListAsync())
+            .Select(p => (p.Id, p.Name ?? p.Id)).OrderBy(p => p.Item2).ToList();
+
+    private async ValueTask<DataResult<AuditEvent>> LoadAsync(DataRequest<AuditEvent> request)
+    {
+        var result = await request.ToResultAsync(Db.AuditEvents.AsNoTracking(), (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+        var ids = result.Items.Where(e => e.EntityId is not null).Select(e => e.EntityId!).Distinct().ToList();
+        var numbers = ids.Select(id => int.TryParse(id, out var n) ? n : 0).Where(n => n > 0).ToList();
+        _live = [
+            .. (await Db.Customers.Where(c => numbers.Contains(c.Id)).Select(c => c.Id).ToListAsync()).Select(id => $"{nameof(Customer)}:{id}"),
+            .. (await Db.Invoices.Where(i => numbers.Contains(i.Id)).Select(i => i.Id).ToListAsync()).Select(id => $"{nameof(Invoice)}:{id}"),
+            .. (await Db.Users.Where(u => ids.Contains(u.Id)).Select(u => u.Id).ToListAsync()).Select(id => $"User:{id}"),
+        ];
+        return result;
+    }
+
+    private string? LinkTo(AuditEvent e) => !_live.Contains($"{e.EntityType}:{e.EntityId}") ? null : e.EntityType switch
+    {
+        nameof(Customer) => $"customers?edit={e.EntityId}",
+        nameof(Invoice) => $"invoices/{e.EntityId}",
+        "User" => $"admin/users?detail={Uri.EscapeDataString(e.EntityId!)}",
+        _ => null,
+    };
+
+    private static string Title(AuditEvent e) =>
+        $"{e.ActorName ?? "System"} {AuditText.Label(e.Action).ToLowerInvariant()} {e.EntityName}".TrimEnd();
+
+    // The log keeps UTC; SQLite gives it back unmarked.
+    private static DateTimeOffset Utc(DateTime time) => new(DateTime.SpecifyKind(time, DateTimeKind.Utc));
+
+    // When: today (since midnight UTC) or the last 7 or 30 days.
+    private static System.Linq.Expressions.Expression<Func<AuditEvent, bool>>? WhenFilter(FieldFilter filter)
+    {
+        if (!int.TryParse(filter.Values.FirstOrDefault()?.ToString(), out var days)) return null;
+        var since = days == 1 ? DateTime.UtcNow.Date : DateTime.UtcNow.AddDays(-days);
+        return e => e.Time >= since;
+    }
+
+    private static string WhenText(IReadOnlyList<string?> values) => Periods.FirstOrDefault(p => p.Days == values.FirstOrDefault()).Text ?? "Any time";
+
+    private string WhoText(IReadOnlyList<string?> values) => _people.FirstOrDefault(p => p.Id == values.FirstOrDefault()).Name ?? "Someone";
+
+    private static string ActionText(IReadOnlyList<string?> values) => string.Join(", ", values.OfType<string>().Select(AuditText.Label));
+}

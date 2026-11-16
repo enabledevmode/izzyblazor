@@ -101,7 +101,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         await users.AddToRoleAsync(user, row.Role.ToString());
         var link = await SetPasswordLinkAsync(user);
         await email.SendPasswordResetLinkAsync(user, address, HtmlEncoder.Default.Encode(link));
-        await audit.RecordAsync(AuditActions.Invited, "User", user.Id, address, [new("Role", null, row.Role.ToString())]);
+        await audit.RecordAsync(AuditActions.Invited, "User", user.Id, user.Name ?? address, [new("Role", null, row.Role.ToString())]);
         return (link, null);
     }
 
@@ -144,7 +144,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         }
         if (changes.Count > 0)
             await audit.RecordAsync(changes.Exists(c => c.Field == "Role") ? AuditActions.RolesChanged : AuditActions.Updated,
-                "User", user.Id, user.Email, changes);
+                "User", user.Id, user.Name ?? user.Email, changes);
         return null;
     }
 
@@ -154,7 +154,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         var invited = StatusOf(user) == UserStatus.Invited;
         var link = await SetPasswordLinkAsync(user);
         await email.SendPasswordResetLinkAsync(user, user.Email!, HtmlEncoder.Default.Encode(link));
-        await audit.RecordAsync(invited ? AuditActions.Invited : AuditActions.PasswordResetSent, "User", user.Id, user.Email,
+        await audit.RecordAsync(invited ? AuditActions.Invited : AuditActions.PasswordResetSent, "User", user.Id, user.Name ?? user.Email,
             note: invited ? "Invite sent again." : null);
         return link;
     }
@@ -177,7 +177,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         await users.SetLockoutEnabledAsync(user, true);
         await users.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
         await users.UpdateSecurityStampAsync(user);
-        await audit.RecordAsync(AuditActions.Deactivated, "User", user.Id, user.Email);
+        await audit.RecordAsync(AuditActions.Deactivated, "User", user.Id, user.Name ?? user.Email);
         return null;
     }
 
@@ -185,14 +185,14 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
     {
         await users.SetLockoutEndDateAsync(user, null);
         await users.ResetAccessFailedCountAsync(user);
-        await audit.RecordAsync(AuditActions.Reactivated, "User", user.Id, user.Email);
+        await audit.RecordAsync(AuditActions.Reactivated, "User", user.Id, user.Name ?? user.Email);
     }
 
     public async Task UnlockAsync(ApplicationUser user)
     {
         await users.SetLockoutEndDateAsync(user, null);
         await users.ResetAccessFailedCountAsync(user);
-        await audit.RecordAsync(AuditActions.Unlocked, "User", user.Id, user.Email);
+        await audit.RecordAsync(AuditActions.Unlocked, "User", user.Id, user.Name ?? user.Email);
     }
 
     /// <summary>Turns two-factor off and forgets their authenticator, so they set it up again at their next sign-in.</summary>
@@ -200,7 +200,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
     {
         await users.SetTwoFactorEnabledAsync(user, false);
         await users.ResetAuthenticatorKeyAsync(user);
-        await audit.RecordAsync(AuditActions.TwoFactorReset, "User", user.Id, user.Email);
+        await audit.RecordAsync(AuditActions.TwoFactorReset, "User", user.Id, user.Name ?? user.Email);
     }
 
     public async Task<string?> DeleteAsync(ApplicationUser user, string? me)
@@ -209,7 +209,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         if (await IsLastAdminAsync(user)) return OnlyAdmin;
         var result = await users.DeleteAsync(user);
         if (!result.Succeeded) return string.Join(" ", result.Errors.Select(e => e.Description));
-        await audit.RecordAsync(AuditActions.Deleted, "User", user.Id, user.Email);
+        await audit.RecordAsync(AuditActions.Deleted, "User", user.Id, user.Name ?? user.Email);
         return null;
     }
 

@@ -21,12 +21,14 @@ public sealed class Audit(ApplicationDbContext db, IHttpContextAccessor http)
         IReadOnlyList<AuditChange>? changes = null, string? note = null, ApplicationUser? actor = null)
     {
         var context = http.HttpContext;
-        var user = context?.User;
+        var actorId = actor?.Id ?? context?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Their name as the app shows it, not the sign-in name (their email).
+        actor ??= actorId is null ? null : await db.Users.FindAsync(actorId);
         db.AuditEvents.Add(new AuditEvent
         {
             Time = DateTime.UtcNow,
-            ActorId = actor?.Id ?? user?.FindFirstValue(ClaimTypes.NameIdentifier),
-            ActorName = actor is not null ? actor.Name ?? actor.Email : user?.Identity?.Name,
+            ActorId = actorId,
+            ActorName = actor?.Name ?? actor?.Email ?? context?.User.Identity?.Name,
             Action = action,
             EntityType = type,
             EntityId = id,
