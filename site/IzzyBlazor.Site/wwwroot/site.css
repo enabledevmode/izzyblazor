@@ -143,6 +143,7 @@
   --site-hero-spark: radial-gradient(circle, #f26a1b 0 35%, rgb(224 89 15 / .8) 50%, rgb(224 89 15 / 0) 72%);
   --site-hero-poster-desktop: url("img/home/store-desktop-light.webp");
   --site-hero-poster-phone: url("img/home/store-phone-light.webp");
+  --site-hero-poster-phone-tall: url("img/home/store-phone-tall-light.webp");
 }
 :root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) {
   --site-hero-glow: 1;
@@ -153,6 +154,7 @@
   --site-hero-spark: radial-gradient(circle, #ffb020 0 30%, rgb(242 106 27 / .9) 45%, rgb(242 106 27 / 0) 70%);
   --site-hero-poster-desktop: url("img/home/store-desktop-dark.webp");
   --site-hero-poster-phone: url("img/home/store-phone-dark.webp");
+  --site-hero-poster-phone-tall: url("img/home/store-phone-tall-dark.webp");
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) {
@@ -164,6 +166,7 @@
     --site-hero-spark: radial-gradient(circle, #ffb020 0 30%, rgb(242 106 27 / .9) 45%, rgb(242 106 27 / 0) 70%);
     --site-hero-poster-desktop: url("img/home/store-desktop-dark.webp");
     --site-hero-poster-phone: url("img/home/store-phone-dark.webp");
+    --site-hero-poster-phone-tall: url("img/home/store-phone-tall-dark.webp");
   }
 }
 /* Phones and tablets: the ember no wider than the phone frame, so the clip at its top edge stays hidden. */
@@ -312,7 +315,7 @@
     border-end-end-radius: 0;
   }
   .site-hero-window .site-hero-screen { flex: 1 1 auto; min-height: 0; }
-  /* Its page fills the window at that scale: 1280px wide, or a little more between the steps. */
+  /* Its page fills the window at that scale: 1280px wide, or more only past the 0.95 cap. */
   .site-hero-window iframe {
     --frame-w: calc((100cqi - 2px) / var(--s));
     width: var(--frame-w);
@@ -331,7 +334,7 @@
     border-end-start-radius: 0;
     border-end-end-radius: 0;
   }
-  .site-hero-phone .site-hero-screen { border-end-start-radius: 0; border-end-end-radius: 0; }
+  .site-hero-phone .site-hero-screen { --site-hero-poster: var(--site-hero-poster-phone-tall); border-end-start-radius: 0; border-end-end-radius: 0; }
   /* Beside the window the phone's screen is a taller phone's (390x844, not 780), so the screen runs
      down to the window's cut (263px + 8px + 844px x 0.62 = about 794px of 800px) instead of ending
      above it and leaving the bezel's empty lower part in view. */
@@ -349,23 +352,10 @@
   }
   .site-hero-stage:focus-within::after { opacity: 0; }
 }
-/* --w: the window's scale: 1280px of page as wide as the stage, up to 0.95 (the design's 1216px). */
-@container hero-stage (min-width: 880px) { .site-hero-stage > * { --w: 0.68; } }
-@container hero-stage (min-width: 904px) { .site-hero-stage > * { --w: 0.70; } }
-@container hero-stage (min-width: 928px) { .site-hero-stage > * { --w: 0.72; } }
-@container hero-stage (min-width: 952px) { .site-hero-stage > * { --w: 0.74; } }
-@container hero-stage (min-width: 976px) { .site-hero-stage > * { --w: 0.76; } }
-@container hero-stage (min-width: 1000px) { .site-hero-stage > * { --w: 0.77; } }
-@container hero-stage (min-width: 1024px) { .site-hero-stage > * { --w: 0.79; } }
-@container hero-stage (min-width: 1048px) { .site-hero-stage > * { --w: 0.81; } }
-@container hero-stage (min-width: 1072px) { .site-hero-stage > * { --w: 0.83; } }
-@container hero-stage (min-width: 1096px) { .site-hero-stage > * { --w: 0.85; } }
-@container hero-stage (min-width: 1120px) { .site-hero-stage > * { --w: 0.87; } }
-@container hero-stage (min-width: 1144px) { .site-hero-stage > * { --w: 0.89; } }
-@container hero-stage (min-width: 1168px) { .site-hero-stage > * { --w: 0.91; } }
-@container hero-stage (min-width: 1192px) { .site-hero-stage > * { --w: 0.92; } }
-@container hero-stage (min-width: 1216px) { .site-hero-stage > * { --w: 0.94; } }
-@container hero-stage (min-width: 1218px) { .site-hero-stage > * { --w: 0.95; } }
+/* --w: the window's scale: exactly 1280px of page as wide as the stage (less its 2px of border), up to 0.95
+   (the design's 1216px). tan(atan2()) divides one length by another. At 1280px the page lays out as its
+   picture does (HomePosterTests), so nothing moves when the frame fades in over it. */
+@container hero-stage (min-width: 0px) { .site-hero-stage > * { --w: min(0.95, tan(atan2(calc(100cqi - 2px), 1280px))); } }
 
 .site-install { background: #1b1d22; border-color: #2c2f36; }
 .site-install {
