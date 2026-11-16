@@ -2442,10 +2442,11 @@
           ]
         },
         {
-          "id": "colors", "title": "Colors", "summary": "Series take the theme's eight colors, shades of one color for series in an order, two colors either side of a middle, or your own.", "members": ["Palette", "ChartBarSeries.Color"],
+          "id": "colors", "title": "Colors", "summary": "Series take the theme's colors, one series in color and the rest gray, shades of one color for ordered series, two colors either side of a middle, or your own.", "members": ["Palette", "ChartBarSeries.Color"],
           "examples": [
             { "id": "chart-shades", "title": "Shades for tiers", "lead": "When the series are in an order, such as plan tiers, set `Palette` to `ChartPalette.Shades` with one color, here the theme's primary. The first series is the lightest and each one after is darker.", "after": ["In dark mode the ramp turns round, so the last series is the brightest. The shades are spread over as many series as the chart has. Past about six they're hard to tell apart; for series in no order, keep the default `ChartPalette.Colors`."] },
-            { "id": "chart-diverging", "title": "Diverging colors", "lead": "For series on either side of a middle, such as answers from disagree to agree, set `Palette` to `ChartPalette.Diverging` with the two ends' colors.", "after": ["The first series is the strongest of the first color and the last the strongest of the second. With an odd count, the middle one is gray.", "`ChartPalette.Of` takes your own colors in order, and a series' `Color` still sets that one series."] }
+            { "id": "chart-diverging", "title": "Diverging colors", "lead": "For series on either side of a middle, such as answers from disagree to agree, set `Palette` to `ChartPalette.Diverging` with the two ends' colors.", "after": ["The first series is the strongest of the first color and the last the strongest of the second. With an odd count, the middle one is gray.", "`ChartPalette.Of` takes your own colors in order, and a series' `Color` still sets that one series."] },
+            { "id": "chart-emphasis", "title": "One series picked out", "lead": "When the chart makes a point about one series, such as one store against the rest, set `Palette` to `ChartPalette.Emphasis` with that series' index, from 0. It takes the theme palette's first color, or a color you pass, and every other series takes one gray.", "after": ["The gray keeps 3:1 contrast on the surface in both schemes, so the other series still read as data. They share it, so give every series a `Name`: the legend and tooltips tell them apart. Define the picked series last so its line is drawn over the grays."] }
           ]
         },
         {

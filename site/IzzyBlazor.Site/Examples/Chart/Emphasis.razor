@@ -1,0 +1,22 @@
+@* Monthly orders at five stores: Lisbon, the one the page is about, in color, the others gray for context. *@
+<Chart Items="_months" Argument="m => m.Month" Title="Orders by store, 2026" Palette="ChartPalette.Emphasis(4)">
+    <ChartLineSeries Value="m => m.Porto" Name="Porto" />
+    <ChartLineSeries Value="m => m.Madrid" Name="Madrid" />
+    <ChartLineSeries Value="m => m.Seville" Name="Seville" />
+    <ChartLineSeries Value="m => m.Valencia" Name="Valencia" />
+    <ChartLineSeries Value="m => m.Lisbon" Name="Lisbon" />
+</Chart>
+
+@code {
+    private record StoreMonth(string Month, int Porto, int Madrid, int Seville, int Valencia, int Lisbon);
+
+    private readonly StoreMonth[] _months =
+    [
+        new("Jan", 412, 520, 365, 298, 340),
+        new("Feb", 398, 505, 372, 305, 362),
+        new("Mar", 430, 548, 380, 312, 401),
+        new("Apr", 441, 532, 391, 320, 448),
+        new("May", 455, 561, 384, 331, 497),
+        new("Jun", 448, 570, 402, 328, 552),
+    ];
+}

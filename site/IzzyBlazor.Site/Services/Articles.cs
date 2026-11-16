@@ -43,6 +43,8 @@ public static class Articles
                 "Set the default color scheme, add a switch so users can change it, and give part of a page its own scheme."),
             new("tokens", "Tokens and customizing", "SlidersHorizontal",
                 "CSS variables for exact values, the surface ladder, and theming part of a page."),
+            new("chart-colors", "Chart colors", "ChartPie",
+                "The chart palettes, choosing one for the app, part of a page or a chart, and picking out one series."),
         ]),
         new("common", "Common features", "Blocks",
         [
