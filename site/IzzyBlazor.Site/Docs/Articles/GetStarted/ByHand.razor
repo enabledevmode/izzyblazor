@@ -6,12 +6,13 @@
 
 <ArticlePage Section="get-started" Slug="by-hand">
     <Lead>
-        The steps <Code>izzy init</Code> takes in a Blazor Web App, done by hand: one package, a stylesheet, the theme and
-        a line in <Code>Program.cs</Code>, and the same for a <Code>.Client</Code> project.
+        To set up IzzyBlazor in a Blazor Web App without <Code>izzy init</Code>, follow the same steps by hand. You install
+        one package, link a stylesheet, add the theme and add a line to <Code>Program.cs</Code>. A <Code>.Client</Code>
+        project gets its own package and registration.
     </Lead>
     <ChildContent>
         <Heading Level="2">Install the package</Heading>
-        <TextBlock>In the server project:</TextBlock>
+        <TextBlock>Add the package to the server project:</TextBlock>
         <Code Block Language="bash">dotnet add package IzzyBlazor --prerelease</Code>
 
         <Heading Level="2">Add the stylesheet and the theme</Heading>
@@ -20,22 +21,23 @@
         <TextBlock>
             <Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor> sets the preset, brand color and fonts, as in
             <Code>&lt;IzzyTheme Preset="ThemePreset.Compact" Brand="#0a7d5a" /&gt;</Code>. It renders on the server, so the
-            theme applies on first paint, with JavaScript off too. You add no script tag: Blazor loads IzzyBlazor's script
-            itself.
+            theme applies on first paint, even with JavaScript off. You don't add a script tag, because Blazor loads
+            IzzyBlazor's script itself.
         </TextBlock>
 
         <Heading Level="2">Import the components</Heading>
         <Code Block Language="razor" Title="Components/_Imports.razor">@@using IzzyBlazor</Code>
         <TextBlock>
-            Prefer this to a <Code>global using</Code>: it brings the components into <Code>.razor</Code> files only, so names
-            such as <Code>Table</Code> and <Code>Column</Code> don't meet EF Core's attributes in your entity classes.
+            Use this instead of a <Code>global using</Code>. It brings the components into <Code>.razor</Code> files only, so
+            names such as <Code>Table</Code> and <Code>Column</Code> don't clash with EF Core's attributes in your entity
+            classes.
         </TextBlock>
 
         <Heading Level="2">Register the services</Heading>
         <Code Block Language="csharp" Title="Program.cs" HighlightLines="2">@ProgramCs</Code>
         <TextBlock>
-            <Code>AddIzzyBlazor</Code> adds the toast and dialog services, and carries toasts over a redirect. It also lets
-            components read their cookies on the server, such as the color scheme the user picked.
+            <Code>AddIzzyBlazor</Code> adds the toast and dialog services, and keeps toasts across a redirect. It also lets
+            components read their cookies on the server, such as the cookie that stores the color scheme the user picked.
         </TextBlock>
 
         <Heading Level="2">Add toasts and dialogs</Heading>
@@ -45,21 +47,21 @@
         </TextBlock>
         <Code Block Language="razor" Title="Components/Layout/MainLayout.razor" HighlightLines="5">@Layout</Code>
         <TextBlock>
-            The ToastRegion also reads <Code>Announcer</Code>'s messages to screen readers on static pages (see
-            <Anchor Href="docs/components/live-region">LiveRegion</Anchor>). A layout without toasts takes an
+            On static pages, the ToastRegion also reads <Code>Announcer</Code>'s messages to screen readers (see
+            <Anchor Href="docs/components/live-region">LiveRegion</Anchor>). In a layout without toasts, add an
             <Code>&lt;AnnouncerRegion /&gt;</Code> instead.
         </TextBlock>
         <TextBlock>
             To open dialogs from C# with <Code>DialogService</Code>, put one <Code>&lt;DialogHost /&gt;</Code> on the
-            interactive page that opens them. Or put it in the layout, with a render mode on the host:
-            <Code>&lt;DialogHost @@rendermode="InteractiveServer" /&gt;</Code>. Dialogs written in the page need no host;
-            see <Anchor Href="docs/components/dialog">Dialog</Anchor>.
+            interactive page that opens them. Or put it in the layout and give the host a render mode:
+            <Code>&lt;DialogHost @@rendermode="InteractiveServer" /&gt;</Code>. Dialogs written in the page's markup don't
+            need a host. See <Anchor Href="docs/components/dialog">Dialog</Anchor>.
         </TextBlock>
 
         <Heading Level="2">The .Client project</Heading>
         <TextBlock>
-            With WebAssembly or Auto, components that run in the browser live in a <Code>.Client</Code> project, which can't
-            use ASP.NET Core's server framework. It gets <Code>IzzyBlazor.Core</Code>, and the server project keeps
+            With WebAssembly or Auto, components that run in the browser are in a <Code>.Client</Code> project. That project
+            can't use ASP.NET Core's server framework, so it gets <Code>IzzyBlazor.Core</Code>. The server project keeps
             <Code>IzzyBlazor</Code>:
         </TextBlock>
         <Code Block Language="bash">dotnet add MyApp.Client package IzzyBlazor.Core --prerelease</Code>
@@ -68,7 +70,8 @@
         <TextBlock>
             An Auto page renders on the server first and in the browser later, so it uses both registrations.
             <Code>AddIzzyBlazor</Code> on the server includes everything <Code>AddIzzyBlazorCore</Code> adds.
-            <Code>App.razor</Code> always renders on the server, so the stylesheet and theme are set up once, there.
+            <Code>App.razor</Code> always renders on the server, so you set up the stylesheet and theme only once, in the
+            server project.
         </TextBlock>
         <Table Items="Packages" Caption="Packages" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
@@ -78,14 +81,14 @@
             </Columns>
         </Table>
         <TextBlock>
-            Every component is in <Code>IzzyBlazor.Core</Code>, and both packages use the <Code>IzzyBlazor</Code> namespace, so
-            the same markup works in either project. Keep them on the same version.
+            Every component is in <Code>IzzyBlazor.Core</Code>. Both packages use the <Code>IzzyBlazor</Code> namespace, so
+            the same markup works in either project. Keep both packages on the same version.
         </TextBlock>
 
         <Heading Level="2">From the full template</Heading>
         <TextBlock>
-            Started without <Code>--empty</Code>? Its styles win over IzzyBlazor's until Bootstrap is in a layer, and its
-            <Code>NavMenu</Code> clashes with IzzyBlazor's. See
+            If you created the app without <Code>--empty</Code>, the full template's styles win over IzzyBlazor's until
+            Bootstrap is in a layer. Its <Code>NavMenu</Code> also clashes with IzzyBlazor's. See
             <Anchor Href="docs/get-started/existing-app#keep-bootstrap">Keep Bootstrap</Anchor> and
             <Anchor Href="docs/get-started/existing-app#name-clashes">Name clashes</Anchor>.
         </TextBlock>
@@ -94,16 +97,16 @@
         <TextBlock>A form shows what static rendering does on its own:</TextBlock>
         <Code Block Language="razor" Title="Components/Pages/Signup.razor">@Signup</Code>
         <TextBlock>
-            Run the app and open <Code>/signup</Code>. The form posts, validates and shows its message with no circuit, and
-            with JavaScript off too. Add <Code>@@rendermode InteractiveServer</Code> under <Code>@@page</Code>, and the same
-            markup runs over a circuit instead. See <Anchor Href="docs/components/form">Form</Anchor> for the rest.
+            Run the app and open <Code>/signup</Code>. The form posts, validates and shows its message without a circuit,
+            even with JavaScript off. To run the same markup over a circuit, add <Code>@@rendermode InteractiveServer</Code>
+            under <Code>@@page</Code>. See <Anchor Href="docs/components/form">Form</Anchor> for more.
         </TextBlock>
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor>: a header, sidebar and main area for your layout.</ListItem>
+            <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor>: build your layout's header, sidebar and main area.</ListItem>
             <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what components do on static and interactive pages.</ListItem>
-            <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: spacing, sizes and colors on any component.</ListItem>
+            <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: set spacing, sizes and colors on any component.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
@@ -113,7 +116,7 @@
 
     private static readonly Package[] Packages =
     [
-        new("IzzyBlazor", "Everything in IzzyBlazor.Core, plus the server pieces that read and write the request's cookies", "The server project"),
+        new("IzzyBlazor", "Everything in IzzyBlazor.Core, plus the server code that reads and writes the request's cookies", "The server project"),
         new("IzzyBlazor.Core", "Every component, the CSS and IzzyBlazor's script, with no dependency on the ASP.NET Core server", "The .Client project, or a Razor class library"),
     ];
 

@@ -6,29 +6,29 @@
 
 <ArticlePage Section="get-started" Slug="create-app">
     <Lead>
-        IzzyBlazor's starter is Microsoft's Blazor Web App rebuilt with IzzyBlazor: its layout, pages and account pages
-        drawn with IzzyBlazor's components and theme, in every render mode. It takes the same options as
+        IzzyBlazor's starter is Microsoft's Blazor Web App, rebuilt with IzzyBlazor. Its layout, pages and account pages
+        use IzzyBlazor's components and theme, in every render mode. It accepts the same options as
         <Code>dotnet new blazor</Code>.
     </Lead>
     <ChildContent>
         <Heading Level="2">Install the templates</Heading>
         <TextBlock>
             The starter is a <Code>dotnet new</Code> template, like Microsoft's own <Code>blazor</Code> template. Microsoft's
-            come with the .NET SDK; IzzyBlazor's come in a NuGet package, so add them to <Code>dotnet new</Code> once, with
-            the .NET 10 SDK:
+            templates come with the .NET SDK. IzzyBlazor's come in a NuGet package, so you install them once. With the
+            .NET 10 SDK, run:
         </TextBlock>
         <Code Block Language="bash">@Install</Code>
         <TextBlock>
-            The version is there because IzzyBlazor is in preview: without one, <Code>dotnet new install</Code> looks for a
-            stable release.
+            The command includes a version because IzzyBlazor is in preview. Without one, <Code>dotnet new install</Code>
+            looks for a stable release.
         </TextBlock>
 
         <Heading Level="2">Create the app</Heading>
         <Code Block Language="bash">@Create</Code>
         <TextBlock>
-            Open the address <Code>dotnet run</Code> prints. The app has a sidebar, a home page, and sample Counter, Weather
-            and Contact pages. Its pages are <Anchor Href="docs/common/render-modes">static</Anchor> by default, and a page
-            runs on the server over a circuit once you give it a render mode. Counter has one.
+            Open the URL that <Code>dotnet run</Code> prints. The app has a sidebar, a home page, and sample Counter, Weather
+            and Contact pages. Its pages are <Anchor Href="docs/common/render-modes">static</Anchor> by default. A page runs
+            on the server over a circuit once you give it a render mode, and Counter already has one.
         </TextBlock>
 
         <Heading Level="2">Choose the render modes</Heading>
@@ -47,9 +47,9 @@
 
         <Heading Level="2">Accounts</Heading>
         <TextBlock>
-            <Code>--auth Individual</Code> adds sign-in, registration and account management with ASP.NET Core Identity,
-            with accounts in a SQLite database (<Code>--use-local-db</Code> for SQL Server LocalDB). The account pages keep
-            Microsoft's code and are drawn with IzzyBlazor, so Microsoft's fixes still apply to them.
+            <Code>--auth Individual</Code> adds sign-in, registration and account management with ASP.NET Core Identity.
+            Accounts are stored in a SQLite database. To use SQL Server LocalDB instead, add <Code>--use-local-db</Code>.
+            The account pages keep Microsoft's code and use IzzyBlazor's components, so Microsoft's fixes still apply to them.
         </TextBlock>
 
         <Heading Level="2">Theme and layout</Heading>
@@ -60,18 +60,19 @@
                 <TemplateColumn Title="What it does">@context!.Result</TemplateColumn>
             </Columns>
         </Table>
-        <TextBlock>For a dense admin app with links across the top:</TextBlock>
+        <TextBlock>To create a dense admin app with links across the top, run:</TextBlock>
         <Code Block Language="bash">dotnet new izzy-blazor -n Admin --preset Compact --brand teal --nav Top</Code>
         <TextBlock>
-            Run <Code>dotnet new izzy-blazor --help</Code> for the rest, such as <Code>--no-https</Code> and
-            <Code>--use-program-main</Code>. You can change the theme later in <Code>IzzyTheme</Code>; see
+            To see the other options, such as <Code>--no-https</Code> and <Code>--use-program-main</Code>, run
+            <Code>dotnet new izzy-blazor --help</Code>. To change the theme later, set it on <Code>IzzyTheme</Code>. See
             <Anchor Href="docs/theming/themes">Themes and presets</Anchor>.
         </TextBlock>
 
         <Heading Level="2">With the izzy CLI</Heading>
         <TextBlock>
-            <Code>izzy new</Code> makes the same app, with the same options. Install the CLI to add
-            <Anchor Href="blocks">blocks</Anchor> to the app afterwards; see <Anchor Href="docs/cli/overview">The izzy CLI</Anchor>.
+            <Code>izzy new</Code> creates the same app and accepts the same options. To add
+            <Anchor Href="blocks">blocks</Anchor> to the app afterwards, install the CLI. See
+            <Anchor Href="docs/cli/overview">The izzy CLI</Anchor>.
         </TextBlock>
         <Code Block Language="bash">izzy new izzy-blazor -n MyApp</Code>
 
@@ -79,7 +80,7 @@
         <List Gap="2">
             <ListItem><Anchor Href="docs/cli/overview">The izzy CLI</Anchor>: add a hero, pricing or a sign-up form to the app as code you own.</ListItem>
             <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each render mode.</ListItem>
-            <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: <Code>--mcp</Code> connects yours to IzzyBlazor's docs.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: <Code>--mcp</Code> connects your AI assistant to IzzyBlazor's docs.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
@@ -98,19 +99,19 @@
     private static readonly Choice[] RenderModes =
     [
         new("--interactivity Server", "The default. Pages are static, and a page you mark runs on the server over a circuit."),
-        new("--interactivity None", "Every page static. The app never opens a circuit."),
+        new("--interactivity None", "Every page is static. The app never opens a circuit."),
         new("--interactivity WebAssembly", "A page you mark runs in the browser, from a .Client project."),
         new("--interactivity Auto", "A page you mark runs on the server at first, and in the browser once WebAssembly has loaded."),
-        new("--all-interactive", "Every page interactive in the chosen mode, except pages marked to stay static, such as the account pages."),
+        new("--all-interactive", "Every page is interactive in the chosen render mode, except pages marked to stay static, such as the account pages."),
     ];
 
     private static readonly Choice[] Looks =
     [
-        new("--preset <name>", "The theme: Standard, or Compact for data and admin apps, Soft for consumer apps, Editorial for reading and docs."),
-        new("--brand <color>", "The brand color: blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a."),
-        new("--nav Top", "Navigation across the top bar, folding into a menu on phones, in place of the sidebar."),
-        new("--shell <look>", "How the shell sets the page apart: Tinted (the default), Inset (a raised panel), Flat (lines alone) or Canvas (a tinted page for cards)."),
-        new("--content-width <rem>", "How wide pages get: Full, or 64, 72 or 80 rem. Auto, the default, fills the space beside a sidebar and centers 72 under a top bar."),
+        new("--preset <name>", "Sets the theme: Standard, Compact for data and admin apps, Soft for consumer apps, or Editorial for reading and docs."),
+        new("--brand <color>", "Sets the brand color: blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a."),
+        new("--nav Top", "Puts the navigation in the top bar instead of a sidebar. On phones, it folds into a menu."),
+        new("--shell <look>", "Sets how the page stands apart from the shell: Tinted (the default), Inset (a raised panel), Flat (lines only) or Canvas (a tinted page for cards)."),
+        new("--content-width <rem>", "Sets how wide pages get: Full, or 64, 72 or 80 rem. Auto, the default, fills the space beside a sidebar, and centers a 72 rem page under a top bar."),
         new("--empty", "Leaves out the sample pages and the sidebar."),
         new("--mcp", "Connects Claude Code, VS Code, Visual Studio and Cursor to IzzyBlazor's docs server."),
     ];

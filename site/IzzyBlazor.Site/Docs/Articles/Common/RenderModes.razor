@@ -27,9 +27,9 @@
                 the WebAssembly runtime downloads, and WebAssembly once it's cached.
             </ListItem>
             <ListItem>
-                <strong>Circuit</strong>: what an interactive Server page runs over. It is the page's components and their
-                state, kept in memory on the server that rendered the page, and a connection between that server and the
-                browser. Static pages have no circuit.
+                <strong>Circuit</strong>: the session behind an interactive Server page. The server that rendered the page
+                stores the page's components and their state in memory, and stays connected to the browser. Static pages
+                have no circuit.
             </ListItem>
             <ListItem>
                 <strong>IzzyBlazor's script</strong>: a JavaScript module that Blazor loads on every page, static or
@@ -59,10 +59,10 @@
             <table>
                 <thead><tr><th></th><th>With JavaScript off</th><th>Static, with IzzyBlazor's script</th><th>Interactive</th></tr></thead>
                 <tbody>
-                    <tr><td>Dialog</td><td>Opens from a trigger as a native modal, or from a <code>?dialog=id</code> link. Opened from a link, it shows but isn't modal, so focus can leave it.</td><td>A dialog the server opens becomes a real modal. After it closes, <code>?dialog=id</code> is removed from the URL.</td><td><code>@@bind-Open</code></td></tr>
-                    <tr><td>Table</td><td>Sorts, filters and pages through the URL</td><td>A select-all checkbox. Filters apply as the user types.</td><td>Sorting, paging, filters and selection bind to C#</td></tr>
-                    <tr><td>Tabs</td><td>Radio buttons and CSS switch the panels</td><td>ARIA tabs, with the arrow keys moving between them</td><td><code>@@bind-Selected</code></td></tr>
-                    <tr><td>Combobox</td><td>A native select that posts with the form</td><td>The user types to filter and moves through the options with the keyboard. With <code>Search</code>, each pause in typing asks the server for options</td><td><code>@@bind-Value</code>, and <code>Search</code> runs over the circuit</td></tr>
+                    <tr><td>Dialog</td><td>Opens from a trigger as a native modal, or from a <code>?dialog=id</code> link. When opened from a link, it isn't modal, so focus can leave it.</td><td>A dialog the server opens becomes a real modal. After it closes, <code>?dialog=id</code> is removed from the URL.</td><td><code>@@bind-Open</code></td></tr>
+                    <tr><td>Table</td><td>Sorts, filters and pages through the URL</td><td>Adds a select-all checkbox. Filters apply as the user types.</td><td>Sorting, paging, filters and selection bind to C#</td></tr>
+                    <tr><td>Tabs</td><td>Radio buttons and CSS switch the panels</td><td>Become ARIA tabs, and the arrow keys move between them</td><td><code>@@bind-Selected</code></td></tr>
+                    <tr><td>Combobox</td><td>Renders a native select that posts with the form</td><td>The user types to filter and moves through the options with the keyboard. With <code>Search</code>, it asks the server for options each time the user pauses typing</td><td><code>@@bind-Value</code>, and <code>Search</code> runs over the circuit</td></tr>
                     <tr><td>FileUpload</td><td>The file posts with a <code>Multipart</code> form, as an <code>IFormFile</code></td><td>The user can drop files on the zone. Type and size are checked before the post.</td><td><code>OnChange</code> streams <code>IBrowserFile</code>s</td></tr>
                 </tbody>
             </table>
@@ -86,7 +86,8 @@
         <TextBlock>To make a page interactive, set its render mode under <Code>@@page</Code>:</TextBlock>
         <Code Block Language="razor">@Interactive</Code>
         <TextBlock>
-            A circuit lives on the server that started it, so with several servers each user has to stay on one. See
+            A circuit stays on the server that started it. When the app runs on several servers, each user must stay on
+            the same one. See
             <Anchor Href="docs/troubleshooting/interactive-stops-responding">Interactive parts stop responding in
             production</Anchor>.
         </TextBlock>
@@ -94,17 +95,18 @@
         <Heading Level="2">Pages in the browser</Heading>
         <TextBlock>
             WebAssembly and Auto pages live in a <Code>.Client</Code> project, which uses <Code>IzzyBlazor.Core</Code>. The
-            starter and <Code>izzy init</Code> set it up; see <Anchor Href="docs/get-started/by-hand#the-client-project">The
-            .Client project</Anchor> to do it by hand. Components behave the same in the browser, except for what depends on
+            starter and <Code>izzy init</Code> set it up. To set it up by hand, see
+            <Anchor Href="docs/get-started/by-hand#the-client-project">The .Client project</Anchor>. Components behave the same in the browser, except for what depends on
             the request:
         </TextBlock>
         <List Gap="2">
             <ListItem>
-                <strong>Keep prerendering on</strong> (the default). <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor>'s
-                remembered state, a dismissed <Anchor Href="docs/components/banner">Banner</Anchor>, the choice in
+                <strong>Keep prerendering on</strong> (the default). The server reads some state from cookies:
+                <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor>'s remembered state, a dismissed
+                <Anchor Href="docs/components/banner">Banner</Anchor>, the choice in
                 <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor>, and a DataGrid's columns or a
-                Splitter's sizes with a <Code>LayoutKey</Code> are read from cookies on the server. They reach the browser with the prerendered page. With <Code>prerender: false</Code>, they start from
-                their defaults.
+                Splitter's sizes with a <Code>LayoutKey</Code>. This state reaches the browser with the prerendered page. With
+                <Code>prerender: false</Code>, it starts from the defaults.
             </ListItem>
             <ListItem>
                 <strong>Toasts show at once.</strong> A redirect in the browser is a navigation, not a new request, so no
@@ -122,20 +124,20 @@
         <Heading Level="2">Render modes on component pages</Heading>
         <TextBlock>
             Each component's Overview has a Mode support table. Where the component does less with JavaScript off, the
-            table's "Without JavaScript" section describes what changes. The API page marks the parameters that don't work in
-            both render modes, such as <strong>Interactive only</strong> on C# events and <Code>@@bind</Code>.
+            table's "Without JavaScript" section describes what changes. The API page marks the parameters that work in
+            only one render mode. For example, C# events and <Code>@@bind</Code> are marked <strong>Interactive only</strong>.
         </TextBlock>
 
         <Heading Level="2">State on static pages</Heading>
         <TextBlock>
-            A static page has no circuit, so C# runs only when the page is requested. The page keeps its state where the
+            Static pages have no circuit, so C# runs only when the page is requested. The page stores its state where the
             next request can read it:
         </TextBlock>
         <List Gap="2">
             <ListItem><strong>In a form.</strong> A <Anchor Href="docs/common/forms">Form</Anchor> posts and validates on the server, and its fields bind to your model.</ListItem>
-            <ListItem><strong>In the URL.</strong> <Anchor Href="docs/components/table">Table</Anchor>, <Code>FilterForm</Code> and <Code>Pagination</Code> keep sorting, filters and the page in the URL. <Code>Tabs</Code> with a <Code>QueryKey</Code> opens the tab a link names, and with JavaScript keeps the tab the user picks there, and a dialog opens from <Code>?dialog=id</Code>.</ListItem>
+            <ListItem><strong>In the URL.</strong> <Anchor Href="docs/components/table">Table</Anchor>, <Code>FilterForm</Code> and <Code>Pagination</Code> store sorting, filters and the current page in the URL. <Code>Tabs</Code> with a <Code>QueryKey</Code> opens the tab that the URL names. With IzzyBlazor's script, it also stores the tab the user picks in the URL. A dialog opens from <Code>?dialog=id</Code>.</ListItem>
             <ListItem><strong>In the element.</strong> Disclosures, menus, popovers and dialogs open and close in the browser. On interactive pages, <Code>@@bind-Open</Code> reports the change to C#, and setting <Code>Open</Code> opens or closes them.</ListItem>
-            <ListItem><strong>In a cookie.</strong> The color scheme, the sidebar's state, dismissed banners, and grid and splitter layouts with a <Code>LayoutKey</Code> are kept in cookies. The server reads them, so each page arrives in the state the user left it in.</ListItem>
+            <ListItem><strong>In a cookie.</strong> The color scheme, the sidebar's state, dismissed banners, and grid and splitter layouts with a <Code>LayoutKey</Code> are stored in cookies. The server reads them, so each page loads in the state the user left it in.</ListItem>
         </List>
         <TextBlock>
             Events such as a button's <Code>OnClick</Code> run only on interactive pages. On static pages, use a submit
@@ -146,14 +148,14 @@
 
         <Heading Level="2">Cached parts of a page <Badge Accent="Accent.Primary" Size="BadgeSize.Sm">.NET 11+</Badge></Heading>
         <TextBlock>
-            .NET 11's <Code>CacheView</Code> keeps the HTML of part of a static page and sends it again without running the
-            components in it. By default it ignores the URL, so a Table or DataGrid inside it shows every visitor the sort,
-            filter and page it had when it was cached. Around a component that keeps its state in the URL, vary the cache by
-            the whole query:
+            .NET 11's <Code>CacheView</Code> stores the HTML of part of a static page and sends it again without running the
+            components inside. By default it ignores the URL, so a Table or DataGrid inside it shows every user the sort,
+            filter and page it had when it was cached. To cache a component that stores its state in the URL, vary the cache
+            by every URL parameter:
         </TextBlock>
         <Code Block Language="razor">@CachedGrid</Code>
         <TextBlock>
-            Naming only the component's own keys isn't enough: its links carry the whole address as it was when cached, so
+            Listing only the component's own keys isn't enough. Its links contain the whole URL from when it was cached, so
             following one would drop the state of the page's other components.
         </TextBlock>
 

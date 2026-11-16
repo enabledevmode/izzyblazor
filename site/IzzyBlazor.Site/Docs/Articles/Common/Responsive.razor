@@ -5,7 +5,7 @@
 
 <ArticlePage Section="common" Slug="responsive">
     <Lead>
-        A style prop that changes with screen size accepts one value, or one value per breakpoint. The server writes
+        A style prop that changes with screen size accepts one value, or one value per breakpoint. The server renders
         classes and CSS variables only for the breakpoints you set, so a page fits a phone with JavaScript off too.
     </Lead>
     <ChildContent>
@@ -24,18 +24,18 @@
             </table>
         </Prose>
         <TextBlock>
-            <Code>HiddenFrom</Code> and <Code>VisibleFrom</Code> also take <Code>Breakpoint.Xxl</Code>, from 1536px. Maps
+            <Code>HiddenFrom</Code> and <Code>VisibleFrom</Code> also accept <Code>Breakpoint.Xxl</Code>, from 1536px. Maps
             stop at <Code>Xl</Code>.
         </TextBlock>
         <TextBlock>
             Each value applies from its breakpoint up, until a larger breakpoint replaces it. Only the values you set
-            produce CSS, so <Code>new() { Md = 6 }</Code> keeps the component's own value below 768px.
+            produce CSS, so <Code>new() { Md = 6 }</Code> keeps the component's default value below 768px.
         </TextBlock>
 
         <Heading Level="2">What's responsive</Heading>
         <TextBlock>
-            Parameters for values that change with screen size accept a map: direction, gap, spacing, columns, sizes and
-            alignment. Switches don't. <Code>Grow</Code>, <Code>Shrink</Code>, <Code>Wrap</Code>, <Code>Inline</Code> and
+            Parameters for direction, gap, spacing, columns, sizes and alignment accept a map, so they can change with
+            screen size. Parameters that turn something on or off don't. <Code>Grow</Code>, <Code>Shrink</Code>, <Code>Wrap</Code>, <Code>Inline</Code> and
             the rest are plain booleans, so you can write them bare, as in <Code>&lt;Row Wrap&gt;</Code>. Each component's
             API page marks its responsive parameters.
         </TextBlock>
@@ -43,7 +43,7 @@
         <Heading Level="2">Hide or show by width</Heading>
         <TextBlock>
             To hide a component from a breakpoint up, set <Code>HiddenFrom</Code>. To show it only from a breakpoint up,
-            set <Code>VisibleFrom</Code>. Nearly every component has both, fields included:
+            set <Code>VisibleFrom</Code>. Nearly every component has both, including fields:
         </TextBlock>
         <Code Block Language="razor">@Hidden</Code>
 
@@ -56,13 +56,13 @@
         </TextBlock>
         <Code Block Language="razor">@Fluid</Code>
 
-        <Heading Level="2">Sized by the container</Heading>
+        <Heading Level="2">Columns that follow the container</Heading>
         <TextBlock>
             A <Anchor Href="docs/components/form">Form</Anchor> or <Anchor Href="docs/components/fieldset">Fieldset</Anchor>
-            with <Code>Columns</Code> follows its own width, not the screen's: its <Code>Columns</Code> is a number, not a
-            map. So the same form fits
-            a page, a dialog and a drawer with no breakpoints. A <Anchor Href="docs/components/grid">Grid</Anchor> with
-            <Code>MinChildWidth</Code> fits as many columns as there's room for.
+            with <Code>Columns</Code> sets its columns by its own width, not the screen's. Its <Code>Columns</Code> is a
+            number, not a map. The same form fits a page, a dialog or a drawer without breakpoints. A
+            <Anchor Href="docs/components/grid">Grid</Anchor> with <Code>MinChildWidth</Code> fits as many columns as it has
+            room for.
         </TextBlock>
         <Code Block Language="razor">@Container</Code>
 

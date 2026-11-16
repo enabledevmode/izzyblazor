@@ -5,23 +5,23 @@
 
 <ArticlePage Section="theming" Slug="themes">
     <Lead>
-        <Code>IzzyTheme</Code> sets the whole app's look in one place, in <Code>App.razor</Code>'s <Code>head</Code>. It
-        sets a preset, then your brand color, grays, radius, density and fonts over it. It renders on the server, so the
-        theme applies on first paint, in every render mode and with JavaScript off.
+        <Code>IzzyTheme</Code> sets the whole app's look from one place, the <Code>head</Code> of <Code>App.razor</Code>.
+        It starts from a preset and applies your brand color, grays, radius, density and fonts on top. It renders on the
+        server, so the theme applies on first paint, in every render mode and with JavaScript off.
     </Lead>
     <ChildContent>
         <Heading Level="2">Set the theme</Heading>
         <TextBlock>Put one <Code>IzzyTheme</Code> in the <Code>head</Code>, after the stylesheet:</TextBlock>
         <Code Block Language="razor" Title="Components/App.razor">@SetTheme</Code>
         <TextBlock>
-            A parameter you set overrides the preset's value; one you leave unset keeps it. With no parameters at all, you
-            get the Standard preset, in blue on neutral grays.
+            Each parameter you set overrides the preset's value. A parameter you leave unset keeps the preset's value. With
+            no parameters at all, you get the Standard preset, with a blue brand color and neutral grays.
         </TextBlock>
 
         <Heading Level="2">Presets</Heading>
         <TextBlock>A preset is a starting set of defaults: the density, shape, type and colors that suit a kind of app. Set <Code>Preset</Code> to choose one.</TextBlock>
         <ExampleViewer Example="izzy-theme-presets" />
-        <TextBlock>Each card in this example themes part of a page. There, a preset doesn't bring its brand and gray, so each card sets them too. Fonts are app-wide, so Editorial's fonts don't show here.</TextBlock>
+        <TextBlock>Each card in this example themes only part of a page. On part of a page, a preset doesn't set its brand color and gray, so each card sets them too. Fonts are app-wide, so Editorial's fonts don't appear here.</TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
                 <thead><tr><th>Preset</th><th>For</th><th>Controls</th><th>Shape</th><th>Type</th><th>Brand</th><th>Gray</th></tr></thead>
@@ -43,22 +43,25 @@
         </TextBlock>
         <ExampleViewer Example="izzy-theme-brands" />
         <TextBlock>
-            From a hex color, IzzyBlazor works out four shades, in light and dark: the fill, the text on it, the color as
-            text and a soft tint. Each is checked for contrast. In light mode the fill is your color, unless no text can
-            reach 4.5:1 on it; then only its lightness changes. In dark mode, a dark color is lightened so controls still
-            show. To set the shades yourself, see
-            <Anchor Href="docs/theming/tokens#brand-shades-by-hand">Brand shades by hand</Anchor>.
+            From a hex color, IzzyBlazor creates four shades for light and dark mode: a fill, the text on the fill, a text
+            color for surfaces and a soft tint. It checks each shade for contrast.
+        </TextBlock>
+        <TextBlock>
+            In light mode, the fill is your exact color, unless no text color reaches 4.5:1 on it. In that case, IzzyBlazor
+            changes only the fill's lightness. In dark mode, IzzyBlazor lightens a dark color so controls stay visible. To set
+            the shades yourself, see <Anchor Href="docs/theming/tokens#brand-shades-by-hand">Brand shades by hand</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Grays</Heading>
         <TextBlock>
             The grays color the page, surfaces, fills, borders and text. Set <Code>Gray</Code> to <Code>neutral</Code> (the
-            default), <Code>slate</Code> (cool) or <Code>stone</Code> (warm, for serif headings). Or set it to a hex color
-            for your light page.
+            default), <Code>slate</Code> (cool) or <Code>stone</Code> (warm, for serif headings). You can also set it to a
+            hex color, which becomes the page color in light mode.
         </TextBlock>
         <TextBlock>
-            From a hex color, the surfaces, fills, borders and text are worked out in its hue, with the text checked for
-            contrast. A dark set is made to match. A very light or dark page color is kept light enough for text to read.
+            From a hex color, IzzyBlazor creates surfaces, fills, borders and text in that color's hue, and checks the text
+            for contrast. It also creates a matching set for dark mode. If the page color is very light or very dark,
+            IzzyBlazor adjusts its lightness so text stays readable.
         </TextBlock>
         <Code Block Language="razor">@Grays</Code>
 
@@ -68,18 +71,20 @@
             <Code>Md</Code> (the default), <Code>Lg</Code>, or <Code>Full</Code> for pill-shaped controls.
         </TextBlock>
         <TextBlock>
-            Density sets control heights, table rows and card padding. Set <Code>Density</Code> to <Code>Compact</Code>
-            (32px controls), <Code>Standard</Code> (36px) or <Code>Comfortable</Code> (40px).
+            To change control heights, table row heights and card padding, set <Code>Density</Code> to
+            <Code>Compact</Code> (32px controls), <Code>Standard</Code> (36px) or <Code>Comfortable</Code> (40px).
         </TextBlock>
 
         <Heading Level="2">Fonts</Heading>
         <TextBlock>
-            Body text is Inter, which ships with IzzyBlazor. Browsers download only the character sets a page uses, and
-            nothing once you name another font. IzzyTheme preloads Inter's Latin set, so text doesn't paint in a fallback
-            font first; name another body font with <Code>BodyFont</Code>, not in CSS, so Inter isn't preloaded for
-            nothing. To use your own fonts, set <Code>BodyFont</Code>, <Code>HeadingFont</Code>
-            and <Code>MonoFont</Code>. To change the headings' weight, set <Code>HeadingWeight</Code>. Load any font other
-            than Inter yourself:
+            Body text uses Inter, which ships with IzzyBlazor. Browsers download only the character sets a page uses, and
+            none at all once you name another font. IzzyTheme preloads Inter's Latin set, so text doesn't appear in a
+            fallback font first. Set another body font with <Code>BodyFont</Code>, not in CSS, so IzzyTheme doesn't preload
+            Inter for nothing.
+        </TextBlock>
+        <TextBlock>
+            To use your own fonts, set <Code>BodyFont</Code>, <Code>HeadingFont</Code> and <Code>MonoFont</Code>. To change
+            the headings' weight, set <Code>HeadingWeight</Code>. Load any font other than Inter yourself:
         </TextBlock>
         <Code Block Language="razor">@Fonts</Code>
         <TextBlock>The Editorial preset uses IBM Plex Sans and Newsreader:</TextBlock>
@@ -89,17 +94,17 @@
         <TextBlock>
             Fonts, <Code>HeadingWeight</Code>, a hex <Code>Gray</Code> and <Code>Scrollbars</Code> are app-wide. Set them on
             the <Code>IzzyTheme</Code> in the <Code>head</Code>. <Code>Scrollbars</Code> sets whether the page's own
-            scrollbar is themed too. The other parameters also work on part of a page, on a <Anchor Href="docs/components/theme-scope">ThemeScope</Anchor>; see <Anchor Href="docs/theming/tokens#theme-part-of-a-page">Theme part of a page</Anchor>.
+            scrollbar is themed too. The other parameters also work on part of a page, through a <Anchor Href="docs/components/theme-scope">ThemeScope</Anchor>. See <Anchor Href="docs/theming/tokens#theme-part-of-a-page">Theme part of a page</Anchor>.
         </TextBlock>
         <TextBlock>
-            <Code>IzzyTheme</Code> writes hex colors and fonts in a small <Code>style</Code> block. For a strict
-            Content-Security-Policy, pass your nonce as <Code>Nonce</Code>.
+            <Code>IzzyTheme</Code> renders hex colors and fonts in a small <Code>style</Code> block. If your app uses a
+            strict Content-Security-Policy, set <Code>Nonce</Code> to your nonce.
         </TextBlock>
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/theming/color-scheme">Light and dark</Anchor>: the default scheme and a switch for users.</ListItem>
-            <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: exact values with CSS variables.</ListItem>
+            <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: set exact values with CSS variables.</ListItem>
             <ListItem><Anchor Href="docs/components/izzy-theme/api">IzzyTheme API</Anchor>: every parameter.</ListItem>
         </List>
     </ChildContent>

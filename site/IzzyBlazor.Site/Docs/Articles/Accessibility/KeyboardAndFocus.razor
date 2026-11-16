@@ -15,8 +15,8 @@
         <Heading Level="2">The focus ring</Heading>
         <TextBlock>
             A 2px ring in the focus color (<Code>--ib-color-focus</Code>, your brand color by default) shows on the control that
-            has keyboard focus. A mouse click doesn't show it. Fields show focus with their border and a soft halo instead, and add
-            an outline in Windows high-contrast mode, where borders and shadows lose their colors.
+            has keyboard focus. A mouse click doesn't show it. Fields show focus with their border and a soft halo instead. In
+            Windows high-contrast mode, where borders and shadows lose their colors, fields also show an outline.
         </TextBlock>
         <TextBlock>
             When Blazor's <Code>FocusOnNavigate</Code> moves focus to a page's heading, or the skip link moves it to the main area,
@@ -27,7 +27,7 @@
         <List Gap="2">
             <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor> starts with a "Skip to content" link to the main area, and it works after enhanced navigation too.</ListItem>
             <ListItem>Dialogs and drawers keep focus inside while open and return it to the control that opened them. A popover or menu takes focus when the user opens it and gives it back when it closes.</ListItem>
-            <ListItem>After a failed submit, a <Code>FormErrors</Code> at the top of the form takes focus, with JavaScript off too, so the user starts from the list of problems. Without one, the browser's own validation focuses the field, and on static pages a checkbox, radio or segmented group with an error takes focus. A dialog that comes back open with errors focuses its first invalid field.</ListItem>
+            <ListItem>After a failed submit, a <Code>FormErrors</Code> at the top of the form takes focus, even with JavaScript off, so the user starts from the list of problems. Without a <Code>FormErrors</Code>, the browser's own validation focuses the field. On static pages, a checkbox, radio or segmented group with an error takes focus. A dialog that reopens with errors focuses its first invalid field.</ListItem>
             <ListItem>When the focused control goes away, such as a removed tag or a deleted row, focus moves to the nearest control instead of falling back to the top of the page.</ListItem>
             <ListItem>When the user closes a toast that has focus, focus moves to the next open toast, or back to where it was.</ListItem>
         </List>
@@ -45,7 +45,7 @@
             <ListItem>Arrow keys follow the page's direction: on a right-to-left page, Left moves forward.</ListItem>
             <ListItem>Shortcuts that aren't part of a standard pattern, such as Alt+Down on a split button or Alt+Arrow keys on a list's, grid row's or tile's drag handle, are announced with <Code>aria-keyshortcuts</Code>.</ListItem>
             <ListItem>Single-letter shortcuts, such as the Scheduler's T for today, work only while focus is inside the component. To turn them off, set <Code>Shortcuts="false"</Code> on the <Anchor Href="docs/components/scheduler">Scheduler</Anchor>.</ListItem>
-            <ListItem>Keys that <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> adds aren't there with JavaScript off. The native ones, such as Space on a checkbox or the arrows in a radio group, still are.</ListItem>
+            <ListItem>Keys that <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor> adds don't work with JavaScript off. The native ones, such as Space on a checkbox or the arrows in a radio group, still work.</ListItem>
         </List>
 
         <Heading Level="2">Every component's keys</Heading>

@@ -7,7 +7,7 @@
 <ArticlePage Section="theming" Slug="color-scheme">
     <Lead>
         Every color comes in a light and a dark version. Pages follow the device's setting until your app or the user
-        picks a scheme, and any part of a page can have its own.
+        picks a scheme. Any part of a page can also have its own scheme.
     </Lead>
     <ChildContent>
         <Heading Level="2">The app's default</Heading>
@@ -18,51 +18,53 @@
         </TextBlock>
         <Code Block Language="razor">@Default</Code>
         <TextBlock>
-            In plain HTML, <Code>data-ib-color-scheme="light"</Code> or <Code>"dark"</Code> on the <Code>html</Code> element
-            sets a scheme too. It also overrides the user's choice, so use <Code>IzzyTheme</Code> when users can pick.
+            In plain HTML, you can also set <Code>data-ib-color-scheme="light"</Code> or <Code>"dark"</Code> on the
+            <Code>html</Code> element. This attribute overrides the user's choice, so use <Code>IzzyTheme</Code> when the
+            user can pick a scheme.
         </TextBlock>
 
         <Heading Level="2">The user's choice</Heading>
         <TextBlock>
             A <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> lets the user pick a scheme. It
-            comes as a menu of System, Light and Dark for headers, a light/dark toggle, or all three side by side for a
-            settings page.
+            can display as a menu of System, Light and Dark for a header, as a light/dark toggle, or as all three options
+            side by side for a settings page.
         </TextBlock>
         <ExampleViewer Example="color-scheme-switch-usage" />
         <TextBlock>
-            The choice is kept in the <Code>ib-scheme</Code> cookie. The <Code>IzzyTheme</Code> in the <Code>head</Code> reads
-            it on the server, so each page arrives in the user's scheme with no flash. Keep an <Code>IzzyTheme</Code> there,
-            even an empty <Code>&lt;IzzyTheme /&gt;</Code>. Reading the cookie requires <Code>AddIzzyBlazor()</Code>:
+            The switch stores the choice in the <Code>ib-scheme</Code> cookie. The <Code>IzzyTheme</Code> in the
+            <Code>head</Code> reads the cookie on the server, so each page loads in the user's scheme without a flash. Keep an
+            <Code>IzzyTheme</Code> in the <Code>head</Code>, even an empty <Code>&lt;IzzyTheme /&gt;</Code>. Reading the
+            cookie requires <Code>AddIzzyBlazor()</Code>:
         </TextBlock>
         <Code Block Language="csharp">@Services</Code>
         <TextBlock>
             With JavaScript off, the switch is hidden, and pages follow the device or a choice saved earlier.
         </TextBlock>
         <TextBlock>
-            On interactive pages, <Code>@@bind-Value</Code> gives you the choice as a <Code>ColorScheme</Code>:
-            <Code>Auto</Code> for System, <Code>Light</Code> or <Code>Dark</Code>.
+            To get the user's choice on interactive pages, use <Code>@@bind-Value</Code>. Its value is a
+            <Code>ColorScheme</Code>: <Code>Auto</Code> for System, <Code>Light</Code> or <Code>Dark</Code>.
         </TextBlock>
 
         <Heading Level="2">A scheme for part of a page</Heading>
         <TextBlock>
-            Part of a page can have its own scheme, such as a dark sidebar or header in a light app. Set
+            To give part of a page its own scheme, such as a dark sidebar or header in a light app, set
             <Code>ColorScheme</Code> on <Code>Box</Code>, <Code>Stack</Code>, <Code>Card</Code> and the other layout
             components, or on a part of the <Anchor Href="docs/components/app-shell">app layout</Anchor>.
-            <Code>Dark</Code> and <Code>Light</Code> set that scheme. <Code>Inverse</Code> sets the opposite of the page's,
-            even when the page follows the device.
+            <Code>Dark</Code> and <Code>Light</Code> set that scheme. <Code>Inverse</Code> sets the opposite of the page's
+            scheme, even when the page follows the device.
         </TextBlock>
         <ExampleViewer Example="box-scheme" />
         <TextBlock>
             Every color switches inside that part, so text, links, buttons, badges, fields, focus rings and menus opened
-            from it keep their contrast. <Code>Bg</Code> still applies on top: <Code>Bg="Color.Fill"</Code> is that
-            scheme's container shade. On your own elements, <Code>data-ib-color-scheme="dark"</Code>, <Code>"light"</Code> or
-            <Code>"inverse"</Code> does the same.
+            from it keep their contrast. <Code>Bg</Code> still works inside the part: <Code>Bg="Color.Fill"</Code> sets that
+            scheme's container shade. To do the same on your own elements, set <Code>data-ib-color-scheme</Code> to
+            <Code>"dark"</Code>, <Code>"light"</Code> or <Code>"inverse"</Code>.
         </TextBlock>
 
         <Heading Level="2">Your colors in both schemes</Heading>
         <TextBlock>
-            Write a color as a <Code>light-dark()</Code> pair, and one value covers both schemes, including parts of a page
-            with their own scheme:
+            To set one color for both schemes, write it as a <Code>light-dark()</Code> pair. The pair also works in parts of
+            a page that have their own scheme:
         </TextBlock>
         <Code Block Language="css">@LightDark</Code>
         <TextBlock>

@@ -14,16 +14,16 @@
         <Heading Level="2">Labels on fields</Heading>
         <TextBlock>
             Every field renders a <Code>label</Code> linked to its control, and links its hint and errors with
-            <Code>aria-describedby</Code>. The label comes from <Code>Label</Code>, else from the model property's
-            <Code>[Display]</Code> or <Code>[DisplayName]</Code> name, else from the property's name split into words
-            (<Code>FirstName</Code> is "First name"). To hide the label but keep it for screen readers, set
+            <Code>aria-describedby</Code>. The label comes from <Code>Label</Code>. Without it, the label comes from the
+            model property's <Code>[Display]</Code> or <Code>[DisplayName]</Code> name, or else from the property's name
+            split into words (<Code>FirstName</Code> becomes "First name"). To hide the label but keep it for screen readers, set
             <Code>HideLabel</Code>.
         </TextBlock>
 
         <Heading Level="2">Components that require a name</Heading>
         <TextBlock>
-            These components throw on their first render when their name is missing, so you see it at once. Most are shown as
-            an icon or a picture, with no text of their own for a screen reader to read:
+            These components throw an exception on their first render when their name is missing, so you notice at once.
+            Most of them show only an icon or a picture, with no text for a screen reader to read:
         </TextBlock>
         <Table Items="Required" Caption="Components that require a name" Size="ControlSize.Sm" Class="site-params site-params-wrap" Bordered="false">
             <Columns>
@@ -32,7 +32,7 @@
             </Columns>
         </Table>
         <TextBlock>
-            Where ARIA makes a name optional, so does IzzyBlazor. Landmarks get a default from
+            Where ARIA makes a name optional, so does IzzyBlazor. Landmarks get a default name from
             <Anchor Href="docs/common/text">IzzyText</Anchor>, such as "Breadcrumb" and "Pagination". When a page has two of the
             same kind, set <Code>Label</Code> on each.
         </TextBlock>
@@ -41,29 +41,32 @@
         <List Gap="2">
             <ListItem>An <Anchor Href="docs/components/icon">Icon</Anchor> is hidden from screen readers unless you give it a <Code>Label</Code>, so it never repeats the text beside it.</ListItem>
             <ListItem>An <Anchor Href="docs/components/avatar">Avatar</Anchor> is read as its <Code>Name</Code>.</ListItem>
-            <ListItem>An alert's and a toast's status come with an icon as well as a color. A <Code>Badge</Code>'s <Code>Status</Code> is color only, so its text must say what it means.</ListItem>
+            <ListItem>Alerts and toasts show their status with an icon as well as a color. A <Code>Badge</Code>'s <Code>Status</Code> is color only, so its text must say what it means.</ListItem>
             <ListItem>A chart is named by its <Code>Title</Code>, and its Show data table lists every value.</ListItem>
         </List>
 
-        <Heading Level="2">What screen readers hear when something changes</Heading>
+        <Heading Level="2">What components announce</Heading>
         <List Gap="2">
-            <ListItem>Danger and warning alerts are announced as soon as they appear; other alerts politely. A <Code>Banner</Code> isn't announced, since it's there when the page loads. To announce one that appears later, set <Code>Announce</Code>.</ListItem>
-            <ListItem>Toasts are read politely. Their timers pause while the user hovers over or focuses them, and error toasts stay until dismissed.</ListItem>
-            <ListItem>A table's "1–10 of 50" and its filter status are read when they change, and so is every move made with the keyboard or a menu: a DataGrid's rows and columns, a ListView's or DropZoneGroup's items, a PickList's items and a TileLayout's tiles. A CopyButton says "Copied".</ListItem>
-            <ListItem>A combobox reads "No matches", and a carousel reads its new slide. A chat says "Replying" and then "Reply complete", and reads a message from someone else with its author.</ListItem>
-            <ListItem>A loading button sets <Code>aria-busy</Code> and is heard as its <Code>LoadingLabel</Code>; a <Code>Spinner</Code> is heard as its <Code>Label</Code>; a <Code>Progress</Code> reports its value.</ListItem>
-            <ListItem>A PasswordField reads a Caps Lock warning, and when its requirements are all met.</ListItem>
+            <ListItem>Danger and warning alerts are announced as soon as they appear. Other alerts are announced politely. A <Code>Banner</Code> isn't announced, because it's there when the page loads. To announce one that appears later, set <Code>Announce</Code>.</ListItem>
+            <ListItem>Toasts are announced politely. Their timers pause while the user hovers over or focuses them. Error toasts stay until the user dismisses them.</ListItem>
+            <ListItem>A table's "1–10 of 50" and its filter status are announced when they change. So is every move made with the keyboard or a menu: a DataGrid's rows and columns, a ListView's or DropZoneGroup's items, a PickList's items and a TileLayout's tiles. A CopyButton announces "Copied".</ListItem>
+            <ListItem>A combobox announces "No matches", and a carousel announces its new slide. A chat announces "Replying" and then "Reply complete". It reads a message from someone else with the author's name.</ListItem>
+            <ListItem>A loading button sets <Code>aria-busy</Code>, and screen readers read its <Code>LoadingLabel</Code>. A <Code>Spinner</Code> is read as its <Code>Label</Code>, and a <Code>Progress</Code> announces its value.</ListItem>
+            <ListItem>A PasswordField announces a Caps Lock warning. It also announces when all its requirements are met.</ListItem>
         </List>
 
         <Heading Level="2">Announcing your own changes</Heading>
         <TextBlock>
             To announce a change the components don't know about, such as a list's new count after a filter, set a
-            <Anchor Href="docs/components/live-region">LiveRegion</Anchor>'s <Code>Text</Code>; it's read each time it changes.
-            Render the LiveRegion with the page, even while it's empty: a region that appears with its text isn't read. To
-            announce what just happened after an action, such as "Revoked the invite", call <Code>Announcer.Announce</Code>.
-            On <Anchor Href="docs/common/render-modes">static pages</Anchor>, <Code>AnnouncerRegion</Code> carries the message
-            in the response to the post; a <Code>ToastRegion</Code> includes one. A redirect drops the message, so after a
-            redirect show a toast instead.
+            <Anchor Href="docs/components/live-region">LiveRegion</Anchor>'s <Code>Text</Code>. Screen readers read it each
+            time it changes. Render the LiveRegion with the page, even while it's empty, because a region that appears with
+            its text already in it isn't read.
+        </TextBlock>
+        <TextBlock>
+            To announce the result of an action, such as "Revoked the invite", call <Code>Announcer.Announce</Code>. On
+            <Anchor Href="docs/common/render-modes">static pages</Anchor>, <Code>AnnouncerRegion</Code> sends the message in
+            the response to the form post, and a <Code>ToastRegion</Code> includes an AnnouncerRegion. A redirect drops the
+            message, so after a redirect, show a toast instead.
         </TextBlock>
     </ChildContent>
 </ArticlePage>
@@ -78,23 +81,23 @@
         new("SpeedDial", "speed-dial", "Label, and a Label on each SpeedDialAction"),
         new("SplitButton", "split-button", "Label"),
         new("ToggleButton", "toggle-button", "Label when IconOnly"),
-        new("Image", "image", "Alt, or Alt=\"\" for a picture that only decorates"),
-        new("QrCode", "qr-code", "Label, or Decorative when the text beside it says what it is"),
-        new("Chart and every other chart", "chart", "Title, or TitledBy to name it by a heading of your own"),
+        new("Image", "image", "Alt, or Alt=\"\" for a decorative picture"),
+        new("QrCode", "qr-code", "Label, or Decorative when the text beside it describes it"),
+        new("Chart and every other chart", "chart", "Title, or TitledBy to name it with your own heading"),
         new("Sparkline", "sparkline", "Label"),
         new("Gauge, LinearGauge", "gauge", "Label, and a Label on each GaugePointer"),
         new("Stat with a Sparkline", "stat", "Label or SparklineLabel"),
         new("Carousel", "carousel", "Label"),
         new("Chat", "chat", "Label"),
-        new("Collapsible", "collapsible", "Label, or a Trigger of your own"),
+        new("Collapsible", "collapsible", "Label, or your own Trigger"),
         new("FilterSelect, FilterCheckbox, FilterDate", "filter-form", "Label"),
-        new("Menu", "menu", "Label for its button, or a Trigger of your own"),
-        new("Popover", "popover", "Label for its button, or a Trigger of your own"),
+        new("Menu", "menu", "Label for its button, or your own Trigger"),
+        new("Popover", "popover", "Label for its button, or your own Trigger"),
         new("ContextMenu", "context-menu", "Label"),
         new("MenuSub", "menu", "Label"),
         new("Tab", "tabs", "Label"),
         new("TabLink", "tab-nav", "Label"),
-        new("Card with Href", "card", "Title, which is the link"),
+        new("Card with Href", "card", "Title, which becomes the link text"),
         new("ColumnBand", "table", "Title"),
         new("Tile in an Editable TileLayout", "tile-layout", "Title or Label, which names its Move handle"),
     ];

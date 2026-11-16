@@ -5,25 +5,28 @@
 
 <ArticlePage Section="get-started" Slug="ai-assistants">
     <Lead>
-        An AI assistant guesses at a library it hasn't seen, and IzzyBlazor is newer than its training. Connect yours to
-        IzzyBlazor's MCP server, and it looks up components, parameters and working examples for the release on this site
-        instead.
+        An AI assistant guesses at a library it hasn't seen, and IzzyBlazor is newer than its training data. When you
+        connect your assistant to IzzyBlazor's MCP server, it looks up components, parameters and working examples for the
+        release this site documents instead.
     </Lead>
     <ChildContent>
         <Heading Level="2">The server</Heading>
         <TextBlock>
-            The server is at <Code>@Endpoint</Code>. It uses the Streamable HTTP transport and needs no sign-in or key. Its
-            tools only read the docs, and its answers cover the release this site documents.
+            The server's URL is <Code>@Endpoint</Code>. It uses the Streamable HTTP transport and doesn't need a sign-in or
+            key. Its tools only read the docs. Its answers cover the release this site documents.
         </TextBlock>
 
         <Heading Level="2">Claude Code</Heading>
         <Code Block Language="bash">claude mcp add --transport http izzyblazor @Endpoint</Code>
-        <TextBlock>Add <Code>--scope project</Code> to save it in the repository's <Code>.mcp.json</Code> for everyone on the project.</TextBlock>
+        <TextBlock>
+            To share the server with everyone on the project, add <Code>--scope project</Code>. Claude Code then saves it in
+            the repository's <Code>.mcp.json</Code>.
+        </TextBlock>
 
         <Heading Level="2">VS Code and Visual Studio</Heading>
         <TextBlock>
-            Add the server to <Code>.vscode/mcp.json</Code> in VS Code, or <Code>.mcp.json</Code> next to the solution in
-            Visual Studio, then use it from Copilot's agent mode:
+            In VS Code, add the server to <Code>.vscode/mcp.json</Code>. In Visual Studio, add it to <Code>.mcp.json</Code>
+            next to the solution. Then use it from Copilot's agent mode:
         </TextBlock>
         <Code Block Language="json" Title=".vscode/mcp.json">@VsCodeJson</Code>
 
@@ -45,20 +48,20 @@
             </Columns>
         </Table>
         <TextBlock>
-            Answers are Markdown with links to this site. Ask for what you're building, such as "a settings form that
-            posts on static pages", and the assistant picks the tools. Naming IzzyBlazor in the request helps it use
-            them.
+            The tools answer in Markdown, with links to this site. Describe what you're building, such as "a settings form
+            that posts on static pages", and the assistant picks the tools. To help it use them, name IzzyBlazor in your
+            request.
         </TextBlock>
 
         <Heading Level="2">Without MCP</Heading>
         <List Gap="2">
             <ListItem>
-                <Anchor Href="llms.txt">llms.txt</Anchor>: what IzzyBlazor is and a link to every article and component, for
-                assistants that read a site.
+                <Anchor Href="llms.txt">llms.txt</Anchor>: describes IzzyBlazor and links to every article and component, for
+                assistants that read websites.
             </ListItem>
             <ListItem>
                 <Anchor Href="izzyblazor.api.json">API metadata</Anchor>: every component's parameters, events, methods and
-                types as one JSON file, for your own tools.
+                types in one JSON file, for your own tools.
             </ListItem>
         </List>
 
@@ -77,9 +80,9 @@
 
     private static readonly Tool[] Tools =
     [
-        new("search", "Components, parameters, types, examples and articles that match some words"),
-        new("list_components", "Every component by category, with a summary and any mode limits"),
-        new("get_component", "A component's API: parameters with types and defaults, events, methods, mode support, parts, example ids and accessibility"),
+        new("search", "Components, parameters, types, examples and articles that match the search words"),
+        new("list_components", "Every component by category, with a summary and any render mode limits"),
+        new("get_component", "A component's API: parameters with types and defaults, events, methods, render mode support, parts, example ids and accessibility"),
         new("get_type", "An enum's values, a type's members, or the shared style props"),
         new("get_example", "An example's whole .razor source"),
         new("get_article", "An article or a component's Overview, with its examples' source"),

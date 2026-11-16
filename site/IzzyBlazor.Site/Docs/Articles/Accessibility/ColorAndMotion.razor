@@ -5,7 +5,7 @@
 
 <ArticlePage Section="accessibility" Slug="color-and-motion">
     <Lead>
-        Text meets WCAG's 4.5:1 contrast in light and dark, and so does a brand color you set. In Windows high-contrast mode,
+        Text meets WCAG's 4.5:1 contrast in light and dark mode, and so does a brand color you set. In Windows high-contrast mode,
         components switch to the system's colors and keep their focus rings and indicators. When the user asks for reduced
         motion, components stop sliding and growing.
     </Lead>
@@ -13,43 +13,45 @@
         <Heading Level="2">Contrast</Heading>
         <List Gap="2">
             <ListItem>Text has at least 4.5:1 contrast against its background in both color schemes; body text has 7:1. Disabled text is lighter, as WCAG allows.</ListItem>
-            <ListItem>A field's border and a switch's track are about 2:1 against the page, and every field has a visible label above it. For strict 3:1, darken <Code>--ib-color-outline</Code>; see Known gaps in the <Anchor Href="docs/accessibility/overview">overview</Anchor>.</ListItem>
-            <ListItem>An alert's, a banner's and a toast's status, such as success or danger, comes with an icon and a title as well as its color. A Badge's <Code>Status</Code> is color only, so its text must say what it means.</ListItem>
+            <ListItem>A field's border and a switch's track have about 2:1 contrast against the page. Every field has a visible label above it. To meet a strict 3:1, darken <Code>--ib-color-outline</Code>. See Known gaps in the <Anchor Href="docs/accessibility/overview">overview</Anchor>.</ListItem>
+            <ListItem>Alerts, banners and toasts show their status, such as success or danger, with an icon and a title as well as a color. A Badge's <Code>Status</Code> is color only, so its text must say what it means.</ListItem>
         </List>
 
         <Heading Level="2">Your own brand and gray</Heading>
         <TextBlock>
-            <Code>IzzyTheme</Code>'s <Code>Brand</Code> is checked when the page renders. Text on a brand-colored button keeps 4.5:1,
-            by moving the fill's lightness when neither white nor dark text would. The brand as text, such as a link, keeps 4.5:1 on
-            the page and on the gray fills. In dark mode a dark brand is lifted until it shows against the background.
+            IzzyBlazor checks <Code>IzzyTheme</Code>'s <Code>Brand</Code> when the page renders. Text on a brand-colored button
+            keeps 4.5:1 contrast. When neither white nor dark text would reach it, the button's fill gets lighter or darker.
+            Brand-colored text, such as a link, keeps 4.5:1 on the page and on the gray fills. In dark mode, a dark brand is
+            lightened until it stands out against the background.
         </TextBlock>
         <TextBlock>
-            A light brand, such as a yellow, keeps its color on buttons and checked boxes, where dark text or a check mark carries
-            the contrast. The focus ring switches to the darker brand text color, so it still has 3:1 against the page.
+            A light brand, such as a yellow, keeps its color on buttons and checked boxes, where dark text or the check mark
+            provides the contrast. The focus ring switches to the darker brand text color, so it still has 3:1 against the page.
             <Code>Gray</Code> is checked the same way: muted text keeps 4.5:1. See <Anchor Href="docs/theming/themes">Themes and presets</Anchor>.
         </TextBlock>
         <TextBlock>
-            A color you set directly, through <Code>Accent.Of</Code>, a style prop such as <Code>Color</Code> or
-            <Code>Bg</Code>, or CSS, isn't adjusted for contrast. Keep the pairs in
-            <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor> together and check them yourself.
+            Colors you set directly aren't adjusted for contrast. This includes <Code>Accent.Of</Code>, style props such as
+            <Code>Color</Code> and <Code>Bg</Code>, and CSS. Keep the pairs listed in
+            <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor> together, and check their contrast yourself.
         </TextBlock>
 
         <Heading Level="2">Charts</Heading>
         <TextBlock>
-            Lines don't rely on color alone: they have dash patterns and markers of different shapes. Bars and pie slices differ
-            by color, and the legend, tooltips and Show data table name every series and slice. A few colors of the default palette (pink, yellow, aqua and orange) are
-            under 3:1 against a white page, so a chart that needs them should keep its legend or labels.
+            Lines don't rely on color alone. Each line has its own dash pattern and marker shape. Bars and pie slices differ
+            only by color, and the legend, tooltips and Show data table name every series and slice. A few colors in the
+            default palette (pink, yellow, aqua and orange) have less than 3:1 contrast against a white page. A chart that
+            uses them should keep its legend or labels.
         </TextBlock>
 
         <Heading Level="2">Windows high-contrast mode</Heading>
         <TextBlock>
             In high-contrast mode (forced colors) the browser replaces the page's colors with the user's system colors and removes
-            backgrounds and shadows. IzzyBlazor handles it:
+            backgrounds and shadows. IzzyBlazor's components adapt:
         </TextBlock>
         <List Gap="2">
-            <ListItem>Every focusable control shows its focus with an outline, which the system colors keep.</ListItem>
-            <ListItem>Checkboxes, radios and switches fall back to the browser's own drawing.</ListItem>
-            <ListItem>Indicators drawn as fills, such as a progress bar, a slider's track, a carousel's dots, a selected tab or a chosen option, switch to the system's highlight color.</ListItem>
+            <ListItem>Every focusable control shows its focus with an outline, which stays visible in system colors.</ListItem>
+            <ListItem>Checkboxes, radios and switches fall back to the browser's native controls.</ListItem>
+            <ListItem>Indicators shown as fills, such as a progress bar, a slider's track, a carousel's dots, a selected tab or a chosen option, switch to the system's highlight color.</ListItem>
             <ListItem>Charts keep their own colors, so the series can still be told apart.</ListItem>
         </List>
 
@@ -61,12 +63,12 @@
             <ListItem>Dialogs and drawers open and close without sliding, and so do popovers, menus and tooltips.</ListItem>
             <ListItem>Accordions, collapsibles, tabs and the sidebar change at once.</ListItem>
             <ListItem>Toasts appear without sliding in, and a carousel changes slides at once and doesn't start autoplay.</ListItem>
-            <ListItem>Rows, list items and DataGrid columns that make way for a drag jump to their places.</ListItem>
+            <ListItem>Rows, list items and DataGrid columns that move aside during a drag jump straight to their new places.</ListItem>
             <ListItem>Chevrons don't turn, and the chat's typing indicator stops.</ListItem>
-            <ListItem>Spinners and progress bars slow down rather than stop, since their motion means "still working".</ListItem>
+            <ListItem>Spinners and progress bars slow down rather than stop, because their motion means "still working".</ListItem>
         </List>
         <TextBlock>
-            IzzyBlazor has no page-wide reset, so your own animations are yours to handle with
+            IzzyBlazor doesn't reduce motion across the whole page. To reduce your own animations, use
             <Code>@@media (prefers-reduced-motion: reduce)</Code>.
         </TextBlock>
     </ChildContent>
