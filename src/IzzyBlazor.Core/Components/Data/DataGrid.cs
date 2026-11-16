@@ -176,7 +176,7 @@ public partial class DataGrid<TItem>
 
     /// <summary>
     /// The height of every row, in pixels, with <see cref="Virtualize"/>. Text past it is cut short.
-    /// A control in a cell can't be cut short: a row with a checkbox or a ⋮ button needs at least 33.
+    /// A control in a cell can't be cut short: a row with a checkbox or a ⋯ button needs at least 33.
     /// Defaults to 48.
     /// </summary>
     [Parameter]

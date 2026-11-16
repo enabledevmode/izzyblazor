@@ -836,10 +836,10 @@
     private RenderFragment? EditControl(TItem item, bool inMenu, string? reason) =>
         InCell ? null
         : !CanEditRow(item)
-            ? CanEdit && reason is not null ? DisabledAction(Lucide.Pencil, string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)), reason, inMenu, Accent.Neutral) : null
+            ? CanEdit && reason is not null ? DisabledAction(Lucide.Pencil, ActionLabel(TextDefaults.Edit, TextDefaults.EditItem, item, inMenu), reason, inMenu, Accent.Neutral) : null
             : __builder =>
     {
-        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item));
+        var label = ActionLabel(TextDefaults.Edit, TextDefaults.EditItem, item, inMenu);
         var key = KeyOf(item);
         @if (inMenu && UseState)
         {
@@ -859,14 +859,19 @@
         }
     };
 
+    // In the row's menu, "Edit": the menu is already named for its row ("Actions for Ada Lovelace"). An icon
+    // button in the row says which row ("Edit Ada Lovelace"), as its name and tooltip.
+    private string ActionLabel(string plain, string named, TItem item, bool inMenu) =>
+        inMenu ? plain : string.Format(System.Globalization.CultureInfo.CurrentCulture, named, LabelOf(item));
+
     private void StartDelete(string key) => (_stateDeleteKey, _deleteContext) = (key, null);
 
     private RenderFragment? DeleteControl(TItem item, bool inMenu, string? reason) =>
         !CanDeleteRow(item)
-            ? CanDelete && reason is not null ? DisabledAction(Lucide.Trash, string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DeleteItem, LabelOf(item)), reason, inMenu, Accent.Danger) : null
+            ? CanDelete && reason is not null ? DisabledAction(Lucide.Trash, ActionLabel(TextDefaults.Delete, TextDefaults.DeleteItem, item, inMenu), reason, inMenu, Accent.Danger) : null
             : __builder =>
     {
-        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DeleteItem, LabelOf(item));
+        var label = ActionLabel(TextDefaults.Delete, TextDefaults.DeleteItem, item, inMenu);
         var key = KeyOf(item);
         @if (inMenu && UseState)
         {
@@ -2236,10 +2241,10 @@
                 var count = edited ? default : ActionCount(item);
                 @if (count.Menu || count.Auto > 0)
                 {
-                    @* With only buttons that fold, the ⋮ shows once they're in it. *@
+                    @* With only buttons that fold, the ⋯ shows once they're in it. *@
                     <Menu>
                         <Trigger Context="wire">
-                            <IconButton Icon="IconSet.Current.Get(IconPurpose.MoreVertical)" Label="@RowMenuLabel(item)" Class="@(count.Menu ? null : "ib-fold-off")"
+                            <IconButton Icon="IconSet.Current.Get(IconPurpose.MoreHorizontal)" Label="@RowMenuLabel(item)" Class="@(count.Menu ? null : "ib-fold-off")"
                                         Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-row-menu @attributes="wire" />
                         </Trigger>
                         <ChildContent><CascadingValue TValue="RowActionScope" Value="ScopeOf(item, true)">@ActionsOf(item)</CascadingValue></ChildContent>
@@ -3047,7 +3052,7 @@
             _ => null,
         };
 
-    // How many buttons wide the action column is: as the most a row has, the ⋮ among them. Save and
+    // How many buttons wide the action column is: as the most a row has, the ⋯ among them. Save and
     // Cancel have to fit, and starting an edit mustn't move the columns.
     private int ActionButtons
     {
@@ -3058,7 +3063,7 @@
         }
     }
 
-    // The same once columns hide, and buttons that fold are in the ⋮.
+    // The same once columns hide, and buttons that fold are in the ⋯.
     private int FoldedActionButtons
     {
         get
