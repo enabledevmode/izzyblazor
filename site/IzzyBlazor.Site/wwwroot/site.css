@@ -502,6 +502,8 @@
 .pg-quiet .ink-s { stroke: var(--pg-raised); }
 .pg-quiet :is(.h, .h2, .hs, .ah) { fill: var(--pg-line); fill-opacity: .18; }
 .pg-quiet text.pg-label { fill: var(--pg-strong); }
+/* A label on an accent (the badge's count) turns light like ink, so it shows on the gray. */
+.pg-quiet text.pg-label.inv { fill: var(--pg-raised); }
 .pg-quiet text.pg-ember { fill: var(--pg-accent); }
 
 /* A card's picture with a tag on its corner (the mode, or the component a demo is about), so the
