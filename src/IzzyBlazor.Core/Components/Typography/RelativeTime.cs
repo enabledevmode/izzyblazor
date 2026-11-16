@@ -15,6 +15,9 @@ namespace IzzyBlazor;
 /// often has no kind (EF Core's SQLite provider), and converts to the server's zone: mark it as UTC.</para>
 /// <para>The full date and time is the element's <c>title</c>, shown on hover. Where the exact time
 /// matters, such as an audit record, show it on the page as well.</para>
+/// <para>The server's words are IzzyText's <c>Relative…</c> strings; the script's are the browser's, in the
+/// page's <c>lang</c>. An app that translates those strings and sets <c>lang</c> sees the same words before and
+/// after the script runs. Changing the English strings ("just now") lasts only until the first update.</para>
 /// </remarks>
 /// <accessibility>
 /// <list type="bullet">
