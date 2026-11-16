@@ -17,9 +17,7 @@
         </PageHeader>
         <Card>
             <CardBody Gap="5">
-                <Box Width="Length.Full" MaxWidth="Length.Rem(24)">
-                    <LinearGauge Label="Count" Value="currentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" />
-                </Box>
+                <LinearGauge Label="Count" Value="currentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" Width="Length.Full" MaxWidth="Length.Rem(24)" />
                 <LiveRegion Text="@($"Count: {currentCount}")" />
                 <Row Gap="4" Wrap Align="Align.Center">
                     <Button OnClick="IncrementCount" StartIcon="Lucide.Plus">Click me</Button>
@@ -68,9 +66,7 @@
         </PageHeader>
         <Card>
             <CardBody Gap="5">
-                <Box Width="Length.Full" MaxWidth="Length.Rem(24)">
-                    <LinearGauge Label="Count" Value="CurrentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" />
-                </Box>
+                <LinearGauge Label="Count" Value="CurrentCount" Max="ScaleMax" Step="ScaleMax / 5" ValueFormat="0" Width="Length.Full" MaxWidth="Length.Rem(24)" />
                 <LiveRegion Text="@($"Count: {CurrentCount}")" />
                 <Row Gap="4" Wrap Align="Align.Center">
                     <Button Href="@($"counter?count={CurrentCount + 1}")" StartIcon="Lucide.Plus">Click me</Button>

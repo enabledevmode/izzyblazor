@@ -401,14 +401,9 @@ else
 
     // A review section: its answers, and a link back to the step that asked them.
     private RenderFragment Section(string title, int step, RenderFragment body) =>
-        @<Card>
-            <Stack Gap="4">
-                <Row Gap="3" Justify="Justify.Between" Align="Align.Center">
-                    <Heading Level="3" Size="TextSize.Md">@title</Heading>
-                    <Anchor Href="@Here(step)">Change<span class="ib-visually-hidden"> @title.ToLowerInvariant()</span></Anchor>
-                </Row>
-                @body
-            </Stack>
+        @<Card Title="@title" TitleLevel="3">
+            <CardActions><Anchor Href="@Here(step)">Change<VisuallyHidden> @title.ToLowerInvariant()</VisuallyHidden></Anchor></CardActions>
+            @body
         </Card>;
 
     // Continue (or Send), Back, and on Review Save as draft; Cancel at the far end (under them on a phone).

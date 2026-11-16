@@ -29,16 +29,11 @@
         <Columns>
             <PropertyColumn Property="e => e.Time" Title="Time" Sortable Filterable Filter="WhenFilter" FilterText="WhenText" Width="Length.Rem(9)" Context="e">
                 <ChildContent>
-                    <RelativeTime Value="Utc(e.Time)" title="@Utc(e.Time).ToString("MMM d, yyyy, h:mm tt 'UTC'")" />
+                    <RelativeTime Value="Utc(e.Time)" />
                 </ChildContent>
                 <FilterTemplate Context="filter">
-                    <select class="ib-field-input" aria-label="When" @attributes="filter.Attributes">
-                        <option value="">Any time</option>
-                        @foreach (var (days, text) in Periods)
-                        {
-                            <option value="@days" selected="@(filter.Value == days)">@text</option>
-                        }
-                    </select>
+                    <Select TValue="string" Label="When" HideLabel Items="Periods.Select(p => p.Days)" ItemText="WhenText" Placeholder="Any time"
+                            Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
                 </FilterTemplate>
             </PropertyColumn>
             <PropertyColumn Property="e => e.ActorId" Title="Who" SortKey="who" Filterable FilterOperators="[FilterOperator.Equals]" FilterText="WhoText" Priority="1" Context="e">
@@ -49,13 +44,8 @@
                     </Row>
                 </ChildContent>
                 <FilterTemplate Context="filter">
-                    <select class="ib-field-input" aria-label="Who" @attributes="filter.Attributes">
-                        <option value="">Anyone</option>
-                        @foreach (var (id, name) in _people)
-                        {
-                            <option value="@id" selected="@(filter.Value == id)">@name</option>
-                        }
-                    </select>
+                    <Select TValue="string" Label="Who" HideLabel Items="_people.Select(p => p.Id)" ItemText="WhoText" Placeholder="Anyone"
+                            Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
                 </FilterTemplate>
             </PropertyColumn>
             <PropertyColumn Property="e => e.Action" Filterable FilterText="ActionText" Width="Length.Rem(11)" Priority="1" Context="e">
@@ -206,9 +196,13 @@
         return e => e.Time >= since;
     }
 
-    private static string WhenText(IReadOnlyList<string?> values) => Periods.FirstOrDefault(p => p.Days == values.FirstOrDefault()).Text ?? "Any time";
+    private static string WhenText(IReadOnlyList<string?> values) => WhenText(values.FirstOrDefault());
 
-    private string WhoText(IReadOnlyList<string?> values) => _people.FirstOrDefault(p => p.Id == values.FirstOrDefault()).Name ?? "Someone";
+    private static string WhenText(string? days) => Periods.FirstOrDefault(p => p.Days == days).Text ?? "Any time";
+
+    private string WhoText(IReadOnlyList<string?> values) => WhoText(values.FirstOrDefault());
+
+    private string WhoText(string? id) => _people.FirstOrDefault(p => p.Id == id).Name ?? "Someone";
 
     private static string ActionText(IReadOnlyList<string?> values) => string.Join(", ", values.OfType<string>().Select(AuditText.Label));
 }

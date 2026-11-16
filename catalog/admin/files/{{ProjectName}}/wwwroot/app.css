@@ -25,10 +25,6 @@
   color: var(--ib-color-success-text);
 }
 
-.invoice-amount {
-  font-family: var(--ib-font-heading);
-}
-
 /* On a phone the items table drops Qty and Unit price; the description says them. */
 @media (width < 40rem) {
   .invoice-wide {

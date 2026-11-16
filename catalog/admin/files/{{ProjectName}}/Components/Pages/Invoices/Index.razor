@@ -13,6 +13,8 @@
    in the address (?status=overdue), and the grid searches by number or customer and pages in the database.
    Each row opens its invoice; its ⋯ menu reminds, marks paid or deletes a draft, as form posts that come back
    with a toast (Billing/InvoiceActions.cs does the work and writes the audit log). *@
+@* A data page: the header, tabs and grid in one centered column, 1280px at most. *@
+<Container Size="ContainerSize.Xl" Gutters="false">
 <Stack Gap="new() { Base = 6, Md = 8 }">
     <PageHeader Title="Invoices" Description="@Lead">
         @if (_canEdit && _counts.All > 0)
@@ -71,12 +73,11 @@
                         <TextBlock Color="Color.Muted">@(i.Status == InvoiceStatus.Draft ? "—" : InvoiceText.Date(i.Issued))</TextBlock>
                     </PropertyColumn>
                     <PropertyColumn Property="i => i.Due" Sortable Width="Length.Rem(9)" Context="i">
-                        @{ var late = InvoiceText.State(i, _today) == InvoiceState.Overdue; }
-                        @if (i.Status != InvoiceStatus.Draft)
-                        {
-                            <TextBlock Color="@(late ? Color.OnSurface : Color.Muted)">@InvoiceText.Date(i.Due)</TextBlock>
-                        }
-                        <TextBlock Size="TextSize.Xs" Color="@(late ? Color.DangerText : Color.Muted)" Weight="@(late ? FontWeight.Medium : FontWeight.Normal)">@InvoiceText.DueNote(i, _today)</TextBlock>
+                        @* Two lines in every row, so all rows are one height: the date (a dash on a draft), then
+                           how it stands: not sent, paid when, due when, or how late in danger text. *@
+                        @{ var state = InvoiceText.State(i, _today); var late = state == InvoiceState.Overdue; }
+                        <TextBlock Color="@(late ? Color.OnSurface : Color.Muted)">@(i.Status == InvoiceStatus.Draft ? "—" : InvoiceText.Date(i.Due))</TextBlock>
+                        <TextBlock Size="TextSize.Xs" Color="@(late ? Color.DangerText : state == InvoiceState.Paid ? Color.SuccessText : Color.Muted)" Weight="@(late ? FontWeight.Medium : FontWeight.Normal)">@InvoiceText.DueNote(i, _today)</TextBlock>
                     </PropertyColumn>
                     <TemplateColumn Title="Total" Align="CellAlign.End" Width="Length.Rem(8)" Context="i">
                         <TextBlock Weight="FontWeight.Medium" TabularNums>@InvoiceText.Money(i.Total)</TextBlock>
@@ -97,6 +98,7 @@
         }
     }
 </Stack>
+</Container>
 
 @* The row menu's posts: they name the action and the invoice. *@
 <form id="invoice-action" method="post" @formname="invoice-action" @onsubmit="ActAsync">
