@@ -34,6 +34,15 @@ public sealed class StarterBuildTests : IDisposable
         await ProjectBuild.BuildAsync(_work, $"{name} {settings}");
     }
 
+    [Fact]
+    public async Task The_admin_kit_builds()
+    {
+        var changes = Generator.Generate(ProjectBuild.Item("admin"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme"));
+        ChangesetWriter.Apply(changes, _work);
+        ProjectBuild.PointAtRepo(_work);
+        await ProjectBuild.BuildAsync(_work, "admin");
+    }
+
     public void Dispose()
     {
         try { Directory.Delete(_work, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
