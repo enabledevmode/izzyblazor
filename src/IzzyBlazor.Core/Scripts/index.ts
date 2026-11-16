@@ -38,6 +38,7 @@ installStaleErrors();
 installDateZones();
 installSelects();
 installIndeterminate();
+relativeTimes();
 installSelectAll();
 installDisabledUntil();
 installScrollbarWidth();
@@ -65,6 +66,19 @@ if (document.readyState === "loading") {
 }
 
 // Announcer's messages: its code loads with the first one.
+/**
+ * RelativeTime's updates, loaded once a page has one (time[data-ib-relative]); after that its own
+ * timer keeps every one on the page current, including ones an interactive render adds.
+ */
+function relativeTimes(): void {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", relativeTimes, { once: true });
+    return;
+  }
+  if (!document.querySelector("time[data-ib-relative]")) return;
+  load<typeof import("./elements/relative-time")>("ib-relative-time").then((module) => module.syncRelativeTimes(), () => {});
+}
+
 function announcer() {
   return load<typeof import("./elements/announce")>("ib-announce");
 }
@@ -146,6 +160,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     syncSelects();
     syncIndeterminate();
     syncDisabledUntil();
+    relativeTimes();
     reopenAfterPost();
     clearClosedDialogQuery();
     keepDismissed();

@@ -52,7 +52,8 @@ else
 
     /// <summary>
     /// Shows <see cref="Time"/> as how long ago ("5 minutes ago", "3 days ago"), with the full date
-    /// on hover. Comments older than a week show their date. Worked out when the page renders.
+    /// on hover, as a <see cref="IzzyBlazor.RelativeTime"/> that stays current as the page stays open.
+    /// Comments older than a week show their date.
     /// </summary>
     [Parameter] public bool RelativeTime { get; set; }
 
@@ -121,7 +122,14 @@ else
                         {
                             <span class="ib-comment-dot" aria-hidden="true">·</span>
                         }
-                        <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)" title="@(RelativeTime ? time.ToString("f", CultureInfo.CurrentCulture) : null)">@TimeText(time)</time>
+                        @if (RelativeTime)
+                        {
+                            <IzzyBlazor.RelativeTime Value="time" Threshold="TimeSpan.FromDays(7)" />
+                        }
+                        else
+                        {
+                            <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)">@time.ToString("g", CultureInfo.CurrentCulture)</time>
+                        }
                     }
                     @Extra
                 </div>
@@ -152,30 +160,5 @@ else
         builder.AddAttribute(2, "id", _authorId);
         builder.AddContent(3, Author);
         builder.CloseElement();
-    }
-
-    private string TimeText(DateTimeOffset time)
-    {
-        var culture = CultureInfo.CurrentCulture;
-        if (!RelativeTime)
-        {
-            return time.ToString("g", culture);
-        }
-
-        var ago = DateTimeOffset.UtcNow - time;
-        var text = TextDefaults;
-        return ago switch
-        {
-            { TotalMinutes: < 1 } => text.CommentJustNow,
-            { TotalMinutes: < 2 } => text.CommentMinuteAgo,
-            { TotalHours: < 1 } => string.Format(culture, text.CommentMinutesAgo, (int)ago.TotalMinutes),
-            { TotalHours: < 2 } => text.CommentHourAgo,
-            { TotalDays: < 1 } => string.Format(culture, text.CommentHoursAgo, (int)ago.TotalHours),
-            { TotalDays: < 2 } => text.CommentDayAgo,
-            { TotalDays: < 7 } => string.Format(culture, text.CommentDaysAgo, (int)ago.TotalDays),
-            _ => time.Year == DateTimeOffset.UtcNow.ToOffset(time.Offset).Year
-                ? time.ToString(culture.DateTimeFormat.MonthDayPattern, culture)
-                : time.ToString("d", culture),
-        };
     }
 }

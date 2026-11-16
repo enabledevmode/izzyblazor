@@ -17,9 +17,9 @@
 // Not elements, loaded by other code: password (a password TextField's Caps Lock warning and
 // requirements) and mask (a TextField's Mask), by field-control.ts; reconnect (ReconnectDialog's
 // code), with the first reconnection state (reconnect.ts); announce (Announcer's messages), by
-// index.ts on the first message.
+// index.ts on the first message; relative-time (RelativeTime's updates), by index.ts when a page has one.
 const lazyNames =
-  "combobox mentions table grid grid-columns col-picker grid-edit filter-form chat filter-list filter-builder file-upload color-picker color-panel duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial leave-guard sortable listview tile-layout tree treeselect pick-list rich-text splitter carousel chart scheduler tooltip dismiss banner site-nav scheme-switch password mask reconnect announce".split(" ");
+  "combobox mentions table grid grid-columns col-picker grid-edit filter-form chat filter-list filter-builder file-upload color-picker color-panel duration-field calendar period-grid time-slots field-clear rating pin-field video code copy on-this-page toasts toolbar context-menu speed-dial leave-guard sortable listview tile-layout tree treeselect pick-list rich-text splitter carousel chart scheduler tooltip dismiss banner site-nav scheme-switch password mask reconnect announce relative-time".split(" ");
 
 const loading = new Map<string, Promise<unknown>>();
 const failures = new Map<string, number>();

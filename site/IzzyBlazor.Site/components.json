@@ -442,6 +442,19 @@
     },
 
     {
+      "id": "relative-time", "icon": "Clock3", "name": "RelativeTime", "category": "Typography", "summary": "Shows a time as how long ago it was, kept current.", "keywords": ["time ago", "timeago", "humanize", "timestamp", "from now"],
+      "examples": [
+        { "id": "relative-time-usage", "title": "How long ago", "lead": "Set `Value` to a time, in UTC or with its offset. It reads \"2 hours ago\" or \"yesterday\", with the full date on hover, and stays current while the page is open.",
+          "notes": {
+            "noscript": "The times are as of when the page loaded, in the server's words.",
+            "static": "The times stay current, in the reader's language and time zone.",
+            "interactive": "The times stay current, in the reader's language and time zone."
+          } },
+        { "id": "relative-time-threshold", "title": "Times far off", "lead": "Past `Threshold`, 30 days by default, the date shows instead. Times ahead read \"in 3 days\". Set `Threshold` to null to stay relative however far." }
+      ]
+    },
+
+    {
       "id": "visually-hidden", "icon": "EyeOff", "name": "VisuallyHidden", "category": "Typography", "summary": "Gives screen readers words the screen doesn't show.", "keywords": ["sr-only", "screen reader only", "skip link"],
       "examples": [
         { "id": "visually-hidden-usage", "title": "Words for screen readers", "lead": "Put words only screen readers need in a `VisuallyHidden`, such as \"per month\" for a price shown as \"$29 / month\", and hide the visible slash with `aria-hidden`. For a skip link, set `Focusable`, and it shows while it has focus." }
@@ -2163,7 +2176,7 @@
     {
       "id": "timeline", "icon": "GitCommitVertical", "name": "Timeline", "category": "Display", "summary": "Shows events on a rail, such as an order's history.", "parts": ["TimelineItem"],
       "examples": [
-        { "id": "timeline-usage", "title": "Links and the current item", "lead": "Put a `TimelineItem` for each event in a `Timeline`, with its `Title`. To make the title a link, set `Href`. To show when it happened, set `Time`, with `DateTime` for the machine-readable value.", "after": ["To mark where things stand now, set `Current` on that item."] },
+        { "id": "timeline-usage", "title": "Links and the current item", "lead": "Put a `TimelineItem` for each event in a `Timeline`, with its `Title`. To make the title a link, set `Href`. To show when it happened, set `Value`: it reads \"2 hours ago\" and stays current.", "after": ["For wording of your own, such as \"Q3\", set `Time`, with `DateTime` for the machine-readable value.", "To mark where things stand now, set `Current` on that item."] },
         { "id": "timeline-icons", "title": "Icons and status", "lead": "To change an item's marker, set `Icon` and `Status`." }
       ]
     },

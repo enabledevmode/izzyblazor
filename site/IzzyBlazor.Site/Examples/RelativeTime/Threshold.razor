@@ -1,0 +1,19 @@
+@* Invoices due: soon ones read "in 3 days", and past a week the due date shows instead. *@
+<DescriptionList MaxWidth="28.Rem">
+    @foreach (var invoice in _invoices)
+    {
+        <DescriptionItem Term="@invoice.Number">
+            Due <RelativeTime Value="invoice.Due" Threshold="TimeSpan.FromDays(7)" />
+        </DescriptionItem>
+    }
+</DescriptionList>
+
+@code {
+    private readonly (string Number, DateTimeOffset Due)[] _invoices =
+    [
+        ("INV-0118", DateTimeOffset.UtcNow.AddHours(5)),
+        ("INV-0119", DateTimeOffset.UtcNow.AddDays(3)),
+        ("INV-0120", DateTimeOffset.UtcNow.AddDays(24)),
+        ("INV-0107", DateTimeOffset.UtcNow.AddDays(-12)),
+    ];
+}
