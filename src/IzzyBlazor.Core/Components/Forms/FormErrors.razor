@@ -49,8 +49,32 @@
 
     private IReadOnlyList<string> Messages =>
         EditContext is null ? []
-        : ExceptFields is null ? EditContext.GetValidationMessages().ToList()
-        : EditContext.GetValidationMessages().Except(ExceptFields.SelectMany(f => EditContext.GetValidationMessages(new FieldIdentifier(EditContext.Model, f)))).ToList();
+        : Named(ExceptFields is null ? EditContext.GetValidationMessages().ToList()
+            : EditContext.GetValidationMessages().Except(ExceptFields.SelectMany(f => EditContext.GetValidationMessages(new FieldIdentifier(EditContext.Model, f)))).ToList());
+
+    // A FieldRepeater row's messages say which row and field they're about ("Item 3, Quantity: Enter a
+    // quantity."): under the field it's plain, but a list of messages needs the names. They follow the rest.
+    private IReadOnlyList<string> Named(List<string> messages)
+    {
+        if (EditContext is null || RepeaterSummaryNames.Of(EditContext) is not { } names)
+        {
+            return messages;
+        }
+
+        var named = new List<string>();
+        foreach (var (field, name) in names.Fields)
+        {
+            foreach (var message in EditContext.GetValidationMessages(field))
+            {
+                if (messages.Remove(message))
+                {
+                    named.Add($"{name}: {message}");
+                }
+            }
+        }
+
+        return [.. messages, .. named];
+    }
 
     private EditContext? _subscribed;
     private ElementReference _element;

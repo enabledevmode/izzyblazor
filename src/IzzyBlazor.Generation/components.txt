@@ -127,6 +127,8 @@ ErrorGuard
 FieldAddons
 FieldError
 FieldFrame
+FieldRepeater
+FieldRepeaterValue
 Fieldset
 FileUpload
 FilterBuilder

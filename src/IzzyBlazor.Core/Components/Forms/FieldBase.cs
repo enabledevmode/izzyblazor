@@ -63,6 +63,9 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>The tab the field is in, which counts its errors.</summary>
     [CascadingParameter] internal Tab? ParentTab { get; set; }
 
+    /// <summary>The FieldRepeater row the field is in, which names its input for the list.</summary>
+    [CascadingParameter] internal FieldRepeaterRow? RepeaterRow { get; set; }
+
     private Tab? _registeredTab;
 
     /// <inheritdoc />
@@ -84,6 +87,11 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
         }
 
         await base.SetParametersAsync(parameters);
+        if (RepeaterRow is { } row)
+        {
+            JoinRepeaterRow(row);
+        }
+
         if (!ReferenceEquals(ParentTab, _registeredTab))
         {
             _registeredTab?.RemoveField(FieldIdentifier);
@@ -110,6 +118,19 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
             EditContext.OnValidationRequested += CheckRules;
             EditContext.OnFieldChanged += ClearRules;
         }
+    }
+
+    // In a FieldRepeater row: the input posts as the list's (Lines[2].Description), and the first row's
+    // fields give the table its columns. A name set on the field itself wins.
+    private void JoinRepeaterRow(FieldRepeaterRow row)
+    {
+        if (AdditionalAttributes?.ContainsKey("name") != true && row.NameFor(ValueExpression) is { } name)
+        {
+            AdditionalAttributes = new Dictionary<string, object>(AdditionalAttributes ?? new Dictionary<string, object>()) { ["name"] = name };
+        }
+
+        var width = Width.Entries.Where(e => e.Breakpoint is null).Select(e => (Length?)e.Value).FirstOrDefault();
+        row.Register(ResolvedLabel ?? FieldIdentifier.FieldName, width is { } w ? StyleValues.Length(w) : null, null, FieldIdentifier.FieldName, IsRequired);
     }
 
     private EditContext? _rulesContext;

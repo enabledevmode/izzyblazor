@@ -1,0 +1,27 @@
+@using System.ComponentModel.DataAnnotations
+@* A form with a FieldRepeater, for FieldRepeaterTests. *@
+<Form Model="Order" OnValidSubmit="() => Saved++" NativeValidation="false">
+    <FormErrors />
+    <FieldRepeater @bind-Items="Order.Lines" NewItem="() => new Line { Quantity = 1 }" Label="Items" AddText="Add item" MinItems="1" MaxItems="3" Context="line">
+        <TextField @bind-Value="line.Description" Label="Description" />
+        <NumberField @bind-Value="line.Quantity" Label="Quantity" Width="Length.Rem(6)" />
+    </FieldRepeater>
+    <Button Submit>Save</Button>
+</Form>
+
+@code {
+    public OrderModel Order { get; } = new() { Lines = [new Line { Description = "Desk", Quantity = 1 }] };
+
+    public int Saved { get; private set; }
+
+    public sealed class OrderModel
+    {
+        public List<Line> Lines { get; set; } = [];
+    }
+
+    public sealed class Line
+    {
+        [Required(ErrorMessage = "Enter a description.")] public string? Description { get; set; }
+        [Range(1, 99, ErrorMessage = "Enter a quantity.")] public int Quantity { get; set; }
+    }
+}

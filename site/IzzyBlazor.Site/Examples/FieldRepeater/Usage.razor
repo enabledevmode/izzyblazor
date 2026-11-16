@@ -1,0 +1,56 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="invoice-lines" OnValidSubmit="Save" Grow>
+    <FormErrors />
+    <FieldRepeater @bind-Items="Model!.Lines" NewItem="() => new Line()" Label="Items" AddText="Add item" MinItems="1" Context="line">
+        <ChildContent>
+            <TextField @bind-Value="line.Description" Label="Description" />
+            <NumberField @bind-Value="line.Quantity" Label="Quantity" Width="Length.Rem(6)" />
+            <NumberField @bind-Value="line.UnitPrice" Label="Unit price" Step="0.01" Width="Length.Rem(9)">
+                <StartAddon>$</StartAddon>
+            </NumberField>
+            <FieldRepeaterValue Label="Amount" Width="Length.Rem(7)" Align="CellAlign.End">@line.Amount.ToString("C")</FieldRepeaterValue>
+        </ChildContent>
+        <Footer>
+            <TextBlock Weight="FontWeight.Medium" TabularNums>Subtotal @Model.Lines.Sum(l => l.Amount).ToString("C")</TextBlock>
+        </Footer>
+    </FieldRepeater>
+    <FormActions><Button Submit>Save invoice</Button></FormActions>
+    @if (_saved)
+    {
+        <Alert Status="Status.Success">Saved @Model.Lines.Count lines, @Model.Lines.Sum(l => l.Amount).ToString("C") before tax.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "invoice-lines")]
+    private Invoice? Model { get; set; }
+
+    private bool _saved;
+
+    protected override void OnInitialized() => Model ??= new()
+    {
+        Lines = [new() { Description = "Website redesign, phase 2", Quantity = 1, UnitPrice = 600 }, new() { Description = "Hosting, 12 months", Quantity = 12, UnitPrice = 25 }],
+    };
+
+    private void Save() => _saved = true;
+
+    public sealed class Invoice
+    {
+        public List<Line> Lines { get; set; } = [];
+    }
+
+    public sealed class Line
+    {
+        [Required(ErrorMessage = "Enter a description.")]
+        public string? Description { get; set; }
+
+        [Range(1, 999, ErrorMessage = "Enter a quantity from 1 to 999.")]
+        public int Quantity { get; set; } = 1;
+
+        [Display(Name = "Unit price"), Range(0, 1_000_000)]
+        public decimal UnitPrice { get; set; }
+
+        public decimal Amount => Quantity * UnitPrice;
+    }
+}

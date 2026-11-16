@@ -1,0 +1,471 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@implements IDisposable
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.DependencyInjection
+@attribute [ModeSupport]
+
+@*
+    Rows of the same fields that people add and remove: invoice lines, phone numbers, price tiers.
+    Wide, it's a table (the fields' labels as column headings); narrow, each row is a group headed
+    "Item 1" with its fields one under another. The rows post with the form as a list
+    (Lines[0].Description), so they bind back to the model's list.
+
+    <FieldRepeater @bind-Items="Draft.Lines" NewItem="() => new InvoiceLine()"
+                   Label="Items" AddText="Add item" Context="line">
+        <TextField @bind-Value="line.Description" Label="Description" />
+        <NumberField @bind-Value="line.Quantity" Label="Quantity" Width="Length.Rem(6)" />
+    </FieldRepeater>
+
+    How it works:
+    - Static page: Add and Remove are submit buttons. The post keeps what was typed, changes the
+      list, and redraws the form: the Form skips validation and its submit handlers.
+    - Interactive page: Add and Remove change the list in C#.
+    - Each row's fields are validated with the form (their [Required] and other attributes), as the
+      form's own validator doesn't look inside a list.
+
+    Accessibility:
+    - It's a fieldset named by Label; each row is a group named by ItemLabel ("Item 3").
+    - Every field keeps its own label as its name in both layouts; the table's headings are only
+      drawn, hidden from screen readers.
+    - Remove is named for its row ("Remove Item 3"). After Add, focus goes to the new row; after
+      Remove, to the row that took its place, else to Add.
+    - The form's error summary names each row's messages: "Item 3, Quantity: Enter a quantity."
+    See also: Fieldset, Form, FormErrors.
+*@
+
+<fieldset @attributes="AdditionalAttributes" id="@_id" class="@_class" style="@_style" disabled="@Disabled">
+    <legend class="ib-repeat-legend">@Label</legend>
+    @if (CustomCss is { } css)
+    {
+        <style nonce="@StyleNonceValue">@((MarkupString)css)</style>
+    }
+    @if (Items is { Count: > 0 })
+    {
+        <div class="ib-repeat-rows">
+            @if (_columns.All.Count > 0)
+            {
+                <div class="ib-repeat-head" aria-hidden="true">
+                    @foreach (var column in _columns.All)
+                    {
+                        <span class="@(column.Align == CellAlign.End ? "ib-repeat-th ib-repeat-end" : "ib-repeat-th")">@column.Label@HeadMark(column.Required, column.Member is not null)</span>
+                    }
+                    <span class="ib-repeat-th"></span>
+                </div>
+            }
+            @for (var i = 0; i < Items.Count; i++)
+            {
+                var index = i;
+                var item = Items[index];
+                var label = ItemName(index);
+                var focus = _focus == index;
+                <div class="ib-repeat-row" role="group" aria-label="@label" tabindex="-1"
+                     data-ib-autofocus="@(focus && !RendererInfo.IsInteractive ? "" : null)" autofocus="@(focus && !RendererInfo.IsInteractive)"
+                     @ref="_rowRefs[index]" @key="RowKey(item, index)">
+                    <span class="ib-repeat-item" aria-hidden="true">@label</span>
+                    <CascadingValue Value="Row(item, index)" IsFixed="false">
+                        @ChildContent?.Invoke(item)
+                    </CascadingValue>
+                    @if (CanRemove)
+                    {
+                        <span class="ib-repeat-remove">
+                            @if (RendererInfo.IsInteractive)
+                            {
+                                <IconButton Icon="Lucide.X" Label="@string.Format(Culture, TextDefaults.RepeaterRemove, label)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" OnClick="() => RemoveAt(index)" />
+                            }
+                            else
+                            {
+                                <IconButton Icon="Lucide.X" Label="@string.Format(Culture, TextDefaults.RepeaterRemove, label)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                                            Submit Name="@FormRepeatCommand.FieldName" Value="@($"{Key}:remove:{index}")" formnovalidate />
+                            }
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+    }
+    @if (TooFewMessages is { Count: > 0 } errors)
+    {
+        @foreach (var error in errors)
+        {
+            <p class="ib-field-error ib-repeat-error">@error</p>
+        }
+    }
+    @if (CanAdd || Footer is not null)
+    {
+        <div class="ib-repeat-foot">
+            @if (CanAdd)
+            {
+                var addFocus = _focus == -1;
+                if (RendererInfo.IsInteractive)
+                {
+                    <Button StartIcon="Lucide.Plus" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" OnClick="Add" @ref="_addButton">@(AddText ?? TextDefaults.RepeaterAdd)</Button>
+                }
+                else
+                {
+                    <Button StartIcon="Lucide.Plus" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                            Submit Name="@FormRepeatCommand.FieldName" Value="@($"{Key}:add")" formnovalidate
+                            data-ib-autofocus="@(addFocus ? "" : null)" autofocus="@addFocus">@(AddText ?? TextDefaults.RepeaterAdd)</Button>
+                }
+            }
+            @Footer
+        </div>
+    }
+</fieldset>
+
+@code {
+    /// <summary>The rows: a list the form's model holds, such as an invoice's lines. Use <c>@bind-Items</c>, whose expression names the posted fields.</summary>
+    [Parameter, EditorRequired] public List<TItem>? Items { get; set; }
+
+    /// <summary>Called after Add or Remove changes <see cref="Items"/>; set by <c>@bind-Items</c>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None, Notes = "A static page's Add and Remove change the list in the post itself, so the model has the rows without it.")]
+    public EventCallback<List<TItem>> ItemsChanged { get; set; }
+
+    /// <summary>
+    /// The list's expression, set by <c>@bind-Items</c>: it names the rows' fields as the form binds them
+    /// (<c>Draft.Lines</c> → <c>Draft.Lines[0].Description</c>).
+    /// </summary>
+    [Parameter] public Expression<Func<List<TItem>>>? ItemsExpression { get; set; }
+
+    /// <summary>One row's fields, for its item (the <c>Context</c>). Bind each field to the item: <c>@bind-Value="line.Description"</c>.</summary>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>A new row's item for Add. Unset, a new <typeparamref name="TItem"/>.</summary>
+    [Parameter] public Func<TItem>? NewItem { get; set; }
+
+    /// <summary>Names the group of rows, such as "Items": drawn above them and read before each row. Required.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>The Add button's text, such as "Add item". Defaults to "Add".</summary>
+    [Parameter] public string? AddText { get; set; }
+
+    /// <summary>A row's name, from its index (from 0): heads it when stacked, names its group and its Remove button. Defaults to "Item 1".</summary>
+    [Parameter] public Func<int, string>? ItemLabel { get; set; }
+
+    /// <summary>The fewest rows: Remove hides at this count, and a post with fewer is invalid. Defaults to 0.</summary>
+    [Parameter] public int MinItems { get; set; }
+
+    /// <summary>The most rows: Add hides at this count. Unset, no limit.</summary>
+    [Parameter] public int? MaxItems { get; set; }
+
+    /// <summary>
+    /// <see cref="RepeaterLayout.Auto"/> (the default): a table while the repeater is wide enough for its
+    /// columns, else stacked. <see cref="RepeaterLayout.Table"/> or <see cref="RepeaterLayout.Stacked"/> always.
+    /// </summary>
+    [Parameter] public RepeaterLayout Layout { get; set; }
+
+    /// <summary>Beside the Add button, under the rows: a subtotal.</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>Shows the rows read-only, with no Add or Remove.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>The nonce for its style element, when the page's CSP needs one. Defaults to IzzyTheme's.</summary>
+    [Parameter] public string? Nonce { get; set; }
+
+    [SupplyParameterFromForm(Name = FormRepeatCommand.FieldName)] private string? Command { get; set; }
+
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    [CascadingParameter] private FormOptions? FormOptions { get; set; }
+
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    private static CultureInfo Culture => CultureInfo.CurrentCulture;
+
+    private readonly string _id = IdGenerator.Next("ib-repeat");
+    private readonly Dictionary<int, ElementReference> _rowRefs = [];
+    private FieldRepeaterColumns _columns = null!;
+    private string? _class;
+    private string? _style;
+    private string? _key;
+    private bool _commandApplied;
+
+    // The row to focus after a change: an index, -1 for Add, null for none.
+    private int? _focus;
+    private Button? _addButton;
+    private bool _focusPending;
+
+    private EditContext? _context;
+    private ValidationMessageStore? _store;
+    private Func<IEnumerable<(FieldIdentifier Field, string Name)>>? _names;
+
+    // Keys the rows by item, so a field keeps its state when another row is removed.
+    private readonly Dictionary<object, int> _keys = new(ReferenceEqualityComparer.Instance);
+    private int _nextKey;
+
+    private bool ReadOnly => Disabled || FormOptions is { Disabled: true } or { ReadOnly: true };
+
+    private bool CanAdd => !ReadOnly && Items is not null && (MaxItems is not { } max || Items.Count < max);
+
+    private bool CanRemove => !ReadOnly && Items is not null && Items.Count > MinItems;
+
+    /// <summary>Which repeater a command is for: its list's posted name.</summary>
+    private string Key => _key ?? "items";
+
+    private string? StyleNonceValue => Nonce ?? Services.GetService<StyleNonce>()?.Value;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _columns = new FieldRepeaterColumns(StateHasChanged);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException($"{nameof(FieldRepeater<TItem>)} needs a {nameof(Label)}: it names the group of rows.");
+        }
+
+        if (Items is null)
+        {
+            throw new InvalidOperationException($"{nameof(FieldRepeater<TItem>)} needs {nameof(Items)}: bind it to the model's list with @bind-Items.");
+        }
+
+        _key = ItemsExpression is null ? null : FieldNames.Format(ItemsExpression);
+        (_class, _style) = BuildRootAttributes();
+        Watch(EditContext);
+
+        // A static post from Add or Remove: change the list before drawing the rows, once.
+        if (!_commandApplied && Command is { } command && command.StartsWith(Key + ":", StringComparison.Ordinal))
+        {
+            _commandApplied = true;
+            var action = command[(Key.Length + 1)..];
+            if (action == "add")
+            {
+                AddItem();
+            }
+            else if (action.StartsWith("remove:", StringComparison.Ordinal) && int.TryParse(action.AsSpan(7), NumberStyles.None, CultureInfo.InvariantCulture, out var index))
+            {
+                RemoveItem(index);
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-repeat");
+        classes.Add(Layout switch
+        {
+            RepeaterLayout.Table => "ib-repeat-table",
+            RepeaterLayout.Stacked => "ib-repeat-stacked",
+            _ => "ib-repeat-auto",
+        });
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusPending)
+        {
+            return;
+        }
+
+        _focusPending = false;
+        if (_focus is { } index && index >= 0 && _rowRefs.TryGetValue(index, out var row))
+        {
+            await row.FocusAsync();
+        }
+        else if (_focus == -1 && _addButton is not null)
+        {
+            await _addButton.FocusAsync();
+        }
+    }
+
+    private void Add()
+    {
+        AddItem();
+        _ = ItemsChanged.InvokeAsync(Items);
+    }
+
+    private void RemoveAt(int index)
+    {
+        RemoveItem(index);
+        _ = ItemsChanged.InvokeAsync(Items);
+    }
+
+    private void AddItem()
+    {
+        if (!CanAdd)
+        {
+            return;
+        }
+
+        Items!.Add(NewItem is not null ? NewItem() : Activator.CreateInstance<TItem>()!);
+        _focus = Items.Count - 1;
+        _focusPending = true;
+    }
+
+    private void RemoveItem(int index)
+    {
+        if (!CanRemove || index < 0 || index >= Items!.Count)
+        {
+            return;
+        }
+
+        // Its messages go with it, from the form's summary too.
+        var removed = Items[index];
+        Items.RemoveAt(index);
+        if (_store is not null && removed is not null)
+        {
+            foreach (var column in _columns.All.Where(c => c.Member is not null))
+            {
+                _store.Clear(new FieldIdentifier(removed, column.Member!));
+            }
+
+            _context!.NotifyValidationStateChanged();
+        }
+
+        _focus = index < Items.Count ? index : CanAdd ? -1 : null;
+        _focusPending = true;
+    }
+
+    private object RowKey(TItem item, int index)
+    {
+        if (item is null)
+        {
+            return index;
+        }
+
+        if (!_keys.TryGetValue(item, out var key))
+        {
+            key = _nextKey++;
+            _keys[item] = key;
+        }
+
+        return key;
+    }
+
+    private FieldRepeaterRow Row(TItem item, int index) =>
+        new(item, index, _key is null ? null : $"{_key}[{index.ToString(CultureInfo.InvariantCulture)}]", index == 0 ? _columns : null);
+
+    // A heading's mark, as the form marks its fields' labels: an asterisk on required ones, or "(optional)" on the rest.
+    private RenderFragment? HeadMark(bool required, bool field) => (FormOptions?.RequiredMark ?? RequiredMark.Required) switch
+    {
+        RequiredMark.Required when required => @<span class="ib-field-required"> *</span>,
+        RequiredMark.Optional when field && !required => @<span class="ib-field-optional"> @TextDefaults.Optional</span>,
+        _ => null,
+    };
+
+    private string ItemName(int index) => ItemLabel?.Invoke(index) ?? string.Format(Culture, TextDefaults.RepeaterItem, index + 1);
+
+    // The table layout's rules, for this repeater: its columns in a grid the rows share (subgrid), the
+    // headings shown, each field's own label and the row's name hidden (still read). Applied always (Table)
+    // or while the repeater is wide enough for its columns (Auto); the stacked layout is the stylesheet's.
+    private string? CustomCss
+    {
+        get
+        {
+            if (_columns.All.Count == 0)
+            {
+                return null;
+            }
+
+            var id = "#" + _id;
+            // A field's Width is its column's in the table; stacked, every field is full width.
+            var widths = $"{id}>.ib-repeat-rows>.ib-repeat-row>*{{width:auto;max-width:none}}";
+            if (Layout == RepeaterLayout.Stacked)
+            {
+                return widths;
+            }
+
+            var template = string.Join(' ', _columns.All.Select(c => c.Width ?? "minmax(0, 1fr)")) + " auto";
+            var table =
+                $"{id}>.ib-repeat-rows{{display:grid;grid-template-columns:{template};column-gap:var(--ib-space-3);row-gap:0}}" +
+                $"{id}>.ib-repeat-rows>:is(.ib-repeat-head,.ib-repeat-row){{display:grid;grid-column:1/-1;grid-template-columns:subgrid;align-items:start;padding:var(--ib-space-2) 0;border:0;border-block-end:1px solid var(--ib-color-border);border-radius:0;background:none}}" +
+                $"{id}>.ib-repeat-rows>.ib-repeat-row>:is(.ib-repeat-item,.ib-repeat-remove){{grid-row:auto;grid-column:auto}}" +
+                $"{id}>.ib-repeat-rows>.ib-repeat-row>.ib-repeat-item{{display:none}}" +
+                $"{id}>.ib-repeat-rows>.ib-repeat-row>*{{grid-column:auto}}" +
+                $"{id} .ib-repeat-row :is(.ib-field-label,.ib-repeat-value-label){{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}";
+            if (Layout == RepeaterLayout.Table)
+            {
+                return widths + table;
+            }
+
+            // Room the table needs: each sized column, 8rem for each that shares, the Remove column and the gaps.
+            var need = _columns.All.Sum(c => c.Width is null ? 8 : RemOf(c.Width)) + 2.5 + 0.75 * _columns.All.Count;
+            return widths + $"@container (width >= {need.ToString("0.##", CultureInfo.InvariantCulture)}rem){{{table}}}";
+        }
+    }
+
+    // A width's size in rem for the switch point: rem and px are known; anything else counts as 8rem.
+    private static double RemOf(string width) =>
+        width.EndsWith("rem", StringComparison.Ordinal) && double.TryParse(width.AsSpan(0, width.Length - 3), NumberStyles.Float, CultureInfo.InvariantCulture, out var rem) ? rem
+        : width.EndsWith("px", StringComparison.Ordinal) && double.TryParse(width.AsSpan(0, width.Length - 2), NumberStyles.Float, CultureInfo.InvariantCulture, out var px) ? px / 16
+        : 8;
+
+    // The repeater validates its rows when the form does, as the form's validator doesn't look inside a list.
+    private void Watch(EditContext? context)
+    {
+        if (ReferenceEquals(context, _context))
+        {
+            return;
+        }
+
+        Unwatch();
+        _context = context;
+        if (context is null)
+        {
+            return;
+        }
+
+        _store = new ValidationMessageStore(context);
+        context.OnValidationRequested += Validate;
+        _names = SummaryNames;
+        RepeaterSummaryNames.For(context).Add(_names);
+    }
+
+    private void Unwatch()
+    {
+        if (_context is null)
+        {
+            return;
+        }
+
+        _context.OnValidationRequested -= Validate;
+        if (_names is not null)
+        {
+            RepeaterSummaryNames.Of(_context)?.Remove(_names);
+        }
+
+        _store?.Clear();
+        _context = null;
+    }
+
+    private FieldIdentifier TooFewField => new(Items!, nameof(ICollection<TItem>.Count));
+
+    private IReadOnlyList<string>? TooFewMessages => _context is null || Items is null ? null : _context.GetValidationMessages(TooFewField).ToList();
+
+    // "Item 3, Quantity" for each row's fields, for the form's error summary.
+    private IEnumerable<(FieldIdentifier Field, string Name)> SummaryNames()
+    {
+        if (Items is null)
+        {
+            yield break;
+        }
+
+        for (var i = 0; i < Items.Count; i++)
+        {
+            if (Items[i] is not { } item)
+            {
+                continue;
+            }
+
+            foreach (var column in _columns.All)
+            {
+                if (column.Member is { } member)
+                {
+                    yield return (new FieldIdentifier(item, member), string.Format(Culture, TextDefaults.RepeaterSummaryName, ItemName(i), column.Label));
+                }
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Unwatch();
+}

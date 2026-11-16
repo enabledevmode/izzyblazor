@@ -3866,3 +3866,122 @@
     }
   }
 }
+
+/*
+ * FieldRepeater: rows of the same fields. Stacked here (each row a bordered group: its name and
+ * Remove on top, the fields one under another); the table layout (a grid the rows share through
+ * subgrid, the fields' labels as headings) is written per repeater, from its columns, and applied
+ * by a container query on the repeater's own width (FieldRepeater.razor, CustomCss).
+ */
+@layer izzy.components {
+  .ib-repeat {
+    container-type: inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-3);
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .ib-repeat-legend {
+    padding: 0;
+    font-size: var(--ib-field-label-font);
+    font-weight: var(--ib-weight-medium);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-repeat-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-3);
+  }
+
+  .ib-repeat-head {
+    display: none;
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-repeat-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--ib-space-3);
+    padding: var(--ib-space-4);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+  }
+
+  .ib-repeat-row:focus {
+    outline: none;
+  }
+
+  .ib-repeat-row:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-repeat-row > * {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .ib-repeat-row > .ib-repeat-item {
+    grid-row: 1;
+    grid-column: 1;
+    align-self: center;
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-repeat-row > .ib-repeat-remove {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .ib-repeat-remove {
+    display: flex;
+    align-items: center;
+    min-height: var(--ib-control-h-md);
+  }
+
+  /* A computed value: its label over it when stacked, under its heading in the table. */
+  .ib-repeat-value {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+  }
+
+  .ib-repeat-value-label {
+    font-size: var(--ib-field-label-font);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-repeat-value-text {
+    display: flex;
+    align-items: center;
+    min-height: var(--ib-control-h-md);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-repeat-end {
+    text-align: end;
+  }
+
+  .ib-repeat-value.ib-repeat-end > .ib-repeat-value-text {
+    justify-content: flex-end;
+  }
+
+  .ib-repeat-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ib-space-3);
+  }
+
+  .ib-repeat-error {
+    margin: 0;
+  }
+}

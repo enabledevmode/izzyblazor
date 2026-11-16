@@ -807,6 +807,21 @@
     },
 
     {
+      "id": "field-repeater", "icon": "ListPlus", "name": "FieldRepeater", "category": "Inputs", "summary": "Rows of the same fields that people add and remove, such as invoice lines.", "keywords": ["repeater", "field array", "line items", "dynamic fields", "add row"], "parts": ["FieldRepeaterValue"],
+      "use": "Use it inside a form for a list that's part of what's being filled in: an invoice's lines, a person's emergency contacts, price tiers. For records people browse, search and edit one at a time, use a DataGrid.",
+      "examples": [
+        { "id": "field-repeater-usage", "title": "Invoice lines", "lead": "Bind `Items` to the model's list with `@bind-Items`, and put one row's fields inside, bound to the row (the `Context`). The rows post with the form as a list, so the model gets them back. `FieldRepeaterValue` shows a value worked out from the row, such as the amount, and `Footer` goes beside Add.", "after": ["Wide, the rows are a table with the fields' labels as headings; narrow, each row is a group with its fields one under another. It follows the repeater's own width, not the window's.", "Each row's fields are checked with the form, and the error summary says which row: \"Item 2, Description: Enter a description.\""],
+          "notes": {
+            "noscript": "Add and Remove post the form and come back with the rows changed and what was typed kept.",
+            "static": "Add and Remove post the form without reloading the page; focus goes to the new row.",
+            "interactive": "Add and Remove change the list in place, and the amounts update as you type."
+          } },
+        { "id": "field-repeater-stacked", "title": "Always stacked", "lead": "For rows with longer fields, such as contacts, set `Layout` to `Stacked`. `ItemLabel` names each row, here \"Contact 1\", and its Remove button says the same." },
+        { "id": "field-repeater-limits", "title": "Limits", "lead": "`MinItems` and `MaxItems` keep the count in range: Remove goes at the minimum and Add at the maximum, and a form with fewer rows than the minimum doesn't save." }
+      ]
+    },
+
+    {
       "id": "field-frame", "icon": "Frame", "name": "FieldFrame", "category": "Inputs", "summary": "Adds the label, hint and errors to a control of your own.", "parts": ["FieldAddons", "FieldError"],
       "examples": [
         { "id": "field-frame-usage", "title": "A control of your own", "lead": "A field frame gives a control of your own the label, hint, required mark and messages of the built-in fields. Put the control in a `FieldFrame`. The control points at the hint and messages with `aria-describedby`." },
