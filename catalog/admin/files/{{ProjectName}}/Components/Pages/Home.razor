@@ -75,13 +75,7 @@
                     @foreach (var (plan, count) in _plans)
                     {
                         var share = _planTotal == 0 ? 0 : (int)Math.Round(count * 100.0 / _planTotal);
-                        <Stack Gap="2">
-                            <Row Justify="Justify.Between" Gap="3">
-                                <TextBlock Size="TextSize.Sm">@plan</TextBlock>
-                                <TextBlock Size="TextSize.Sm" TabularNums><strong>@count</strong> · @share%</TextBlock>
-                            </Row>
-                            <Progress Value="share" Max="100" aria-label="@plan" />
-                        </Stack>
+                        <Progress Label="@plan" Value="share" Max="100" ValueText="@($"{count} · {share}%")" />
                     }
                     <Anchor Href="customers">View customers</Anchor>
                 </Stack>

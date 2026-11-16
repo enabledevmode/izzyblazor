@@ -162,10 +162,9 @@ else
 
             @* What's owed and what happened: first on a phone. *@
             <Stack Gap="new() { Base = 4, Lg = 6 }" LayoutOrder="new() { Base = -1, Lg = 0 }" Class="invoice-screen">
-                <Card>
+                <Card Title="@(invoice.Status == InvoiceStatus.Paid ? "Paid" : "Amount due")" TitleLevel="2">
                     <Stack Gap="3">
-                        <Heading Level="2" Size="TextSize.Md">@(invoice.Status == InvoiceStatus.Paid ? "Paid" : "Amount due")</Heading>
-                        <TextBlock Size="TextSize.Xl3" Weight="FontWeight.Semibold" TabularNums Class="invoice-amount">@InvoiceText.Money(invoice.Status == InvoiceStatus.Void ? 0 : invoice.Total)</TextBlock>
+                        <TextBlock Size="TextSize.Xl3" Weight="FontWeight.Semibold" TabularNums Family="FontFamily.Heading">@InvoiceText.Money(invoice.Status == InvoiceStatus.Void ? 0 : invoice.Total)</TextBlock>
                         <DescriptionList Size="ControlSize.Sm">
                             @if (invoice.Paid is { } paidOn)
                             {
@@ -195,9 +194,8 @@ else
                     </Stack>
                 </Card>
 
-                <Card>
+                <Card Title="Activity" TitleLevel="2">
                     <Stack Gap="4">
-                        <Heading Level="2" Size="TextSize.Md">Activity</Heading>
                         @* The invoice's history from the audit log, newest first: the same events Audit log lists. *@
                         <Timeline TimePlacement="TimelinePlacement.Below">
                             @foreach (var e in _history)
@@ -218,15 +216,15 @@ else
                                             @foreach (var c in changes)
                                             {
                                                 @* "Status: Draft → Sent", the old value struck through. *@
-                                                <div>
+                                                <TextBlock>
                                                     @AuditText.Field(c.Field):
                                                     @if (c.Before is { } before)
                                                     {
                                                         <TextBlock As="span" Decoration="TextDecoration.LineThrough">@Value(before)</TextBlock>
-                                                        <span aria-hidden="true"> → </span><span class="ib-visually-hidden"> to </span>
+                                                        <TextBlock As="span" aria-hidden="true"> → </TextBlock><VisuallyHidden> to </VisuallyHidden>
                                                     }
                                                     <TextBlock As="span" Color="Color.OnSurface">@Value(c.After)</TextBlock>
-                                                </div>
+                                                </TextBlock>
                                             }
                                         </ChildContent>
                                     </TimelineItem>
