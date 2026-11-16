@@ -1,0 +1,55 @@
+@page "/admin/roles"
+@attribute [Authorize(Policy = Policies.ManageUsers)]
+@inject UserAdmin Admin
+
+<PageTitle>Roles</PageTitle>
+
+@* What each role can do and who has it. Read from Security/Policies.cs, the same table the app enforces, so
+   changing who has a policy there changes this page too. Roles aren't edited here: they're set in code. *@
+<Stack Gap="new() { Base = 6, Md = 8 }">
+    <PageHeader Title="Roles">
+        <TextBlock Color="Color.Muted">What each role can do. Roles are set in code: see <Code>Policies.cs</Code>.</TextBlock>
+    </PageHeader>
+
+    <Grid Columns="new() { Base = 1, Md = 3 }" Gap="new() { Base = 4, Md = 5 }">
+        @foreach (var role in Roles.All)
+        {
+            var members = _members.GetValueOrDefault(role);
+            <Card Title="@role" TitleLevel="2" Description="@Roles.Description(role)">
+                <CardActions>
+                    <Badge Variant="BadgeVariant.Outline">@members @(members == 1 ? "member" : "members")</Badge>
+                </CardActions>
+                <Stack Gap="4" Grow>
+                    <Divider />
+                    <List Plain Gap="3" aria-label="@($"What {role} can do")">
+                        @foreach (var (_, allows, roles) in Policies.All)
+                        {
+                            var yes = roles.Contains(role);
+                            <ListItem Icon="@(yes ? Lucide.Check : Lucide.X)" IconColor="@(yes ? Color.Success : Color.Muted)">
+                                <VisuallyHidden>@(yes ? "Allowed: " : "Not allowed: ")</VisuallyHidden>
+                                @if (yes)
+                                {
+                                    @allows
+                                }
+                                else
+                                {
+                                    <TextBlock Color="Color.Muted">@allows</TextBlock>
+                                }
+                            </ListItem>
+                        }
+                    </List>
+                </Stack>
+                <CardFooter>
+                    <Anchor Href="@($"admin/users?f-role={role}")" Underline="AnchorUnderline.Hover">View members</Anchor>
+                </CardFooter>
+            </Card>
+        }
+    </Grid>
+</Stack>
+
+@code {
+    private Dictionary<string, int> _members = [];
+
+    protected override async Task OnInitializedAsync() =>
+        _members = (await Admin.ListAsync()).GroupBy(u => u.Role.ToString()).ToDictionary(g => g.Key, g => g.Count());
+}
