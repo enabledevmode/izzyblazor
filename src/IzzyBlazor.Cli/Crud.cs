@@ -167,6 +167,11 @@ static partial class Crud
             ["NavIcons"] = NavHasIcons(project),
             // A run with the other store replaces its registration rather than adding a second.
             ["HasStoreRegistration"] = registration.IsMatch(program),
+            // The nav links to the pages already (a second run, or a kit's nav): no second link.
+            ["HasNavLink"] = project.ReadFile($"{project.Host}Components/Layout/MainLayout.razor") is { } layout
+                && Regex.IsMatch(layout, $@"<NavItem\b[^>]*\bHref=""/?{Regex.Escape(route)}""", RegexOptions.IgnoreCase),
+            ["HasViewPolicy"] = settings.GetValueOrDefault("ViewPolicy") is { Length: > 0 },
+            ["HasEditPolicy"] = settings.GetValueOrDefault("EditPolicy") is { Length: > 0 },
         };
         var keyType = info.Key.Type.TrimEnd('?');
         var tokens = new Dictionary<string, string>(project.Tokens)

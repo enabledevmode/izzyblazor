@@ -1,5 +1,7 @@
 @page "/{{Route}}"
-@*#if (Authorize) *@
+@*#if (HasViewPolicy) *@
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "{{ViewPolicy}}")]
+@*#elif (Authorize) *@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @*#endif *@
 @using {{RootNamespace}}.Data
@@ -7,6 +9,9 @@
 @using {{Alias.Name}} = {{Alias.Type}}
 @*#endeach *@
 @inject I{{Model}}Store Store
+@*#if (HasEditPolicy) *@
+@inject Microsoft.AspNetCore.Authorization.IAuthorizationService Authorization
+@*#endif *@
 
 <PageTitle>{{Plural}}</PageTitle>
 
@@ -20,23 +25,46 @@
     <DataGrid TItem="{{ModelType}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{{RowName}}")" Caption="{{Plural}}" PageSize="10"
               InitialSort="{{InitialSort}}" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="{{LayoutKey}}" ExportExcelHref="{{Route}}/export.xlsx" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
+@*#if (HasEditPolicy) *@
+              NewItem="@(_canEdit ? () => new {{ModelType}}() : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
+              AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
+@*#else *@
               NewItem="() => new {{ModelType}}()" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
+@*#endif *@
               NoMatchesText="No {{PluralLower}} match “{0}”" Grow>
         <ToolbarContent>
             <DataGridExport />
             @* On a phone, Add floats at the bottom corner, under the thumb. *@
+@*#if (HasEditPolicy) *@
+            @if (_canEdit)
+            {
+                <DataGridAdd FloatBelow="Breakpoint.Sm" />
+            }
+@*#else *@
             <DataGridAdd FloatBelow="Breakpoint.Sm" />
+@*#endif *@
         </ToolbarContent>
         <EmptyContent>
             @* Add {{SingularLower}} is in the toolbar above it; on a phone, where Add floats once there are
                {{PluralLower}}, the empty state holds the button. *@
             <EmptyState Icon="Lucide.Inbox" Title="No {{PluralLower}} yet" Description="Add your first {{SingularLower}} to see them here.">
+@*#if (HasEditPolicy) *@
+                @if (_canEdit)
+                {
+                    <Button Href="{{Route}}?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add {{SingularLower}}</Button>
+                }
+@*#else *@
                 <Button Href="{{Route}}?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add {{SingularLower}}</Button>
+@*#endif *@
             </EmptyState>
         </EmptyContent>
         <Columns>
 @*#each (Field in Fields) *@
-@*#if (Field.InList) *@
+@*#if (Field.InList && Field.IsStatus) *@
+            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.WidthAttr}}{{Field.PriorityAttr}}{{Field.EditableAttr}} Sortable Context="x">
+                <Badge Status="Tone(x.{{Field.Name}})" Dot>@Label(x.{{Field.Name}})</Badge>
+            </PropertyColumn>
+@*#elif (Field.InList) *@
             <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.FormatAttr}}{{Field.WidthAttr}}{{Field.PriorityAttr}}{{Field.EditableAttr}} Sortable />
 @*#else *@
             @* In the edit dialog only; the column picker can show it. *@
@@ -48,6 +76,17 @@
 </Stack>
 
 @code {
+@*#if (HasEditPolicy) *@
+    [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState> AuthState { get; set; } = default!;
+
+    // Who may add, edit and delete: the {{EditPolicy}} policy. Everyone else who can open the page sees the
+    // {{PluralLower}} read-only.
+    private bool _canEdit;
+
+    protected override async Task OnInitializedAsync() =>
+        _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, "{{EditPolicy}}")).Succeeded;
+
+@*#endif *@
     // The grid's search goes to the store, which looks in more fields than the grid shows.
 @*#if (HasStatus) *@
     private ValueTask<DataResult<{{ModelType}}>> Find(DataRequest<{{ModelType}}> request) => Store.FindAsync(request with { Search = null }, request.Search, null);
@@ -60,6 +99,9 @@
 
     private async Task SaveAsync(DataGridSave<{{ModelType}}> save)
     {
+@*#if (HasEditPolicy) *@
+        if (!_canEdit) return;
+@*#endif *@
         var missing = false;
 @*#each (Field in FormFields) *@
 @*#if (Field.CheckRequired) *@
@@ -86,7 +128,29 @@
 
     private async Task DeleteAsync(DataGridDelete<{{ModelType}}> delete)
     {
+@*#if (HasEditPolicy) *@
+        if (!_canEdit) return;
+@*#endif *@
         if (!await Store.DeleteAsync(delete.Item.{{Key}}))
             delete.AddError("Other records point to this {{SingularLower}}. Delete or change those first.");
     }
+@*#if (HasStatus) *@
+
+    // A badge's color for each {{StatusLabel}}: change them to what each means in your app.
+    private static Status Tone({{StatusType}}? value) => value switch
+    {
+@*#each (Value in StatusValues) *@
+        {{StatusType}}.{{Value.Name}} => IzzyBlazor.Status.{{Value.Tone}},
+@*#endeach *@
+        _ => IzzyBlazor.Status.Neutral,
+    };
+
+    private static string Label({{StatusType}}? value) => value switch
+    {
+@*#each (Value in StatusValues) *@
+        {{StatusType}}.{{Value.Name}} => "{{Value.Label}}",
+@*#endeach *@
+        _ => value?.ToString() ?? "Not set",
+    };
+@*#endif *@
 }

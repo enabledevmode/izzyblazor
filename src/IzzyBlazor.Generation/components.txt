@@ -97,6 +97,7 @@ DataGridAdd
 DataGridColumnPicker
 DataGridExport
 DataGridExportFormat
+DataGridFilter
 DataGridFilterBuilder
 DataGridSearch
 DateField
@@ -203,6 +204,7 @@ RangeSelector
 RangeSlider
 Rating
 ReconnectDialog
+RelativeTime
 RichText
 RichTextEditor
 Row
