@@ -1,7 +1,7 @@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 @inject NavigationManager Navigation
 @* Narrow, the columns with the lowest priority hide first, and a row's button shows them under it.
-   The row's actions move into its ⋮ menu then, and the toolbar's own buttons and Export into its
+   The row's actions move into its ⋯ menu then, and the toolbar's own buttons and Export into its
    "…" menu; search stays. Switch to Phone to see it. *@
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders that fit a phone" QueryPrefix="narrow-"
           ItemKey="o => o.Number.ToString()" RowLabel="@(o => $"Order {o.Number}")"

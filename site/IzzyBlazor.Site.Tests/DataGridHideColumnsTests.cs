@@ -60,7 +60,7 @@ public sealed class DataGridHideColumnsTests(SiteFixture site) : IClassFixture<S
         if (mode == "interactive") await page.Locator($"ib-table[data-ib-interactive]:has({Caption})").WaitForAsync();
         var first = grid.Locator(".ib-table-scroll tbody tr").First;
         await first.Locator("[data-ib-row-menu]").ClickAsync();
-        await grid.GetByRole(AriaRole.Menuitem, new() { Name = "Edit Order 1001" }).ClickAsync();
+        await grid.GetByRole(AriaRole.Menuitem, new() { Name = "Edit", Exact = true }).ClickAsync();
 
         // Its fields are under it, the first focused; the cells' copies, hidden, don't post.
         var customer = grid.Locator(".ib-grid-detail").GetByLabel("Customer");

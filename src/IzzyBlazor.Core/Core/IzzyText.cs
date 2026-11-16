@@ -386,10 +386,10 @@ public class IzzyText
     /// <summary>The button that stays on the page, in a Form's ConfirmLeave dialog.</summary>
     public virtual string Stay { get; set; } = "Stay";
 
-    /// <summary>A DataGrid editor's title, before it knows its row.</summary>
+    /// <summary>A DataGrid editor's title before it knows its row, and the Edit item in a row's menu.</summary>
     public virtual string Edit { get; set; } = "Edit";
 
-    /// <summary>A DataGrid row's edit button and editor. {0} is the row's label.</summary>
+    /// <summary>A DataGrid row's edit button and editor. {0} is the row's label. In the row's menu, <see cref="Edit"/>.</summary>
     public virtual string EditItem { get; set; } = "Edit {0}";
 
     /// <summary>A DataGrid's Add button, and its editor's title for a new row.</summary>
@@ -413,10 +413,10 @@ public class IzzyText
     /// <summary>The Move dialog's error when the chosen row is the moving one or under it.</summary>
     public virtual string TreeMoveIntoItself { get; set; } = "A row can't go under itself or a row under it.";
 
-    /// <summary>A DataGrid's delete button in its confirmation.</summary>
+    /// <summary>A DataGrid's delete button in its confirmation, and the Delete item in a row's menu.</summary>
     public virtual string Delete { get; set; } = "Delete";
 
-    /// <summary>A DataGrid row's delete action. {0} is the row's label.</summary>
+    /// <summary>A DataGrid row's delete button. {0} is the row's label. In the row's menu, <see cref="Delete"/>.</summary>
     public virtual string DeleteItem { get; set; } = "Delete {0}";
 
     /// <summary>A DataGrid's delete confirmation's title. {0} is the row's label.</summary>

@@ -33,14 +33,14 @@ public enum RowActionOverflow
 {
     /// <summary>
     /// A button in the row, until the grid hides columns to fit (<c>DataGridSmallScreen.HideColumns</c>);
-    /// then in the row's ⋮ menu. The default.
+    /// then in the row's ⋯ menu. The default.
     /// </summary>
     Auto,
 
     /// <summary>A button in the row, always.</summary>
     Never,
 
-    /// <summary>In the row's ⋮ menu.</summary>
+    /// <summary>In the row's ⋯ menu.</summary>
     Always,
 }
 
@@ -64,7 +64,7 @@ public sealed class ActionColumn<TItem> : ComponentBase
 
     /// <summary>
     /// Where its actions show, unless one says otherwise. <see cref="RowActionOverflow.Always"/> makes it
-    /// a ⋮ menu. The default, <see cref="RowActionOverflow.Auto"/>, is buttons, which move into the menu
+    /// a ⋯ menu. The default, <see cref="RowActionOverflow.Auto"/>, is buttons, which move into the menu
     /// once the grid hides columns to fit (<c>DataGridSmallScreen.HideColumns</c>).
     /// </summary>
     [Parameter] public RowActionOverflow Overflow { get; set; }
