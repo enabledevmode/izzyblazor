@@ -3,8 +3,8 @@
 @attribute [ModeSupport]
 
 @*
-    The top of a page: its title, a muted line on what it's for, and actions or a status at the
-    end, which wrap under the text on narrow screens. The title is the page's h1 unless set.
+    The top of a page: its title (with a status badge beside it, if set), a muted line on what
+    it's for, and actions at the end, which wrap under the text on narrow screens. The title is the page's h1 unless set.
 
     Accessibility:
     - `Title` is a heading, an `h1` by default; set `TitleLevel` when the page has its own h1.
@@ -15,7 +15,17 @@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
     <div class="ib-page-header-text">
-        @TitleElement
+        @if (Badge is not null)
+        {
+            <div class="ib-page-header-title-row">
+                @TitleElement
+                <Badge Status="BadgeStatus" Dot>@Badge</Badge>
+            </div>
+        }
+        else
+        {
+            @TitleElement
+        }
         @if (Description is not null)
         {
             <p class="ib-page-header-description">@Description</p>
@@ -37,6 +47,15 @@
 
     /// <summary>The heading level of <see cref="Title"/>, 1 to 6. Defaults to 1, the page's main heading.</summary>
     [Parameter] public int TitleLevel { get; set; } = 1;
+
+    /// <summary>
+    /// A status beside the title, as a badge with a dot: an invoice's "Overdue", an order's "Shipped".
+    /// It's read after the title.
+    /// </summary>
+    [Parameter] public string? Badge { get; set; }
+
+    /// <summary>The badge's color, such as <see cref="Status.Danger"/>. Defaults to neutral.</summary>
+    [Parameter] public Status BadgeStatus { get; set; } = Status.Neutral;
 
     /// <summary>A muted line under the title: what the page is for, in a sentence.</summary>
     [Parameter] public string? Description { get; set; }

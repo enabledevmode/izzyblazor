@@ -76,9 +76,10 @@
     },
 
     {
-      "id": "page-header", "icon": "PanelTop", "name": "PageHeader", "category": "Layout", "summary": "Shows a page's title, what it's for, and its actions.", "keywords": ["page title", "heading", "toolbar"], "parts": ["PageHeaderActions"],
+      "id": "page-header", "icon": "PanelTop", "name": "PageHeader", "category": "Layout", "summary": "Shows a page's title, its status, what it's for, and its actions.", "keywords": ["page title", "heading", "toolbar"], "parts": ["PageHeaderActions"],
       "examples": [
         { "id": "page-header-usage", "title": "Title, description and actions", "lead": "A page header names the page and says what it's for. Set `Title` and `Description`. For the page's main actions or its status, add `PageHeaderActions`; they sit at the end and wrap under the text on a phone." },
+        { "id": "page-header-status-badge", "title": "A status beside the title", "lead": "For a record's page, such as one invoice, set `Badge` to where it stands and `BadgeStatus` to its color. The badge sits beside the title and wraps under a long one." },
         { "id": "page-header-sizes", "title": "Sizes", "lead": "`Size` sets the title's size: `Sm` for a section inside a page, `Md` (the default) for most pages, `Lg` for a page with little else on it, such as a sign-in form. For a header under the page's own h1, set `TitleLevel`." }
       ]
     },
@@ -2177,7 +2178,12 @@
       "id": "timeline", "icon": "GitCommitVertical", "name": "Timeline", "category": "Display", "summary": "Shows events on a rail, such as an order's history.", "parts": ["TimelineItem"],
       "examples": [
         { "id": "timeline-usage", "title": "Links and the current item", "lead": "Put a `TimelineItem` for each event in a `Timeline`, with its `Title`. To make the title a link, set `Href`. To show when it happened, set `Value`: it reads \"2 hours ago\" and stays current.", "after": ["For wording of your own, such as \"Q3\", set `Time`, with `DateTime` for the machine-readable value.", "To mark where things stand now, set `Current` on that item."] },
-        { "id": "timeline-icons", "title": "Icons and status", "lead": "To change an item's marker, set `Icon` and `Status`." }
+        { "id": "timeline-progress", "title": "Done and still to come", "lead": "For steps in an order, such as an order's tracking, set `Done` on each finished step. Its marker fills and the rail runs solid to the next step; the steps after stay faint. `Marker=\"TimelineMarker.Ring\"` draws larger rings, which show a check once done.", "after": ["Screen readers hear \"(completed)\" after a done step's title."] },
+        { "id": "timeline-pipeline", "title": "Badges and the running step", "lead": "`Badge` puts a short label after the title, such as how long a step took or its state; `BadgeStatus` colors it. Set `Current` on the step under way." },
+        { "id": "timeline-roadmap", "title": "Dates in a column", "lead": "The time sits above the title by default. For a roadmap read down its dates, set `TimePlacement` to `Start`: the times line up in a column before the markers.", "after": ["`End` puts the time at the end of the title's line, for a log with short titles."] },
+        { "id": "timeline-activity", "title": "Who did it", "lead": "For an activity feed, set `Avatar` to the person's name: their initials are the marker, or their picture with `AvatarSrc`. `TitleContent` takes markup in place of `Title`, so the name can stand out from the action. `TimePlacement=\"TimelinePlacement.Below\"` puts the time last, after what happened." },
+        { "id": "timeline-icons", "title": "Icons and status", "lead": "To change an item's marker, set `Icon` and `Status`." },
+        { "id": "timeline-compact", "title": "Compact", "lead": "`Size=\"ControlSize.Sm\"` makes the markers, text and spacing smaller, with the rail in short segments, for a sidebar or a card. A `Status` fills each dot with its color." }
       ]
     },
 
