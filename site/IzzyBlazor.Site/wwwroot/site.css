@@ -581,6 +581,9 @@
 .site-params .site-member-name code { color: var(--ib-color-primary-text); }
 /* Prop · Default · Type with the description under it (as Chakra's): the last column takes the rest. */
 .site-params td:last-child, .site-params th:last-child { width: 100%; }
+/* A two-column table whose first column sets a Width keeps that width, so the tables on one page
+   (an article's options and commands) line up. */
+.site-params:has(thead th:first-child[style*="width"]):has(thead th:nth-child(2):last-child) :is(td, th):last-child { width: auto; }
 .site-params td:not(:last-child) { white-space: nowrap; vertical-align: top; }
 .site-params td:last-child { vertical-align: top; }
 /* Sentences in both columns (the accessibility pages): let the first wrap too, so a phone fits it. */
