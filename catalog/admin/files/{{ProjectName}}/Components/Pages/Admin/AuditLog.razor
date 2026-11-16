@@ -36,43 +36,21 @@
                             Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
                 </FilterTemplate>
             </PropertyColumn>
-            <PropertyColumn Property="e => e.ActorId" Title="Who" SortKey="who" Filterable FilterOperators="[FilterOperator.Equals]" FilterText="WhoText" Priority="1" Context="e">
+            <PropertyColumn Property="e => e.ActorId" Title="Who" SortKey="who" Filterable FilterValues="WhoValues" FilterText="WhoText" Priority="1" Context="e">
                 <ChildContent>
                     <Row Gap="2" Align="Align.Center">
                         <Avatar Name="@(e.ActorName ?? "System")" Size="AvatarSize.Xs" Decorative />
                         <TextBlock Truncate>@(e.ActorName ?? "System")</TextBlock>
                     </Row>
                 </ChildContent>
-                <FilterTemplate Context="filter">
-                    <Select TValue="string" Label="Who" HideLabel Items="_people.Select(p => p.Id)" ItemText="WhoText" Placeholder="Anyone"
-                            Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
-                </FilterTemplate>
             </PropertyColumn>
-            <PropertyColumn Property="e => e.Action" Filterable FilterText="ActionText" Width="Length.Rem(11)" Priority="1" Context="e">
+            <PropertyColumn Property="e => e.Action" Filterable FilterValues="ActionValues" FilterText="ActionText" Width="Length.Rem(11)" Priority="1" Context="e">
                 <ChildContent>
                     <Badge Status="AuditText.Tone(e.Action)" Dot>@AuditText.Label(e.Action)</Badge>
                 </ChildContent>
-                <FilterTemplate Context="filter">
-                    @foreach (var action in AuditText.Actions)
-                    {
-                        <label class="ib-check">
-                            <input class="ib-check-input" @attributes="filter.CheckboxAttributes(action)" />
-                            <span>@AuditText.Label(action)</span>
-                        </label>
-                    }
-                </FilterTemplate>
             </PropertyColumn>
-            <PropertyColumn Property="e => e.EntityType" Title="Type" SortKey="type" Filterable Width="Length.Rem(7)" Context="e">
-                <ChildContent>@(e.EntityType ?? "Sign-in")</ChildContent>
-                <FilterTemplate Context="filter">
-                    @foreach (var type in Types)
-                    {
-                        <label class="ib-check">
-                            <input class="ib-check-input" @attributes="filter.CheckboxAttributes(type)" />
-                            <span>@type</span>
-                        </label>
-                    }
-                </FilterTemplate>
+            <PropertyColumn Property="e => e.EntityType" Title="Type" SortKey="type" Filterable FilterValues="TypeValues" Width="Length.Rem(7)" Context="e">
+                @(e.EntityType ?? "Sign-in")
             </PropertyColumn>
             <PropertyColumn Property="e => e.EntityName" Title="Record" Sortable Context="e">
                 @if (LinkTo(e) is { } href)
@@ -156,10 +134,15 @@
     // The records on this page that still exist, so only those are linked.
     private HashSet<string> _live = [];
 
-    protected override async Task OnInitializedAsync() =>
-        _people = (await Db.AuditEvents.AsNoTracking().Where(e => e.ActorId != null)
-                .GroupBy(e => e.ActorId!).Select(g => new { Id = g.Key, Name = g.Max(e => e.ActorName) }).ToListAsync())
-            .Select(p => (p.Id, p.Name ?? p.Id)).OrderBy(p => p.Item2).ToList();
+    // Each by their name now (or email); someone whose account is gone, by the name the log last recorded.
+    protected override async Task OnInitializedAsync()
+    {
+        var actors = await Db.AuditEvents.AsNoTracking().Where(e => e.ActorId != null).GroupBy(e => e.ActorId!)
+            .Select(g => new { Id = g.Key, Last = g.OrderByDescending(e => e.Time).Select(e => e.ActorName).FirstOrDefault() }).ToListAsync();
+        var ids = actors.Select(a => a.Id).ToList();
+        var now = await Db.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Name ?? u.Email);
+        _people = actors.Select(a => (a.Id, now.GetValueOrDefault(a.Id) ?? a.Last ?? a.Id)).OrderBy(p => p.Item2).ToList();
+    }
 
     private async ValueTask<DataResult<AuditEvent>> LoadAsync(DataRequest<AuditEvent> request)
     {
@@ -200,9 +183,21 @@
 
     private static string WhenText(string? days) => Periods.FirstOrDefault(p => p.Days == days).Text ?? "Any time";
 
-    private string WhoText(IReadOnlyList<string?> values) => WhoText(values.FirstOrDefault());
+    private string WhoText(IReadOnlyList<string?> values) =>
+        string.Join(", ", values.Select(id => _people.FirstOrDefault(p => p.Id == id).Name ?? "Someone"));
 
-    private string WhoText(string? id) => _people.FirstOrDefault(p => p.Id == id).Name ?? "Someone";
+    // The Who, Action and Type filters: each a short list, narrowed by what's typed in the filter's box.
+    private ValueTask<FilterValuesResult> WhoValues(FilterValuesRequest r) => Values(_people, r);
+
+    private static ValueTask<FilterValuesResult> ActionValues(FilterValuesRequest r) =>
+        Values(AuditText.Actions.Select(a => (a, AuditText.Label(a))), r);
+
+    private static ValueTask<FilterValuesResult> TypeValues(FilterValuesRequest r) => Values(Types.Select(t => (t, t)), r);
+
+    private static ValueTask<FilterValuesResult> Values(IEnumerable<(string Value, string Text)> all, FilterValuesRequest r) =>
+        ValueTask.FromResult(new FilterValuesResult(all
+            .Where(v => string.IsNullOrWhiteSpace(r.Search) || v.Text.Contains(r.Search.Trim(), StringComparison.OrdinalIgnoreCase))
+            .Select(v => new FilterValue(v.Value, v.Text)).ToList()));
 
     private static string ActionText(IReadOnlyList<string?> values) => string.Join(", ", values.OfType<string>().Select(AuditText.Label));
 }

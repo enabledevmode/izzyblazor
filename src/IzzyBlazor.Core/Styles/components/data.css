@@ -1460,11 +1460,11 @@
 
   /* The search box gives way on a phone, rather than running under the tools at the end. */
   .ib-grid-toolbar .ib-toolbar-start,
-  .ib-grid-toolbar .ib-toolbar-end:has(input[type="search"]) {
+  .ib-grid-toolbar .ib-toolbar-end:has(.ib-grid-search) {
     min-width: 0;
   }
 
-  .ib-grid-toolbar .ib-toolbar-end:has(input[type="search"]) {
+  .ib-grid-toolbar .ib-toolbar-end:has(.ib-grid-search) {
     flex: 0 1 auto;
   }
 
@@ -1480,7 +1480,7 @@
 
   /* On a phone the grid's search fills the row up to its "…" (not while the toolbar measures). */
   @media (width < 40rem) {
-    .ib-grid-toolbar .ib-toolbar:not([data-ib-measuring]) .ib-toolbar-unit:has(input[type="search"]):not(:has(.ib-col-picker)) {
+    .ib-grid-toolbar .ib-toolbar:not([data-ib-measuring]) .ib-toolbar-unit:has(> .ib-grid-search) {
       flex-grow: 1;
     }
   }
@@ -1495,14 +1495,14 @@
     .ib-datagrid:has(.ib-grid-toolbar .ib-toolbar-unit[data-ib-float="md"]) { padding-block-end: 5rem; }
   }
 
-  /* The grid's search, not the Columns button, whose popover has a search of its own. */
-  .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]):not(:has(.ib-col-picker)) {
+  /* The grid's search, by its own class: a filter's or the Columns button's panel has a search box too. */
+  .ib-grid-toolbar .ib-toolbar-unit:has(> .ib-grid-search) {
     flex: 0 1 14rem;
     width: auto !important;
     min-width: 6rem;
   }
 
-  .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]):not(:has(.ib-col-picker)) > * {
+  .ib-grid-toolbar .ib-toolbar-unit:has(> .ib-grid-search) > * {
     flex: 1;
     min-width: 0;
   }
