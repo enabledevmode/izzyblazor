@@ -240,6 +240,7 @@ namespace {{RootNamespace}}.Data.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Number = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    PoNumber = table.Column<string>(type: "TEXT", maxLength: 40, nullable: true),
                     CustomerId = table.Column<int>(type: "INTEGER", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     Issued = table.Column<DateOnly>(type: "TEXT", nullable: false),

@@ -6,4 +6,7 @@ public static class Company
     public const string Name = "{{ProjectName}}, Inc.";
 
     public static readonly string[] Address = ["100 Market Street", "San Francisco, CA 94105"];
+
+    /// <summary>The sales tax new invoices charge, as a fraction: 0.08 is 8%.</summary>
+    public const decimal TaxRate = 0.08m;
 }

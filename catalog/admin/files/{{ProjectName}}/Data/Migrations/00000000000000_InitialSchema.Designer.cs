@@ -221,6 +221,10 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Property<DateOnly?>("Paid")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("PoNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateOnly?>("Sent")
                         .HasColumnType("TEXT");
 

@@ -4012,11 +4012,11 @@
     min-height: var(--ib-control-h-md);
   }
 
-  /* A computed value: its label over it when stacked, under its heading in the table. */
+  /* A computed value: its label beside it when stacked (an End value at the row's end), under its heading in the table. */
   .ib-repeat-value {
     display: flex;
-    flex-direction: column;
-    gap: var(--ib-space-1);
+    align-items: center;
+    gap: var(--ib-space-3);
   }
 
   .ib-repeat-value-label {
@@ -4037,6 +4037,7 @@
 
   .ib-repeat-value.ib-repeat-end > .ib-repeat-value-text {
     justify-content: flex-end;
+    margin-inline-start: auto;
   }
 
   .ib-repeat-foot {
