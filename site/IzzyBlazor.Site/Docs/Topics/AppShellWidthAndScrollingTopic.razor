@@ -12,4 +12,5 @@
 <Heading Level="2">Scrolling like a desktop app</Heading>
 <TextBlock>A shell can scroll like a desktop app: it fills the window, and only the main area scrolls, so the header, the sidebar and the footer never move. Set <Code>ScrollMode="ShellScroll.Main"</Code>.</TextBlock>
 <ExampleViewer Example="app-shell-inbox" WidthSwitch />
+<TextBlock>A list page can fill the main area, so its grid scrolls its own rows with the header and the pager in view. Give the page's top element <Code>Grow</Code> (a <Code>Container</Code> or <Code>Stack</Code>), and the same down to a <Code>DataGrid</Code> or <Code>Table</Code> with <Code>Grow</Code> and no <Code>MaxHeight</Code>: it takes the height left, at least about five rows. On a phone the main area scrolls as before.</TextBlock>
 <TextBlock>With the default, <Code>ShellScroll.Page</Code>, the window scrolls as on any web page. The header stays at the top, and the content of the sidebar and the aside stays in view beside the page.</TextBlock>

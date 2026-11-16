@@ -44,12 +44,11 @@
         </SidebarFooter>
     </AppSidebar>
 
-    <AppMain>
-        <Box PaddingX="new() { Base = 4, Md = 8 }" PaddingY="new() { Base = 6, Md = 8 }">
-            <ErrorGuard ShowDetails="DetailedErrors">
-                @Body
-            </ErrorGuard>
-        </Box>
+    @* A list page fills the main area (its top element has Grow), and its grid scrolls its own rows. *@
+    <AppMain PaddingX="new() { Base = 4, Md = 8 }" PaddingY="new() { Base = 6, Md = 8 }">
+        <ErrorGuard ShowDetails="DetailedErrors">
+            @Body
+        </ErrorGuard>
     </AppMain>
 </AppShell>
 

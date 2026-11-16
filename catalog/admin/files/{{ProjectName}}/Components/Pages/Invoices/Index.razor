@@ -13,9 +13,10 @@
    in the address (?status=overdue), and the grid searches by number or customer and pages in the database.
    Each row opens its invoice; its ⋯ menu reminds, marks paid or deletes a draft, as form posts that come back
    with a toast (Billing/InvoiceActions.cs does the work and writes the audit log). *@
-@* A data page: the header, tabs and grid in one centered column, 1280px at most. *@
-<Container Size="ContainerSize.Xl" Gutters="false">
-<Stack Gap="new() { Base = 6, Md = 8 }">
+@* A data page: the header, tabs and grid in one centered column, 1280px at most, filling the main area
+   so the grid scrolls its own rows under its header, with the pager in view. *@
+<Container Size="ContainerSize.Xl" Gutters="false" Grow>
+<Stack Gap="new() { Base = 6, Md = 8 }" Grow>
     <PageHeader Title="Invoices" Description="@Lead">
         @if (_canEdit && _counts.All > 0)
         {
@@ -37,7 +38,7 @@
     }
     else
     {
-        <Stack Gap="4">
+        <Stack Gap="4" Grow>
             @* On a phone only Overdue keeps its count, so all five tabs fit. *@
             <TabNav Label="Status">
                 @foreach (var tab in Tabs)

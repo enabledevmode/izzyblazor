@@ -13,46 +13,49 @@
    from the columns, and searches, sorts and pages in the database. Every action is an address and a form
    post, so it works with no circuit. Columns are kept per person in a cookie; Export downloads what's shown,
    from CustomerExport.cs. *@
-<Stack Gap="new() { Base = 6, Md = 8 }">
-    <PageHeader Title="Customers" />
+@* A data page: one centered column, 1280px at most, filling the main area so the grid scrolls its own rows. *@
+<Container Size="ContainerSize.Xl" Gutters="false" Grow>
+    <Stack Gap="new() { Base = 6, Md = 8 }" Grow>
+        <PageHeader Title="Customers" />
 
-    <DataGrid TItem="Customer" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
-              InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="customers" ExportExcelHref="customers/export.xlsx" ToolbarLabels
-              EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
-              NewItem="@(_canEdit ? () => new Customer() : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
-              AddText="Add customer" OnSave="SaveAsync" OnDelete="DeleteAsync"
-              NoMatchesText="No customers match “{0}”" Grow>
-        <ToolbarContent>
-            <DataGridExport />
-            @* On a phone, Add floats at the bottom corner, under the thumb. *@
-            @if (_canEdit)
-            {
-                <DataGridAdd FloatBelow="Breakpoint.Sm" />
-            }
-        </ToolbarContent>
-        <EmptyContent>
-            @* Add customer is in the toolbar above it; on a phone, where Add floats once there are
-               customers, the empty state holds the button. *@
-            <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
+        <DataGrid TItem="Customer" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
+                  InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="customers" ExportExcelHref="customers/export.xlsx" ToolbarLabels
+                  EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
+                  NewItem="@(_canEdit ? () => new Customer() : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
+                  AddText="Add customer" OnSave="SaveAsync" OnDelete="DeleteAsync"
+                  NoMatchesText="No customers match “{0}”" Grow>
+            <ToolbarContent>
+                <DataGridExport />
+                @* On a phone, Add floats at the bottom corner, under the thumb. *@
                 @if (_canEdit)
                 {
-                    <Button Href="customers?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add customer</Button>
+                    <DataGridAdd FloatBelow="Breakpoint.Sm" />
                 }
-            </EmptyState>
-        </EmptyContent>
-        <Columns>
-            <PropertyColumn Property="x => x.FirstName" Title="First name" Sortable />
-            <PropertyColumn Property="x => x.LastName" Title="Last name" Sortable />
-            <PropertyColumn Property="x => x.Email" Title="Email" Sortable />
-            <PropertyColumn Property="x => x.Status" Title="Status" Width="Length.Rem(7.5)" Priority="1" Sortable Context="x">
-                <Badge Status="Tone(x.Status)" Dot>@Label(x.Status)</Badge>
-            </PropertyColumn>
-            <PropertyColumn Property="x => x.Plan" Title="Plan" Width="Length.Rem(7.5)" Sortable />
-            <PropertyColumn Property="x => x.LifetimeValue" Title="Lifetime value" Format="C" Width="Length.Rem(10.5)" Editable="false" Sortable />
-            <PropertyColumn Property="x => x.Joined" Title="Joined" Format="MMM d, yyyy" Width="Length.Rem(8.5)" Sortable />
-        </Columns>
-    </DataGrid>
-</Stack>
+            </ToolbarContent>
+            <EmptyContent>
+                @* Add customer is in the toolbar above it; on a phone, where Add floats once there are
+                   customers, the empty state holds the button. *@
+                <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
+                    @if (_canEdit)
+                    {
+                        <Button Href="customers?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add customer</Button>
+                    }
+                </EmptyState>
+            </EmptyContent>
+            <Columns>
+                <PropertyColumn Property="x => x.FirstName" Title="First name" Sortable />
+                <PropertyColumn Property="x => x.LastName" Title="Last name" Sortable />
+                <PropertyColumn Property="x => x.Email" Title="Email" Sortable />
+                <PropertyColumn Property="x => x.Status" Title="Status" Width="Length.Rem(7.5)" Priority="1" Sortable Context="x">
+                    <Badge Status="Tone(x.Status)" Dot>@Label(x.Status)</Badge>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.Plan" Title="Plan" Width="Length.Rem(7.5)" Sortable />
+                <PropertyColumn Property="x => x.LifetimeValue" Title="Lifetime value" Format="C" Width="Length.Rem(10.5)" Editable="false" Sortable />
+                <PropertyColumn Property="x => x.Joined" Title="Joined" Format="MMM d, yyyy" Width="Length.Rem(8.5)" Sortable />
+            </Columns>
+        </DataGrid>
+    </Stack>
+</Container>
 
 @code {
     [CascadingParameter] private Task<Microsoft.AspNetCore.Components.Authorization.AuthenticationState> AuthState { get; set; } = default!;

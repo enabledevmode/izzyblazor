@@ -243,7 +243,9 @@ class Table extends IzzyElement {
 
   #setupHold(signal: AbortSignal): void {
     const hold = () => {
-      const size = this.dataset.ibHold;
+      // Filling a page (data.css sets --ib-table-fills), the table's room is fixed: nothing to hold.
+      const fills = getComputedStyle(this).getPropertyValue("--ib-table-fills").trim() === "1";
+      const size = fills ? undefined : this.dataset.ibHold;
       const key = size ? location.pathname + size : "";
       if (key !== this.#heldFor) {
         this.#heldFor = key;

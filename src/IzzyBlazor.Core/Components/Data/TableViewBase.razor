@@ -564,7 +564,10 @@
     /// <summary>Row height and text size. <see cref="ControlSize.Sm"/> for dense data. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
-    /// <summary>A height limit: the rows scroll and the header stays in view.</summary>
+    /// <summary>
+    /// A height limit: the rows scroll and the header stays in view. Without one, a table with <c>Grow</c> on a
+    /// page that fills a <c>ShellScroll.Main</c> shell's main area takes the height left instead.
+    /// </summary>
     [Parameter] public Length? MaxHeight { get; set; }
 
     /// <summary>

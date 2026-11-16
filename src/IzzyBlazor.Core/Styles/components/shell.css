@@ -476,6 +476,32 @@
     overscroll-behavior: contain;
   }
 
+  /* A page that fills the main area: its top element has Grow (a list page whose grid takes the room
+     left). The main area, its centered column and a growing Container lay out as columns, and what grows
+     in them takes the room and no more (min-height 0), so a growing grid scrolls its own rows. Other
+     pages are untouched and scroll as before. Not on a phone, which has too little height for it. */
+  @media (width >= 768px) {
+    .ib-shell-scroll-main > .ib-shell-main:has(> .ib-grow, > .ib-shell-main-column > .ib-grow),
+    .ib-shell-scroll-main > .ib-shell-main > .ib-shell-main-column:has(> .ib-grow) {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ib-shell-scroll-main > .ib-shell-main > .ib-shell-main-column:has(> .ib-grow) {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .ib-shell-scroll-main > .ib-shell-main:has(> .ib-grow, > .ib-shell-main-column > .ib-grow) .ib-container.ib-grow {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ib-shell-scroll-main > .ib-shell-main:has(> .ib-grow, > .ib-shell-main-column > .ib-grow) .ib-grow {
+      min-height: 0;
+    }
+  }
+
   .ib-shell-scroll-main > .ib-shell-sidebar > .ib-shell-sidebar-inner,
   .ib-shell-scroll-main > .ib-shell-aside > .ib-shell-aside-inner {
     height: 100%;
