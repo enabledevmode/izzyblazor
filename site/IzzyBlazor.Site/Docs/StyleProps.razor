@@ -39,8 +39,8 @@
         </TextBlock>
         <ExampleViewer Example="box-borders" />
         <TextBlock>
-            On their own, <Code>BorderColor</Code> recolors a component's border and <Code>BorderStyle</Code> restyles a
-            card's, or a bordered EmptyState's.
+            Without <Code>Border</Code>, <Code>BorderColor</Code> changes the color of a component's own border.
+            <Code>BorderStyle</Code> changes the style of a card's border, or a bordered EmptyState's.
         </TextBlock>
         <TextBlock>
             Size props set a component's width and height. <Code>Width</Code>, <Code>MinWidth</Code> and <Code>MaxWidth</Code>
@@ -53,9 +53,9 @@
         <Heading Level="2">Colors</Heading>
         <TextBlock>
             Color props set a component's text and background. <Code>Color</Code> sets the text color and <Code>Bg</Code>
-            the background, as in CSS. With a theme color as <Code>Bg</Code>, the text color follows:
-            <Code>Bg="Color.Primary"</Code> gets <Code>OnPrimary</Code> text, and <Code>Bg="Color.DangerSoft"</Code> gets
-            <Code>DangerText</Code>.
+            sets the background, as in CSS. When <Code>Bg</Code> is a theme color, the text color changes to match. For
+            example, <Code>Bg="Color.Primary"</Code> uses <Code>OnPrimary</Code> text, and <Code>Bg="Color.DangerSoft"</Code>
+            uses <Code>DangerText</Code>.
         </TextBlock>
         <TextBlock>
             Controls have an <Code>Accent</Code> instead. An accent is a whole set of colors: the fill, the text on it, and a
@@ -69,13 +69,13 @@
 
         <Heading Level="2">Item props and surface props</Heading>
         <TextBlock>
-            Item props set how a component sits in its parent, such as its margins, width and <Code>Grow</Code>. Nearly every
+            Item props set how a component is placed in its parent, such as its margins, width and <Code>Grow</Code>. Nearly every
             component has them. Surface props set how a box looks inside, such as its padding, background, radius, shadow and
             borders. <Code>Box</Code> and every component built on it have both.
         </TextBlock>
         <TextBlock>
-            Item props go on the element the parent lays out. For a field, that's the wrapper around the label, control and
-            hint, so <Code>Grow</Code> widens all of it:
+            Item props apply to the element that the parent lays out. For a field, that's the wrapper around the label,
+            control and hint, so <Code>Grow</Code> widens all of them:
         </TextBlock>
         <Code Block Language="razor">@Items</Code>
         <TextBlock>
@@ -90,7 +90,7 @@
         </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
-                <thead><tr><th>Write</th><th>For</th></tr></thead>
+                <thead><tr><th>Value</th><th>Use it for</th></tr></thead>
                 <tbody>
                     <tr><td><code>Color.Token("brand")</code></td><td>A token of your own.</td></tr>
                     <tr><td><code>Color.Of("#ff6600")</code></td><td>A literal color.</td></tr>
@@ -103,8 +103,7 @@
         </TextBlock>
         <TextBlock>
             To write <Code>Width="15.Rem"</Code> or <Code>MinHeight="100.Dvh"</Code>, add
-            <Code>@@using IzzyBlazor.Units</Code>. It adds members to every number in the files that import it, so it's a
-            separate namespace.
+            <Code>@@using IzzyBlazor.Units</Code>. It adds these members to every number in the files that import it.
         </TextBlock>
 
         @foreach (var group in _sections)
