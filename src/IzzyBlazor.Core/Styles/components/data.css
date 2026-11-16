@@ -480,6 +480,29 @@
     z-index: 1;
   }
 
+  /* A growing table on a page that fills a scrolling main area (shell.css): its scroll box takes the room
+     left, at least about five rows (the main area scrolls when the window is shorter), and the head
+     sticks as with MaxHeight. --ib-table-fills tells table.ts not to hold the height: the room is fixed. */
+  @media (width >= 768px) {
+    .ib-shell-scroll-main > .ib-shell-main:has(> .ib-grow, > .ib-shell-main-column > .ib-grow) .ib-table.ib-grow:not(.ib-table-sticky) {
+      --ib-table-fills: 1;
+    }
+
+    .ib-shell-scroll-main > .ib-shell-main:has(> .ib-grow, > .ib-shell-main-column > .ib-grow) .ib-table.ib-grow:not(.ib-table-sticky) > .ib-table-scroll {
+      flex: 1 1 auto;
+      min-height: 16rem;
+      --ib-table-head-line: round(up, calc(var(--ib-table-font) * var(--ib-leading-normal)), 2px);
+      --ib-table-head-h: calc(var(--ib-table-py) * 2 + var(--ib-table-head-line) + 1px);
+      scroll-padding-block-start: var(--ib-table-head-h);
+    }
+
+    .ib-shell-scroll-main > .ib-shell-main:has(> .ib-grow, > .ib-shell-main-column > .ib-grow) .ib-table.ib-grow:not(.ib-table-sticky) .ib-table-grid > thead {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+  }
+
   /* The vertical scrollbar starts under the sticky header rather than beside it: its track takes
      a margin the header's height, worked out from the tokens (two paddings, the whole-pixel line,
      the 1px line under it), so it's right before any script. Chromium and Safari only: their

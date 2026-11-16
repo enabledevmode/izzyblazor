@@ -190,6 +190,15 @@ public class AppMain : AppShellPart
     /// </summary>
     [Parameter] public Length? ContentWidth { get; set; }
 
+    /// <summary>Padding on all sides of the content, in spacing steps (0 to 16; one step = 4px).</summary>
+    [Parameter] public Responsive<int> Padding { get; set; }
+
+    /// <summary>Horizontal padding. When set, replaces <see cref="Padding"/> on this axis.</summary>
+    [Parameter] public Responsive<int> PaddingX { get; set; }
+
+    /// <summary>Vertical padding. When set, replaces <see cref="Padding"/> on this axis.</summary>
+    [Parameter] public Responsive<int> PaddingY { get; set; }
+
     /// <inheritdoc />
     protected override string Area => "main";
 
@@ -213,6 +222,8 @@ public class AppMain : AppShellPart
         }
 
         classes.Add("ib-shell-main-measured", Measured);
+        LayoutItemProps.ApplyAxis(classes, styles, LayoutItemProps.Either(PaddingX, Padding), default, default, "px", "ps", "pe", StyleValues.Spacing);
+        LayoutItemProps.ApplyAxis(classes, styles, LayoutItemProps.Either(PaddingY, Padding), default, default, "py", "pt", "pb", StyleValues.Spacing);
     }
 
     /// <inheritdoc />
