@@ -77,7 +77,7 @@
                        disabled="@tab.Disabled"
                        aria-controls="@_context.PanelId(tab)"
                        @onchange="() => SelectAsync(key)" />
-                <label class="ib-tab-label" for="@_context.InputId(tab)">@TabContent(tab.Icon, tab.Label, tab.Badge, tab.BadgeStatus, _subscribed is null || tab.Disabled ? 0 : tab.ErrorCount(_subscribed))</label>
+                <label class="ib-tab-label" for="@_context.InputId(tab)">@TabContent(tab.Icon, tab.Label, tab.Badge, tab.BadgeStatus, tab.BadgeVisibleFrom, _subscribed is null || tab.Disabled ? 0 : tab.ErrorCount(_subscribed))</label>
             </span>
             @* Beside the tab, drawn inside its box (tabs-edit.css): a tab's content is presentational.
                With script the list is a tablist, which holds only tabs, so the script hides these
@@ -399,8 +399,8 @@
     internal void FieldsChanged() => Refresh();
 
     // A tab's content, with its error count in a form.
-    private RenderFragment TabContent(IconData? icon, string label, string? badge, Status badgeStatus, int errors) =>
-        TabContent(icon, label, badge, badgeStatus, errors == 0 ? null : ErrorBadge(errors));
+    private RenderFragment TabContent(IconData? icon, string label, string? badge, Status badgeStatus, Breakpoint? badgeFrom, int errors) =>
+        TabContent(icon, label, badge, badgeStatus, badgeFrom, errors == 0 ? null : ErrorBadge(errors));
 
     private RenderFragment ErrorBadge(int errors) => __builder =>
     {

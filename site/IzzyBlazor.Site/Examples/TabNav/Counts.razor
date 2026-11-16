@@ -1,0 +1,18 @@
+@inject NavigationManager Navigation
+
+@* A support queue's status tabs, each with its count: on a phone only Urgent keeps its count, so
+   all five tabs fit. *@
+<TabNav Label="Status" Grow>
+    <TabLink Href="@To(null)" Label="All" Badge="128" BadgeVisibleFrom="Breakpoint.Sm" Current="Shown is null" />
+    <TabLink Href="@To("open")" Label="Open" Badge="14" BadgeVisibleFrom="Breakpoint.Sm" />
+    <TabLink Href="@To("waiting")" Label="Waiting" Badge="6" BadgeVisibleFrom="Breakpoint.Sm" />
+    <TabLink Href="@To("urgent")" Label="Urgent" Badge="3" BadgeStatus="Status.Danger" />
+    <TabLink Href="@To("closed")" Label="Closed" Badge="105" BadgeVisibleFrom="Breakpoint.Sm" />
+</TabNav>
+
+@code {
+    [SupplyParameterFromQuery(Name = "status")]
+    private string? Shown { get; set; }
+
+    private string To(string? status) => Navigation.GetUriWithQueryParameter("status", status);
+}

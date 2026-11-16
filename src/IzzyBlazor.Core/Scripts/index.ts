@@ -29,6 +29,7 @@ import { installLazyElements, load, loadElementsIn } from "./lazy";
 import { installScrollbarWidth, measureScrollbar } from "./scrollbar";
 import { installTabScroll, revealSelectedTabs } from "./tab-scroll";
 import { installReconnectDialog } from "./reconnect";
+import { installPrint } from "./print";
 
 installLazyElements();
 installSchemeSync();
@@ -59,6 +60,7 @@ installDismissMemory();
 installSkipLinks();
 installFocusRescue();
 installReconnectDialog();
+installPrint();
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => openActiveNavGroups());
 } else {

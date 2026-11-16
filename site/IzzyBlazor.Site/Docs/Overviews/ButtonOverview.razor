@@ -29,9 +29,13 @@
 <TextBlock>A button can be a link that looks like a button, for an action that opens a page. Set <Code>Href</Code> to render a link. To open it in a new tab, set <Code>External</Code>.</TextBlock>
 <ExampleViewer Example="button-links" />
 
-<Heading Level="2">Running C# on click</Heading>
+<Heading Level="2">Handling click events</Heading>
 <TextBlock>On interactive pages, a button can run C# when it's clicked. Set <Code>OnClick</Code> to the method. On static pages, use <Code>Submit</Code> or <Code>Href</Code> instead.</TextBlock>
 <ExampleViewer Example="button-on-click" />
+
+<Heading Level="2">Printing</Heading>
+<TextBlock>A button can print the page, for a receipt or an invoice. Set <Code>Print</Code>. It opens the browser's print dialog. Style what prints with <Code>@("@media print")</Code>: an <Anchor Href="docs/components/app-shell">AppShell</Anchor> already leaves its header, sidebar and aside out. Printing needs JavaScript, so with it off the button isn't shown.</TextBlock>
+<ExampleViewer Example="button-print" />
 
 <Heading Level="2">Loading and disabled</Heading>
 <TextBlock>A loading button shows a spinner and blocks clicks while its action runs. Set <Code>Loading</Code> to show it. To turn the button off, set <Code>Disabled</Code>.</TextBlock>

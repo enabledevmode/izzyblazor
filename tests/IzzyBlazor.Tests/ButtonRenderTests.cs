@@ -103,4 +103,18 @@ public class ButtonRenderTests : BunitContext
     {
         Assert.Throws<FormatException>(() => Accent.Of("red; } body { color: red"));
     }
+
+    [Fact]
+    public void Print_buttons_carry_the_print_hook_and_do_nothing_else()
+    {
+        // A plain button the page's script prints from: not a submit.
+        var button = Render<Button>(p => p.Add(b => b.Print, true).AddChildContent("Download PDF")).Find("button");
+        Assert.True(button.HasAttribute("data-ib-print"));
+        Assert.Equal("button", button.GetAttribute("type"));
+        Assert.True(Render<IconButton>(p => p.Add(b => b.Print, true).Add(b => b.Icon, Lucide.Printer).Add(b => b.Label, "Print")).Find("button").HasAttribute("data-ib-print"));
+
+        // It prints or posts, and a link can't print.
+        Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Print, true).Add(b => b.Submit, true)));
+        Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Print, true).Add(b => b.Href, "receipt")));
+    }
 }

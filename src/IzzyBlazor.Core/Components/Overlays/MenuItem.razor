@@ -60,6 +60,7 @@ else
             popovertarget="@(closes ? Menu!.Id : null)"
             popovertargetaction="@(closes ? "hide" : null)"
             data-ib-keep-open="@(KeepOpen ? "" : null)"
+            data-ib-print="@PrintButtons.Attribute(Print, submit, nameof(MenuItem))"
             @onclick="HandleClick">
         @Content
     </button>
@@ -71,6 +72,13 @@ else
 
     /// <summary>For button items: posts the surrounding form (or <c>Form</c>), optionally to <c>FormAction</c>.</summary>
     [Parameter] public bool Submit { get; set; }
+
+    /// <summary>
+    /// Prints the page: opens the browser's print dialog, for a Print button on a receipt or an
+    /// invoice. Style what prints with <c>@media print</c>; an app shell leaves itself out. Needs JavaScript: with it off the button isn't shown. Can't be combined with
+    /// Submit or Href.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)] public bool Print { get; set; }
 
     /// <summary>
     /// Makes this a checkbox item that shows a check when true, with <c>@bind-Checked</c> on
@@ -170,7 +178,15 @@ else
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        if (Print && Href is not null)
+        {
+            throw new InvalidOperationException("MenuItem with Href is a link, so it can't Print. Leave out Href for a print item.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
 
     private async Task HandleClick(MouseEventArgs e)
     {

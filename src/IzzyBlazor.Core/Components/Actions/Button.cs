@@ -21,7 +21,7 @@ namespace IzzyBlazor;
 /// <item>For a button that stays on or off, use <see cref="ToggleButton"/>.</item>
 /// </list>
 /// </accessibility>
-[ModeSupport(Notes = "OnClick runs only on interactive pages; Submit, Reset and Href work everywhere.")]
+[ModeSupport(Notes = "OnClick runs only on interactive pages; Submit, Reset and Href work everywhere; Print needs JavaScript.")]
 public class Button : ButtonBase
 {
     /// <summary>
@@ -54,6 +54,13 @@ public class Button : ButtonBase
 
     /// <summary>Resets the form it's in, like <c>type="reset"</c>. Can't be combined with <see cref="Submit"/>.</summary>
     [Parameter] public bool Reset { get; set; }
+
+    /// <summary>
+    /// Prints the page: opens the browser's print dialog, for a Print button on a receipt or an
+    /// invoice. Style what prints with <c>@media print</c>; an app shell leaves itself out. Needs JavaScript: with it off the button isn't shown. Can't be combined with
+    /// Submit, Reset or Href.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)] public bool Print { get; set; }
 
     /// <summary>
     /// Posted with the form as <c>Name=Value</c> when this button submits it, so one handler can tell
@@ -145,7 +152,8 @@ public class Button : ButtonBase
         builder.AddMultipleAttributes(13, AdditionalAttributes);
         builder.AddAttribute(14, "class", cssClass);
         builder.AddAttribute(15, "style", style);
-        builder.OpenRegion(16);
+        builder.AddAttribute(16, "data-ib-print", PrintButtons.Attribute(Print, Submit || Reset, GetType().Name));
+        builder.OpenRegion(17);
         RenderContent(builder);
         builder.CloseRegion();
         builder.CloseElement();
@@ -159,10 +167,10 @@ public class Button : ButtonBase
             throw new InvalidOperationException($"{component} can't take Href: it's a button. Use a Button with Href for a link.");
         }
 
-        if (Submit || Reset || Name is not null || Value is not null || FormAction is not null || Form is not null)
+        if (Submit || Reset || Print || Name is not null || Value is not null || FormAction is not null || Form is not null)
         {
             throw new InvalidOperationException(
-                $"{component} with Href is a link, so Submit, Reset, Name, Value, FormAction and Form don't apply. Leave out Href for a button.");
+                $"{component} with Href is a link, so Submit, Reset, Print, Name, Value, FormAction and Form don't apply. Leave out Href for a button.");
         }
 
         var (cssClass, style) = BuildRootAttributes();
@@ -223,6 +231,15 @@ public class Button : ButtonBase
 
         builder.CloseElement();
     }
+}
+
+/// <summary>The <c>data-ib-print</c> attribute for a button's <c>Print</c> parameter (Scripts/print.ts), or null.</summary>
+internal static class PrintButtons
+{
+    public static string? Attribute(bool print, bool submits, string component) =>
+        !print ? null
+        : submits ? throw new InvalidOperationException($"{component} can't both Print and Submit or Reset.")
+        : "";
 }
 
 /// <summary>The <c>type</c> attribute for a button's <c>Submit</c> and <c>Reset</c> parameters.</summary>
