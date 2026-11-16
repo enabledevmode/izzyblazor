@@ -1,0 +1,65 @@
+@page "/docs/cli/changes"
+
+@* --dry-run, --diff and --json; what izzy does with files you've changed; exit codes (Cli.cs). *@
+
+<ArticlePage Section="cli" Slug="changes">
+    <Lead>
+        Every change <Code>izzy</Code> makes can be shown before it's written: as a list, a diff, or JSON an agent
+        or a script reads. izzy never replaces a file you've changed unless you tell it to.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">See the changes first</Heading>
+        <Table Items="Previews" Caption="Showing changes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">JSON for agents and scripts</Heading>
+        <TextBlock>
+            <Code>--json</Code> prints the files to create, the text to insert (with its offset and a hash of the file it
+            was read from), the packages, the warnings and the files that clash. An agent can show it for review, then run
+            the same command without <Code>--dry-run</Code>.
+        </TextBlock>
+
+        <Heading Level="2">Files you've changed</Heading>
+        <TextBlock>
+            izzy never replaces a file without <Code>--overwrite</Code>. When a file it would write is there with other
+            content, it writes nothing and names the file; compare the two with <Code>--diff</Code>. A line it adds to one of
+            your files, such as a <Code>@@using</Code>, is skipped when it's there already.
+        </TextBlock>
+
+        <Heading Level="2">Exit codes</Heading>
+        <Table Items="ExitCodes" Caption="Exit codes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Code" Width="Length.Rem(5)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Meaning">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: IzzyBlazor's docs server for your coding agent.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private static readonly Row[] Previews =
+    [
+        new("--dry-run", "Writes nothing, and lists what would change."),
+        new("--diff", "Shows the changes as a unified diff."),
+        new("--json", "Prints the changes as data. list and describe take it too."),
+    ];
+
+    private static readonly Row[] ExitCodes =
+    [
+        new("0", "Done, or nothing to change."),
+        new("1", "An error, such as an unknown setting, or an app that doesn't build after izzy init."),
+        new("2", "Files there with other content: nothing was written."),
+        new("3", "A Pro item or layout. Pro layouts are listed and marked; they arrive with IzzyBlazor Pro."),
+    ];
+}
