@@ -1,0 +1,16 @@
+@* An order's page: the items beside a summary, the summary first on phones so the total is on screen without scrolling. *@
+<Grid Template='new() { Base = "minmax(0, 1fr)", Md = "minmax(0, 2fr) minmax(0, 1fr)" }' Gap="6" Grow>
+    <Card Title="Items" Size="ControlSize.Sm">
+        <DescriptionList Dividers>
+            <DescriptionItem Term="Standing desk, oak">$649.00</DescriptionItem>
+            <DescriptionItem Term="Monitor arm">$129.00</DescriptionItem>
+            <DescriptionItem Term="Desk mat, felt">$39.00</DescriptionItem>
+        </DescriptionList>
+    </Card>
+    <Card Title="Summary" Size="ControlSize.Sm" LayoutOrder="new() { Base = -1, Md = 0 }">
+        <DescriptionList>
+            <DescriptionItem Term="Total">$871.36</DescriptionItem>
+            <DescriptionItem Term="Status">Shipped Mar 18</DescriptionItem>
+        </DescriptionList>
+    </Card>
+</Grid>

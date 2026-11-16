@@ -62,6 +62,7 @@
         { "id": "grid-min-width", "title": "As many columns as fit", "lead": "To fit as many columns as there's room for, set `MinChildWidth`. Each column is at least that wide, and there are no breakpoints to pick." },
         { "id": "grid-few-items", "title": "Fewer items than columns", "lead": "With `MinChildWidth`, a row with fewer items keeps its empty columns, so every item has the same width (top). To let the items fill the row, add `Stretch` (bottom)." },
         { "id": "grid-side-column", "title": "Custom column sizes", "lead": "To set CSS column sizes per breakpoint, set `Template`. Here, from Sm, a 12rem side column sits beside the results; on phones there's one column." },
+        { "id": "grid-order", "title": "A different order on phones", "lead": "`LayoutOrder` moves a child before (lower) or after (higher) the others, per breakpoint. Here the summary comes first on phones and goes back beside the items from Md.", "after": ["Only the drawing moves: screen readers and the keyboard follow the written order, so write the content in the order that reads best. Any child of a `Grid`, `Stack`, `Row` or `Column` takes it."] },
         { "id": "grid-spans", "title": "Spanning cells", "lead": "A child can span several columns or rows. Set `ColSpan` on any child to span columns, and wrap a child in a `GridItem` to set `RowSpan`. Here, from Sm, the revenue card spans two columns and two rows, and the activity card spans the whole row with `GridSpan.Full`." }
       ]
     },
