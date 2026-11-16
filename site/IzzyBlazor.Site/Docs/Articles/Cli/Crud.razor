@@ -5,37 +5,45 @@
 
 <ArticlePage Section="cli" Slug="crud">
     <Lead>
-        <Code>izzy add crud</Code> writes a page to list, add, edit and delete a model's records, for internal tools and
-        admin screens. Name a class from your app; izzy reads it from the source, so the app doesn't have to build first.
+        <Code>izzy add crud</Code> creates a <Anchor Href="docs/components/data-grid">DataGrid</Anchor> page to display,
+        add, edit and delete a model's records, for internal tools and admin screens. Name a class from your app; izzy
+        reads it from the source, so the app doesn't have to build first.
     </Lead>
     <ChildContent>
         <Heading Level="2">Add the page</Heading>
         <Code Block Language="bash">izzy add crud Customer</Code>
         <TextBlock>
-            That writes a page at <Code>/customers</Code> whose grid searches, sorts and pages the customers, and adds and
-            edits them in a dialog checked against the model's attributes; delete asks first. Columns lets each person
-            choose the columns, kept in a cookie, and Export downloads what's shown as an Excel file, from an endpoint in
+            This creates a page at <Code>/customers</Code>. The grid on it can search, sort and page the customers. Add and
+            Edit open a dialog that checks the form against the model's attributes, and Delete asks before it deletes.
+        </TextBlock>
+        <TextBlock>
+            The toolbar also has Columns and Export. Columns lets each person choose which columns to show, and remembers
+            the choice in a cookie. Export downloads the rows as an Excel file, from an endpoint in
             <Code>Data/CustomerExport.cs</Code>.
         </TextBlock>
         <TextBlock>
-            It works on a static page, with no circuit, and on an interactive one. The page needs signing in when the app
-            has accounts.
+            It works whether the page renders statically or interactively. When the app has accounts, people must sign in to open it.
         </TextBlock>
 
         <Heading Level="2">Where the records are kept</Heading>
         <TextBlock>
-            The page reads and writes the records through <Code>ICustomerStore</Code>: through your DbContext when one has
-            a <Code>DbSet&lt;Customer&gt;</Code>, otherwise in memory until the app stops. <Code>--store</Code> chooses.
+            The page loads and saves records through an <Code>ICustomerStore</Code>. If one of your DbContexts has a
+            <Code>DbSet&lt;Customer&gt;</Code>, the store uses it. Otherwise the records are kept in memory until the app
+            stops. To choose for yourself, set <Code>--store</Code>.
         </TextBlock>
 
         <Heading Level="2">Labels and fields</Heading>
         <TextBlock>
-            Labels come from <Code>[Display(Name)]</Code>, or the property's name in words; column titles from
-            <Code>ShortName</Code>. A key the database makes, read-only properties and computed ones stay out of the form.
-            Related records, such as a customer's orders, aren't written; izzy names each property it leaves out.
+            Each field's label comes from <Code>[Display(Name)]</Code>, or from the property's name split into words. A
+            column's title comes from <Code>ShortName</Code>.
         </TextBlock>
         <TextBlock>
-            A key people choose, such as an invoice number, is asked for on New and fixed after, on the Pro pages.
+            Some properties don't get a field: a key the database creates, read-only properties and computed ones. Related
+            records, such as a customer's orders, aren't included either. izzy lists each property it leaves out.
+        </TextBlock>
+        <TextBlock>
+            A key people type in, such as an invoice number, needs the Pro pages. They ask for it when adding a record and
+            show it read-only when editing.
         </TextBlock>
 
         <Heading Level="2">Options</Heading>
@@ -48,15 +56,15 @@
 
         <Heading Level="2">A page for each task, with Pro</Heading>
         <TextBlock>
-            The grid page does everything in one place, and edits in a dialog. With IzzyBlazor Pro, <Code>--mode pages</Code>
-            spreads the same work over separate pages: a list with filters, a page for each customer, and a form page with
-            the errors listed at the top. Records with many fields have more room on a page of their own.
+            The grid page does everything in one place and edits in a dialog. With IzzyBlazor Pro, <Code>--mode pages</Code>
+            creates separate pages instead: a list with filters, a details page for each customer, and a form page that
+            lists its errors at the top. Records with many fields have more room on pages of their own.
         </TextBlock>
 
         <Heading Level="2">After the model changes</Heading>
         <TextBlock>
-            Run the command again with <Code>--diff</Code> to see what changes, and <Code>--overwrite</Code> to take them.
-            See <Anchor Href="docs/cli/changes">Previewing changes</Anchor>.
+            Run the command again with <Code>--diff</Code> to see what would change. Then run it with
+            <Code>--overwrite</Code> to update the files. See <Anchor Href="docs/cli/changes">Previewing changes</Anchor>.
         </TextBlock>
     </ChildContent>
 </ArticlePage>
