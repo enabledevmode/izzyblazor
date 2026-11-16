@@ -58,11 +58,11 @@ public static class TemplateExport
         return result.ToString();
     }
 
-    /// <summary>The <c>template.json</c> for a starter.</summary>
+    /// <summary>The <c>template.json</c> for a starter or a kit.</summary>
     public static string TemplateJson(ItemManifest manifest)
     {
-        if (manifest.Kind != ItemKind.Starter)
-            throw new GenerationException($"{manifest.Id} is a {manifest.Kind.ToString().ToLowerInvariant()}; only starters ship through dotnet new. Use izzy add.");
+        if (!manifest.Kind.MakesProject())
+            throw new GenerationException($"{manifest.Id} is a {manifest.Kind.ToString().ToLowerInvariant()}; only starters and kits ship through dotnet new. Use izzy add.");
         if (manifest.Inserts.Count > 0)
             throw new GenerationException($"{manifest.Id} has inserts, which dotnet new can't make; write the text into the starter's files.");
 
@@ -139,6 +139,15 @@ public static class TemplateExport
                 symbol["fileRename"] = "{{" + p.Name + "}}";
             }
         }
+        // A kit's fixed settings of its base: a switch as a computed value, text as a constant.
+        foreach (var (name, value) in manifest.Fixed)
+            symbols[name] = value is bool on
+                ? new JsonObject { ["type"] = "computed", ["value"] = on ? "true" : "false" }
+                : new JsonObject
+                {
+                    ["type"] = "generated", ["generator"] = "constant",
+                    ["parameters"] = new JsonObject { ["value"] = (string)value }, ["replaces"] = "{{" + name + "}}",
+                };
         foreach (var (name, expression) in manifest.Computed)
             symbols[name] = new JsonObject { ["type"] = "computed", ["value"] = $"({expression})" };
 

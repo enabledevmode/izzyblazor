@@ -1,0 +1,21 @@
+// A kit over the probe starter: fixed settings (a choice and a switch), a changed default, a file replaced, a file
+// added, an exclude of the kit's own, and a Pro choice. DotnetNewTests checks dotnet new makes what the engine makes.
+{
+  "id": "izzy-probe-kit",
+  "name": "Probe kit",
+  "kind": "kit",
+  "summary": "Test data for kits.",
+  "base": {
+    "item": "izzy-probe-starter",
+    "fixed": { "Interactivity": "Auto", "AllInteractive": "true" },
+    "defaults": { "PageName": "Dashboard" }
+  },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Mode": { "type": "string", "enum": ["Grid", "Pages"], "default": "Grid", "x-tiers": { "Pages": "pro" } }
+    }
+  },
+  "computed": { "PagesMode": "Mode == \"Pages\"" },
+  "exclude": [ { "if": "UseServer", "paths": ["Pages/Counter.*"] } ]
+}

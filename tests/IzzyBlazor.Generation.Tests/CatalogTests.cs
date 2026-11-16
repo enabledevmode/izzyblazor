@@ -70,5 +70,24 @@ public sealed class CatalogTests : IDisposable
         }
     }
 
+    [Fact]
+    public void A_kit_is_its_base_with_its_settings_fixed_and_its_files_over_the_bases()
+    {
+        var catalog = Catalog.Load(Path.Combine(AppContext.BaseDirectory, "Items"));
+        var kit = catalog["izzy-probe-kit"];
+        Assert.DoesNotContain(kit.Manifest.Parameters, p => p.Name is "Interactivity" or "AllInteractive");
+        Assert.Equal("Dashboard", kit.Manifest.Parameters.Single(p => p.Name == "PageName").Default);
+
+        var files = Generator.Generate(kit, new Dictionary<string, string> { ["HttpPort"] = "5100" }, ProjectInfo.ForNewProject("Acme"))
+            .Creates.ToDictionary(c => c.Path, c => c.Text);
+        Assert.Contains("public const string Interactivity = \"Auto\";", files["Setup.cs"]);
+        Assert.Contains("@rendermode InteractiveServer", files["Pages/Dashboard.razor"]);
+        Assert.Contains("<p>Grid</p>", files["Pages/Users.razor"]);
+        Assert.DoesNotContain(files.Keys, path => path.StartsWith("Pages/Counter", StringComparison.Ordinal));
+
+        Assert.Throws<GenerationException>(() => Generator.Generate(kit, new Dictionary<string, string> { ["Interactivity"] = "None" }, ProjectInfo.ForNewProject("Acme")));
+        Assert.Throws<ProRequiredException>(() => Generator.Generate(kit, new Dictionary<string, string> { ["Mode"] = "Pages" }, ProjectInfo.ForNewProject("Acme")));
+    }
+
     public void Dispose() => Directory.Delete(_work, recursive: true);
 }

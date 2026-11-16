@@ -44,6 +44,11 @@ public sealed class Catalog
                 items[id] = new ItemDefinition { Manifest = free.Manifest, Files = files, IncludesPro = true };
             }
         }
+        // Kits last, over their bases as loaded (a Pro kit can be made over a free starter).
+        foreach (var (id, item) in items.ToList())
+            if (item.Manifest.Base is { } spec)
+                items[id] = ItemDefinition.OnBase(item, items.TryGetValue(spec.Item, out var based)
+                    ? based : throw new GenerationException($"{id} is made over {spec.Item}, which isn't in the catalogue."));
         return new Catalog { Items = items };
     }
 

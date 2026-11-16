@@ -204,6 +204,7 @@ public static class Generator
             if (given is null && p.Guid) given = System.Guid.NewGuid().ToString("D");
             values[p.Name] = Typed(manifest.Id, p, given ?? p.Default);
         }
+        foreach (var (name, value) in manifest.Fixed) values[name] = value;
         foreach (var (name, fact) in facts ?? [])
             values.TryAdd(name, fact);
         foreach (var (name, expression) in manifest.Computed)
@@ -211,7 +212,7 @@ public static class Generator
         return values;
     }
 
-    static object Typed(string id, ItemParameter p, string text) => p.Type switch
+    internal static object Typed(string id, ItemParameter p, string text) => p.Type switch
     {
         ParameterType.Bool => bool.TryParse(text, out var b) ? b : throw new GenerationException($"{id}: \"{p.Name}\" is true or false, not \"{text}\"."),
         ParameterType.Int => long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var n) ? n : throw new GenerationException($"{id}: \"{p.Name}\" is a whole number, not \"{text}\"."),
@@ -243,6 +244,8 @@ public static class Generator
         var named = new Dictionary<string, string>(tokens, StringComparer.Ordinal);
         foreach (var p in manifest.Parameters.Where(p => p.Type != ParameterType.Bool))
             tokens[p.Name] = TemplateText.ReplaceTokens(Convert.ToString(values[p.Name], CultureInfo.InvariantCulture)!, named);
+        foreach (var (name, value) in manifest.Fixed)
+            if (value is string text) tokens[name] = text;
         return tokens;
     }
 
