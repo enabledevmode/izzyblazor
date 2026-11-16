@@ -3,7 +3,7 @@ using Microsoft.Playwright;
 namespace IzzyBlazor.Site.Tests;
 
 // The home page's hero shows the store dashboard in two frames, a desktop's and a phone's. Until a
-// frame paints, a picture of it stands in its place (wwwroot/img/home/store-{desktop|phone}-{light|dark}.webp,
+// frame paints, a picture of it stands in its place (wwwroot/img/home/store-{desktop|phone|phone-tall}-{light|dark}.webp,
 // the frame's background in site.css), so the hero looks whole at the page's first paint.
 // To retake them after changing the dashboard: set IZZY_UPDATE_PREVIEWS=1 and run this test.
 public sealed class HomePosterTests(SiteFixture site) : IClassFixture<SiteFixture>
@@ -12,6 +12,8 @@ public sealed class HomePosterTests(SiteFixture site) : IClassFixture<SiteFixtur
     [
         ("desktop", 1280, 940, "mode=static&scrollbar=none"),
         ("phone", 390, 780, "mode=static&scrollbar=none"),
+        // The phone beside the window, from 1024px: a taller phone's screen (site.css), so its floating button is lower.
+        ("phone-tall", 390, 844, "mode=static&scrollbar=none"),
     ];
 
     [Fact]
