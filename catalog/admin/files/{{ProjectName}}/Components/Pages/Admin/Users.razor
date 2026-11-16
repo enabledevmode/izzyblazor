@@ -79,10 +79,10 @@
                 }
             </PropertyColumn>
             <ActionColumn Context="user" Overflow="RowActionOverflow.Always">
-                <RowAction Label="View" Href="@($"admin/users/{user.Id}")" />
-                <RowAction Label="@(user.Status == UserStatus.Invited ? "Resend invite" : "Send password reset")" Form="user-action" Name="reset" Value="@user.Id" Visible="user.Status != UserStatus.Deactivated" />
-                <RowAction Label="Reactivate" Form="user-action" Name="reactivate" Value="@user.Id" Visible="user.Status == UserStatus.Deactivated" />
-                <RowAction Label="Deactivate" Href="@Navigation.GetUriWithQueryParameter("deactivate", user.Id)" Visible="user.Status != UserStatus.Deactivated && user.Id != _me" />
+                <RowAction Icon="Lucide.Eye" Label="View" Href="@($"admin/users/{user.Id}")" />
+                <RowAction Icon="@(user.Status == UserStatus.Invited ? Lucide.Send : Lucide.KeyRound)" Label="@(user.Status == UserStatus.Invited ? "Resend invite" : "Send password reset")" Form="user-action" Name="reset" Value="@user.Id" Visible="user.Status != UserStatus.Deactivated" />
+                <RowAction Icon="Lucide.UserCheck" Label="Reactivate" Form="user-action" Name="reactivate" Value="@user.Id" Visible="user.Status == UserStatus.Deactivated" />
+                <RowAction Icon="Lucide.UserX" Label="Deactivate" Href="@Navigation.GetUriWithQueryParameter("deactivate", user.Id)" Visible="user.Status != UserStatus.Deactivated && user.Id != _me" />
                 <DeleteAction />
             </ActionColumn>
         </Columns>
