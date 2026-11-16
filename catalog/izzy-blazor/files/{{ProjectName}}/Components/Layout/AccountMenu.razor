@@ -9,9 +9,9 @@
     <Authorized>
         <Menu Placement="Placement.BottomEnd">
             <Trigger Context="trigger">
-                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" aria-label="Account" @attributes="trigger">
+                <IconButton Label="Account" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="trigger">
                     <Avatar Name="@context.User.Identity?.Name" Size="AvatarSize.Sm" Decorative />
-                </Button>
+                </IconButton>
             </Trigger>
             <ChildContent>
                 <MenuGroup Label="@(context.User.Identity?.Name ?? "Account")">

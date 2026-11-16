@@ -5,13 +5,14 @@ using Microsoft.AspNetCore.Components.Web;
 namespace IzzyBlazor;
 
 /// <summary>
-/// A square button showing one icon. <see cref="Label"/> is required: it becomes the
-/// accessible name and the hover tooltip, so an icon-only button is never unlabeled.
+/// A square button showing one icon, or in its place other small content, such as an
+/// <see cref="Avatar"/> that opens an account menu (round, to match it). <see cref="Label"/> is
+/// required: it becomes the accessible name and the hover tooltip, so an icon-only button is never unlabeled.
 /// </summary>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native <c>button</c>, or an <c>a</c> with <see cref="Href"/>, so Enter, Space and focus work as the browser defines them.</item>
-/// <item><see cref="Label"/> is required and becomes its <c>aria-label</c>; the icon itself is hidden from screen readers.</item>
+/// <item><see cref="Label"/> is required and becomes its <c>aria-label</c>; the icon itself is hidden from screen readers. Content in its place is named by the label too: make an Avatar <c>Decorative</c>.</item>
 /// <item>The tooltip is the native <c>title</c>, so it shows on mouse hover, not on keyboard focus. Inside a <see cref="Tooltip"/> it has none, and the Tooltip shows on hover and focus.</item>
 /// <item>A loading button (not a link) keeps focus and sets <c>aria-busy</c> and <c>aria-disabled</c>; screen readers hear <see cref="ButtonBase.LoadingLabel"/> before the label ("Loading Delete").</item>
 /// <item>A disabled or loading link loses its <c>href</c>, keeps <c>role="link"</c> and sets <c>aria-disabled</c>.</item>
@@ -25,8 +26,8 @@ namespace IzzyBlazor;
 [ModeSupport]
 public class IconButton : ButtonBase
 {
-    /// <summary>The icon.</summary>
-    [Parameter, EditorRequired] public IconData Icon { get; set; }
+    /// <summary>The icon. Set this or the content (an <see cref="Avatar"/>, say), not both.</summary>
+    [Parameter] public IconData Icon { get; set; }
 
     /// <summary>What the button does, for screen readers and the tooltip.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
@@ -84,9 +85,12 @@ public class IconButton : ButtonBase
             throw new InvalidOperationException("IconButton needs a Label: it is the button's accessible name.");
         }
 
-        if (string.IsNullOrEmpty(Icon.Body))
+        var hasIcon = !string.IsNullOrEmpty(Icon.Body);
+        if (hasIcon == (ChildContent is not null))
         {
-            throw new InvalidOperationException("IconButton needs an Icon, such as Icon=\"Lucide.Pencil\".");
+            throw new InvalidOperationException(hasIcon
+                ? "IconButton shows an Icon or its content (such as an Avatar), not both."
+                : "IconButton needs an Icon, such as Icon=\"Lucide.Pencil\", or content in its place, such as an Avatar.");
         }
     }
 
@@ -153,10 +157,18 @@ public class IconButton : ButtonBase
         builder.AddAttribute(18, "class", cssClass);
         builder.AddAttribute(19, "style", style);
 
-        builder.OpenComponent<IzzyBlazor.Icon>(20);
-        builder.AddComponentParameter(21, nameof(IzzyBlazor.Icon.Name), (IconData?)(Loading ? IconSet.Current.Get(IconPurpose.Loading) : Icon));
-        builder.AddComponentParameter(22, nameof(IzzyBlazor.Icon.Spin), Loading);
-        builder.CloseComponent();
+        if (ChildContent is not null && !Loading)
+        {
+            builder.AddContent(23, ChildContent);
+        }
+        else
+        {
+            builder.OpenComponent<IzzyBlazor.Icon>(20);
+            builder.AddComponentParameter(21, nameof(IzzyBlazor.Icon.Name), (IconData?)(Loading ? IconSet.Current.Get(IconPurpose.Loading) : Icon));
+            builder.AddComponentParameter(22, nameof(IzzyBlazor.Icon.Spin), Loading);
+            builder.CloseComponent();
+        }
+
         builder.CloseElement();
     }
 }

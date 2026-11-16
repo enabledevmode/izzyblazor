@@ -1297,7 +1297,7 @@
                     }
                     else
                     {
-                        <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" IconOnly Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" aria-label="@TextDefaults.FilterBuilderLabel" title="@TextDefaults.FilterBuilderLabel" data-active="@(active ? "" : null)" @attributes="context" />
+                        <IconButton Icon="IconSet.Current.Get(IconPurpose.Filter)" Label="@TextDefaults.FilterBuilderLabel" Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" data-active="@(active ? "" : null)" @attributes="context" />
                     }
                 </Trigger>
                 <ChildContent>
