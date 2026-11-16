@@ -8,117 +8,115 @@
 @* Who changed what, and when: every change to an audited record and every account action, newest first, read
    a page at a time from the database. The filters are in the address, so "what did this person do last week"
    is a link. A row opens to the whole event: where it came from, and each field before and after. *@
-@* A data page: one centered column, 1280px at most, filling the main area so the grid scrolls its own rows. *@
-<Container Size="ContainerSize.Xl" Gutters="false" Grow>
-    <Stack Gap="new() { Base = 6, Md = 8 }" Grow>
-        <PageHeader Title="Audit log" Description="Every change in {{ProjectName}}, newest first." />
+@* A data page: it fills the main area, so the grid scrolls its own rows under its header. *@
+<Stack Gap="new() { Base = 6, Md = 8 }" Grow>
+    <PageHeader Title="Audit log" Description="Every change in {{ProjectName}}, newest first." />
 
-        <DataGrid TItem="AuditEvent" ItemsProvider="LoadAsync" ItemKey="e => e.Id.ToString()" RowLabel="Title" Caption="Audit log"
-                  PageSize="25" InitialSort="-time" Searchable SearchLabel="Record name" SmallScreen="DataGridSmallScreen.HideColumns"
-                  Grow>
-            <EmptyContent>
-                <EmptyState Icon="Lucide.RotateCcwClock" Title="Nothing in this range" Description="No changes match these filters.">
-                    <Button Href="admin/audit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
-                </EmptyState>
-            </EmptyContent>
-            <Columns>
-                <PropertyColumn Property="e => e.Time" Title="Time" Sortable Filterable Filter="WhenFilter" FilterText="WhenText" Width="Length.Rem(9)" Context="e">
-                    <ChildContent>
-                        <RelativeTime Value="Utc(e.Time)" />
-                    </ChildContent>
-                    <FilterTemplate Context="filter">
-                        <Select TValue="string" Label="When" HideLabel Items="Periods.Select(p => p.Days)" ItemText="WhenText" Placeholder="Any time"
-                                Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
-                    </FilterTemplate>
-                </PropertyColumn>
-                <PropertyColumn Property="e => e.ActorId" Title="Who" SortKey="who" Filterable FilterValues="WhoValues" FilterText="WhoText" Priority="1" Context="e">
-                    <ChildContent>
-                        <Row Gap="2" Align="Align.Center">
-                            <Avatar Name="@(e.ActorName ?? "System")" Size="AvatarSize.Xs" Decorative />
-                            <TextBlock Truncate>@(e.ActorName ?? "System")</TextBlock>
-                        </Row>
-                    </ChildContent>
-                </PropertyColumn>
-                <PropertyColumn Property="e => e.Action" Filterable FilterValues="ActionValues" FilterText="ActionText" Width="Length.Rem(11)" Priority="1" Context="e">
-                    <ChildContent>
-                        <Badge Status="AuditText.Tone(e.Action)" Dot>@AuditText.Label(e.Action)</Badge>
-                    </ChildContent>
-                </PropertyColumn>
-                <PropertyColumn Property="e => e.EntityType" Title="Type" SortKey="type" Filterable FilterValues="TypeValues" Width="Length.Rem(7)" Context="e">
-                    @(e.EntityType ?? "Sign-in")
-                </PropertyColumn>
-                <PropertyColumn Property="e => e.EntityName" Title="Record" Sortable Context="e">
-                    @if (LinkTo(e) is { } href)
+    <DataGrid TItem="AuditEvent" ItemsProvider="LoadAsync" ItemKey="e => e.Id.ToString()" RowLabel="Title" Caption="Audit log"
+              PageSize="25" InitialSort="-time" Searchable SearchLabel="Record name" SmallScreen="DataGridSmallScreen.HideColumns"
+              Grow>
+        <EmptyContent>
+            <EmptyState Icon="Lucide.RotateCcwClock" Title="Nothing in this range" Description="No changes match these filters.">
+                <Button Href="admin/audit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
+            </EmptyState>
+        </EmptyContent>
+        <Columns>
+            <PropertyColumn Property="e => e.Time" Title="Time" Sortable Filterable Filter="WhenFilter" FilterText="WhenText" Context="e">
+                <ChildContent>
+                    <RelativeTime Value="Utc(e.Time)" />
+                </ChildContent>
+                <FilterTemplate Context="filter">
+                    <Select TValue="string" Label="When" HideLabel Items="Periods.Select(p => p.Days)" ItemText="WhenText" Placeholder="Any time"
+                            Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="e => e.ActorId" Title="Who" SortKey="who" Filterable FilterValues="WhoValues" FilterText="WhoText" Priority="1" Context="e">
+                <ChildContent>
+                    <Row Gap="2" Align="Align.Center">
+                        <Avatar Name="@(e.ActorName ?? "System")" Size="AvatarSize.Xs" Decorative />
+                        <TextBlock Truncate>@(e.ActorName ?? "System")</TextBlock>
+                    </Row>
+                </ChildContent>
+            </PropertyColumn>
+            <PropertyColumn Property="e => e.Action" Filterable FilterValues="ActionValues" FilterText="ActionText" Priority="1" Context="e">
+                <ChildContent>
+                    <Badge Status="AuditText.Tone(e.Action)" Dot>@AuditText.Label(e.Action)</Badge>
+                </ChildContent>
+            </PropertyColumn>
+            <PropertyColumn Property="e => e.EntityType" Title="Type" SortKey="type" Filterable FilterValues="TypeValues" Context="e">
+                @(e.EntityType ?? "Sign-in")
+            </PropertyColumn>
+            <PropertyColumn Property="e => e.EntityName" Title="Record" Sortable Context="e">
+                @if (LinkTo(e) is { } href)
+                {
+                    <Anchor Href="@href" Underline="AnchorUnderline.Hover">@e.EntityName</Anchor>
+                }
+                else
+                {
+                    @* Deleted since, or a sign-in to an unknown account: named, not linked. *@
+                    <TextBlock Color="Color.Muted">@(e.EntityName ?? "—")</TextBlock>
+                }
+            </PropertyColumn>
+            <TemplateColumn Title="Changed" Context="e">
+                <TextBlock Color="Color.Muted" Truncate>@AuditText.Summary(e)</TextBlock>
+            </TemplateColumn>
+        </Columns>
+        <DetailTemplate>
+            @{ var changes = context.ReadChanges(); }
+            <Stack Gap="4">
+                <DescriptionList Columns="2">
+                    <DescriptionItem Term="When">@Utc(context.Time).ToString("MMM d, yyyy, h:mm:ss tt 'UTC'")</DescriptionItem>
+                    <DescriptionItem Term="IP address">@(context.IpAddress ?? "—")</DescriptionItem>
+                    @if (context.Note is { } note)
                     {
-                        <Anchor Href="@href" Underline="AnchorUnderline.Hover">@e.EntityName</Anchor>
+                        <DescriptionItem Term="Note">@note</DescriptionItem>
                     }
-                    else
-                    {
-                        @* Deleted since, or a sign-in to an unknown account: named, not linked. *@
-                        <TextBlock Color="Color.Muted">@(e.EntityName ?? "—")</TextBlock>
-                    }
-                </PropertyColumn>
-                <TemplateColumn Title="Changed" Context="e">
-                    <TextBlock Color="Color.Muted" Truncate>@AuditText.Summary(e)</TextBlock>
-                </TemplateColumn>
-            </Columns>
-            <DetailTemplate>
-                @{ var changes = context.ReadChanges(); }
-                <Stack Gap="4">
-                    <DescriptionList Columns="2">
-                        <DescriptionItem Term="When">@Utc(context.Time).ToString("MMM d, yyyy, h:mm:ss tt 'UTC'")</DescriptionItem>
-                        <DescriptionItem Term="IP address">@(context.IpAddress ?? "—")</DescriptionItem>
-                        @if (context.Note is { } note)
-                        {
-                            <DescriptionItem Term="Note">@note</DescriptionItem>
-                        }
-                    </DescriptionList>
-                    @if (changes.Count > 0)
-                    {
-                        @* Created shows each value; deleted, each last value; updated, before and after. *@
-                        var created = context.Action == AuditActions.Created;
-                        var deleted = context.Action == AuditActions.Deleted;
-                        <Table Items="changes" Caption="Changed fields" Size="ControlSize.Sm">
-                            <Columns>
-                                <PropertyColumn Property="c => c.Field" Width="Length.Rem(10)" Context="c">@AuditText.Field(c.Field)</PropertyColumn>
-                                @if (!created)
-                                {
-                                    <PropertyColumn Property="c => c.Before" Title="@(deleted ? "Last value" : "Before")" Context="c">
-                                        @if (c.Before is null)
-                                        {
-                                            <TextBlock Color="Color.Muted" Italic>(empty)</TextBlock>
-                                        }
-                                        else if (deleted)
-                                        {
-                                            @c.Before
-                                        }
-                                        else
-                                        {
-                                            <TextBlock Color="Color.Muted" Decoration="TextDecoration.LineThrough">@c.Before</TextBlock>
-                                        }
-                                    </PropertyColumn>
-                                }
-                                @if (!deleted)
-                                {
-                                    <PropertyColumn Property="c => c.After" Title="@(created ? "Value" : "After")" Context="c">
-                                        @if (c.After is null)
-                                        {
-                                            <TextBlock Color="Color.Muted" Italic>(empty)</TextBlock>
-                                        }
-                                        else
-                                        {
-                                            @c.After
-                                        }
-                                    </PropertyColumn>
-                                }
-                            </Columns>
-                        </Table>
-                    }
-                </Stack>
-            </DetailTemplate>
-        </DataGrid>
-    </Stack>
-</Container>
+                </DescriptionList>
+                @if (changes.Count > 0)
+                {
+                    @* Created shows each value; deleted, each last value; updated, before and after. *@
+                    var created = context.Action == AuditActions.Created;
+                    var deleted = context.Action == AuditActions.Deleted;
+                    <Table Items="changes" Caption="Changed fields" Size="ControlSize.Sm">
+                        <Columns>
+                            <PropertyColumn Property="c => c.Field" Width="Length.Rem(10)" Context="c">@AuditText.Field(c.Field)</PropertyColumn>
+                            @if (!created)
+                            {
+                                <PropertyColumn Property="c => c.Before" Title="@(deleted ? "Last value" : "Before")" Context="c">
+                                    @if (c.Before is null)
+                                    {
+                                        <TextBlock Color="Color.Muted" Italic>(empty)</TextBlock>
+                                    }
+                                    else if (deleted)
+                                    {
+                                        @c.Before
+                                    }
+                                    else
+                                    {
+                                        <TextBlock Color="Color.Muted" Decoration="TextDecoration.LineThrough">@c.Before</TextBlock>
+                                    }
+                                </PropertyColumn>
+                            }
+                            @if (!deleted)
+                            {
+                                <PropertyColumn Property="c => c.After" Title="@(created ? "Value" : "After")" Context="c">
+                                    @if (c.After is null)
+                                    {
+                                        <TextBlock Color="Color.Muted" Italic>(empty)</TextBlock>
+                                    }
+                                    else
+                                    {
+                                        @c.After
+                                    }
+                                </PropertyColumn>
+                            }
+                        </Columns>
+                    </Table>
+                }
+            </Stack>
+        </DetailTemplate>
+    </DataGrid>
+</Stack>
 
 @code {
     private static readonly (string Days, string Text)[] Periods = [("1", "Today"), ("7", "Last 7 days"), ("30", "Last 30 days")];

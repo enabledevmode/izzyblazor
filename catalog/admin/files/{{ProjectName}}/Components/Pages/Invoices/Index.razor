@@ -13,9 +13,8 @@
    in the address (?status=overdue), and the grid searches by number or customer and pages in the database.
    Each row opens its invoice; its ⋯ menu reminds, marks paid or deletes a draft, as form posts that come back
    with a toast (Billing/InvoiceActions.cs does the work and writes the audit log). *@
-@* A data page: the header, tabs and grid in one centered column, 1280px at most, filling the main area
-   so the grid scrolls its own rows under its header, with the pager in view. *@
-<Container Size="ContainerSize.Xl" Gutters="false" Grow>
+@* A data page: it fills the main area, so the grid scrolls its own rows under its header,
+   with the pager in view. *@
 <Stack Gap="new() { Base = 6, Md = 8 }" Grow>
     <PageHeader Title="Invoices" Description="@Lead">
         @if (_canEdit && _counts.All > 0)
@@ -57,7 +56,7 @@
                     <DataGridSearch />
                 </ToolbarContent>
                 <Columns>
-                    <PropertyColumn Property="i => i.Number" Title="Invoice" Sortable Width="Length.Rem(8)" Context="i">
+                    <PropertyColumn Property="i => i.Number" Title="Invoice" Sortable Context="i">
                         <Anchor Href="@($"invoices/{i.Id}")" InheritColor Underline="AnchorUnderline.Hover"><TextBlock As="span" Weight="FontWeight.Medium" TabularNums>@i.Number</TextBlock></Anchor>
                         @* On a phone the Customer column is hidden: the name goes under the number. *@
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate HiddenFrom="Breakpoint.Sm">@InvoiceText.CustomerName(i)</TextBlock>
@@ -65,20 +64,20 @@
                     <PropertyColumn Property="i => i.Customer!.LastName" Title="Customer" SortKey="customer" Sortable Context="i">
                         <TextBlock Truncate>@InvoiceText.CustomerName(i)</TextBlock>
                     </PropertyColumn>
-                    <PropertyColumn Property="i => i.Status" Priority="2" Width="Length.Rem(8)" Context="i">
+                    <PropertyColumn Property="i => i.Status" Priority="2" Context="i">
                         @{ var state = InvoiceText.State(i, _today); }
                         <Badge Status="InvoiceText.Tone(state)" Dot>@state</Badge>
                         <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" TabularNums HiddenFrom="Breakpoint.Sm">@InvoiceText.Money(i.Total)</TextBlock>
                     </PropertyColumn>
-                    <PropertyColumn Property="i => i.Issued" Sortable Width="Length.Rem(8)" Context="i">
+                    <PropertyColumn Property="i => i.Issued" Sortable Context="i">
                         <TextBlock Color="Color.Muted">@(i.Status == InvoiceStatus.Draft ? "—" : InvoiceText.Date(i.Issued))</TextBlock>
                     </PropertyColumn>
-                    <PropertyColumn Property="i => i.Due" Sortable Width="Length.Rem(9)" Context="i">
+                    <PropertyColumn Property="i => i.Due" Sortable Context="i">
                         @* The date (a dash on a draft); an overdue one in danger text. The badge says the rest. *@
                         @{ var late = InvoiceText.State(i, _today) == InvoiceState.Overdue; }
                         <TextBlock Color="@(late ? Color.DangerText : Color.Muted)" Weight="@(late ? FontWeight.Medium : FontWeight.Normal)">@(i.Status == InvoiceStatus.Draft ? "—" : InvoiceText.Date(i.Due))</TextBlock>
                     </PropertyColumn>
-                    <TemplateColumn Title="Total" Align="CellAlign.End" Width="Length.Rem(8)" Context="i">
+                    <TemplateColumn Title="Total" Align="CellAlign.End" Context="i">
                         <TextBlock Weight="FontWeight.Medium" TabularNums>@InvoiceText.Money(i.Total)</TextBlock>
                     </TemplateColumn>
                     <ActionColumn Context="i" Overflow="RowActionOverflow.Always">
@@ -97,7 +96,6 @@
         }
     }
 </Stack>
-</Container>
 
 @* The row menu's posts: they name the action and the invoice. *@
 <form id="invoice-action" method="post" @formname="invoice-action" @onsubmit="ActAsync">

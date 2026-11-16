@@ -407,9 +407,11 @@
     }
   }
 
+  /* No wider than the room left of a scrollbar: container units count the scrollbar's width too, so
+     a main area that scrolls (ScrollMode.Main, with scrollbars that take room) scrolled sideways as well. */
   .ib-shell-main-column {
     box-sizing: border-box;
-    width: var(--ib-bleed-col);
+    width: min(100%, var(--ib-bleed-col));
     margin-inline-start: var(--ib-bleed-start);
     padding-inline: var(--ib-bleed-gutter);
   }
