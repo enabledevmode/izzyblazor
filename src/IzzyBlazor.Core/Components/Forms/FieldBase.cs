@@ -336,6 +336,14 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     [Parameter] public Responsive<Align> AlignSelf { get; set; }
 
     /// <summary>
+    /// Where the field comes in its Stack, Row, Column or Grid, before (lower) or after (higher) the items
+    /// left at 0, such as a summary moved first on phones: <c>LayoutOrder="new() { Base = -1, Lg = 0 }"</c>.
+    /// Only the drawing moves: screen readers and the keyboard keep the written order, so write the
+    /// content in the order that reads best.
+    /// </summary>
+    [Parameter] public Responsive<int> LayoutOrder { get; set; }
+
+    /// <summary>
     /// How many columns the field spans in a <see cref="Form"/> or <see cref="Fieldset"/> with
     /// <c>Columns</c>; <see cref="GridSpan.Full"/> for the whole row. Never more than the columns shown.
     /// </summary>

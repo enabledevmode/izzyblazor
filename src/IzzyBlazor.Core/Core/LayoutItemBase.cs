@@ -71,6 +71,14 @@ public abstract class LayoutItemBase : IzzyComponentBase, ILayoutItem
     [Parameter] public Responsive<Align> AlignSelf { get; set; }
 
     /// <summary>
+    /// Where it comes in its Stack, Row, Column or Grid, before (lower) or after (higher) the items
+    /// left at 0, such as a summary moved first on phones: <c>LayoutOrder="new() { Base = -1, Lg = 0 }"</c>.
+    /// Only the drawing moves: screen readers and the keyboard keep the written order, so write the
+    /// content in the order that reads best.
+    /// </summary>
+    [Parameter] public Responsive<int> LayoutOrder { get; set; }
+
+    /// <summary>
     /// How many columns it spans in a <see cref="Form"/> or <see cref="Fieldset"/> with
     /// <c>Columns</c>, or a <see cref="Grid"/>; <see cref="GridSpan.Full"/> for the whole row. Never
     /// more than the columns shown, so a form that narrows to one column needs no breakpoints.

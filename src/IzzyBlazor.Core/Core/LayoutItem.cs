@@ -21,6 +21,7 @@ internal interface ILayoutItem
     bool Shrink { get; }
     Responsive<Length> Basis { get; }
     Responsive<Align> AlignSelf { get; }
+    Responsive<int> LayoutOrder { get; }
     Responsive<int> ColSpan { get; }
     bool NewRow { get; }
 }
@@ -79,6 +80,7 @@ internal static class LayoutItemProps
         Write(classes, styles, item.Shrink ? default(Responsive<bool>) : false, "ib-shrink", "shrink", StyleValues.Factor);
         Write(classes, styles, item.Basis, "ib-basis", "basis", StyleValues.Length);
         Write(classes, styles, item.AlignSelf, "ib-self", "self", StyleValues.Align);
+        Write(classes, styles, item.LayoutOrder, "ib-order", "order", n => n.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
     /// <summary>
