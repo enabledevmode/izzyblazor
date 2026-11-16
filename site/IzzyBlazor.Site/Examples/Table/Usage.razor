@@ -5,9 +5,9 @@
         <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
         <PropertyColumn Property="o => o.Customer" Sortable />
         <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
-        <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+        <PropertyColumn Property="o => o.Status" Sortable>
             <Badge Status="Orders.StatusOf(context.Status)" Dot>@context.Status</Badge>
-        </TemplateColumn>
+        </PropertyColumn>
         <PropertyColumn Property="o => o.Total" Format="C" Sortable />
     </Columns>
 </Table>

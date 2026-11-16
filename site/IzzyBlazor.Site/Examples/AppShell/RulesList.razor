@@ -34,9 +34,9 @@
             <Table Items="Rules" PageSize="6" InitialSort="-updated" Caption="Rules">
                 <Columns>
                     <PropertyColumn Property="r => r.Name" Sortable />
-                    <TemplateColumn Title="Status" SortBy="r => r.Status" SortKey="status" Sortable>
+                    <PropertyColumn Property="r => r.Status" Sortable>
                         <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
-                    </TemplateColumn>
+                    </PropertyColumn>
                     <PropertyColumn Property="r => r.Owner" Sortable />
                     <PropertyColumn Property="r => r.Updated" Format="MMM d" Sortable />
                     <PropertyColumn Property="r => r.Hits" Title="Hits (7 days)" Format="N0" Sortable />
