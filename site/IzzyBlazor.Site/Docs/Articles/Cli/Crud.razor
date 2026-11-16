@@ -16,6 +16,24 @@
             This creates a page at <Code>/customers</Code>. The grid on it can search, sort and page the customers. Add and
             Edit open a dialog that checks the form against the model's attributes, and Delete asks before it deletes.
         </TextBlock>
+        @* The page izzy creates, live in a frame (Frame/CrudDemoFramePage.razor), at a desktop's or a phone's
+           width. The switch reloads the page; data-site-return keeps the preview where it was on the screen. *@
+        <div id="crud-demo" class="site-crud-demo" data-site-return>
+            <TabNav Label="Preview width" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+                <TabLink Href="docs/cli/crud#crud-demo" Label="Desktop" Current="!Phone" />
+                <TabLink Href="docs/cli/crud?width=phone#crud-demo" Label="Phone" Current="Phone" />
+            </TabNav>
+            @if (Phone)
+            {
+                <div class="site-block-phone">
+                    <iframe class="site-block-frame" src="frame/cli/crud?scrollbar=none" data-site-frame title="The customers page at a phone's width"></iframe>
+                </div>
+            }
+            else
+            {
+                <iframe class="site-crud-frame" src="frame/cli/crud" data-site-frame data-site-fit title="The customers page"></iframe>
+            }
+        </div>
         <TextBlock>
             The toolbar also has Columns and Export. Columns lets each person choose which columns to show, and remembers
             the choice in a cookie. Export downloads the rows as an Excel file, from an endpoint in
@@ -54,7 +72,10 @@
             </Columns>
         </Table>
 
-        <Heading Level="2">A page for each task, with Pro</Heading>
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Heading Level="2">A page per task, with Pro</Heading>
+            <Badge Variant="BadgeVariant.Outline">Planned</Badge>
+        </Row>
         <TextBlock>
             The grid page does everything in one place and edits in a dialog. With IzzyBlazor Pro, <Code>--mode pages</Code>
             creates separate pages instead: a list with filters, a details page for each customer, and a form page that
@@ -70,11 +91,15 @@
 </ArticlePage>
 
 @code {
-    private sealed record Row(string Name, string Text);
+    [SupplyParameterFromQuery(Name = "width")] private string? Width { get; set; }
 
-    private static readonly Row[] CrudOptions =
+    private bool Phone => Width == "phone";
+
+    private sealed record OptionRow(string Name, string Text);
+
+    private static readonly OptionRow[] CrudOptions =
     [
-        new("--mode pages", "Pro. Creates separate pages to list, show and edit the records, for records with many fields. Without it, izzy creates one grid page that edits in a dialog."),
+        new("--mode pages", "Pro, planned. Creates separate pages to list, show and edit the records, for records with many fields. Without it, izzy creates one grid page that edits in a dialog."),
         new("--name <Plural>", "Sets the folder, the page names and the page title. Defaults to the model's plural, such as Customers."),
         new("--singular <words>", "Sets what one record is called on the page, when it isn't the class name. For example, --singular \"team member\" for a Member class. To set the plural, use --plural."),
         new("--route <path>", "Sets the page's URL. Defaults to the name in kebab case, such as customers."),

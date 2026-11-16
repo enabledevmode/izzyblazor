@@ -1,0 +1,69 @@
+@page "/frame/cli/crud"
+@layout FrameLayout
+
+@* The CRUD pages article's demo: the page izzy add crud Customer creates (catalog/crud's Grid.razor), with
+   its markup as generated, in the library's default theme. The customers come from CrudDemoData, made
+   fresh for each request, so a save posts but doesn't last. Links that would leave the demo go nowhere. *@
+
+<PageTitle>Customers (izzy add crud)</PageTitle>
+<HeadContent><meta name="robots" content="noindex" /></HeadContent>
+
+<ThemeScope Brand="blue" Gray="neutral" Class="@(Scrollbar == "none" ? "frame frame-page frame-block frame-no-scrollbar" : "frame frame-page frame-block")">
+    <Stack Gap="new() { Base = 6, Md = 8 }">
+        <PageHeader Title="Customers" />
+
+        <DataGrid TItem="DemoCustomer" Items="_customers" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
+                  InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="crud-demo-customers" ExportExcelHref="#" ToolbarLabels
+                  EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
+                  NewItem="() => new DemoCustomer()" AddText="Add customer" OnSave="Save" OnDelete="Delete"
+                  NoMatchesText="No customers match “{0}”" Grow>
+            <ToolbarContent>
+                <DataGridExport />
+                <DataGridAdd FloatBelow="Breakpoint.Sm" />
+            </ToolbarContent>
+            <EmptyContent>
+                <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
+                    <Button Href="?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add customer</Button>
+                </EmptyState>
+            </EmptyContent>
+            <Columns>
+                <PropertyColumn Property="x => x.FirstName" Title="First name" Sortable />
+                <PropertyColumn Property="x => x.LastName" Title="Last name" Sortable />
+                <PropertyColumn Property="x => x.Email" Title="Email" Sortable />
+                <PropertyColumn Property="x => x.Status" Title="Status" Width="Length.Rem(7.5)" Priority="1" Sortable />
+                <PropertyColumn Property="x => x.LifetimeValue" Title="Lifetime value" Format="C" Width="Length.Rem(10.5)" Sortable />
+                <PropertyColumn Property="x => x.Joined" Title="Joined" Format="MMM d, yyyy" Width="Length.Rem(8.5)" Sortable />
+                <PropertyColumn Property="x => x.Newsletter" Title="Newsletter" Width="Length.Rem(8.5)" Sortable />
+            </Columns>
+        </DataGrid>
+    </Stack>
+</ThemeScope>
+
+@code {
+    // ?scrollbar=none hides the page's scrollbar, as a phone's browser does, for the phone-width frame. It still scrolls.
+    [SupplyParameterFromQuery(Name = "scrollbar")] public string? Scrollbar { get; set; }
+
+    private readonly List<DemoCustomer> _customers = CrudDemoData.Customers();
+
+    // As the generated page's SaveAsync, on this request's list.
+    private void Save(DataGridSave<DemoCustomer> save)
+    {
+        var missing = false;
+        if (string.IsNullOrWhiteSpace(save.Item.FirstName)) { save.AddError(x => x.FirstName, "Enter a first name."); missing = true; }
+        if (string.IsNullOrWhiteSpace(save.Item.LastName)) { save.AddError(x => x.LastName, "Enter a last name."); missing = true; }
+        if (string.IsNullOrWhiteSpace(save.Item.Email)) { save.AddError(x => x.Email, "Enter an email."); missing = true; }
+        if (missing) return;
+
+        if (save.IsNew)
+        {
+            save.Item.Id = _customers.Max(x => x.Id) + 1;
+            _customers.Add(save.Item);
+        }
+        else if (_customers.FirstOrDefault(x => x.Id == save.Item.Id) is { } saved)
+        {
+            save.CopyTo(saved);
+        }
+    }
+
+    private void Delete(DataGridDelete<DemoCustomer> delete) => _customers.RemoveAll(x => x.Id == delete.Item.Id);
+}
