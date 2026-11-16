@@ -137,10 +137,13 @@
             }
             else
             {
-                <Timeline>
+                @* Small dots, each line in the regular weight with its time under it. *@
+                <Timeline Size="ControlSize.Sm" TimePlacement="TimelinePlacement.Below">
                     @foreach (var item in _activity)
                     {
-                        <TimelineItem Title="@item.Text" Value="item.Time" Status="item.Status" />
+                        <TimelineItem Value="item.Time" Status="item.Status">
+                            <TitleContent>@item.Text</TitleContent>
+                        </TimelineItem>
                     }
                 </Timeline>
             }
