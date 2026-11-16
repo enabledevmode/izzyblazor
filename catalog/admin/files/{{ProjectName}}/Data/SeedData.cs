@@ -94,7 +94,8 @@ public static class SeedData
         for (var i = 0; i < 48; i++)
         {
             var (f, l) = (first[i % first.Length], last[(i * 7 + i / first.Length) % last.Length]);
-            var joined = i < 6 ? today.AddDays(-random.Next(2, 20)) : today.AddDays(-random.Next(30, 1000));
+            // Trials are the newest; the rest joined over two years, more of them lately, as a growing business does.
+            var joined = i < 6 ? today.AddDays(-random.Next(2, 20)) : today.AddDays(-(21 + (int)(700 * Math.Pow(random.NextDouble(), 1.6))));
             customers.Add(new Customer
             {
                 FirstName = f, LastName = l,
@@ -107,6 +108,17 @@ public static class SeedData
         db.Customers.AddRange(customers);
         await db.SaveChangesAsync();
 
+        // When the churned ones left: a month or more after they joined, and before today.
+        var left = customers.Where(c => c.Status == CustomerStatus.Churned).ToDictionary(c => c.Id, c =>
+        {
+            var on = c.Joined.AddDays(30 + random.Next(Math.Max(1, today.DayNumber - c.Joined.DayNumber - 31)));
+            return on < today ? on : today.AddDays(-1);
+        });
+
+        // Some moved up a plan a while after joining.
+        var upgraded = customers.Where((c, i) => c.Status != CustomerStatus.Trial && c.Plan > CustomerPlan.Starter && i % 4 == 1)
+            .ToDictionary(c => c.Id, c => c.Joined.AddDays(1 + random.Next(Math.Max(1, (left.TryGetValue(c.Id, out var gone) ? gone : today).DayNumber - c.Joined.DayNumber - 1))));
+
         // A year of invoices, more each month as the business grows; the oldest paid, the newest drafts.
         (string Text, decimal Price)[] items =
         [
@@ -114,27 +126,31 @@ public static class SeedData
             ("Additional seats (5)", 75m), ("Onboarding session", 350m), ("Priority support, quarterly", 450m), ("Data migration", 1200m),
         ];
         var payers = customers.Where(c => c.Status != CustomerStatus.Trial).ToList();
-        var days = Enumerable.Range(0, 120).Select(_ => (int)(365 * Math.Sqrt(random.NextDouble()))).Select(d => today.AddDays(-365 + d)).Order().ToList();
+        // Each paying customer is billed monthly from the day they joined until they left, over the last year.
+        var bills = payers.SelectMany(c => Enumerable.Range(0, 24).Select(m => (Customer: c, Issued: c.Joined.AddMonths(m))))
+            .Where(b => b.Issued > today.AddDays(-365) && b.Issued <= today
+                && !(left.TryGetValue(b.Customer.Id, out var gone) && gone <= b.Issued))
+            .OrderBy(b => b.Issued).ToList();
         var invoices = new List<Invoice>();
-        foreach (var issued in days)
+        foreach (var (customer, issued) in bills)
         {
-            var customer = payers.Where(c => c.Joined <= issued).OrderBy(_ => random.Next()).FirstOrDefault() ?? payers[0];
             var invoice = new Invoice
             {
                 Number = $"INV-{invoices.Count + 1:0000}", CustomerId = customer.Id, Customer = customer,
                 Issued = issued, Due = issued.AddDays(30), TaxRate = 0.08m,
             };
-            invoice.Lines.Add(new InvoiceLine { Description = items[(int)customer.Plan].Text, UnitPrice = items[(int)customer.Plan].Price });
-            for (var extra = random.Next(3); extra > 0; extra--)
+            var plan = upgraded.TryGetValue(customer.Id, out var up) && issued < up ? customer.Plan - 1 : customer.Plan;
+            invoice.Lines.Add(new InvoiceLine { Description = items[(int)plan].Text, UnitPrice = items[(int)plan].Price });
+            for (var extra = random.Next(5) == 0 ? 1 + random.Next(2) : 0; extra > 0; extra--)
             {
                 var item = items[3 + random.Next(items.Length - 3)];
                 invoice.Lines.Add(new InvoiceLine { Description = item.Text, UnitPrice = item.Price, Quantity = item.Text.StartsWith("Additional") ? 1 + random.Next(3) : 1 });
             }
             var age = today.DayNumber - issued.DayNumber;
-            var paid = issued.AddDays(3 + random.Next(age > 45 ? 35 : 60));
+            var paid = issued.AddDays(random.Next(10) == 0 ? 20 + random.Next(40) : 2 + random.Next(14));
             (InvoiceStatus, DateOnly?, DateOnly?) state =
                 age < 7 && random.Next(2) == 0 ? (InvoiceStatus.Draft, null, null)
-                : invoices.Count is 17 or 64 ? (InvoiceStatus.Void, issued, null)
+                : invoices.Count % 97 == 17 ? (InvoiceStatus.Void, issued, null)
                 : paid <= today ? (InvoiceStatus.Paid, issued, paid)
                 : (InvoiceStatus.Sent, issued, null);
             (invoice.Status, invoice.Sent, invoice.Paid) = state;
@@ -152,11 +168,15 @@ public static class SeedData
             Record(At(c.Joined), by, AuditActions.Created, nameof(Customer), c.Id.ToString(), $"{c.FirstName} {c.LastName}",
             [
                 new("FirstName", null, c.FirstName), new("LastName", null, c.LastName), new("Email", null, c.Email),
-                new("Status", null, c.Status == CustomerStatus.Trial ? "Trial" : "Active"), new("Plan", null, c.Plan.ToString()),
+                new("Status", null, c.Status == CustomerStatus.Trial ? "Trial" : "Active"),
+                new("Plan", null, (upgraded.ContainsKey(c.Id) ? c.Plan - 1 : c.Plan).ToString()),
                 new("Joined", null, c.Joined.ToString("yyyy-MM-dd")),
             ]);
-            if (c.Status == CustomerStatus.Churned)
-                Record(At(c.Joined.AddDays(60 + random.Next(200))), by, AuditActions.Updated, nameof(Customer), c.Id.ToString(), $"{c.FirstName} {c.LastName}",
+            if (upgraded.TryGetValue(c.Id, out var up))
+                Record(At(up), by, AuditActions.Updated, nameof(Customer), c.Id.ToString(), $"{c.FirstName} {c.LastName}",
+                    [new("Plan", (c.Plan - 1).ToString(), c.Plan.ToString())]);
+            if (left.TryGetValue(c.Id, out var gone))
+                Record(At(gone), by, AuditActions.Updated, nameof(Customer), c.Id.ToString(), $"{c.FirstName} {c.LastName}",
                     [new("Status", "Active", "Churned")]);
         }
         foreach (var i in invoices)
