@@ -27,6 +27,7 @@
             var value = FormatValueAsString(item);
             var id = $"{FieldId}-{index}";
             var focus = FocusesGroup && index == FocusIndex;
+            var description = ItemDescription?.Invoke(item);
             <label class="ib-check" for="@id">
                 <input @attributes="RadioMessageAttributes"
                        id="@id"
@@ -40,12 +41,26 @@
                        disabled="@IsDisabled"
                        aria-invalid="@(Invalid ? "true" : null)"
                        autofocus="@focus"
-                       data-ib-autofocus="@(focus ? "" : null)" />
+                       data-ib-autofocus="@(focus ? "" : null)"
+                       aria-labelledby="@(description is null ? null : $"{id}-text")"
+                       aria-describedby="@(description is null ? null : $"{id}-description")" />
                 @if (Chips)
                 {
                     <Icon Purpose="IconPurpose.Check" />
                 }
-                <span class="ib-check-label">@TextFor(item)</span>
+                <span class="ib-check-label">
+                    @if (description is null)
+                    {
+                        @TextFor(item)
+                    }
+                    else
+                    {
+                        @* The name is only the text before the description: the label's whole
+                           content would name the radio with the description too. *@
+                        <span class="ib-check-text" id="@($"{id}-text")">@TextFor(item)</span>
+                        <span class="@(Chips ? "ib-visually-hidden" : "ib-check-description")" id="@($"{id}-description")">@description</span>
+                    }
+                </span>
             </label>
         }
     </div>
@@ -75,6 +90,9 @@
 
     /// <summary>The text for each option. Defaults to the enum value's <c>[Display(Name)]</c> or its string form.</summary>
     [Parameter] public Func<TValue, string>? ItemText { get; set; }
+
+    /// <summary>A line under each option's name, such as what choosing it means. Screen readers hear it as the radio's description, after its name. Not shown on a chip; screen readers still hear it.</summary>
+    [Parameter] public Func<TValue, string?>? ItemDescription { get; set; }
 
     /// <summary>Stack options vertically (the default) or in a row. Not used with <see cref="Chips"/>, which wrap in a row.</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;

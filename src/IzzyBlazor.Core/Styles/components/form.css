@@ -2013,7 +2013,7 @@
     cursor: not-allowed;
   }
 
-  /* CheckboxGroup's ItemDescription: under the option's name, in the hint's style. */
+  /* CheckboxGroup's and RadioGroup's ItemDescription: under the option's name, in the hint's style. */
   .ib-check-description {
     display: block;
     font-size: var(--ib-field-hint-font);
