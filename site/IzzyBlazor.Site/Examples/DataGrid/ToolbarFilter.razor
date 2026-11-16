@@ -1,0 +1,15 @@
+@* Status, the filter people reach for first on an order list, beside the search; the column's header leaves its
+   funnel to it. The other columns keep theirs. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders with a status filter" Searchable QueryPrefix="tf-" Grow>
+    <ToolbarContent>
+        <DataGridSearch />
+        <DataGridFilter Column="Status" />
+    </ToolbarContent>
+    <Columns>
+        <PropertyColumn Property="o => o.Number" Align="CellAlign.Start" Width="8.Rem" />
+        <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+        <PropertyColumn Property="o => o.Status" Filterable Width="9.Rem" />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+    </Columns>
+</DataGrid>

@@ -14,6 +14,12 @@ internal interface IDataGridToolbar
 
     string FilterBuilderLabel { get; }
 
+    bool HasColumnFilter(string column);
+
+    string ColumnFilterText(string column);
+
+    RenderFragment ColumnFilterBar(string column);
+
     RenderFragment FilterBuilderBar(bool showText);
 
     bool HasAdd { get; }
@@ -221,6 +227,79 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 #pragma warning restore BL0006
         return placed;
     }
+
+    /// <summary>The columns whose filter a <see cref="DataGridFilter"/> in <paramref name="content"/> has, by its <c>Column</c>.</summary>
+    internal static HashSet<string> FilterColumns(RenderFragment? content)
+    {
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (content is null)
+        {
+            return columns;
+        }
+
+#pragma warning disable BL0006
+        using var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder();
+        content(builder);
+        var frames = builder.GetFrames();
+        for (var i = 0; i < frames.Count; i++)
+        {
+            ref var frame = ref frames.Array[i];
+            if (frame.FrameType != RenderTreeFrameType.Component || frame.ComponentType != typeof(DataGridFilter))
+            {
+                continue;
+            }
+
+            // Its parameters are the attribute frames that follow it.
+            for (var a = i + 1; a < frames.Count && frames.Array[a].FrameType == RenderTreeFrameType.Attribute; a++)
+            {
+                if (frames.Array[a].AttributeName == nameof(DataGridFilter.Column) && frames.Array[a].AttributeValue is string column)
+                {
+                    columns.Add(column);
+                }
+            }
+        }
+#pragma warning restore BL0006
+        return columns;
+    }
+
+    /// <summary>Whether it's in a grid's <c>ToolbarContent</c>, not outside the grid.</summary>
+    private protected bool InGrid => GridValue is not null;
+}
+
+/// <summary>
+/// A column's filter in a <c>DataGrid</c>'s toolbar, beside the search: a button named for the column that opens
+/// the column's own filter panel and says what it's set to ("Status: Locked"). Its filter is the column's, kept
+/// in the address under the same keys, so the column's header has no funnel of its own. For the filters people
+/// reach for first, such as Status and Role; the rest stay in the headers.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;ToolbarContent&gt;
+///     &lt;DataGridSearch /&gt;
+///     &lt;DataGridFilter Column="Status" /&gt;
+///     &lt;DataGridFilter Column="Role" /&gt;
+/// &lt;/ToolbarContent&gt;
+/// </code>
+/// </example>
+[ModeSupport(NoScriptNotes = "With JavaScript off, the panel opens in browsers with popovers, and its Apply posts the filter.")]
+public sealed class DataGridFilter : DataGridToolbarItem
+{
+    /// <summary>Creates it, at the toolbar's start.</summary>
+    public DataGridFilter() => Position = ToolbarPosition.Start;
+
+    /// <summary>
+    /// The column whose filter it has, by its key: its <c>SortKey</c>, or for a <c>PropertyColumn</c> the
+    /// property's path, as the address names it ("Status"). The column must be <c>Filterable</c>.
+    /// </summary>
+    [Parameter, EditorRequired] public string Column { get; set; } = "";
+
+    private protected override bool On => Grid.HasColumnFilter(Column);
+
+    private protected override RenderFragment ItemBar => InGrid
+        ? Grid.ColumnFilterBar(Column)
+        : throw new InvalidOperationException("DataGridFilter goes in its grid's ToolbarContent: the column's header gives its filter to it there.");
+
+    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, false, true, Grid.ColumnFilterText(Column), startIcon: true, endIcon: false) + TableIconExtra;
 }
 
 /// <summary>Puts a <c>DataGrid</c>'s search box, from <c>Searchable</c>, among your toolbar items. It stays in the bar, as a box.</summary>

@@ -630,6 +630,12 @@
 
     internal bool HasFilters => _columns.Any(c => c.CanFilter);
 
+    /// <summary>The column with this key (its <c>SortKey</c>, or its property's path), as the address names it.</summary>
+    private protected ColumnBase<TItem>? ColumnByKey(string key) => _columns.FirstOrDefault(c => string.Equals(c.Key, key, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>The keys of the columns, for a message naming a wrong one.</summary>
+    private protected IEnumerable<string> ColumnKeys => _columns.Where(c => c.Key is not null).Select(c => c.Key!);
+
     /// <summary>Whether anything posts through the filters' GET form.</summary>
     internal virtual bool NeedsFilterForm => HasFilters;
 
@@ -1004,10 +1010,7 @@
     {
         var label = FilterLabel(column);
         var name = current.IsFilter ? $"{label}: {FilterSummary(column, current)}" : label;
-        var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
-        var lists = column.HasValueList && RendererInfo.IsInteractive;
-        var toggled = lists ? EventCallback.Factory.Create<bool>(this, open => OnValueListToggleAsync(column, open)) : default;
-        <Popover Id="@(ShowsFilterRow ? FilterPanelId(column) : null)" data-ib-user-controlled OpenChanged="toggled">
+        <Popover Id="@(ShowsFilterRow ? FilterPanelId(column) : null)" data-ib-user-controlled OpenChanged="FilterToggled(column)">
             <Trigger>
                 @* With a row of filters the row is the way in, so the panel stays for it and the button goes. *@
                 <button type="button" class="ib-table-filter-button" hidden="@ShowsFilterRow" data-active="@(current.IsFilter ? "" : null)" aria-label="@TextDefaults.FilterButton" title="@name" @attributes="context">
@@ -1015,37 +1018,64 @@
                 </button>
             </Trigger>
             <ChildContent>
-                @if (column.FilterTemplate is { } template)
-                {
-                    <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
-                        <span class="ib-visually-hidden" id="@($"{fieldId}-title")">@label</span>
-                        @template(FilterContextOf(column, current))
-                        @FilterPanelActions(column, current)
-                    </div>
-                }
-                else if (column.FilterKind == ColumnFilterKind.Choice)
-                {
-                    @FilterList(column, current, label, fieldId)
-                }
-                else if (lists && ShowsValueList(column))
-                {
-                    @ValueList(column, label, fieldId)
-                }
-                else if (FetchesValues(column) && ShowsValueList(column))
-                {
-                    @* The script fetches this list from the page itself. With none, the usual panel. *@
-                    @FetchedValueList(column, current, label, fieldId)
-                    <div class="ib-filter-no-script">
-                        @UsualPanel(column, current, label, $"{fieldId}-usual")
-                    </div>
-                }
-                else
-                {
-                    @UsualPanel(column, current, label, fieldId)
-                }
+                @FilterPanelBody(column, current)
             </ChildContent>
         </Popover>
     };
+
+    // A column's filter panel, in its header's popover or a DataGridFilter's in the toolbar: a list of checkboxes
+    // for choices, the field for text, numbers and dates.
+    private protected RenderFragment FilterPanelBody(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
+    {
+        var label = FilterLabel(column);
+        var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
+        var lists = column.HasValueList && RendererInfo.IsInteractive;
+        if (column.FilterTemplate is { } template)
+        {
+            <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
+                <span class="ib-visually-hidden" id="@($"{fieldId}-title")">@label</span>
+                @template(FilterContextOf(column, current))
+                @FilterPanelActions(column, current)
+            </div>
+        }
+        else if (column.FilterKind == ColumnFilterKind.Choice)
+        {
+            @FilterList(column, current, label, fieldId)
+        }
+        else if (lists && ShowsValueList(column))
+        {
+            @ValueList(column, label, fieldId)
+        }
+        else if (FetchesValues(column) && ShowsValueList(column))
+        {
+            @* The script fetches this list from the page itself. With none, the usual panel. *@
+            @FetchedValueList(column, current, label, fieldId)
+            <div class="ib-filter-no-script">
+                @UsualPanel(column, current, label, $"{fieldId}-usual")
+            </div>
+        }
+        else
+        {
+            @UsualPanel(column, current, label, fieldId)
+        }
+    };
+
+    // Opening a column's panel on an interactive page loads its list of values, when it shows one.
+    private protected EventCallback<bool> FilterToggled(ColumnBase<TItem> column) =>
+        column.HasValueList && RendererInfo.IsInteractive ? EventCallback.Factory.Create<bool>(this, open => OnValueListToggleAsync(column, open)) : default;
+
+    /// <summary>A column's filter as it stands, or empty.</summary>
+    private protected ColumnFilterValue FilterOf(ColumnBase<TItem> column) =>
+        CurrentFilters().GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column);
+
+    /// <summary>The column's filter in its header's popover, as a <c>DataGridFilter</c>'s panel id, so a row of filters opens it too.</summary>
+    private protected string ToolbarFilterPanelId(ColumnBase<TItem> column) => FilterPanelId(column);
+
+    /// <summary>A column's filter shown words, for a toolbar filter's button: what it's set to.</summary>
+    private protected string FilterShown(ColumnBase<TItem> column, ColumnFilterValue current) => FilterSummary(column, current);
+
+    /// <summary>Whether a <c>DataGridFilter</c> in the toolbar has this column's filter, so its header has no funnel of its own.</summary>
+    internal virtual bool FilteredInToolbar(ColumnBase<TItem> column) => false;
 
     // What a column's own controls get. In the address, a control posts through the GET form as the panel's own
     // do, and the script finds it the same way; bound, its changes come here.
@@ -2091,7 +2121,7 @@
         {
             <div class="ib-table-head">
                 @HeaderTitle(column)
-                @if (headerFilters is not null && column.CanFilter)
+                @if (headerFilters is not null && column.CanFilter && !FilteredInToolbar(column))
                 {
                     @HeaderFilter(column, headerFilters.GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column))
                 }

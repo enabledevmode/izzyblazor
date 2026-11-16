@@ -1237,6 +1237,54 @@
 
     string IDataGridToolbar.FilterBuilderLabel => TextDefaults.FilterBuilderLabel;
 
+    bool IDataGridToolbar.HasColumnFilter(string column) => ColumnByKey(column) is { CanFilter: true };
+
+    string IDataGridToolbar.ColumnFilterText(string column) => ColumnByKey(column) is { } c ? ColumnFilterText(c, FilterOf(c)) : column;
+
+    // A DataGridFilter's button: the column's name, and what it's set to once it's set ("Status: Locked", "Status: 2 selected").
+    private string ColumnFilterText(ColumnBase<TItem> column, ColumnFilterValue current) =>
+        current.IsFilter ? $"{column.FullName}: {FilterShown(column, current)}" : column.FullName;
+
+    RenderFragment IDataGridToolbar.ColumnFilterBar(string key) => __builder =>
+    {
+        var column = ColumnByKey(key)
+            ?? throw new InvalidOperationException($"DataGridFilter Column=\"{key}\" names no column of this grid. Its columns: {string.Join(", ", ColumnKeys)}.");
+        if (!column.CanFilter)
+        {
+            throw new InvalidOperationException($"DataGridFilter Column=\"{key}\": the \"{column.HeaderText}\" column has no filter. Set Filterable on it.");
+        }
+
+        var current = FilterOf(column);
+        var text = ColumnFilterText(column, current);
+        @* The column's own panel, moved here from its header: one panel, so the toolbar and the address always agree. *@
+        <div class="ib-toolbar-item ib-grid-filter-tool">
+            <Popover Id="@ToolbarFilterPanelId(column)" Placement="Placement.BottomStart" data-ib-user-controlled OpenChanged="FilterToggled(column)">
+                <Trigger>
+                    <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" data-active="@(current.IsFilter ? "" : null)" @attributes="context">@text</Button>
+                </Trigger>
+                <ChildContent>
+                    @FilterPanelBody(column, current)
+                </ChildContent>
+            </Popover>
+        </div>
+    };
+
+    // The columns whose filter a DataGridFilter in ToolbarContent has, read once for each ToolbarContent.
+    private RenderFragment? _toolbarFiltersOf;
+    private HashSet<string> _toolbarFilters = [];
+
+    /// <inheritdoc />
+    internal override bool FilteredInToolbar(ColumnBase<TItem> column)
+    {
+        if (!ReferenceEquals(_toolbarFiltersOf, ToolbarContent))
+        {
+            _toolbarFiltersOf = ToolbarContent;
+            _toolbarFilters = DataGridToolbarItem.FilterColumns(ToolbarContent);
+        }
+
+        return column.Key is { } key && _toolbarFilters.Contains(key);
+    }
+
     RenderFragment IDataGridToolbar.FilterBuilderBar(bool showText) => __builder =>
     {
         var active = UseState ? ExtraFilter is not null : QueryString.Of(Navigation.Uri).ContainsKey(FilterTextKey);
