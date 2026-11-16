@@ -6,16 +6,16 @@
 
 <ArticlePage Section="cli" Slug="overview">
     <Lead>
-        The <Code>izzy</Code> command makes new apps, sets up IzzyBlazor in the app you have, and adds
-        <Anchor Href="blocks">blocks</Anchor> and pages to it as code you own. Every change can be shown first, as a diff,
-        or as JSON for agents and scripts.
+        The <Code>izzy</Code> command creates new apps, sets up IzzyBlazor in an app you already have, and adds
+        <Anchor Href="blocks">blocks</Anchor> and pages to your app. The code it adds is yours to change. You can see every
+        change before izzy makes it.
     </Lead>
     <ChildContent>
         <Heading Level="2">Install</Heading>
         <Code Block Language="bash">dotnet tool install -g IzzyBlazor.Cli --prerelease</Code>
         <TextBlock>
-            The CLI's version is the library's. To update it, run the same command with <Code>update</Code> in place of
-            <Code>install</Code>.
+            The CLI has the same version as the library. To update it, run the same command with <Code>update</Code>
+            instead of <Code>install</Code>.
         </TextBlock>
 
         <Heading Level="2">Commands</Heading>
@@ -26,26 +26,29 @@
             </Columns>
         </Table>
         <TextBlock>
-            Run <Code>izzy add</Code> in the app's folder. <Code>izzy list</Code> shows what there is to add, and
-            <Code>izzy describe</Code> an item's settings.
+            Run <Code>izzy add</Code> in your app's folder. To see what you can add, run <Code>izzy list</Code>. To see an
+            item's settings, run <Code>izzy describe</Code>.
         </TextBlock>
 
         <Heading Level="2">The code is yours</Heading>
         <TextBlock>
-            izzy writes plain Razor and C# into your app, not a package to call: change the words, the layout and the code.
-            It never replaces a file without <Code>--overwrite</Code>, and <Code>--diff</Code> shows what a change would do
-            first; see <Anchor Href="docs/cli/changes">Previewing changes</Anchor>.
+            izzy adds plain Razor and C# files to your app. Nothing is hidden in a package, so you can change the text,
+            the layout and the code.
         </TextBlock>
         <TextBlock>
-            Each item added is recorded in <Code>.izzy/items.json</Code>, with its version and settings. Commit it with the
-            app.
+            izzy doesn't replace a file unless you add <Code>--overwrite</Code>. To see what a command would change, add
+            <Code>--diff</Code>. See <Anchor Href="docs/cli/changes">Previewing changes</Anchor>.
+        </TextBlock>
+        <TextBlock>
+            izzy records each item it adds in <Code>.izzy/items.json</Code>, with its version and settings. Commit this file
+            with your app.
         </TextBlock>
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/cli/blocks">Blocks</Anchor>: add a hero, pricing or a sign-up form, and place it on a page.</ListItem>
-            <ListItem><Anchor Href="docs/cli/crud">CRUD pages</Anchor>: list, add, edit and delete a model's records.</ListItem>
-            <ListItem><Anchor Href="docs/cli/changes">Previewing changes</Anchor>: diffs, JSON for agents, files you've changed and exit codes.</ListItem>
+            <ListItem><Anchor Href="docs/cli/blocks">Blocks</Anchor>: add a hero, pricing or a sign-up form to a page.</ListItem>
+            <ListItem><Anchor Href="docs/cli/crud">CRUD pages</Anchor>: create a page to display, add, edit and delete a model's records.</ListItem>
+            <ListItem><Anchor Href="docs/cli/changes">Previewing changes</Anchor>: see a change before izzy makes it.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
@@ -55,11 +58,11 @@
 
     private static readonly Row[] Commands =
     [
-        new("izzy new <starter> -n <name>", "Makes a new app, as dotnet new does. See Create an app."),
-        new("izzy init", "Sets up IzzyBlazor in the app you have. See Add to an existing app."),
-        new("izzy add <item>", "Adds a block or page to the app."),
-        new("izzy add crud <Model>", "Adds pages to list, show, add, edit and delete a model's records."),
-        new("izzy list", "Lists the catalogue: starters, blocks, pages and recipes. --kind block lists one kind."),
-        new("izzy describe <item>", "An item's settings. With --json, also the components it uses, its support in each render mode and its accessibility notes."),
+        new("izzy new <starter> -n <name>", "Creates a new app from a starter, as dotnet new does. See Create an app."),
+        new("izzy init", "Sets up IzzyBlazor in an app you already have. See Add to an existing app."),
+        new("izzy add <item>", "Adds a block or a page to your app."),
+        new("izzy add crud <Model>", "Creates a page to display, add, edit and delete a model's records."),
+        new("izzy list", "Lists the starters, blocks, pages and recipes you can add. To list one kind, add --kind, such as --kind block."),
+        new("izzy describe <item>", "Lists an item's settings. With --json, it also lists the components the item uses, how it works in each render mode, and its accessibility notes."),
     ];
 }

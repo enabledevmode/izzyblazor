@@ -74,11 +74,11 @@
 
     private static readonly Row[] CrudOptions =
     [
-        new("--mode pages", "Pro: separate pages to list, show and edit the records, for records with many fields. Without it, one grid page that edits in a dialog."),
-        new("--name <Plural>", "The folder, the pages' names and the title. Defaults to the model's plural: Customers."),
-        new("--singular <words>", "What one record is called on the pages, when it isn't the class's name: --singular \"team member\" for Member. --plural sets the other, when adding an s isn't it."),
-        new("--route <path>", "The address the pages start at. Defaults to the name in kebab case: customers."),
-        new("--store ef|memory", "Where the records are kept. ef needs a DbSet of the model; --context picks the DbContext when two have one."),
-        new("--authorize", "Only signed-in people can open the pages. On when the app has accounts."),
+        new("--mode pages", "Pro. Creates separate pages to list, show and edit the records, for records with many fields. Without it, izzy creates one grid page that edits in a dialog."),
+        new("--name <Plural>", "Sets the folder, the page names and the page title. Defaults to the model's plural, such as Customers."),
+        new("--singular <words>", "Sets what one record is called on the page, when it isn't the class name. For example, --singular \"team member\" for a Member class. To set the plural, use --plural."),
+        new("--route <path>", "Sets the page's address. Defaults to the name in kebab case, such as customers."),
+        new("--store ef|memory", "Sets where the records are kept. ef needs a DbSet of the model. When two DbContexts have one, choose with --context."),
+        new("--authorize", "Lets only signed-in people open the page. On by default when the app has accounts."),
     ];
 }

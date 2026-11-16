@@ -4,11 +4,12 @@
 
 <ArticlePage Section="cli" Slug="changes">
     <Lead>
-        Every change <Code>izzy</Code> makes can be shown before it's written: as a list, a diff, or JSON an agent
-        or a script reads. izzy never replaces a file you've changed unless you tell it to.
+        You can see any change <Code>izzy</Code> would make before it makes it, as a list, a diff, or JSON for agents and
+        scripts. izzy never replaces a file you've changed unless you ask it to.
     </Lead>
     <ChildContent>
         <Heading Level="2">See the changes first</Heading>
+        <TextBlock>Add one of these options to any <Code>izzy add</Code> or <Code>izzy init</Code> command:</TextBlock>
         <Table Items="Previews" Caption="Showing changes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
                 <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
@@ -18,16 +19,24 @@
 
         <Heading Level="2">JSON for agents and scripts</Heading>
         <TextBlock>
-            <Code>--json</Code> prints the files to create, the text to insert (with its offset and a hash of the file it
-            was read from), the packages, the warnings and the files that clash. An agent can show it for review, then run
-            the same command without <Code>--dry-run</Code>.
+            <Code>--json</Code> prints the changes as data: the files to create, the text to insert, the packages to add,
+            any warnings, and any files that clash. Each insert includes its position and a hash of the file it was
+            planned against.
+        </TextBlock>
+        <TextBlock>
+            A coding agent can run the command with <Code>--dry-run --json</Code>, show you the changes, and then run it
+            again without <Code>--dry-run</Code> once you agree.
         </TextBlock>
 
         <Heading Level="2">Files you've changed</Heading>
         <TextBlock>
-            izzy never replaces a file without <Code>--overwrite</Code>. When a file it would write is there with other
-            content, it writes nothing and names the file; compare the two with <Code>--diff</Code>. A line it adds to one of
-            your files, such as a <Code>@@using</Code>, is skipped when it's there already.
+            If a file izzy would create already exists with different content, izzy stops, writes nothing and tells you
+            which file it is. To compare the two, run the command with <Code>--diff</Code>. To replace the file, run it with
+            <Code>--overwrite</Code>.
+        </TextBlock>
+        <TextBlock>
+            When izzy adds a line to one of your files, such as a <Code>@@using</Code>, it skips the line if it's already
+            there.
         </TextBlock>
 
         <Heading Level="2">Exit codes</Heading>
@@ -40,7 +49,7 @@
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: IzzyBlazor's docs server for your coding agent.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: connect your coding agent to IzzyBlazor's docs.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
@@ -50,16 +59,16 @@
 
     private static readonly Row[] Previews =
     [
-        new("--dry-run", "Writes nothing, and lists what would change."),
+        new("--dry-run", "Lists what would change, and writes nothing."),
         new("--diff", "Shows the changes as a unified diff."),
-        new("--json", "Prints the changes as data. list and describe take it too."),
+        new("--json", "Prints the changes as JSON. izzy list and izzy describe take it too."),
     ];
 
     private static readonly Row[] ExitCodes =
     [
-        new("0", "Done, or nothing to change."),
+        new("0", "Done, or there was nothing to change."),
         new("1", "An error, such as an unknown setting, or an app that doesn't build after izzy init."),
-        new("2", "Files there with other content: nothing was written."),
-        new("3", "A Pro item or layout. Pro layouts are listed and marked; they arrive with IzzyBlazor Pro."),
+        new("2", "A file already exists with different content. Nothing was written."),
+        new("3", "The item or layout needs IzzyBlazor Pro. izzy list marks these items."),
     ];
 }
