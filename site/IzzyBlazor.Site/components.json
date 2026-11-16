@@ -2183,7 +2183,7 @@
         { "id": "timeline-roadmap", "title": "Dates in a column", "lead": "The time sits above the title by default. For a roadmap read down its dates, set `TimePlacement` to `Start`: the times line up in a column before the markers.", "after": ["`End` puts the time at the end of the title's line, for a log with short titles."] },
         { "id": "timeline-activity", "title": "Who did it", "lead": "For an activity feed, set `Avatar` to the person's name: their initials are the marker, or their picture with `AvatarSrc`. `TitleContent` takes markup in place of `Title`, so the name can stand out from the action. `TimePlacement=\"TimelinePlacement.Below\"` puts the time last, after what happened." },
         { "id": "timeline-icons", "title": "Icons and status", "lead": "To change an item's marker, set `Icon` and `Status`." },
-        { "id": "timeline-compact", "title": "Compact", "lead": "`Size=\"ControlSize.Sm\"` makes the markers, text and spacing smaller, with the rail in short segments, for a sidebar or a card. A `Status` fills each dot with its color." }
+        { "id": "timeline-compact", "title": "Compact", "lead": "`Size=\"ControlSize.Sm\"` makes the markers, text and spacing smaller, for a sidebar or a card. A `Status` fills each dot with its color." }
       ]
     },
 
