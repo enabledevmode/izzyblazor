@@ -71,11 +71,11 @@
         }
         else if (OnConfirm.HasDelegate && IsInteractive)
         {
-            <Button Accent="Accent" OnClick="Confirm" commandfor="@DialogId" command="close">@ResolvedConfirmText</Button>
+            <Button Accent="Accent" OnClick="Confirm" DisabledUntil="@DisabledUntil" DisabledUntilValue="@DisabledUntilValue" commandfor="@DialogId" command="close">@ResolvedConfirmText</Button>
         }
         else
         {
-            <Button Submit Accent="Accent" Form="@Form" Name="@Name" Value="@Value" FormAction="@FormAction">@ResolvedConfirmText</Button>
+            <Button Submit Accent="Accent" Form="@Form" Name="@Name" Value="@Value" FormAction="@FormAction" DisabledUntil="@DisabledUntil" DisabledUntilValue="@DisabledUntilValue">@ResolvedConfirmText</Button>
         }
     </DialogFooter>
 </Dialog>
@@ -100,6 +100,18 @@
 
     /// <summary>The cancel button's text. Defaults to "Cancel".</summary>
     [Parameter] public string? CancelText { get; set; }
+
+    /// <summary>
+    /// The id of a field in <see cref="Body"/> the confirm button waits for, such as a box to tick or
+    /// the name of what's deleted to type; see <see cref="Button.DisabledUntil"/>. The field posts
+    /// with the form, so check it on the server too. Not with <c>Href</c>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial)]
+    public string? DisabledUntil { get; set; }
+
+    /// <summary>With <see cref="DisabledUntil"/> on a text field: the text it must hold; see <see cref="Button.DisabledUntilValue"/>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? DisabledUntilValue { get; set; }
 
     /// <summary>
     /// Posted as <c>Name=Value</c> with the form when confirmed, so one handler can tell which action it was. Not <c>action</c>, <c>method</c> or <c>target</c>: a control with one of those

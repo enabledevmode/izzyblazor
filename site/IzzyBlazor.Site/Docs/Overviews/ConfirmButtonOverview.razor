@@ -21,6 +21,11 @@
 <ExampleViewer Example="confirm-button-affected" />
 <TextBlock>Name the action on the confirm button ("Delete files", not "OK"), so the choice is clear on its own.</TextBlock>
 
+<Heading Level="2">Typing to confirm</Heading>
+<TextBlock>For an action that's hard to undo, ask for the name of what it removes. Put a field in <Code>Body</Code>, set <Code>DisabledUntil</Code> to the field's <Code>id</Code> and <Code>DisabledUntilValue</Code> to the name. The confirm button stays disabled until the field holds it.</TextBlock>
+<ExampleViewer Example="confirm-button-type-to-confirm" />
+<TextBlock>The field posts with the form, and with JavaScript off the button doesn't wait, so check the typed name on the server too. <Code>DisabledUntil</Code> can also name a checkbox, such as "I understand this can't be undone", as on <Anchor Href="docs/components/button#loading-and-disabled">Button</Anchor>.</TextBlock>
+
 <Heading Level="2">Other ways to confirm</Heading>
 <TextBlock>Confirming can follow a link or submit a different form, instead of the form the button is in. To follow a link when confirmed, set <Code>Href</Code>; to submit a form elsewhere on the page, set <Code>Form</Code> to that form's id. To post the button's own form to another URL, set <Code>FormAction</Code>.</TextBlock>
 <Code Block Language="razor">@Others</Code>

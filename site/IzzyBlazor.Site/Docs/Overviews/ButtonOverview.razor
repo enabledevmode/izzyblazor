@@ -36,7 +36,7 @@
 <Heading Level="2">Loading and disabled</Heading>
 <TextBlock>A loading button shows a spinner and blocks clicks while its action runs. Set <Code>Loading</Code> to show it. To turn the button off, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="button-states" />
-<TextBlock>To make a button wait for a checkbox, such as a consent or "I understand", set <Code>DisabledUntil</Code> to the box's <Code>id</Code>. It's disabled until the box is ticked. With JavaScript off it stays enabled, so check the box on the server too, and say why the button waits in the box's label.</TextBlock>
+<TextBlock>To make a button wait for a checkbox, such as a consent or "I understand", set <Code>DisabledUntil</Code> to the box's <Code>id</Code>. It's disabled until the box is ticked. With JavaScript off it stays enabled, so check the box on the server too, and say why the button waits in the box's label. It can wait for a text field too, until the field is filled in, or holds <Code>DisabledUntilValue</Code>: see <Anchor Href="docs/components/confirm-button#typing-to-confirm">ConfirmButton</Anchor>.</TextBlock>
 <ExampleViewer Example="button-disabled-until" />
 
 <Heading Level="2">Toggle buttons</Heading>

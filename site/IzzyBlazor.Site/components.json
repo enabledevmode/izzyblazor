@@ -698,6 +698,12 @@
             "noscript": "Confirming posts the form. The button opens the dialog only in browsers with the native command attribute.",
             "static": "Confirming posts the form without a full reload, and the dialog closes.",
             "interactive": "Confirming runs OnConfirm in C#, and nothing is posted."
+          } },
+        { "id": "confirm-button-type-to-confirm", "title": "Typing to confirm", "lead": "For an action that's hard to undo, such as deleting a project, ask for its name: put a field in `Body`, and set `DisabledUntil` to the field's id and `DisabledUntilValue` to the name.",
+          "notes": {
+            "noscript": "Delete project is enabled from the start: it posts, and the server checks the typed name.",
+            "static": "Delete project waits until the name is typed. The server checks the name too.",
+            "interactive": "Delete project waits until the name is typed, then runs OnConfirm in C#."
           } }
       ]
     },
