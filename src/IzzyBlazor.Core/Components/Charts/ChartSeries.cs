@@ -65,7 +65,8 @@ public abstract class ChartSeriesBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>
     /// A CSS color, such as <c>var(--ib-color-danger)</c> or <c>#0f766e</c>. Defaults to the next
-    /// of the chart palette's eight colors (<c>--ib-chart-1</c> to <c>--ib-chart-8</c>).
+    /// of the chart palette's colors (<c>--ib-chart-1</c> to <c>--ib-chart-8</c>, or a set picked for
+    /// two, three or four series).
     /// </summary>
     [Parameter] public string? Color { get; set; }
 
@@ -631,13 +632,13 @@ public sealed class ChartWaterfallSeries<TItem> : ChartValueSeriesBase<TItem>
     /// <summary>
     /// The CSS color of bars that add, such as <c>var(--ib-color-success)</c>. Defaults to the
     /// palette's blue (<c>--ib-chart-increase</c>, or <c>--ib-chart-1</c>), which stays apart from
-    /// the red of falls for red-green color blindness. <c>Color</c> is the totals' (gray by default).
+    /// the orange-red of falls for red-green color blindness. <c>Color</c> is the totals' (gray by default).
     /// </summary>
     [Parameter] public string? IncreaseColor { get; set; }
 
     /// <summary>
-    /// The CSS color of bars that take away. Defaults to the palette's red
-    /// (<c>--ib-chart-decrease</c>, or <c>--ib-chart-8</c>).
+    /// The CSS color of bars that take away. Defaults to the palette's orange-red
+    /// (<c>--ib-chart-decrease</c>, or <c>--ib-chart-6</c>).
     /// </summary>
     [Parameter] public string? DecreaseColor { get; set; }
 
@@ -795,7 +796,7 @@ public abstract class ChartPriceSeriesBase<TItem> : ChartSeriesBase<TItem>
     /// </summary>
     [Parameter] public string? IncreaseColor { get; set; }
 
-    /// <summary>The CSS color of items that closed down. Defaults to the palette's red (<c>--ib-chart-decrease</c>, or <c>--ib-chart-8</c>).</summary>
+    /// <summary>The CSS color of items that closed down. Defaults to the palette's orange-red (<c>--ib-chart-decrease</c>, or <c>--ib-chart-6</c>).</summary>
     [Parameter] public string? DecreaseColor { get; set; }
 
     private protected override ChartType Type => ChartType.Bar;

@@ -179,6 +179,77 @@
     --ib-shadow-sm: 0 1px 2px light-dark(rgb(20 20 19 / 0.08), rgb(0 0 0 / 0.4));
     --ib-shadow-md: 0 4px 12px light-dark(rgb(20 20 19 / 0.10), rgb(0 0 0 / 0.45));
     --ib-shadow-lg: 0 12px 32px light-dark(rgb(20 20 19 / 0.14), rgb(0 0 0 / 0.5));
+
+    /* Chart colors. Three palettes, each checked with a color-vision validator (OKLab, Machado
+       2009) against #ffffff and #0d0d0f; ChartPalette.Contrast, .OkabeIto and .Calm pick one for a
+       chart, and IzzyTheme's or a ThemeScope's ChartPalette for the app or part of a page.
+       Contrast (the default): blue, olive, magenta, gold, aqua, orange, violet, green. Neighbors
+       stay apart under red-green color blindness (worst 14.7) and for full color vision (19.5);
+       every color is 3:1 or more on both surfaces (WCAG 1.4.11) and all share one lightness, so no
+       series looks heavier. Its sets for exactly two, three or four series (of2, of3, of4) keep
+       every pair apart, not just neighbors (worst 25.7, 15.3, 10.1), so they hold in scatter
+       charts too. */
+    --ib-chart-contrast-1: light-dark(#3186e9, #4896f5);
+    --ib-chart-contrast-2: light-dark(#649803, #72a729);
+    --ib-chart-contrast-3: light-dark(#ca549d, #d867ac);
+    --ib-chart-contrast-4: light-dark(#a97f05, #bb8d09);
+    --ib-chart-contrast-5: light-dark(#09989f, #01a9b0);
+    --ib-chart-contrast-6: light-dark(#d75928, #e56c40);
+    --ib-chart-contrast-7: light-dark(#9769dc, #a57ae8);
+    --ib-chart-contrast-8: light-dark(#029e72, #09af7f);
+    --ib-chart-contrast-of2-1: light-dark(#1b74d5, #2b7ad6);
+    --ib-chart-contrast-of2-2: light-dark(#c3470f, #c55123);
+    --ib-chart-contrast-of3-1: light-dark(#3084e8, #4996f5);
+    --ib-chart-contrast-of3-2: light-dark(#b5418a, #b94c90);
+    --ib-chart-contrast-of3-3: light-dark(#609301, #689b1a);
+    --ib-chart-contrast-of4-1: light-dark(#1f76d8, #3d8ae8);
+    --ib-chart-contrast-of4-2: light-dark(#8f6a01, #ab8102);
+    --ib-chart-contrast-of4-3: light-dark(#ab3882, #b94c90);
+    --ib-chart-contrast-of4-4: light-dark(#029e72, #05af7f);
+    /* Okabe-Ito (2008), the widely used color-blind-safe set, stepped per scheme (its yellow as
+       gold); seven colors, so an eighth series is gray. Worst neighbors 11.0 / 16.0. On white,
+       orange, sky blue and gold are under 3:1: the legend, tooltips and data table carry them. */
+    --ib-chart-okabe-ito-1: light-dark(#0072b2, #2887c8);
+    --ib-chart-okabe-ito-2: light-dark(#009e73, #009e73);
+    --ib-chart-okabe-ito-3: light-dark(#d55e00, #d55e00);
+    --ib-chart-okabe-ito-4: light-dark(#cc79a7, #c775a3);
+    --ib-chart-okabe-ito-5: light-dark(#e69f00, #c28608);
+    --ib-chart-okabe-ito-6: light-dark(#56b4e9, #3e9ed2);
+    --ib-chart-okabe-ito-7: light-dark(#b8a000, #aa9408);
+    --ib-chart-okabe-ito-8: var(--ib-color-neutral);
+    /* Calm: muted (OKLCH C 0.11), for finance and dashboards read all day. Worst neighbors
+       10.0 / 16.1; teal is under 3:1 on white. */
+    --ib-chart-calm-1: light-dark(#4b95cf, #387eb4);
+    --ib-chart-calm-2: light-dark(#bd7042, #a65f34);
+    --ib-chart-calm-3: light-dark(#2bab91, #1f9a82);
+    --ib-chart-calm-4: light-dark(#ad872c, #967219);
+    --ib-chart-calm-5: light-dark(#b372ae, #9d6098);
+    --ib-chart-calm-6: light-dark(#669f5a, #558a4a);
+    --ib-chart-calm-7: light-dark(#8682d0, #7470b8);
+    --ib-chart-calm-8: light-dark(#c86e6f, #b25e5f);
+
+    /* The palette charts, gauges and the scheduler read: --ib-chart-1 to -8, and the sets
+       ChartPalette.Colors uses for a chart of exactly two, three or four series (by the number it
+       defines, so hiding one never repaints the rest). A palette without such sets (Okabe-Ito,
+       Calm) points them at its first colors (themes.css). To use your own colors everywhere, set
+       --ib-chart-1 to -8 and the of2 to of4 sets, or give a chart ChartPalette.Of(...). */
+    --ib-chart-1: var(--ib-chart-contrast-1);
+    --ib-chart-2: var(--ib-chart-contrast-2);
+    --ib-chart-3: var(--ib-chart-contrast-3);
+    --ib-chart-4: var(--ib-chart-contrast-4);
+    --ib-chart-5: var(--ib-chart-contrast-5);
+    --ib-chart-6: var(--ib-chart-contrast-6);
+    --ib-chart-7: var(--ib-chart-contrast-7);
+    --ib-chart-8: var(--ib-chart-contrast-8);
+    --ib-chart-of2-1: var(--ib-chart-contrast-of2-1);
+    --ib-chart-of2-2: var(--ib-chart-contrast-of2-2);
+    --ib-chart-of3-1: var(--ib-chart-contrast-of3-1);
+    --ib-chart-of3-2: var(--ib-chart-contrast-of3-2);
+    --ib-chart-of3-3: var(--ib-chart-contrast-of3-3);
+    --ib-chart-of4-1: var(--ib-chart-contrast-of4-1);
+    --ib-chart-of4-2: var(--ib-chart-contrast-of4-2);
+    --ib-chart-of4-3: var(--ib-chart-contrast-of4-3);
+    --ib-chart-of4-4: var(--ib-chart-contrast-of4-4);
   }
 
   /*

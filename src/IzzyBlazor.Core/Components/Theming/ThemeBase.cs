@@ -43,6 +43,15 @@ public abstract class ThemeBase : ComponentBase
     /// <summary>Control heights, table rows and card padding, over the preset's.</summary>
     [Parameter] public ThemeDensity? Density { get; set; }
 
+    /// <summary>
+    /// The colors charts, gauges and the scheduler use, unless a chart sets its own
+    /// <see cref="IzzyBlazor.ChartPalette"/>. Unset: <see cref="ThemeChartPalette.Contrast"/> (or, in a
+    /// ThemeScope, what's around it).
+    /// </summary>
+    [Parameter] public ThemeChartPalette? ChartPalette { get; set; }
+
+    private protected string? ChartPaletteName => ChartPalette is { } palette ? ChartPaletteNames.Name(palette) : null;
+
     /// <summary>The brand color as parsed: a built-in name or a hex color.</summary>
     private protected (string? Name, string? Hex) BrandColor { get; private set; }
 
