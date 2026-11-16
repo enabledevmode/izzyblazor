@@ -13,23 +13,22 @@ public sealed class DotnetNewTests : IDisposable
 {
     readonly string _work = Directory.CreateTempSubdirectory("izzy-dotnet-new-").FullName;
 
-    public static TheoryData<string> Starters()
+    // Each starter and kit, as its catalogue folder and id: through the catalogue, so a kit is over its base.
+    public static TheoryData<string, string> Starters()
     {
-        var data = new TheoryData<string>();
+        var data = new TheoryData<string, string>();
         var roots = new[] { Path.Combine(AppContext.BaseDirectory, "Items"), Path.Combine(RepoRoot(), "catalog") };
         foreach (var root in roots.Where(Directory.Exists))
-            foreach (var dir in Directory.GetDirectories(root).Order(StringComparer.Ordinal))
-                if (File.Exists(Path.Combine(dir, "izzy.json")) && ItemDefinition.FromDirectory(dir).Manifest.Kind == ItemKind.Starter)
-                    data.Add(dir);
+            foreach (var item in Catalog.Load(root).Items.Values)
+                if (item.Manifest.Kind.MakesProject()) data.Add(root, item.Manifest.Id);
         return data;
     }
 
     [Theory]
     [MemberData(nameof(Starters))]
-    public void Dotnet_new_makes_what_the_engine_makes(string itemDirectory)
+    public void Dotnet_new_makes_what_the_engine_makes(string root, string id)
     {
-        var item = ItemDefinition.FromDirectory(itemDirectory);
-        var id = item.Manifest.Id;
+        var item = Catalog.Load(root)[id];
         var template = Path.Combine(_work, "template");
         var hive = Path.Combine(_work, "hive");
         TemplateExport.WriteTemplateFolder(item, template);
@@ -80,7 +79,7 @@ public sealed class DotnetNewTests : IDisposable
 
         var restoreSettings = new[] { "SkipRestore", "NoRestore" };
         var choices = manifest.Parameters.Where(p => p.Type == ParameterType.Choice)
-            .SelectMany(p => p.Choices.Where(c => c != p.Default).Select(c => (p.Name, Value: c))).ToList();
+            .SelectMany(p => p.Choices.Except(p.ProChoices).Where(c => c != p.Default).Select(c => (p.Name, Value: c))).ToList();
         var flips = manifest.Parameters.Where(p => p.Type == ParameterType.Bool && !restoreSettings.Contains(p.Name))
             .Select(p => (p.Name, Value: p.Default == "true" ? "false" : "true")).ToList();
 

@@ -61,6 +61,19 @@ public sealed class ItemManifest
     /// <summary>When packages are restored after a starter is made: a condition over the settings, or null for never.</summary>
     public string? Restore { get; init; }
 
+    /// <summary>
+    /// The item a kit is made over (<c>"base": { "item": "izzy-blazor", "fixed": { … }, "defaults": { … } }</c>):
+    /// its files, settings and rules come first, and the kit's own files replace any at the same path.
+    /// <see cref="Catalog.Load"/> makes the merged item; a manifest read alone still has it.
+    /// </summary>
+    public BaseSpec? Base { get; init; }
+
+    /// <summary>
+    /// Settings of the base a kit fixes, as typed values (bool or text): not settings of the kit, so they can't be
+    /// given, and conditions and tokens read them as if they had been.
+    /// </summary>
+    public IReadOnlyDictionary<string, object> Fixed { get; init; } = new Dictionary<string, object>();
+
     /// <summary>Things to tell the user about the project as it is, such as a page that already has an h1.</summary>
     public IReadOnlyList<CheckSpec> Checks { get; init; } = [];
 
@@ -110,6 +123,10 @@ public sealed class ItemManifest
                 (r["paths"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>())).ToList() ?? [],
             Server = (root["server"] as JsonArray)?.Select(p => (string)p!).ToList() ?? [],
             Restore = (string?)root["restore"],
+            Base = root["base"] is JsonObject b ? new BaseSpec(
+                Required(b, "item"),
+                (b["fixed"] as JsonObject)?.ToDictionary(p => p.Key, p => Text(p.Value, $"base.fixed.{p.Key}")) ?? new Dictionary<string, string>(),
+                (b["defaults"] as JsonObject)?.ToDictionary(p => p.Key, p => Text(p.Value, $"base.defaults.{p.Key}")) ?? new Dictionary<string, string>()) : null,
             Checks = (root["checks"] as JsonArray)?.Select(c => new CheckSpec(
                 (string?)c!["if"], Required(c.AsObject(), "file"), Required(c.AsObject(), "pattern"), Required(c.AsObject(), "message"))).ToList() ?? [],
             Accessibility = (root["accessibility"] as JsonArray)?.Select(a => Text(a, "accessibility")).ToList() ?? [],
@@ -138,6 +155,8 @@ public enum ItemKind
 {
     /// <summary>A whole project.</summary>
     Starter,
+    /// <summary>A whole app for a purpose, such as an admin console: a starter made over another (<see cref="ItemManifest.Base"/>).</summary>
+    Kit,
     /// <summary>A page in an existing project.</summary>
     Page,
     /// <summary>A part of a page.</summary>
@@ -149,6 +168,19 @@ public enum ItemKind
     /// <summary>IzzyBlazor's own setup, which <c>izzy init</c> runs: not listed, and not added by id.</summary>
     Setup,
 }
+
+/// <summary>What kinds of item do.</summary>
+public static class ItemKinds
+{
+    /// <summary>Whether it makes a new project (<c>izzy new</c>, <c>dotnet new</c>) rather than going into one.</summary>
+    public static bool MakesProject(this ItemKind kind) => kind is ItemKind.Starter or ItemKind.Kit;
+}
+
+/// <summary>The item a kit is made over.</summary>
+/// <param name="Item">Its id, such as <c>izzy-blazor</c>.</param>
+/// <param name="Fixed">Its settings the kit fixes, by name, as text: they aren't the kit's settings.</param>
+/// <param name="Defaults">Its settings the kit gives other defaults, such as a denser preset.</param>
+public sealed record BaseSpec(string Item, IReadOnlyDictionary<string, string> Fixed, IReadOnlyDictionary<string, string> Defaults);
 
 /// <summary>Who can generate an item.</summary>
 public enum ItemTier
