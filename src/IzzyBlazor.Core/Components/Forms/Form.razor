@@ -10,6 +10,8 @@
         errors from the last post go once its value changes (a form reset brings them back), and
         the next post checks it again; a FormErrors summary keeps them.
       - Interactive page: EditForm validation as usual.
+    On a static page, a field that throws while rendering is replaced with an ErrorGuard message
+    inside the form, so the rest of the page still loads.
 
     Accessibility:
     - It renders a native `form`. With `NativeValidation` (the default), the browser stops a submit
@@ -270,7 +272,19 @@ else
         builder.AddComponentParameter(6, nameof(FormRepeatCommand.Report), _reportRepeat ??= posted => _repeat = posted);
         builder.CloseComponent();
 
-        builder.AddContent(7, Fields);
+        // On a static page a field that throws is caught here, inside the form, so the form and its named
+        // submit event stay. Caught by a guard outside the form, the error fails the whole request: the
+        // renderer still processes the named event of the form it just removed (an ASP.NET Core bug).
+        if (RendererInfo.IsInteractive)
+        {
+            builder.AddContent(7, Fields);
+        }
+        else
+        {
+            builder.OpenComponent<ErrorGuard>(8);
+            builder.AddComponentParameter(9, nameof(ErrorGuard.ChildContent), Fields);
+            builder.CloseComponent();
+        }
     };
 
     private Action<bool>? _report;

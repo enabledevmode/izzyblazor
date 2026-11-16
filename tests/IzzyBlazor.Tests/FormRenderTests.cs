@@ -202,6 +202,7 @@ public class FormRenderTests : BunitContext
     {
         // Passing EditForm a null EditContext on every render replaced its context, which made it
         // rebuild everything inside the form (losing focus on interactive pages).
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         var cut = Render<Form>(p => p.Add(f => f.Model, _model).Add(f => f.FormName, "keep"));
         var before = cut.FindComponent<EditForm>().Instance.EditContext;
 
@@ -302,6 +303,7 @@ public class FormRenderTests : BunitContext
     public void A_read_only_form_shows_values_and_still_posts_them()
     {
         var readOnly = new FormOptions(Disabled: false, ReadOnly: true, RequiredMark.Required);
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
 
         // The Form passes ReadOnly down to its fields.
         var form = Render<Form>(p => p
