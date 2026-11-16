@@ -32,7 +32,9 @@
                 <NavLabel>Admin</NavLabel>
                 <NavItem Href="admin/users" Icon="Lucide.Users">Users</NavItem>
                 <NavItem Href="admin/roles" Icon="Lucide.Shield">Roles</NavItem>
-                <NavItem Href="admin/audit" Icon="Lucide.RotateCcwClock">Audit log</NavItem>
+                <AuthorizeView Policy="@Policies.ViewAudit" Context="audit">
+                    <NavItem Href="admin/audit" Icon="Lucide.RotateCcwClock">Audit log</NavItem>
+                </AuthorizeView>
             </AuthorizeView>
         </NavMenu>
         <SidebarFooter>

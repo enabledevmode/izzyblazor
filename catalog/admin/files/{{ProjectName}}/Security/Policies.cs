@@ -4,7 +4,7 @@ namespace {{RootNamespace}}.Security;
 
 /// <summary>
 /// The app's roles. They're set here, in code, not edited in the app: a new role is a constant here, a line in
-/// the seeder (Data/SeedData.cs), and its place in the policies below.
+/// the seeder (Data/SeedData.cs), its place in <see cref="Policies"/> and a member of the Users grid's UserRole.
 /// </summary>
 public static class Roles
 {
@@ -23,33 +23,48 @@ public static class Roles
         _ => "",
     };
 
-    /// <summary>What each role can do, as the Roles page lists it.</summary>
-    public static IReadOnlyList<string> Allows(string role) => role switch
+    /// <summary>What a role is for, as the Roles page describes it.</summary>
+    public static string Description(string role) => role switch
     {
-        Admin => ["View customers and invoices", "Create, edit and delete them", "Manage users and their roles", "See the audit log"],
-        Manager => ["View customers and invoices", "Create, edit and delete them"],
-        Viewer => ["View customers and invoices"],
-        _ => [],
+        Admin => "Runs the app: everything Managers do, plus people and the audit log.",
+        Manager => "Does the daily work: adds and changes customers and invoices.",
+        Viewer => "Looks things up: sees everything in Sales, changes nothing.",
+        _ => "",
     };
 }
 
 /// <summary>
 /// What pages and actions ask for: <c>@attribute [Authorize(Policy = Policies.EditSales)]</c> on a page, or
-/// <c>&lt;AuthorizeView Policy="@Policies.EditSales"&gt;</c> around a button. Change who has a policy here.
+/// <c>&lt;AuthorizeView Policy="@Policies.EditSales"&gt;</c> around a button. Change who has a policy in
+/// <see cref="All"/>: the app enforces it and the Roles page lists it, from the same line.
 /// </summary>
 public static class Policies
 {
-    /// <summary>Users, Roles and the Audit log.</summary>
-    public const string ManageUsers = nameof(ManageUsers);
+    /// <summary>Seeing customers and invoices.</summary>
+    public const string ViewSales = nameof(ViewSales);
 
     /// <summary>Creating, editing and deleting customers and invoices.</summary>
     public const string EditSales = nameof(EditSales);
 
-    /// <summary>Seeing customers and invoices.</summary>
-    public const string ViewSales = nameof(ViewSales);
+    /// <summary>The Users and Roles pages.</summary>
+    public const string ManageUsers = nameof(ManageUsers);
 
-    public static AuthorizationBuilder AddAppPolicies(this AuthorizationBuilder builder) => builder
-        .AddPolicy(ManageUsers, p => p.RequireRole(Roles.Admin))
-        .AddPolicy(EditSales, p => p.RequireRole(Roles.Admin, Roles.Manager))
-        .AddPolicy(ViewSales, p => p.RequireRole(Roles.Admin, Roles.Manager, Roles.Viewer));
+    /// <summary>The audit log.</summary>
+    public const string ViewAudit = nameof(ViewAudit);
+
+    /// <summary>Each policy: what it lets people do, in the Roles page's words, and the roles that have it.</summary>
+    public static IReadOnlyList<(string Name, string Allows, string[] Roles)> All { get; } =
+    [
+        (ViewSales, "View customers and invoices", [Security.Roles.Admin, Security.Roles.Manager, Security.Roles.Viewer]),
+        (EditSales, "Create, edit and delete customers and invoices", [Security.Roles.Admin, Security.Roles.Manager]),
+        (ManageUsers, "Manage users and their roles", [Security.Roles.Admin]),
+        (ViewAudit, "See the audit log", [Security.Roles.Admin]),
+    ];
+
+    public static AuthorizationBuilder AddAppPolicies(this AuthorizationBuilder builder)
+    {
+        foreach (var (name, _, roles) in All)
+            builder.AddPolicy(name, p => p.RequireRole(roles));
+        return builder;
+    }
 }
