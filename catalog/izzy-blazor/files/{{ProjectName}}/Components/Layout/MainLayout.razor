@@ -35,7 +35,9 @@
                     <NotAuthorized>
                         <Row Gap="2" Grow>
                             <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" Grow>Log in</Button>
+                            @*#if (Registration) *@
                             <Button Href="Account/Register" Size="ControlSize.Lg" Grow>Register</Button>
+                            @*#endif *@
                         </Row>
                     </NotAuthorized>
                 </AuthorizeView>
@@ -67,7 +69,9 @@
                 <NotAuthorized>
                     <Row Gap="2" HiddenFrom="Breakpoint.Md">
                         <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" Grow>Log in</Button>
+                        @*#if (Registration) *@
                         <Button Href="Account/Register" Size="ControlSize.Lg" Grow>Register</Button>
+                        @*#endif *@
                     </Row>
                 </NotAuthorized>
             </AuthorizeView>

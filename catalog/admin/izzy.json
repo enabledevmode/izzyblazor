@@ -1,6 +1,6 @@
 // The Admin console: a whole static app over the izzy-blazor starter (Individual accounts, every page static, the
 // sidebar), with Identity roles, an audit log of every change, seeded sample data (customers and invoices) and
-// deploy files that need no sticky sessions. Design: artifacts/izzyblazor-admin-kit-design.md.
+// deploy files that need no sticky sessions. Accounts come by invite: no Register page. Design: artifacts/izzyblazor-admin-kit-design.md.
 {
   "id": "admin",
   "name": "Admin console",
@@ -12,7 +12,8 @@
     "item": "izzy-blazor",
     "fixed": {
       "Interactivity": "None", "AllInteractive": "false", "Auth": "Individual", "UseLocalDB": "false",
-      "Empty": "false", "Nav": "Sidebar", "UseProgramMain": "false", "NoHttps": "false"
+      "Empty": "false", "Nav": "Sidebar", "UseProgramMain": "false", "NoHttps": "false",
+      "Registration": "false"
     }
   },
   "parameters": {
