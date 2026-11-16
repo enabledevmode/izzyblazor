@@ -1,0 +1,30 @@
+@inject NavigationManager Navigation
+
+@* Two things to create, both floating on a phone: they share one speed dial, named by the
+   toolbar's FloatLabel. Each action is a link that stays on this page. *@
+<Stack Gap="4" Padding="4">
+    <Heading Level="1" Size="TextSize.Xl">Invoices</Heading>
+    <Toolbar Label="Invoices" FloatLabel="Create">
+        <ToolbarButton StartIcon="Lucide.Download" Href="#">Export</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.UserPlus" Href="@To("customer")" Position="ToolbarPosition.End"
+                       FloatBelow="Breakpoint.Sm" FloatLabel="New customer">New customer</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Plus" Href="@To("invoice")" Accent="Accent.Primary" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End"
+                       FloatBelow="Breakpoint.Sm" FloatLabel="New invoice">New invoice</ToolbarButton>
+    </Toolbar>
+    @if (Created is not null)
+    {
+        <Alert Status="Status.Info">New @Created.</Alert>
+    }
+    <Stack Gap="2">
+        @foreach (var i in Enumerable.Range(1, 12))
+        {
+            <Card Padding="3">Invoice @(1040 + i)</Card>
+        }
+    </Stack>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "create")] private string? Created { get; set; }
+
+    private string To(string what) => Navigation.GetUriWithQueryParameter("create", what);
+}

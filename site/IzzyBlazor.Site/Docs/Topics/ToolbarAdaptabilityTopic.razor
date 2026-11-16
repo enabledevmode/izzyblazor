@@ -1,5 +1,5 @@
-@* Toolbar's What doesn't fit page, moved from its Overview: what moves into the … menu first, icons
-   before the menu, and wrapping instead. *@
+@* Toolbar's Adaptability page, moved from its Overview: what moves into the … menu first, icons
+   before the menu, by screen width, floating on a phone, and wrapping instead. *@
 
 <Heading Level="2">What moves first</Heading>
 <TextBlock>When a toolbar runs out of room, its items move into the … menu one at a time. To keep an item in the bar longer, give it a higher <Code>Priority</Code>; items default to 0. To fix where an item goes, set its <Code>Overflow</Code>: <Code>Never</Code> keeps it in the bar, such as the main action, and <Code>Always</Code> puts it only in the menu.</TextBlock>
@@ -11,6 +11,18 @@
     <ListItem>Then the items at the end move, again beginning with the one nearest the middle. The main action at the far end moves last.</ListItem>
 </List>
 <TextBlock>A <Code>ToolbarSeparator</Code> leaves the bar when nothing is left on one side of it.</TextBlock>
+
+<Heading Level="2">By screen width</Heading>
+<TextBlock>An item's <Code>Overflow</Code> can change with the screen's width, to keep a phone's bar for the main actions. Set it per breakpoint: with <Code>new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Auto }</Code>, the item is in the … menu on a phone, and from 640px up it stays in the bar while there's room.</TextBlock>
+<ExampleViewer Example="toolbar-by-width" />
+<TextBlock>The grid's Columns and Export tools work this way by default.</TextBlock>
+
+<Heading Level="2">Floating on a phone</Heading>
+<TextBlock>A page's main action can leave the bar on a phone and float in the screen's bottom corner, where the thumb reaches it. Set <Code>FloatBelow="Breakpoint.Sm"</Code> on the button, and a <Code>FloatLabel</Code> that names it. The button needs a <Code>StartIcon</Code>, which the floating button shows.</TextBlock>
+<ExampleViewer Example="toolbar-float" />
+<TextBlock>The floating button keeps the item's link, form post or <Code>OnClick</Code>. A grid's <Code>DataGridAdd</Code> takes <Code>FloatBelow</Code> too.</TextBlock>
+<TextBlock>When more than one item floats below the same width, they share a speed dial. Set the toolbar's <Code>FloatLabel</Code> to name it; it defaults to "Actions".</TextBlock>
+<ExampleViewer Example="toolbar-float-dial" />
 
 <Heading Level="2">Icons before the menu</Heading>
 <TextBlock>A toolbar can show its buttons as icons only before it moves anything into the … menu. Set <Code>CollapseLabels</Code>, and buttons and menus with a <Code>StartIcon</Code> all drop their text at once. The text stays for screen readers and as the tooltip.</TextBlock>

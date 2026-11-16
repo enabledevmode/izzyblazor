@@ -1,0 +1,12 @@
+@* An invoice's actions. Download PDF and Print are always in the … menu on a phone, and in the bar
+   from 640px up while there's room, so a phone's bar keeps Edit and Send. *@
+<Stack Gap="4" Padding="4">
+    <Heading Level="1" Size="TextSize.Xl">Invoice 1052</Heading>
+    <Toolbar Label="Invoice">
+        <ToolbarButton StartIcon="Lucide.Pencil" Href="#">Edit</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Copy" Href="#">Duplicate</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Download" Href="#" Overflow="new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Auto }">Download PDF</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Printer" Href="#" Overflow="new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Auto }">Print</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Send" Href="#" Accent="Accent.Primary" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never">Send</ToolbarButton>
+    </Toolbar>
+</Stack>
