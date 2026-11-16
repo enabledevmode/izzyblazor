@@ -16,15 +16,7 @@
 @* A data page: it fills the main area, so the grid scrolls its own rows under its header,
    with the pager in view. *@
 <Stack Gap="new() { Base = 6, Md = 8 }" Grow>
-    <PageHeader Title="Invoices" Description="@Lead">
-        @if (_canEdit && _counts.All > 0)
-        {
-            @* On a phone, New invoice floats at the bottom corner instead (below). *@
-            <PageHeaderActions>
-                <Button Href="invoices/new" StartIcon="Lucide.Plus" VisibleFrom="Breakpoint.Sm">New invoice</Button>
-            </PageHeaderActions>
-        }
-    </PageHeader>
+    <PageHeader Title="Invoices" Description="@Lead" />
 
     @if (_counts.All == 0)
     {
@@ -54,6 +46,13 @@
                       NoMatchesText="No invoices match “{0}”" Grow>
                 <ToolbarContent>
                     <DataGridSearch />
+                    @* The grid's main action, as Add customer and Invite user are on theirs; it opens the
+                       new-invoice wizard, so it's a link, not the grid's add dialog. A phone floats it. *@
+                    @if (_canEdit)
+                    {
+                        <ToolbarButton Href="invoices/new" StartIcon="Lucide.Plus" Variant="ButtonVariant.Solid" Accent="Accent.Primary"
+                                       Position="ToolbarPosition.End" Priority="1" FloatBelow="Breakpoint.Sm" FloatLabel="New invoice">New invoice</ToolbarButton>
+                    }
                 </ToolbarContent>
                 <Columns>
                     <PropertyColumn Property="i => i.Number" Title="Invoice" Sortable Context="i">
@@ -90,10 +89,6 @@
             </DataGrid>
         </Stack>
 
-        @if (_canEdit)
-        {
-            <FloatingButton Icon="Lucide.Plus" Label="New invoice" Href="invoices/new" HiddenFrom="Breakpoint.Sm" />
-        }
     }
 </Stack>
 
