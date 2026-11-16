@@ -4,36 +4,41 @@
 
 <ArticlePage Section="cli" Slug="blocks">
     <Lead>
-        A block is a section of a page, such as a hero, pricing or a sign-up form. <Code>izzy add</Code> writes its
-        component into your app and places it on a page. Every block is on <Anchor Href="blocks">Blocks</Anchor>, with
-        its settings beside a live preview.
+        A block is a ready-made section of a page, such as a hero, pricing or a sign-up form. <Code>izzy add</Code> adds
+        the block's component to your app and places it on a page. To browse them, see
+        <Anchor Href="blocks">Blocks</Anchor>, where each one has a live preview and its settings.
     </Lead>
     <ChildContent>
         <Heading Level="2">Add a block</Heading>
-        <TextBlock>Run <Code>izzy add</Code> in the app's folder, with the block's settings as options:</TextBlock>
+        <TextBlock>Run <Code>izzy add</Code> in your app's folder with the block's name. Add its settings as options:</TextBlock>
         <Code Block Language="bash">izzy add hero --layout Split</Code>
         <TextBlock>
-            The block's component goes in <Code>Components/Blocks</Code>, and the block goes on its page: a section at the
-            end of <Code>Home.razor</Code>, a footer in the layout.
+            izzy puts the block's component in <Code>Components/Blocks</Code> and adds the block to a page. Most blocks go at
+            the end of <Code>Home.razor</Code>. A footer goes in the layout.
         </TextBlock>
 
-        <Heading Level="2">Place it</Heading>
+        <Heading Level="2">Choose where it goes</Heading>
         <TextBlock>
-            <Code>--into</Code> names another page, and <Code>--at</Code> puts it on a line, as an editor's cursor does. A
-            recipe, such as an empty state, goes only where you put it:
+            To add the block to another page, set <Code>--into</Code>. To add it at a specific line, set
+            <Code>--at</Code> with the file and line number.
+        </TextBlock>
+        <TextBlock>
+            Some items are recipes, such as an empty state. A recipe has no usual place on a page, so you always choose
+            the line:
         </TextBlock>
         <Code Block Language="bash">izzy add empty-state --at Components/Pages/Orders.razor:24</Code>
 
         <Heading Level="2">Settings</Heading>
         <TextBlock>
-            <Code>izzy describe hero</Code> lists a block's settings. They have the same names as the starter's options in
-            <Code>dotnet new</Code>, so one spelling works in both.
+            To list a block's settings, run <Code>izzy describe</Code> with its name, such as <Code>izzy describe hero</Code>.
+            The settings have the same names as the starter's options in <Code>dotnet new</Code>, so you can use the same
+            spelling in both.
         </TextBlock>
 
-        <Heading Level="2">Apps whose pages run in the browser</Heading>
+        <Heading Level="2">Apps with WebAssembly or Auto pages</Heading>
         <TextBlock>
-            In an app with WebAssembly or Auto pages, blocks go in the <Code>.Client</Code> project with the pages. The
-            parts that read the request, such as the cookie notice's, stay in the server project.
+            When your pages are in a <Code>.Client</Code> project, izzy adds blocks there too. Code that reads the request,
+            such as the cookie notice's, stays in the server project.
         </TextBlock>
     </ChildContent>
 </ArticlePage>
