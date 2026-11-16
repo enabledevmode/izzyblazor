@@ -2256,8 +2256,8 @@
 
   .ib-timeline-sm {
     --ib-timeline-line: 1.25rem;
-    --ib-timeline-dot: 0.5rem;
-    --ib-timeline-gap: var(--ib-space-3);
+    --ib-timeline-dot: 0.625rem;
+    --ib-timeline-gap: var(--ib-space-4);
     --ib-timeline-time-w: 5rem;
   }
 
@@ -2287,9 +2287,10 @@
     background-color: var(--ib-color-outline);
   }
 
-  /* Compact: the rail in short segments, clear of the markers. */
+  /* Compact: each item's rail is a short segment beside its own text, from under its dot to the end
+     of its content, so the gap between items stays open and each entry reads on its own. */
   .ib-timeline-sm > .ib-timeline-item:not(:last-child)::before {
-    inset-block: calc(var(--ib-timeline-line) / 2 + var(--ib-timeline-dot) / 2 + 3px) calc(var(--ib-timeline-line) / -2 + var(--ib-timeline-dot) / 2 + 3px);
+    inset-block: calc(var(--ib-timeline-line) / 2 + var(--ib-timeline-dot) / 2 + 4px) var(--ib-timeline-gap);
   }
 
   .ib-timeline-marker {
