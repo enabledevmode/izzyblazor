@@ -49,7 +49,7 @@ public class TimelineItem : IzzyComponentBase
     /// <summary>Makes the title a link.</summary>
     [Parameter] public string? Href { get; set; }
 
-    /// <summary>When, as shown: "Oct 13", "2 hours ago".</summary>
+    /// <summary>When, as written: "Oct 13", "Q3". For a time shown as how long ago, set <see cref="Value"/>.</summary>
     [Parameter] public string? Time { get; set; }
 
     /// <summary>
@@ -57,6 +57,13 @@ public class TimelineItem : IzzyComponentBase
     /// <c>2026-10-13</c> or <c>2026-10-13T21:58Z</c>.
     /// </summary>
     [Parameter] public string? DateTime { get; set; }
+
+    /// <summary>
+    /// When, as a time: shown as how long ago ("2 hours ago", "yesterday"), kept current as the page
+    /// stays open, and as the date past 30 days; see <see cref="RelativeTime"/>. <see cref="Time"/>
+    /// wins when both are set, for wording such as "Q3".
+    /// </summary>
+    [Parameter] public DateTimeOffset? Value { get; set; }
 
     /// <summary>An icon in the marker in place of the dot, such as <c>Lucide.GitCommitHorizontal</c>.</summary>
     [Parameter] public IconData? Icon { get; set; }
@@ -109,7 +116,7 @@ public class TimelineItem : IzzyComponentBase
 
         builder.OpenElement(10, "div");
         builder.AddAttribute(11, "class", "ib-timeline-body");
-        if (Title is not null || Time is not null)
+        if (Title is not null || Time is not null || Value is not null)
         {
             builder.OpenElement(12, "div");
             builder.AddAttribute(13, "class", "ib-timeline-head");
@@ -138,15 +145,24 @@ public class TimelineItem : IzzyComponentBase
                 builder.AddContent(21, Time);
                 builder.CloseElement();
             }
+            else if (Value is { } value)
+            {
+                var threshold = TimeSpan.FromDays(30);
+                builder.OpenElement(25, "time");
+                builder.AddAttribute(26, "class", "ib-timeline-time");
+                RelativeTime.AddTimeAttributes(builder, 27, value, threshold, System.Globalization.CultureInfo.CurrentCulture);
+                builder.AddContent(30, RelativeTime.Text(value, DateTimeOffset.UtcNow, threshold, TextDefaults, System.Globalization.CultureInfo.CurrentCulture));
+                builder.CloseElement();
+            }
 
             builder.CloseElement();
         }
 
         if (ChildContent is not null)
         {
-            builder.OpenElement(22, "div");
-            builder.AddAttribute(23, "class", "ib-timeline-content");
-            builder.AddContent(24, ChildContent);
+            builder.OpenElement(32, "div");
+            builder.AddAttribute(33, "class", "ib-timeline-content");
+            builder.AddContent(34, ChildContent);
             builder.CloseElement();
         }
 

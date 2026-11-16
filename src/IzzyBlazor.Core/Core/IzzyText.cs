@@ -2165,26 +2165,44 @@ public class IzzyText
     /// <summary>A Chat's day separator for yesterday.</summary>
     public virtual string ChatYesterday { get; set; } = "Yesterday";
 
-    /// <summary>A Comment's relative time under a minute old.</summary>
-    public virtual string CommentJustNow { get; set; } = "just now";
+    /// <summary>A <see cref="RelativeTime"/> under 45 seconds from now, past or future. The library's script rewrites relative times with the browser's <c>Intl.RelativeTimeFormat</c> in the page's <c>lang</c>; these strings are the server's first paint.</summary>
+    public virtual string RelativeNow { get; set; } = "now";
 
-    /// <summary>A Comment's relative time: one minute.</summary>
-    public virtual string CommentMinuteAgo { get; set; } = "1 minute ago";
+    /// <summary>A <see cref="RelativeTime"/>: one minute ago.</summary>
+    public virtual string RelativeMinuteAgo { get; set; } = "1 minute ago";
 
-    /// <summary>A Comment's relative time: {0} minutes.</summary>
-    public virtual string CommentMinutesAgo { get; set; } = "{0} minutes ago";
+    /// <summary>A <see cref="RelativeTime"/>: {0} minutes ago.</summary>
+    public virtual string RelativeMinutesAgo { get; set; } = "{0} minutes ago";
 
-    /// <summary>A Comment's relative time: one hour.</summary>
-    public virtual string CommentHourAgo { get; set; } = "1 hour ago";
+    /// <summary>A <see cref="RelativeTime"/>: one hour ago.</summary>
+    public virtual string RelativeHourAgo { get; set; } = "1 hour ago";
 
-    /// <summary>A Comment's relative time: {0} hours.</summary>
-    public virtual string CommentHoursAgo { get; set; } = "{0} hours ago";
+    /// <summary>A <see cref="RelativeTime"/>: {0} hours ago.</summary>
+    public virtual string RelativeHoursAgo { get; set; } = "{0} hours ago";
 
-    /// <summary>A Comment's relative time: one day.</summary>
-    public virtual string CommentDayAgo { get; set; } = "yesterday";
+    /// <summary>A <see cref="RelativeTime"/>: the day before today.</summary>
+    public virtual string RelativeYesterday { get; set; } = "yesterday";
 
-    /// <summary>A Comment's relative time: {0} days, up to a week; older comments show the date.</summary>
-    public virtual string CommentDaysAgo { get; set; } = "{0} days ago";
+    /// <summary>A <see cref="RelativeTime"/>: {0} days ago.</summary>
+    public virtual string RelativeDaysAgo { get; set; } = "{0} days ago";
+
+    /// <summary>A <see cref="RelativeTime"/>: in one minute.</summary>
+    public virtual string RelativeInMinute { get; set; } = "in 1 minute";
+
+    /// <summary>A <see cref="RelativeTime"/>: in {0} minutes.</summary>
+    public virtual string RelativeInMinutes { get; set; } = "in {0} minutes";
+
+    /// <summary>A <see cref="RelativeTime"/>: in one hour.</summary>
+    public virtual string RelativeInHour { get; set; } = "in 1 hour";
+
+    /// <summary>A <see cref="RelativeTime"/>: in {0} hours.</summary>
+    public virtual string RelativeInHours { get; set; } = "in {0} hours";
+
+    /// <summary>A <see cref="RelativeTime"/>: the day after today.</summary>
+    public virtual string RelativeTomorrow { get; set; } = "tomorrow";
+
+    /// <summary>A <see cref="RelativeTime"/>: in {0} days.</summary>
+    public virtual string RelativeInDays { get; set; } = "in {0} days";
 
     /// <summary>A RichTextEditor's task list tool.</summary>
     public virtual string RichTextTaskList { get; set; } = "Task list";

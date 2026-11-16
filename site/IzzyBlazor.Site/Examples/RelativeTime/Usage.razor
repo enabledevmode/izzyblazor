@@ -1,0 +1,24 @@
+@* A deploy log: each deploy's time as how long ago, with the full date on hover. The times are
+   set from now, so the example always reads as recent. *@
+<List Dividers MaxWidth="32.Rem">
+    @foreach (var deploy in _deploys)
+    {
+        <ListItem Icon="Lucide.Rocket" Description="@deploy.Commit">
+            <Row Gap="2" Justify="Justify.Between" Wrap>
+                <TextBlock As="span" Weight="FontWeight.Medium">@deploy.Target</TextBlock>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted"><RelativeTime Value="deploy.At" /></TextBlock>
+            </Row>
+        </ListItem>
+    }
+</List>
+
+@code {
+    private readonly (string Target, string Commit, DateTimeOffset At)[] _deploys =
+    [
+        ("Production", "a41d6e9 Fix the invoice total's rounding", DateTimeOffset.UtcNow.AddSeconds(-20)),
+        ("Staging", "8c03fc0 Add the cookie settings page", DateTimeOffset.UtcNow.AddMinutes(-14)),
+        ("Production", "5914cbf Maintenance page", DateTimeOffset.UtcNow.AddHours(-5)),
+        ("Production", "e180c60 Footer links", DateTimeOffset.UtcNow.AddDays(-1).AddHours(-2)),
+        ("Staging", "7b3137d Pricing tiers", DateTimeOffset.UtcNow.AddDays(-6)),
+    ];
+}
