@@ -34,9 +34,11 @@
         <ExternalLoginPicker Divider="false" />
     </Column>
     <Column Gap="1" MarginTop="6">
+        @*#if (Registration) *@
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             New here? <Anchor Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Create an account</Anchor>
         </TextBlock>
+        @*#endif *@
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             Didn't get the confirmation email? <Anchor Href="Account/ResendEmailConfirmation">Resend it</Anchor>
         </TextBlock>

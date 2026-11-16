@@ -31,6 +31,10 @@
         "description": "The authentication: None, or Individual (accounts stored in the app's database, with ASP.NET Core Identity's pages drawn in IzzyBlazor).",
         "x-priority": "important"
       },
+      "Registration": {
+        "type": "boolean", "default": true, "x-hidden": true,
+        "description": "With Individual authentication, lets people create their own accounts. Off for an app whose accounts are made for people, such as by invite."
+      },
       "UseLocalDB": {
         "type": "boolean", "default": false,
         "description": "With Individual authentication, stores accounts in SQL Server LocalDB instead of SQLite."
@@ -121,6 +125,7 @@
         "{{ProjectName}}.Client/Pages/Auth.razor"
       ]
     },
+    { "if": "!Registration", "paths": ["{{ProjectName}}/Components/Account/Pages/Register.razor", "{{ProjectName}}/Components/Account/Pages/RegisterConfirmation.razor"] },
     { "if": "!(IndividualLocalAuth && !UseLocalDB)", "paths": ["{{ProjectName}}/Data/app.db"] },
     { "if": "UseWebAssembly", "paths": ["{{ProjectName}}/Components/Pages/Auth.razor"] },
     { "if": "!UseServer", "paths": ["{{ProjectName}}/Components/Account/IdentityRevalidatingAuthenticationStateProvider.cs"] },

@@ -112,13 +112,28 @@
             return;
         }
 
+@*#if (!Registration) *@
+        // People can't make their own accounts here: they're invited, and add this sign-in from Manage
+        // account once they're in.
+        RedirectManager.RedirectToWithStatus("Account/Login", $"Error: No account uses this {ProviderDisplayName} sign-in. Log in another way, then add it in Manage account.", HttpContext);
+@*#else *@
         // If the user does not have an account, then ask the user to create an account.
         if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
         {
             Input.Email = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
         }
+@*#endif *@
     }
 
+@*#if (!Registration) *@
+    // People can't make their own accounts here, so the sign-in above never shows this form: only a post made
+    // by hand gets here.
+    private Task OnValidSubmitAsync()
+    {
+        message = "Error: Accounts here are by invite.";
+        return Task.CompletedTask;
+    }
+@*#else *@
     private async Task OnValidSubmitAsync()
     {
         if (externalLoginInfo is null)
@@ -167,6 +182,7 @@
             message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
         }
     }
+@*#endif *@
 
     private ApplicationUser CreateUser()
     {

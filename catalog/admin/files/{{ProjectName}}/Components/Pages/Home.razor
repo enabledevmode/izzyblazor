@@ -167,8 +167,11 @@
     [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
 
     private string Lead => _empty
-        ? $"Welcome, {_userName}. Numbers show here as customers sign up."
-        : $"Hello, {_userName}. Here’s the last {_period.Name}.";
+        ? $"{Greet("Welcome")} Numbers show here as customers sign up."
+        : $"{Greet("Hello")} Here’s the last {_period.Name}.";
+
+    // "Hello, Maya." with a name; "Hello." without one, rather than an email address.
+    private string Greet(string word) => _userName is null ? $"{word}." : $"{word}, {_userName}.";
 
     private string SparkSpan => _period.Bucket == "month" ? "last 12 months" : "last 12 weeks";
 
@@ -182,8 +185,8 @@
         {
             var user = (await AuthState).User;
             var id = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            _userName = (await Db.Users.Where(u => u.Id == id).Select(u => u.Name).FirstOrDefaultAsync())?.Split(' ')[0]
-                ?? user.Identity?.Name;
+            var name = await Db.Users.Where(u => u.Id == id).Select(u => u.Name).FirstOrDefaultAsync();
+            _userName = string.IsNullOrWhiteSpace(name) ? null : name.Trim().Split(' ')[0];
         }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);

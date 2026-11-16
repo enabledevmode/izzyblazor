@@ -11,7 +11,7 @@
 <PageTitle>Profile</PageTitle>
 
 <PageHeader Title="Profile" TitleLevel="2" Size="ControlSize.Sm"
-            Description="The name and phone number on your account." />
+            Description="The phone number on your account." />
 <StatusMessage />
 @* Header, fields, button: the username is read-only (focusable and readable, unlike a disabled
    field), and its hint says where it's changed. *@
@@ -78,8 +78,11 @@
 
     private sealed class InputModel
     {
+        // A cleared field posts "", which [Phone] rejects: blank means no phone number.
         [Phone]
         [Display(Name = "Phone number")]
-        public string? PhoneNumber { get; set; }
+        public string? PhoneNumber { get => phoneNumber; set => phoneNumber = string.IsNullOrWhiteSpace(value) ? null : value; }
+
+        private string? phoneNumber;
     }
 }

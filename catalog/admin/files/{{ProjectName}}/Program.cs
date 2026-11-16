@@ -49,6 +49,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
     .AddRoles<IdentityRole>()
+    .AddClaimsPrincipalFactory<NameClaimsPrincipalFactory>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager<AuditingSignInManager>()
     .AddDefaultTokenProviders();
