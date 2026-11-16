@@ -1587,6 +1587,10 @@
             "static": "Search fills the list once, and typing filters those eight people in the browser.",
             "interactive": "Typing calls Search after a short pause, so anyone in the directory can be found."
           } },
+        { "id": "combobox-action", "title": "An action at the end", "height": 420,
+          "notes": { "noscript": "The field is a plain select; the action is a link under it." } },
+        { "id": "combobox-header-footer", "title": "A header and footer", "height": 460,
+          "notes": { "noscript": "The field is a plain select; the header and footer show under it." } },
         { "id": "combobox-required", "title": "Required, with a placeholder", "lead": "To start with nothing chosen and require a choice, put `[Required]` on a nullable property and set a `Placeholder`.",
           "notes": {
             "noscript": "A plain dropdown: the browser stops the post until a country is chosen, with its default message.",

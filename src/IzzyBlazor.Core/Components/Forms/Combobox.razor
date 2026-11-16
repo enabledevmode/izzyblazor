@@ -110,37 +110,45 @@
         <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@IsDisabled">
             <Icon Purpose="IconPurpose.ChevronDown" Class="ib-field-icon" />
         </button>
-        <div id="@ListId"
-             class="ib-pop ib-place-bottom-start ib-combobox-list"
-             style="@($"position-anchor:{StyleValues.AnchorName(ListId)}")"
-             popover="manual"
-             role="listbox"
-             aria-labelledby="@LabelId"
-             aria-busy="@(_searching ? "true" : null)"
-             data-query="@(ServerFiltered ? _resultsQuery : null)"
-             data-ib-answered="@(_answered ? "" : null)">
-            @{ var index = 0; var groupIndex = 0; }
-            @* Each run of options is one region, so its options' keys meet as siblings; groups are keyed
-               by name, so a group that moves keeps its elements. *@
-            @foreach (var (group, items) in ChoiceOptions.Grouped(ListOptions.DistinctBy(FormatValueAsString), ItemGroup))
-            {
-                var run = items.Select(item => (item, index++)).ToList();
-                if (group is null)
+        @if (ListHeader is null && ListFooter is null)
+        {
+            <div id="@ListId"
+                 class="ib-pop ib-place-bottom-start ib-combobox-list"
+                 style="@($"position-anchor:{StyleValues.AnchorName(ListId)}")"
+                 popover="manual"
+                 role="listbox"
+                 aria-labelledby="@LabelId"
+                 aria-busy="@(_searching ? "true" : null)"
+                 data-query="@(ServerFiltered ? _resultsQuery : null)"
+                 data-ib-answered="@(_answered ? "" : null)">
+                @ListBody
+            </div>
+        }
+        else
+        {
+            @* A header and footer sit around the listbox, not in it: a listbox holds only options. *@
+            <div class="ib-pop ib-place-bottom-start ib-combobox-pop"
+                 style="@($"position-anchor:{StyleValues.AnchorName(ListId)}")"
+                 popover="manual">
+                @if (ListHeader is not null)
                 {
-                    @OptionRows(run)
+                    <div class="ib-combobox-header">@ListHeader</div>
                 }
-                else
+                <div id="@ListId"
+                     class="ib-combobox-list"
+                     role="listbox"
+                     aria-labelledby="@LabelId"
+                     aria-busy="@(_searching ? "true" : null)"
+                     data-query="@(ServerFiltered ? _resultsQuery : null)"
+                     data-ib-answered="@(_answered ? "" : null)">
+                    @ListBody
+                </div>
+                @if (ListFooter is not null)
                 {
-                    var labelId = $"{ListId}-g{groupIndex++}";
-                    <div @key="@(("group", group))" role="group" class="ib-combobox-group" aria-labelledby="@labelId">
-                        <div id="@labelId" class="ib-combobox-group-label">@group</div>
-                        @OptionRows(run)
-                    </div>
+                    <div class="ib-combobox-footer">@ListFooter</div>
                 }
-            }
-            @* Shown in the list, but read through the status below: a listbox holds only options. *@
-            <div class="ib-combobox-empty" aria-hidden="true" data-ib-searching="@(PageFetches ? SearchingText ?? TextDefaults.Searching : null)">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
-        </div>
+            </div>
+        }
         <span class="ib-visually-hidden ib-combobox-status" role="status"></span>
         @if (ServerFiltered)
         {
@@ -153,6 +161,17 @@
             @ClearButton
         }
     </ib-combobox>
+    @if (ActionText is not null && ActionHref is not null || ListHeader is not null || ListFooter is not null)
+    {
+        <div class="ib-combobox-fallback">
+            @ListHeader
+            @if (ActionText is not null && ActionHref is not null)
+            {
+                <Anchor Href="@ActionHref">@ActionText</Anchor>
+            }
+            @ListFooter
+        </div>
+    }
     }
     @if (PostsReadOnlyValue)
     {
@@ -164,6 +183,34 @@
 @code {
     /// <summary>A button in the field that empties it, for a value that can be empty, there while one is chosen. Off by default.</summary>
     [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>
+    /// An action at the end of the list, such as "Add a new customer", there whatever is typed: the arrow keys
+    /// reach it and Enter follows <see cref="ActionHref"/>, as choosing an option would. Set both.
+    /// </summary>
+    [Parameter] public string? ActionText { get; set; }
+
+    /// <summary>
+    /// Where the <see cref="ActionText"/> action goes: a page, or this page with a query that opens a dialog,
+    /// so it works on static pages too.
+    /// </summary>
+    [Parameter] public string? ActionHref { get; set; }
+
+    /// <summary>The action's icon. Defaults to a plus.</summary>
+    [Parameter] public IconData? ActionIcon { get; set; }
+
+    /// <summary>
+    /// Content above the options while the list is open: a hint on what the search covers, or a scope. Its
+    /// buttons and links are for pointer and touch: the arrow keys move through the options only, so put an
+    /// action that must be reached from the keyboard in <see cref="ActionText"/>.
+    /// </summary>
+    [Parameter] public RenderFragment? ListHeader { get; set; }
+
+    /// <summary>
+    /// Content under the options while the list is open: a count ("Showing 10 of 248"), or a link to manage
+    /// the list. As <see cref="ListHeader"/>, its buttons are for pointer and touch.
+    /// </summary>
+    [Parameter] public RenderFragment? ListFooter { get; set; }
 
     /// <summary>Makes the field read-only: the chosen text shows in a read-only text field, and the value still posts.</summary>
     [Parameter] public bool ReadOnly { get; set; }
@@ -178,6 +225,40 @@
     private bool _searching;
     // This render answers the script's fetch for this field's options.
     private bool _answered;
+
+    // The listbox's content: options in their groups, the action last, and the row that says nothing matches.
+    private RenderFragment ListBody => @<text>
+        @{ var index = 0; var groupIndex = 0; }
+        @* Each run of options is one region, so its options' keys meet as siblings; groups are keyed
+           by name, so a group that moves keeps its elements. *@
+        @foreach (var (group, items) in ChoiceOptions.Grouped(ListOptions.DistinctBy(FormatValueAsString), ItemGroup))
+        {
+            var run = items.Select(item => (item, index++)).ToList();
+            if (group is null)
+            {
+                @OptionRows(run)
+            }
+            else
+            {
+                var labelId = $"{ListId}-g{groupIndex++}";
+                <div @key="@(("group", group))" role="group" class="ib-combobox-group" aria-labelledby="@labelId">
+                    <div id="@labelId" class="ib-combobox-group-label">@group</div>
+                    @OptionRows(run)
+                </div>
+            }
+        }
+        @if (ActionText is not null && ActionHref is not null)
+        {
+            @* Last whatever is typed: the arrow keys reach it and Enter follows its link, as a choice. *@
+            <div @key="@("ib-action")" role="option" id="@($"{ListId}-action")" class="ib-combobox-option ib-combobox-action"
+                 aria-selected="false" data-ib-action="@ActionHref">
+                <Icon Name="@(ActionIcon ?? Lucide.Plus)" />
+                <span>@ActionText</span>
+            </div>
+        }
+        @* Shown in the list, but read through the status below: a listbox holds only options. *@
+        <div class="ib-combobox-empty" aria-hidden="true" data-ib-searching="@(PageFetches ? SearchingText ?? TextDefaults.Searching : null)">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
+    </text>;
 
     private RenderFragment NativeOptions(IEnumerable<TValue> items) => @<text>
         @foreach (var item in items)
