@@ -235,8 +235,8 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
             var html = await site.Client.GetStringAsync($"{page}?mode={mode}");
             shown.UnionWith(Regex.Matches(html, "data-ex=\"([^\"]+)\"").Select(m => m.Groups[1].Value));
             // A page example (components.json "page") is a page of its own, in a window: the only frames,
-            // with the home page's hero, which shows one.
-            Assert.Equal(Regex.Count(html, "<iframe"), Regex.Count(html, "ex-window\"><iframe") + Regex.Count(html, "site-hero-screen\"><iframe"));
+            // with the home page's hero, which shows one, and an article's own demo (data-site-frame).
+            Assert.Equal(Regex.Count(html, "<iframe"), Regex.Count(html, "ex-window\"><iframe") + Regex.Count(html, "site-hero-screen\"><iframe") + Regex.Count(html, "<iframe[^>]* data-site-frame"));
             var ids = Id().Matches(Template().Replace(html, "")).Select(m => m.Groups[1].Value);
             var repeated = ids.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             Assert.True(repeated.Count == 0, $"/{page} ({mode}) repeats ids: {string.Join(", ", repeated)}");

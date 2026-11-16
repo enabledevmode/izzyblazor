@@ -246,22 +246,47 @@
     }
   }
 
+  // Example frames, and an article's own demo frames (data-site-frame), which follow the scheme too.
+  const FRAMES = "iframe.ex-frame, iframe[data-site-frame]";
+
+  // A demo frame marked data-site-fit is as tall as its page, so it doesn't scroll inside: the CRUD
+  // pages article's grid. Its page's .frame has no minimum height, so this can't feed on itself.
+  function fit(frame) {
+    if (!frame.hasAttribute("data-site-fit")) return;
+    let page;
+    try {
+      page = frame.contentDocument && frame.contentDocument.querySelector(".frame");
+    } catch {
+      return;
+    }
+
+    if (!page) return;
+    // Plus the frame's own border: its height is the border box.
+    const size = () => { frame.style.height = `${Math.ceil(page.getBoundingClientRect().height) + frame.offsetHeight - frame.clientHeight}px`; };
+    size();
+    new frame.contentWindow.ResizeObserver(size).observe(page);
+  }
+
   function frames() {
-    for (const frame of document.querySelectorAll("iframe.ex-frame")) {
+    for (const frame of document.querySelectorAll(FRAMES)) {
       scheme(frame);
       // Loaded before this ran, or kept by enhanced navigation, which drops the mark.
-      if (loaded(frame)) frame.dataset.ready = "";
+      if (loaded(frame)) {
+        frame.dataset.ready = "";
+        fit(frame);
+      }
       if (watched.has(frame)) continue;
       watched.add(frame);
       frame.addEventListener("load", () => {
         scheme(frame);
+        fit(frame);
         frame.dataset.ready = "";
       });
     }
   }
 
   new MutationObserver(() => {
-    for (const frame of document.querySelectorAll("iframe.ex-frame")) scheme(frame);
+    for (const frame of document.querySelectorAll(FRAMES)) scheme(frame);
   }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-ib-color-scheme"] });
 
   // Search (SiteSearch in the header). Its buttons open the dialog without script; here Ctrl+K
