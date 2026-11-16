@@ -473,8 +473,6 @@ public static class SiteApp
             .RequireRateLimiting(PagesRateLimit);
         // Accessibility was one article under Common features until Nov 10, 2026; it's a section now.
         app.MapGet("/docs/common/accessibility", () => Results.Redirect("/docs/accessibility/overview", permanent: true));
-        // Toolbar's "What doesn't fit" topic was renamed Adaptability on Nov 16, 2026, as DataGrid's and TreeList's.
-        app.MapGet("/docs/components/toolbar/overflow", () => Results.Redirect("/docs/components/toolbar/adaptability", permanent: true));
         // Chart types that were topics on Chart's pages until Nov 7, 2026 have pages of their own.
         foreach (var (topic, page) in new[] { ("bars", "bar-chart"), ("lines", "line-chart"), ("scatter", "scatter-chart") })
         {
