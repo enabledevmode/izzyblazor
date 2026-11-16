@@ -134,31 +134,43 @@ export function installSelectAll(): void {
 }
 
 /**
- * Button's DisabledUntil: a button marked data-ib-disabled-until="<checkbox id>" is disabled while
- * that box is unchecked. The server renders it enabled, so with no script the form still posts and
- * the server checks the box. Blazor renders no disabled attribute on it, so it leaves this alone.
+ * Button's DisabledUntil: a button marked data-ib-disabled-until="<field id>" is disabled until that
+ * field is ready: a checkbox or radio ticked; any other field holding data-ib-disabled-until-value
+ * exactly (spaces at the ends aside), or, with no value given, filled in and valid. The server renders
+ * it enabled, so with no script the form still posts and the server checks the field. Blazor renders
+ * no disabled attribute on it, so it leaves this alone.
  */
 const UNTIL = "button[data-ib-disabled-until]";
 
-function applyUntil(button: HTMLButtonElement): void {
-  const box = document.getElementById(button.getAttribute("data-ib-disabled-until") ?? "");
-  if (box instanceof HTMLInputElement) button.disabled = !box.checked;
+function ready(field: HTMLElement, expected: string | null): boolean {
+  if (field instanceof HTMLInputElement && (field.type === "checkbox" || field.type === "radio")) return field.checked;
+  if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement)) return true;
+  const value = field.value.trim();
+  return expected !== null ? value === expected.trim() : value !== "" && field.checkValidity();
 }
 
-/** Sets every DisabledUntil button from its box. Safe to call any time. */
+function applyUntil(button: HTMLButtonElement): void {
+  const field = document.getElementById(button.getAttribute("data-ib-disabled-until") ?? "");
+  if (field) button.disabled = !ready(field, button.getAttribute("data-ib-disabled-until-value"));
+}
+
+/** Sets every DisabledUntil button from its field. Safe to call any time. */
 export function syncDisabledUntil(): void {
   document.querySelectorAll<HTMLButtonElement>(UNTIL).forEach(applyUntil);
 }
 
 export function installDisabledUntil(): void {
-  document.addEventListener("change", (event) => {
-    const input = event.target;
-    if (!(input instanceof HTMLInputElement) || !input.id) return;
-    document.querySelectorAll<HTMLButtonElement>(`${UNTIL}[data-ib-disabled-until="${CSS.escape(input.id)}"]`).forEach(applyUntil);
-  });
-  // A reset changes boxes without a change event, after the reset event itself.
+  // change for boxes and selects; input as text is typed.
+  const follow = (event: Event): void => {
+    const field = event.target;
+    if (!(field instanceof HTMLElement) || !field.id) return;
+    document.querySelectorAll<HTMLButtonElement>(`${UNTIL}[data-ib-disabled-until="${CSS.escape(field.id)}"]`).forEach(applyUntil);
+  };
+  document.addEventListener("change", follow);
+  document.addEventListener("input", follow);
+  // A reset changes fields without an event of their own, after the reset event itself.
   document.addEventListener("reset", () => setTimeout(syncDisabledUntil));
-  // The browser can restore a ticked box on back and forward.
+  // The browser can restore a ticked box or typed text on back and forward.
   addEventListener("pageshow", syncDisabledUntil);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", syncDisabledUntil, { once: true });
   else syncDisabledUntil();

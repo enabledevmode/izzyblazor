@@ -73,13 +73,21 @@ public class Button : ButtonBase
     [Parameter] public string? Form { get; set; }
 
     /// <summary>
-    /// The id of a checkbox this button waits for: it's disabled until the box is ticked, such as a
-    /// sign-up's consent. Set the same <c>id</c> on the <see cref="Checkbox"/>. Done by the library's
-    /// script, so with JavaScript off the button stays enabled and the server checks the box; say
-    /// why it waits in the box's label, as in "I agree to the terms (required)". Not for a link.
+    /// The id of a field this button waits for: a checkbox until it's ticked, such as a sign-up's
+    /// consent; any other field until it's filled in and valid, or holds <see cref="DisabledUntilValue"/>.
+    /// Set the same <c>id</c> on the field. Done by the library's script, so with JavaScript off the
+    /// button stays enabled and the server checks the field; say why it waits in the field's label, as
+    /// in "I agree to the terms (required)". Not for a link.
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.Partial)]
     public string? DisabledUntil { get; set; }
+
+    /// <summary>
+    /// With <see cref="DisabledUntil"/> on a text field: the text it must hold, exactly (spaces at
+    /// either end aside), such as the name of what a delete removes. Check it on the server too.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public string? DisabledUntilValue { get; set; }
 
     /// <summary>Runs on click on interactive pages (a link still navigates). Has no effect on static pages.</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
@@ -120,23 +128,24 @@ public class Button : ButtonBase
         builder.AddAttribute(5, "form", Form);
         builder.AddAttribute(6, "disabled", Disabled);
         builder.AddAttribute(7, "data-ib-disabled-until", DisabledUntil);
+        builder.AddAttribute(8, "data-ib-disabled-until-value", DisabledUntil is null ? null : DisabledUntilValue);
         if (Loading)
         {
             // Not "disabled": the button keeps focus while busy. CSS blocks clicks.
-            builder.AddAttribute(8, "aria-disabled", "true");
-            builder.AddAttribute(9, "aria-busy", "true");
+            builder.AddAttribute(9, "aria-disabled", "true");
+            builder.AddAttribute(10, "aria-busy", "true");
         }
 
         if (OnClick.HasDelegate && !Loading)
         {
-            builder.AddAttribute(10, "onclick", OnClick);
+            builder.AddAttribute(11, "onclick", OnClick);
         }
 
-        builder.AddMultipleAttributes(11, ExtraAttributes);
-        builder.AddMultipleAttributes(12, AdditionalAttributes);
-        builder.AddAttribute(13, "class", cssClass);
-        builder.AddAttribute(14, "style", style);
-        builder.OpenRegion(14);
+        builder.AddMultipleAttributes(12, ExtraAttributes);
+        builder.AddMultipleAttributes(13, AdditionalAttributes);
+        builder.AddAttribute(14, "class", cssClass);
+        builder.AddAttribute(15, "style", style);
+        builder.OpenRegion(16);
         RenderContent(builder);
         builder.CloseRegion();
         builder.CloseElement();

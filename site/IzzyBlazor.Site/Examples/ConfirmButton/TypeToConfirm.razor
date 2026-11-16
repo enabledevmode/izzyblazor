@@ -1,0 +1,39 @@
+@* Deleting a project: Delete project waits until its name is typed, and the server checks the name
+   too, for a page with JavaScript off. *@
+<Form Model="Model" FormName="delete-project" OnValidSubmit="Delete">
+    <Row Gap="3" Wrap Align="Align.Center">
+        <ConfirmButton Title="Delete Website redesign?" ConfirmText="Delete project" Accent="Accent.Danger"
+                       StartIcon="Lucide.Trash" DisabledUntil="confirm-project" DisabledUntilValue="@Project">
+            <Body>
+                <TextBlock>This deletes its 38 tasks and 12 files for everyone. It can't be undone.</TextBlock>
+                <TextField @bind-Value="Model!.Typed" id="confirm-project" Label="@($"Type {Project} to confirm")" autocomplete="off" />
+            </Body>
+            <ChildContent>Delete project</ChildContent>
+        </ConfirmButton>
+        @if (_result is not null)
+        {
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    private const string Project = "Website redesign";
+
+    [SupplyParameterFromForm(FormName = "delete-project")]
+    private Confirmation? Model { get; set; }
+
+    private string? _result;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Delete() =>
+        _result = Model!.Typed?.Trim() == Project
+            ? $"{Project} would be deleted now. This example keeps it."
+            : "Type the project's name to delete it.";
+
+    public sealed class Confirmation
+    {
+        public string? Typed { get; set; }
+    }
+}
