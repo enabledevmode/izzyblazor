@@ -48,7 +48,7 @@
                             </MenuRadioGroup>
                         </MenuContent>
                         <ChildContent>
-                            <TabNav Label="Status" Variant="TabsVariant.Soft">
+                            <TabNav Label="Status" Variant="TabsVariant.Soft" Size="ControlSize.Sm">
                                 @foreach (var tab in Tabs)
                                 {
                                     <TabLink Href="@(tab.Key is null ? "invoices" : $"invoices?status={tab.Key}")" Label="@tab.Label" Current="tab.Key == Shown"
@@ -119,15 +119,24 @@
     private readonly DateOnly _today = InvoiceText.Today;
     private Counts _counts = new(0, 0, 0, 0, 0);
     // What's owed and what's late, by currency (Money writes the company's first).
-    private List<(string Currency, decimal Amount)> _outstanding = [], _overdue = [];
+    private List<(string Currency, decimal Amount)> _outstanding = [], _overdue = [], _shown = [];
     private bool _canEdit;
 
     // The tab shown: one of Tabs' keys, or null for All.
     private string? Shown => Status?.ToLowerInvariant() is { } key && Tabs.Any(t => t.Key == key) ? key : null;
 
-    private string Lead => _counts.All == 0 ? "Bill your customers and see who has paid."
-        : Shown == "overdue" ? (_counts.Overdue == 0 ? "Nothing is overdue." : $"{_counts.Overdue} overdue, {InvoiceText.Money(_overdue)} in all. Send a reminder from each invoice.")
-        : $"{InvoiceText.Money(_outstanding)} outstanding · {InvoiceText.Money(_overdue)} overdue";
+    // The line under the title says what the chosen chip holds: how many, and what they add up to.
+    private string Lead => _counts.All == 0 ? "Bill your customers and see who has paid." : Shown switch
+    {
+        "draft" => _counts.Draft == 0 ? "No drafts." : $"{Count(_counts.Draft, "draft", "drafts")} · {InvoiceText.Money(_shown)}",
+        "sent" => _counts.Sent == 0 ? "Nothing sent is waiting to be paid." : $"{_counts.Sent:N0} sent · {InvoiceText.Money(_shown)} due",
+        "overdue" => _counts.Overdue == 0 ? "Nothing is overdue." : $"{_counts.Overdue:N0} overdue · {InvoiceText.Money(_overdue)}",
+        "paid" => _counts.Paid == 0 ? "Nothing paid yet." : $"{_counts.Paid:N0} paid · {InvoiceText.Money(_shown)}",
+        _ => _overdue.Count == 0 ? $"{InvoiceText.Money(_outstanding)} outstanding"
+            : $"{InvoiceText.Money(_outstanding)} outstanding · {InvoiceText.Money(_overdue)} overdue",
+    };
+
+    private static string Count(int n, string one, string many) => $"{n:N0} {(n == 1 ? one : many)}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,6 +150,16 @@
         int Of(InvoiceStatus s) => byStatus.GetValueOrDefault(s);
         var overdue = open.Count(i => i.Due < _today);
         _counts = new(byStatus.Values.Sum(), Of(InvoiceStatus.Draft), Of(InvoiceStatus.Sent) - overdue, overdue, Of(InvoiceStatus.Paid));
+
+        // The chosen chip's total, for the line under the title.
+        _shown = Shown switch
+        {
+            "sent" => [.. open.Where(i => i.Due >= _today).Select(i => (i.Currency, i.Total))],
+            "draft" or "paid" => [.. (await Db.Invoices.AsNoTracking().Include(i => i.Lines)
+                .Where(i => i.Status == (Shown == "draft" ? InvoiceStatus.Draft : InvoiceStatus.Paid)).ToListAsync())
+                .Select(i => (i.Currency, i.Total))],
+            _ => [],
+        };
     }
 
     // The tab's invoices, searched by number or customer name, a page at a time.
