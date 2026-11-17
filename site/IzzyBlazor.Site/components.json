@@ -1116,6 +1116,12 @@
             "interactive": "The browser stops the post with your `[Required]` message, and clearing a checked box shows the message under it at once."
           } },
         { "id": "checkbox-select-all", "title": "Indeterminate (select all)", "modes": ["interactive"], "lead": "A box can stand for several others, as a select-all box does. When only some of them are checked, set `Indeterminate` to show a dash. Set the others from the box's `ValueChanged`." },
+        { "id": "checkbox-submit-on-change", "title": "Saving as it changes", "lead": "To save a box as soon as it's ticked, such as a task marked done, set `SubmitOnChange`: the box posts its form as it changes. It posts the whole form, so it's for a form that holds only the box. With JavaScript off, give the form a submit button, here in a `noscript`.",
+          "notes": {
+            "noscript": "Ticking changes nothing until Save posts the form.",
+            "static": "Ticking posts the form, without a full reload, and the task is saved.",
+            "interactive": "Ticking saves at once, in C#."
+          } },
         { "id": "checkbox-sizes", "title": "Sizes and disabled", "lead": "To match a box to fields and buttons of the same `ControlSize`, set `Size`. A `Disabled` box doesn't post." }
       ]
     },

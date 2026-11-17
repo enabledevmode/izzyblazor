@@ -18,6 +18,11 @@
 <Heading Level="2">What it posts</Heading>
 <TextBlock>A checked box posts <Code>true</Code>. An unchecked box posts <Code>false</Code> from a hidden field that follows it, so a property that defaults to true can be turned off on <Anchor Href="docs/common/render-modes">static pages</Anchor>. A disabled box posts nothing.</TextBlock>
 
+<Heading Level="2">Saving as it changes</Heading>
+<TextBlock>A box can save as soon as it's ticked, such as a task marked done. Set <Code>SubmitOnChange</Code>, and the box posts its form as it changes, on static and interactive pages. Save in the form's <Code>OnValidSubmit</Code>.</TextBlock>
+<ExampleViewer Example="checkbox-submit-on-change" />
+<TextBlock>It posts the whole form, so it's for a form that holds only the box. A form with several fields saves them together, with its button. With JavaScript off, nothing posts the form as the box changes, so put a Save button in a <Code>noscript</Code>.</TextBlock>
+
 <Heading Level="2">Indeterminate state</Heading>
 <TextBlock>The indeterminate state is a dash in the box. It shows that only some of what the box stands for is checked, as on a box that selects a list of others. Set <Code>Indeterminate</Code> to show it, and on interactive pages set the other boxes from the box's <Code>ValueChanged</Code>.</TextBlock>
 <ExampleViewer Example="checkbox-select-all" />

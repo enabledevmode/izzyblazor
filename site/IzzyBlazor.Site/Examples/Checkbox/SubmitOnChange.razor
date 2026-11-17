@@ -1,0 +1,29 @@
+@* A task that's marked done as its box is ticked. The form holds only the box. *@
+<Form Model="Model" FormName="checkbox-submit-on-change" OnValidSubmit="Save" Grow>
+    <Checkbox @bind-Value="Model!.Done" SubmitOnChange Label="Send the proposal to Olivia Chen" />
+    <Row Gap="3" Align="Align.Center" Wrap>
+        @* With JavaScript off, nothing posts the form as the box changes, so this does. *@
+        <noscript><Button Submit Size="ControlSize.Sm">Save</Button></noscript>
+        @if (_saved is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "checkbox-submit-on-change")]
+    private TaskItem? Model { get; set; }
+
+    private string? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // Runs each time the box changes, on static and interactive pages.
+    private void Save() => _saved = Model!.Done ? "Marked done." : "Reopened.";
+
+    public sealed class TaskItem
+    {
+        public bool Done { get; set; }
+    }
+}
