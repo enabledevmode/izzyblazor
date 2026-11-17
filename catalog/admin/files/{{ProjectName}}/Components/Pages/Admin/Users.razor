@@ -99,7 +99,7 @@
                         </DescriptionItem>
                     }
                 </DescriptionList>
-                <Anchor Href="@($"admin/audit?f-who={Uri.EscapeDataString(context.Id)}")">View their activity</Anchor>
+                <Button Href="@($"admin/audit?f-who={Uri.EscapeDataString(context.Id)}")" Variant="ButtonVariant.Link" EndIcon="Lucide.ArrowRight" AlignSelf="Align.Start">View their activity</Button>
             </Stack>
         </DetailTemplate>
     </DataGrid>

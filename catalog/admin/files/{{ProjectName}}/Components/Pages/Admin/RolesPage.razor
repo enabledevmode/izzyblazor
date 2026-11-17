@@ -17,7 +17,7 @@
             var members = _members.GetValueOrDefault(role);
             <Card Title="@role" TitleLevel="2" Description="@Roles.Description(role)">
                 <CardActions>
-                    <Badge Variant="BadgeVariant.Outline">@members @(members == 1 ? "member" : "members")</Badge>
+                    <Badge Pill>@members @(members == 1 ? "member" : "members")</Badge>
                 </CardActions>
                 <Stack Gap="4" Grow>
                     <Divider />
@@ -25,7 +25,7 @@
                         @foreach (var (_, allows, roles) in Policies.All)
                         {
                             var yes = roles.Contains(role);
-                            <ListItem Icon="@(yes ? Lucide.Check : Lucide.X)" IconColor="@(yes ? Color.Success : Color.Muted)">
+                            <ListItem Icon="@(yes ? Lucide.Check : Lucide.Minus)" IconColor="@(yes ? Color.Success : Color.Muted)">
                                 <VisuallyHidden>@(yes ? "Allowed: " : "Not allowed: ")</VisuallyHidden>
                                 @if (yes)
                                 {
@@ -40,7 +40,7 @@
                     </List>
                 </Stack>
                 <CardFooter>
-                    <Anchor Href="@($"admin/users?f-role={role}")" Underline="AnchorUnderline.Hover">View members</Anchor>
+                    <Button Href="@($"admin/users?f-role={role}")" Variant="ButtonVariant.Link" EndIcon="Lucide.ArrowRight">View members</Button>
                 </CardFooter>
             </Card>
         }

@@ -239,7 +239,7 @@ else
                         </Timeline>
                         @if (_canAudit)
                         {
-                            <Anchor Href="@($"admin/audit?search={Uri.EscapeDataString(invoice.Number)}&f-type={nameof(Invoice)}")" EndIcon="Lucide.ArrowRight">View in audit log</Anchor>
+                            <Button Href="@($"admin/audit?search={Uri.EscapeDataString(invoice.Number)}&f-type={nameof(Invoice)}")" Variant="ButtonVariant.Link" EndIcon="Lucide.ArrowRight" AlignSelf="Align.Start">View in audit log</Button>
                         }
                     </Stack>
                 </Card>

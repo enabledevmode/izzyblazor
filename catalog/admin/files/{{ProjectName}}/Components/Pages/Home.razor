@@ -77,7 +77,7 @@
                         var share = _planTotal == 0 ? 0 : (int)Math.Round(count * 100.0 / _planTotal);
                         <Progress Label="@plan" Value="share" Max="100" ValueText="@($"{count} · {share}%")" />
                     }
-                    <Anchor Href="customers">View customers</Anchor>
+                    <Button Href="customers" Variant="ButtonVariant.Link" AlignSelf="Align.Start">View customers</Button>
                 </Stack>
             }
         </Card>
@@ -87,7 +87,7 @@
         <Card Title="Newest customers" TitleLevel="2" ColSpan="new() { Lg = 2 }">
             @if (_newest is not null && !_empty)
             {
-                <CardActions><Anchor Href="customers">View all</Anchor></CardActions>
+                <CardActions><Button Href="customers" Variant="ButtonVariant.Link">View all</Button></CardActions>
             }
             <CardBody Flush>
                 @if (_newest is null)
