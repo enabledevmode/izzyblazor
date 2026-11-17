@@ -26,6 +26,19 @@ public class Timeline : Box
     /// <summary>Creates a timeline, rendered as an ordered list.</summary>
     public Timeline() => As = "ol";
 
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        // Its sheet of its own, before the list (a list holds only its items).
+        builder.OpenElement(0, "link");
+        builder.AddAttribute(1, "rel", "stylesheet");
+        builder.AddAttribute(2, "href", Assets["_content/IzzyBlazor.Core/timeline.css"]);
+        builder.CloseElement();
+        builder.OpenRegion(3);
+        base.BuildRenderTree(builder);
+        builder.CloseRegion();
+    }
+
     /// <summary>
     /// Where each item's time goes: <see cref="TimelinePlacement.Above"/> the title (the default),
     /// <see cref="TimelinePlacement.Below"/> the content, in a column at the

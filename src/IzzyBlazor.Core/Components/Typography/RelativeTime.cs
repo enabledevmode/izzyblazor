@@ -82,7 +82,7 @@ public class RelativeTime : LayoutItemBase
         builder.AddAttribute(sequence + 1, "title", value.ToString("f", culture));
         builder.AddAttribute(sequence + 2, "data-ib-relative",
             threshold is { } t ? ((long)t.TotalSeconds).ToString(CultureInfo.InvariantCulture) : "");
-        builder.AddAttribute(sequence + 3, "data-ib-capitalize", capitalize ? "" : null);
+        builder.AddAttribute(sequence + 3, "data-ib-cap", capitalize ? "" : null);
     }
 
     /// <summary>

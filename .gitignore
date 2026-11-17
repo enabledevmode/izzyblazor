@@ -37,6 +37,9 @@ src/IzzyBlazor.Core/wwwroot/action-sheet.css
 src/IzzyBlazor.Core/wwwroot/tile-layout.css
 src/IzzyBlazor.Core/wwwroot/range-selector.css
 src/IzzyBlazor.Core/wwwroot/scheduler.css
+src/IzzyBlazor.Core/wwwroot/slider.css
+src/IzzyBlazor.Core/wwwroot/diff.css
+src/IzzyBlazor.Core/wwwroot/timeline.css
 src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js
 src/IzzyBlazor.Core/wwwroot/elements/
 src/IzzyBlazor.Core/wwwroot/fonts/
