@@ -1143,7 +1143,7 @@
       "examples": [
         { "id": "switch-usage", "title": "At the end of the row", "lead": "To put the switch at the end of the row, with the hint under the label, as in a list of settings, set `ControlPosition` to `ControlPosition.End`." },
         { "id": "switch-icons", "title": "Icons on rows", "lead": "To put a decorative icon at the start of the row, set `Icon`. Give every row in a group an icon, or none." },
-        { "id": "switch-save-on-change", "title": "Saving as it changes", "lead": "To save a setting as soon as it's switched, set `SubmitOnChange`: the switch posts its form as it changes. With JavaScript off, give the form a submit button, here in a `noscript`.",
+        { "id": "switch-save-on-change", "title": "Saving as it changes", "lead": "To save a setting as soon as it's switched, set `SubmitOnChange`: the switch posts its form as it changes. It posts the whole form, so it's for a form that holds only the switch; several settings save together, with a button. With JavaScript off, give the form a submit button, here in a `noscript`.",
           "notes": {
             "noscript": "Switching changes nothing until Save posts the form.",
             "static": "Switching posts the form, without a full reload, and the setting is saved.",
@@ -1556,12 +1556,6 @@
             "noscript": "The browser stops the post until a plan is chosen, with its default message.",
             "static": "The browser stops the post until a plan is chosen, with your `[Required]` message.",
             "interactive": "The browser stops the post with your `[Required]` message, as on static pages, and Continue runs C# without a full reload."
-          } },
-        { "id": "select-submit-on-change", "title": "Saving as it changes", "lead": "To save a choice as soon as it's made, such as a deal's stage, set `SubmitOnChange`: the select posts its form as it changes. With JavaScript off, give the form a submit button, here in a `noscript`.",
-          "notes": {
-            "noscript": "Choosing changes nothing until Save posts the form.",
-            "static": "Choosing posts the form, without a full reload, and the stage is saved.",
-            "interactive": "Choosing saves at once, in C#."
           } },
         { "id": "select-states", "title": "Sizes, read-only and disabled" }
       ]

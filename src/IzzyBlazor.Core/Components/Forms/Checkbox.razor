@@ -12,7 +12,7 @@
     posts nothing, like any disabled field; in a read-only Form it's disabled and posts its value.
 
     On static pages a change does nothing until the form posts, unless SubmitOnChange posts it as
-    the box changes.
+    the box changes. That posts the whole form, so it's for a form that holds only the box.
 
     `Indeterminate` shows a dash, for a "select all" box when only some are selected. It's display
     only: the box posts as unchecked ("false"), and choosing it clears the dash.
@@ -108,7 +108,8 @@
 
     /// <summary>
     /// Posts the form around it as it changes, such as a task marked done or a setting saved at once
-    /// on a static page. With JavaScript off, the form's own submit button posts it.
+    /// on a static page. It posts the whole form, so it's for a form that holds only the box; a form with several
+    /// fields saves with its button. With JavaScript off, the form's own submit button posts it.
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public bool SubmitOnChange { get; set; }

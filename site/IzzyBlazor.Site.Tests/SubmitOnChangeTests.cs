@@ -17,20 +17,6 @@ public sealed class SubmitOnChangeTests(SiteFixture site) : IClassFixture<SiteFi
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
-    public async Task A_select_saves_the_choice_as_its_made(string mode)
-    {
-        var (example, browser) = await OpenAsync("select", "select-submit-on-change", mode);
-        await using var _ = browser;
-
-        await example.GetByLabel("Stage").SelectOptionAsync("Proposal");
-
-        await Assertions.Expect(example).ToContainTextAsync("Last saved: Proposal.");
-        await Assertions.Expect(example.GetByLabel("Stage")).ToHaveValueAsync("Proposal");
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_switch_saves_as_its_switched(string mode)
     {
         var (example, browser) = await OpenAsync("switch", "switch-save-on-change", mode);
