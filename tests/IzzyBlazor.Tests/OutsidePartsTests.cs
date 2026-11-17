@@ -51,6 +51,18 @@ public class OutsidePartsTests : BunitContext
     }
 
     [Fact]
+    public void A_page_headers_buttons_that_float_share_a_speed_dial_and_leave_the_header_on_a_phone()
+    {
+        var cut = Render<PartsProbe>(p => p.Add(c => c.Kind, "header-float"));
+
+        // From Sm up, the header's own buttons; below it, one speed dial with the same links.
+        Assert.All(cut.FindAll(".ib-page-header-actions a.ib-btn"), b => Assert.Contains("ib-visible-from-sm", b.ClassName));
+        Assert.Equal("Add", cut.FindComponent<SpeedDial>().Instance.Label);
+        var actions = cut.FindComponents<SpeedDialAction>().Select(a => (a.Instance.Label, a.Instance.Href)).ToList();
+        Assert.Equal([("Log activity", "/activities/new"), ("New deal", "/deals/new")], actions);
+    }
+
+    [Fact]
     public void Add_in_a_page_header_is_the_pages_main_button_and_floats_on_a_phone()
     {
         var cut = Render<PartsProbe>(p => p.Add(c => c.Kind, "grid-add-in-header"));

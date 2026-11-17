@@ -5,6 +5,7 @@
 @*
     The top of a page: its title (with a status badge beside it, if set), a muted line on what
     it's for, and actions at the end, which wrap under the text on narrow screens. The title is the page's h1 unless set.
+    A main action can float at the screen's corner on a phone (Button FloatBelow in PageHeaderActions).
     A record's page can show its avatar or icon before the title (PageHeaderMedia).
 
     Accessibility:
@@ -42,7 +43,9 @@
     </div>
     @if (_scope.Shown<PageHeaderActions>() is { } actions)
     {
-        <div class="ib-page-header-actions">@_scope.Outlet(actions)</div>
+        <div class="ib-page-header-actions"><CascadingValue Value="_floats" IsFixed="true">@_scope.Outlet(actions)</CascadingValue></div>
+        @* Its buttons that float below a width (Button FloatBelow): out of the row, at the screen's corner. *@
+        @Floats(((PageHeaderActions)actions).FloatLabel ?? TextDefaults.FloatingActions)
     }
 </div>
 
@@ -80,6 +83,7 @@
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
     private PartScope _scope = null!;
+    private readonly PageFloats _floats = new();
 
     [CascadingParameter] private PartScope? OuterScope { get; set; }
 
@@ -88,6 +92,14 @@
 
     private string? _class;
     private string? _style;
+
+    private RenderFragment Floats(string label) => builder =>
+    {
+        builder.OpenComponent<PageHeaderFloats>(0);
+        builder.AddComponentParameter(1, nameof(PageHeaderFloats.Floats), _floats);
+        builder.AddComponentParameter(2, nameof(PageHeaderFloats.Label), label);
+        builder.CloseComponent();
+    };
 
     private RenderFragment TitleElement => builder =>
     {

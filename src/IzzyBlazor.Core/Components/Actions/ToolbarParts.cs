@@ -457,20 +457,30 @@ internal sealed class ToolbarFloats : ComponentBase
     {
         // By the width they float below: one alone is a floating button; more share a speed dial, so
         // they never sit on each other in the corner.
-        var groups = Context.Items
-            .Where(i => i.Item.FloatBelow is not null && i.Item.Float is not null)
-            .GroupBy(i => i.Item.FloatBelow!.Value)
-            .ToList();
+        FloatActions.Render(builder, "ib-toolbar-floats", Context.FloatLabel ?? "Actions",
+            Context.Items.Where(i => i.Item.FloatBelow is not null && i.Item.Float is not null).Select(i => (i.Item.FloatBelow!.Value, i.Item.Float!)));
+    }
+}
+
+/// <summary>
+/// Draws the actions that float below a width (<c>FloatBelow</c>), a Toolbar's or a PageHeader's: one alone
+/// is a floating button; more at the same width share a speed dial, so they never sit on each other.
+/// </summary>
+internal static class FloatActions
+{
+    public static void Render(RenderTreeBuilder builder, string cssClass, string label, IEnumerable<(Breakpoint Below, ToolbarFloat Float)> floats)
+    {
+        var groups = floats.GroupBy(f => f.Below).ToList();
         if (groups.Count == 0)
         {
             return;
         }
 
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", "ib-toolbar-floats");
+        builder.AddAttribute(1, "class", cssClass);
         foreach (var group in groups)
         {
-            var actions = group.Select(i => i.Item.Float!).ToList();
+            var actions = group.Select(f => f.Float).ToList();
             builder.OpenRegion(2);
             if (actions.Count == 1)
             {
@@ -501,7 +511,7 @@ internal sealed class ToolbarFloats : ComponentBase
             else
             {
                 builder.OpenComponent<SpeedDial>(20);
-                builder.AddComponentParameter(21, nameof(SpeedDial.Label), Context.FloatLabel ?? "Actions");
+                builder.AddComponentParameter(21, nameof(SpeedDial.Label), label);
                 builder.AddComponentParameter(22, nameof(SpeedDial.HiddenFrom), group.Key);
                 builder.AddComponentParameter(23, nameof(SpeedDial.ChildContent), (RenderFragment)(d =>
                 {

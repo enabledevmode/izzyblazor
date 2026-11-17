@@ -22,7 +22,7 @@ namespace IzzyBlazor;
 /// </list>
 /// </accessibility>
 [ModeSupport(Notes = "OnClick runs only on interactive pages; Submit, Reset and Href work everywhere; Print needs JavaScript.")]
-public class Button : ButtonBase
+public class Button : ButtonBase, IDisposable
 {
     /// <summary>
     /// Makes it a link to this URL (an <c>a</c>) instead of a button. A link can't take
@@ -99,6 +99,74 @@ public class Button : ButtonBase
     /// <summary>Runs on click on interactive pages (a link still navigates). Has no effect on static pages.</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// Below this width it's a floating button at the screen's bottom corner instead, with its
+    /// <see cref="ButtonBase.StartIcon"/> and <see cref="FloatLabel"/>: <c>Breakpoint.Sm</c> on a phone. For a
+    /// page's main action, in a <see cref="PageHeader"/>'s <see cref="PageHeaderActions"/> or, as a
+    /// <see cref="ToolbarButton"/>, in a <see cref="Toolbar"/>. With more than one floating at the same width,
+    /// they share a speed dial, named by the actions' or the toolbar's <c>FloatLabel</c>. Off by default.
+    /// </summary>
+    [Parameter] public Breakpoint? FloatBelow { get; set; }
+
+    /// <summary>
+    /// What it does, as the floating button's accessible name ("New invoice"). Defaults to the button's text;
+    /// needed with <see cref="FloatBelow"/> when that isn't plain text.
+    /// </summary>
+    [Parameter] public string? FloatLabel { get; set; }
+
+    /// <summary>The <see cref="PageHeader"/> whose actions it's in, which draws its floating button.</summary>
+    [CascadingParameter] internal PageFloats? PageFloats { get; set; }
+
+    /// <summary>What it does while it floats (<see cref="FloatBelow"/>), or null.</summary>
+    private protected ToolbarFloat? FloatAction(string owner) => FloatBelow is null ? null
+        : new ToolbarFloat(
+            StartIcon ?? throw new InvalidOperationException($"A {owner} with {nameof(FloatBelow)} needs a {nameof(StartIcon)} for its floating button."),
+            FloatLabel ?? LabelText ?? throw new InvalidOperationException($"A {owner} with {nameof(FloatBelow)} needs a {nameof(FloatLabel)}: the floating button's name."))
+        {
+            Href = Href, Submit = Submit, Name = Name, Value = Value, FormAction = FormAction, Form = Form,
+            Disabled = Disabled || Loading, OnClick = OnClick,
+        };
+
+    // In a PageHeader's actions (a toolbar's item floats through its Toolbar).
+    private bool FloatsInHeader => FloatBelow is not null && PageFloats is not null && this is not IToolbarItem;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (this is IToolbarItem)
+        {
+            return;
+        }
+
+        if (FloatBelow is { } below)
+        {
+            if (PageFloats is null)
+            {
+                throw new InvalidOperationException($"{nameof(FloatBelow)} works on a Button in a PageHeader's PageHeaderActions, or on a ToolbarButton in a Toolbar.");
+            }
+
+            PageFloats.Set(this, below, FloatAction(nameof(Button))!);
+        }
+        else
+        {
+            PageFloats?.Remove(this);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        base.BuildAttributes(classes, styles);
+        // Below that width its floating button stands in for it.
+        if (FloatsInHeader)
+        {
+            classes.Add($"ib-visible-from-{FloatBelow!.Value.Name()}");
+        }
+    }
+
+    void IDisposable.Dispose() => PageFloats?.Remove(this);
 
     /// <summary>
     /// Attributes a derived button adds, such as <see cref="DialogTrigger"/>'s <c>commandfor</c>.

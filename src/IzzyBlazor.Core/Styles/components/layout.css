@@ -130,6 +130,20 @@
     gap: var(--ib-space-2);
   }
 
+  /* Its buttons that float below a width: fixed at the screen's corner, so their box is out of the
+     row, and so is the actions' box while every button in it has left for the corner. */
+  .ib-page-header-floats {
+    position: absolute;
+  }
+
+  @media (width < 640px) {
+    .ib-page-header-actions:not(:has(> :not(.ib-visible-from-sm))) { display: none; }
+  }
+
+  @media (width < 768px) {
+    .ib-page-header-actions:not(:has(> :not(.ib-visible-from-md))) { display: none; }
+  }
+
   /* SectionHeader: a column whose lines keep to a readable width, centered or at the start by
      the ib-align and ib-ta utilities; sizes come in as --ib-sh-title and --ib-sh-text. */
   .ib-section-header {
