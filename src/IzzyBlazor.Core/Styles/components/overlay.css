@@ -771,6 +771,31 @@
     padding-top: var(--ib-space-1);
   }
 
+  /* With a footer bar (a DialogFooter, or a form's actions ending the body), the header is a bar
+     too: a line under it, the title centered in it, the close button at its end, and the body's
+     padding below it, so the title reads as the dialog's heading rather than one more label. Both
+     stay put while a long form scrolls between them. */
+  .ib-dialog:has(.ib-dialog-footer, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) > .ib-dialog-header {
+    align-items: center;
+    min-height: 3.5rem;
+    box-sizing: border-box;
+    padding-block: var(--ib-space-3);
+    border-bottom: 1px solid var(--ib-color-border);
+  }
+
+  .ib-dialog:has(.ib-dialog-footer, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) > .ib-dialog-header > .ib-dialog-title {
+    padding-block: 0;
+  }
+
+  .ib-dialog:has(.ib-dialog-footer, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) > .ib-dialog-header > .ib-dialog-close {
+    margin-block: 0;
+    margin-inline-end: calc(var(--ib-space-2) * -1);
+  }
+
+  .ib-dialog:has(.ib-dialog-footer, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) > .ib-dialog-header + .ib-dialog-body {
+    padding-top: var(--ib-space-6);
+  }
+
   .ib-dialog-body:first-child {
     padding-top: var(--ib-space-6);
   }

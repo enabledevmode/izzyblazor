@@ -26,10 +26,10 @@
               InitialSort="{{InitialSort}}" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="{{LayoutKey}}" ExportExcelHref="{{Route}}/export.xlsx" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
 @*#if (HasEditPolicy) *@
-              NewItem="@(_canEdit ? () => new {{ModelType}}() : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
+              NewItem="@(_canEdit ? () => new {{ModelType}}{{NewItemInit}} : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
               AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
 @*#else *@
-              NewItem="() => new {{ModelType}}()" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
+              NewItem="() => new {{ModelType}}{{NewItemInit}}" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
 @*#endif *@
               NoMatchesText="No {{PluralLower}} match “{0}”" Grow>
         <ToolbarContent>
