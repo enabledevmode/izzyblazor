@@ -30,15 +30,15 @@
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
               EditSaveText="@(x => x is null ? "Create customer" : "Save changes")"
               NewItem="@(_canEdit ? () => new Customer { Joined = DateOnly.FromDateTime(DateTime.Today) } : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
-              AddText="Add customer" OnSave="SaveAsync" OnDelete="DeleteAsync"
+              AddText="New customer" OnSave="SaveAsync" OnDelete="DeleteAsync"
               NoMatchesText="No customers match “{0}”" Grow>
         <EmptyContent>
-            @* Add customer is in the page header above it; on a phone, where Add floats once there are
+            @* New customer is in the page header above it; on a phone, where it floats once there are
                customers, the empty state holds the button. *@
             <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
                 @if (_canEdit)
                 {
-                    <Button Href="customers?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add customer</Button>
+                    <Button Href="customers?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">New customer</Button>
                 }
             </EmptyState>
         </EmptyContent>

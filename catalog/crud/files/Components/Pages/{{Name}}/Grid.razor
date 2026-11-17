@@ -43,22 +43,22 @@
               EditSaveText="@(x => x is null ? "Create {{SingularLower}}" : "Save changes")"
 @*#if (HasEditPolicy) *@
               NewItem="@(_canEdit ? () => new {{ModelType}}{{NewItemInit}} : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
-              AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
+              AddText="New {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
 @*#else *@
-              NewItem="() => new {{ModelType}}{{NewItemInit}}" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
+              NewItem="() => new {{ModelType}}{{NewItemInit}}" AddText="New {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
 @*#endif *@
               NoMatchesText="No {{PluralLower}} match “{0}”" Grow>
         <EmptyContent>
-            @* Add {{SingularLower}} is in the page header above it; on a phone, where Add floats once there are
+            @* New {{SingularLower}} is in the page header above it; on a phone, where it floats once there are
                {{PluralLower}}, the empty state holds the button. *@
             <EmptyState Icon="Lucide.Inbox" Title="No {{PluralLower}} yet" Description="Add your first {{SingularLower}} to see them here.">
 @*#if (HasEditPolicy) *@
                 @if (_canEdit)
                 {
-                    <Button Href="{{Route}}?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add {{SingularLower}}</Button>
+                    <Button Href="{{Route}}?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">New {{SingularLower}}</Button>
                 }
 @*#else *@
-                <Button Href="{{Route}}?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add {{SingularLower}}</Button>
+                <Button Href="{{Route}}?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">New {{SingularLower}}</Button>
 @*#endif *@
             </EmptyState>
         </EmptyContent>
