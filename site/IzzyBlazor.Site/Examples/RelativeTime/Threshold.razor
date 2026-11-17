@@ -3,7 +3,7 @@
     @foreach (var invoice in _invoices)
     {
         <DescriptionItem Term="@invoice.Number">
-            Due <RelativeTime Value="invoice.Due" Threshold="TimeSpan.FromDays(7)" />
+            Due <RelativeTime Value="invoice.Due" Threshold="TimeSpan.FromDays(7)" Capitalize="false" />
         </DescriptionItem>
     }
 </DescriptionList>

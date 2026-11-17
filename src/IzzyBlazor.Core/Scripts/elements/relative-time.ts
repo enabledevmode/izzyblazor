@@ -45,7 +45,9 @@ function update(element: HTMLTimeElement, now: Date): number {
   const threshold = raw ? Number(raw) : null;
   const locale = localeOf(element);
   try {
-    const text = relativeText(value, now, threshold, locale);
+    const words = relativeText(value, now, threshold, locale);
+    // Standing alone (data-ib-capitalize), it starts with a capital: "Yesterday".
+    const text = element.hasAttribute("data-ib-capitalize") ? words.charAt(0).toLocaleUpperCase(locale) + words.slice(1) : words;
     if (element.textContent !== text) element.textContent = text;
     const title = new Intl.DateTimeFormat(locale, { dateStyle: "full", timeStyle: "short" }).format(value);
     if (element.title !== title) element.title = title;

@@ -95,7 +95,7 @@
                     @if (context.Status == UserStatus.Locked && context.LockedUntil is { } until)
                     {
                         <DescriptionItem Term="Locked">
-                            @context.FailedAttempts failed sign-ins, until <RelativeTime Value="until" />
+                            @context.FailedAttempts failed sign-ins, until <RelativeTime Value="until" Capitalize="false" />
                         </DescriptionItem>
                     }
                 </DescriptionList>
