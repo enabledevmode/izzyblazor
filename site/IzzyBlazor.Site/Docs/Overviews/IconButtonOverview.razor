@@ -21,6 +21,10 @@
 <ExampleViewer Example="icon-button-row-actions" />
 <TextBlock>Put the row in the label too ("Delete budget-2026.xlsx"), so screen readers and the tooltip name which one. <Code>OnClick</Code> runs only on interactive pages. On static pages, the form post is what happens, as with Button.</TextBlock>
 
+<Heading Level="2">An avatar in place of the icon</Heading>
+<TextBlock>An account menu opens from the person's picture. Put an <Code>Avatar</Code> in the button instead of setting <Code>Icon</Code>: the button stays square and goes round around it, and <Code>Label</Code> names it, so make the avatar <Code>Decorative</Code>.</TextBlock>
+<ExampleViewer Example="icon-button-account-menu" />
+
 <Heading Level="2">A tooltip on focus</Heading>
 <TextBlock>The label's tooltip shows on hover. For a hint that also shows on keyboard focus, or for more than the label, such as a shortcut, wrap the button in a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
 <Code Block Language="razor">@WithTooltip</Code>
