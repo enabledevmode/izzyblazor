@@ -269,6 +269,8 @@ static partial class Crud
             ["HasFormat"] = Format(f.Kind).Length > 0,
             ["FormatAttr"] = Format(f.Kind) is { Length: > 0 } format ? $" Format=\"{format}\"" : "",
             ["EditableAttr"] = f.ReadOnly ? " Editable=\"false\"" : "",
+            // A list narrows by its choices: a filter in the column's header (the text columns have the search).
+            ["FilterAttr"] = f.Kind is FieldKind.Enum or FieldKind.Bool ? " Filterable" : "",
             ["WidthAttr"] = Width(f.Kind, f.ShortLabel) is { } rem ? $" Width=\"Length.Rem({rem.ToString(CultureInfo.InvariantCulture)})\"" : "",
             ["Type"] = f.Type,
             ["EnumType"] = f.Kind == FieldKind.Enum ? typeOf(f) : "",

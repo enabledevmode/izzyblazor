@@ -23,8 +23,6 @@
               OnDelete="DeleteAsync" ItemDeletable="u => u.Id != _me" NoMatchesText="No users match “{0}”" Grow>
         <ToolbarContent>
             <DataGridSearch />
-            <DataGridFilter Column="role" />
-            <DataGridFilter Column="status" />
             @* On a phone, Invite floats at the bottom corner, under the thumb. *@
             <DataGridAdd FloatBelow="Breakpoint.Sm" />
         </ToolbarContent>
