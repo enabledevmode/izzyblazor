@@ -20,7 +20,7 @@
     <DataGrid TItem="Customer" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
               InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="customers" ExportExcelHref="customers/export.xlsx" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
-              NewItem="@(_canEdit ? () => new Customer() : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
+              NewItem="@(_canEdit ? () => new Customer { Joined = DateOnly.FromDateTime(DateTime.Today) } : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
               AddText="Add customer" OnSave="SaveAsync" OnDelete="DeleteAsync"
               NoMatchesText="No customers match “{0}”" Grow>
         <ToolbarContent>
@@ -64,6 +64,27 @@
             <PropertyColumn Property="x => x.LifetimeValue" Title="Lifetime value" Format="C" Width="Length.Rem(10.5)" Editable="false" Sortable />
             <PropertyColumn Property="x => x.Joined" Title="Joined" Format="MMM d, yyyy" Width="Length.Rem(8.5)" Sortable />
         </Columns>
+        @* The dialog in the design's sections, so the address reads as one block. *@
+        <EditDialog>
+            <Fieldset Label="Contact" Description="Who we’re selling to, and how to reach them." Columns="2">
+                <EditField Key="firstname" />
+                <EditField Key="lastname" />
+                <EditField Key="email" />
+                <EditField Key="phone" />
+                <EditField Key="company" />
+            </Fieldset>
+            <Fieldset Label="Address" Description="Used on invoices." Columns="2">
+                <EditField Key="streetaddress" ColSpan="GridSpan.Full" />
+                <EditField Key="city" />
+                <EditField Key="postalcode" />
+                <EditField Key="country" />
+            </Fieldset>
+            <Fieldset Label="Subscription" Description="What they pay for, and where they are with you." Columns="2">
+                <EditField Key="status" />
+                <EditField Key="plan" />
+                <EditField Key="joined" />
+            </Fieldset>
+        </EditDialog>
     </DataGrid>
 </Stack>
 

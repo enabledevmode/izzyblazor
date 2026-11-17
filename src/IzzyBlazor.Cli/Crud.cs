@@ -177,6 +177,8 @@ static partial class Crud
         var tokens = new Dictionary<string, string>(project.Tokens)
         {
             ["ModelType"] = modelType,
+            // A new record's dates start at today, not the type's empty 01/01/0001.
+            ["NewItemInit"] = NewItemInit(shown),
             ["Singular"] = singular,
             ["SingularLower"] = Lower(singular),
             ["Article"] = Article(Lower(singular)),
@@ -249,6 +251,19 @@ static partial class Crud
     static string Alias(string name, string suffix) => Taken.Contains(name) || Setup.ComponentNames.Contains(name) ? name + suffix : name;
 
     static string Global(string ns, string name) => "global::" + (ns.Length > 0 ? ns + "." : "") + name;
+
+    // " { Joined = DateOnly.FromDateTime(DateTime.Today) }" for the editable dates that can't be empty; "()" with none.
+    static string NewItemInit(IEnumerable<ModelField> fields)
+    {
+        var dates = fields.Where(f => !f.ReadOnly && !f.Nullable && f.Kind is FieldKind.Date or FieldKind.DateTime)
+            .Select(f => $"{f.Name} = {(f.Type.TrimEnd('?') switch
+            {
+                "DateOnly" => "DateOnly.FromDateTime(DateTime.Today)",
+                "DateTimeOffset" => f.Kind == FieldKind.Date ? "DateTimeOffset.Now.Date" : "DateTimeOffset.Now",
+                _ => f.Kind == FieldKind.Date ? "DateTime.Today" : "DateTime.Now",
+            })}").ToList();
+        return dates.Count == 0 ? "()" : $" {{ {string.Join(", ", dates)} }}";
+    }
 
     static List<IReadOnlyDictionary<string, object>> Records(IEnumerable<ModelField> fields, ModelField? status, IReadOnlyCollection<ModelField> columns, Func<ModelField, string> typeOf) =>
         [.. fields.Select(f => (IReadOnlyDictionary<string, object>)new Dictionary<string, object>
