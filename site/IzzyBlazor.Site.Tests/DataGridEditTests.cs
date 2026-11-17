@@ -68,7 +68,7 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         var dialog = page.Locator($"{Grid} dialog[open]");
         await dialog.GetByLabel("Customer").FillAsync("Brand New");
         await dialog.GetByLabel("Status").SelectOptionAsync("Pending");
-        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Add", Exact = true }).ClickAsync();
         await Assertions.Expect(dialog).ToHaveCountAsync(0);
         await Assertions.Expect(rows.First).ToContainTextAsync("Brand New");
 
