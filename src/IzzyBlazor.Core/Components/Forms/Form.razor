@@ -274,7 +274,8 @@ else
 
         // On a static page a field that throws is caught here, inside the form, so the form and its named
         // submit event stay. Caught by a guard outside the form, the error fails the whole request: the
-        // renderer still processes the named event of the form it just removed (an ASP.NET Core bug).
+        // renderer still processes the named event of the form it just removed (an ASP.NET Core bug:
+        // https://github.com/dotnet/aspnetcore/issues/70640).
         if (RendererInfo.IsInteractive)
         {
             builder.AddContent(7, Fields);
