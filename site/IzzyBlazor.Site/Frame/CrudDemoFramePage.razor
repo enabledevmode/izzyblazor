@@ -19,7 +19,8 @@
         <DataGrid id="crud-demo-customers" TItem="DemoCustomer" Items="_customers" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
                   InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="crud-demo-customers" ExportExcelHref="frame/cli/crud/export.xlsx" ToolbarLabels
                   EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
-                  NewItem="() => new DemoCustomer()" AddText="Add customer" OnSave="Save" OnDelete="Delete"
+                  EditSaveText="@(x => x is null ? "Create customer" : "Save changes")"
+                  NewItem="() => new DemoCustomer { Joined = DateOnly.FromDateTime(DateTime.Today) }" AddText="Add customer" OnSave="Save" OnDelete="Delete"
                   NoMatchesText="No customers match “{0}”" Grow>
             <EmptyContent>
                 <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
