@@ -41,6 +41,21 @@ public class OutsidePartsTests : BunitContext
     }
 
     [Fact]
+    public void Add_in_a_page_header_is_the_pages_main_button_and_floats_on_a_phone()
+    {
+        var cut = Render<PartsProbe>(p => p.Add(c => c.Kind, "grid-add-in-header"));
+
+        // The page's button size from Sm up, and the floating button below it, both opening the grid's add dialog.
+        var button = cut.Find(".ib-page-header-actions .ib-visible-from-sm a");
+        Assert.Equal("Add customer", button.TextContent.Trim());
+        Assert.DoesNotContain("ib-btn-sm", button.ClassName);
+        var floating = cut.Find(".ib-page-header-actions a.ib-hidden-from-sm");
+        Assert.Equal(button.GetAttribute("href"), floating.GetAttribute("href"));
+        Assert.Contains("add=1", button.GetAttribute("href"));
+        Assert.DoesNotContain("Add customer", cut.Find("ib-table").TextContent);
+    }
+
+    [Fact]
     public void A_grid_replaced_by_a_new_key_takes_over_the_search_in_its_tiles_header()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));

@@ -33,6 +33,18 @@
         </Tile>
         </TileLayout>
         break;
+    case "grid-add-in-header":
+        <PageHeader Title="Customers">
+            <PageHeaderActions>
+                <DataGridAdd For="customers" FloatBelow="Breakpoint.Sm" />
+            </PageHeaderActions>
+        </PageHeader>
+        <DataGrid id="customers" TItem="Customer" Items="Customers" ItemKey="c => c.Name" ToolbarLabels EditMode="DataGridEditMode.Dialog" NewItem="() => new Customer()" AddText="Add customer" OnSave="(DataGridSave<Customer> _) => { }">
+            <Columns>
+                <PropertyColumn Property="r => r.Name" />
+            </Columns>
+        </DataGrid>
+        break;
     case "scheduler-for":
         <div class="page-bar">
             <SchedulerToday For="bookings" />
@@ -49,6 +61,13 @@
     [Parameter] public int Version { get; set; }
 
     public sealed record Row(string Name, DateTime Start);
+
+    public sealed class Customer
+    {
+        public string Name { get; set; } = "";
+    }
+
+    private static readonly Customer[] Customers = [new() { Name = "Ada" }];
 
     private static readonly Row[] Rows = [new("Ada", new DateTime(2026, 11, 9, 9, 0, 0)), new("Grace", new DateTime(2026, 11, 10, 9, 0, 0))];
 }

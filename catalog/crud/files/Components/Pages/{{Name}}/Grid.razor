@@ -20,9 +20,24 @@
    post, so it works with no circuit. Columns are kept per person in a cookie; Export downloads what's shown,
    from {{Model}}Export.cs. *@
 <Stack Gap="new() { Base = 6, Md = 8 }">
-    <PageHeader Title="{{Plural}}" />
+    <PageHeader Title="{{Plural}}">
+        @* The page's main action, at the header's end; it opens the grid's add dialog. On a phone it
+           floats at the bottom corner, under the thumb. *@
+@*#if (HasEditPolicy) *@
+        @if (_canEdit)
+        {
+            <PageHeaderActions>
+                <DataGridAdd For="{{LayoutKey}}" FloatBelow="Breakpoint.Sm" />
+            </PageHeaderActions>
+        }
+@*#else *@
+        <PageHeaderActions>
+            <DataGridAdd For="{{LayoutKey}}" FloatBelow="Breakpoint.Sm" />
+        </PageHeaderActions>
+@*#endif *@
+    </PageHeader>
 
-    <DataGrid TItem="{{ModelType}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{{RowName}}")" Caption="{{Plural}}" PageSize="10"
+    <DataGrid id="{{LayoutKey}}" TItem="{{ModelType}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{{RowName}}")" Caption="{{Plural}}" PageSize="10"
               InitialSort="{{InitialSort}}" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="{{LayoutKey}}" ExportExcelHref="{{Route}}/export.xlsx" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
               EditSaveText="@(x => x is null ? "Create {{SingularLower}}" : "Save changes")"
@@ -33,20 +48,8 @@
               NewItem="() => new {{ModelType}}{{NewItemInit}}" AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"
 @*#endif *@
               NoMatchesText="No {{PluralLower}} match “{0}”" Grow>
-        <ToolbarContent>
-            <DataGridExport />
-            @* On a phone, Add floats at the bottom corner, under the thumb. *@
-@*#if (HasEditPolicy) *@
-            @if (_canEdit)
-            {
-                <DataGridAdd FloatBelow="Breakpoint.Sm" />
-            }
-@*#else *@
-            <DataGridAdd FloatBelow="Breakpoint.Sm" />
-@*#endif *@
-        </ToolbarContent>
         <EmptyContent>
-            @* Add {{SingularLower}} is in the toolbar above it; on a phone, where Add floats once there are
+            @* Add {{SingularLower}} is in the page header above it; on a phone, where Add floats once there are
                {{PluralLower}}, the empty state holds the button. *@
             <EmptyState Icon="Lucide.Inbox" Title="No {{PluralLower}} yet" Description="Add your first {{SingularLower}} to see them here.">
 @*#if (HasEditPolicy) *@
