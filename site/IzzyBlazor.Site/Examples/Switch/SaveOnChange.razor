@@ -1,12 +1,9 @@
 <Form Model="Model" FormName="switch-save-on-change" OnValidSubmit="Save" MaxWidth="32.Rem" Grow>
-    <Switch @bind-Value="Model!.Maintenance" @bind-Value:after="Save" ControlPosition="ControlPosition.End"
+    <Switch @bind-Value="Model!.Maintenance" SubmitOnChange ControlPosition="ControlPosition.End"
             Label="Maintenance mode" Hint="Visitors see a maintenance page until you turn it off." />
     <Row Gap="3" Align="Align.Center" Wrap>
-        @* An interactive page saves on each change, so it needs no button. *@
-        @if (!Interactive)
-        {
-            <Button Submit Size="ControlSize.Sm">Save</Button>
-        }
+        @* With JavaScript off, nothing posts the form as the switch changes, so this does. *@
+        <noscript><Button Submit Size="ControlSize.Sm">Save</Button></noscript>
         @if (_saved is not null)
         {
             <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
@@ -20,12 +17,9 @@
 
     private string? _saved;
 
-    // True from the prerender of an interactive page on, so the button never shows and goes.
-    private bool Interactive => RendererInfo.IsInteractive || AssignedRenderMode is not null;
-
     protected override void OnInitialized() => Model ??= new();
 
-    // Runs after each change on an interactive page, and on a static page's post.
+    // Runs each time the switch changes, on static and interactive pages.
     private void Save() => _saved = Model!.Maintenance ? "Last saved: in maintenance mode." : "Last saved: live.";
 
     public sealed class SiteStatus

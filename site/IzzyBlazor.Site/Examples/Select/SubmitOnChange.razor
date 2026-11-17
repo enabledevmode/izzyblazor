@@ -1,0 +1,37 @@
+<Form Model="Model" FormName="select-submit-on-change" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <Select @bind-Value="Model!.Stage" SubmitOnChange />
+    <Row Gap="3" Align="Align.Center" Wrap>
+        @* With JavaScript off, nothing posts the form as the choice changes, so this does. *@
+        <noscript><Button Submit Size="ControlSize.Sm">Save</Button></noscript>
+        @if (_saved is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "select-submit-on-change")]
+    private Deal? Model { get; set; }
+
+    private string? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // Runs each time the stage changes, on static and interactive pages.
+    private void Save() => _saved = $"Last saved: {Model!.Stage}.";
+
+    public sealed class Deal
+    {
+        public Stage Stage { get; set; } = Stage.Qualified;
+    }
+
+    public enum Stage
+    {
+        Lead,
+        Qualified,
+        Proposal,
+        Negotiation,
+        Won,
+    }
+}

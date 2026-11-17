@@ -85,6 +85,14 @@ const messageFor: [keyof ValidityState, string][] = [
  * A message set here is cleared on the next edit anywhere, so the browser checks afresh on the
  * next submit. A custom error set by other code (FileUpload's file checks) is left alone.
  */
+/** SubmitOnChange (data-ib-submit on a checkbox or select) posts the control's form as it changes. */
+export function installSubmitOnChange(): void {
+  document.addEventListener("change", (event) => {
+    const target = event.target;
+    if ((target instanceof HTMLInputElement || target instanceof HTMLSelectElement) && target.hasAttribute("data-ib-submit")) target.form?.requestSubmit();
+  });
+}
+
 export function installValidityMessages(): void {
   // The messages this set, by field. A field's custom error is only ours while its message is
   // still the one we set: other code (FileUpload's file checks) may have replaced it since.
