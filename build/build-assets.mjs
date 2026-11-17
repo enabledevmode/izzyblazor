@@ -484,8 +484,8 @@ const builds = [
 
 // Lucide -> one typed C# class, Lucide. Each icon is an expression-bodied property, so nothing is
 // allocated for icons an app never uses, and a trimmed WebAssembly app keeps only the ones it
-// references. Lucide draws a 2-unit stroke; IzzyBlazor draws it at 1.5 (see IconData), which gives
-// 1, 1.25 and 1.5px lines at the 16, 20 and 24px control sizes.
+// references. Icons are marked 1.5, the default weight, which icon.css draws at --ib-icon-stroke
+// (2, Lucide's own, unless an app sets it); an icon given its own StrokeWidth keeps that.
 function generateIcons() {
   const pkgDir = join(root, "node_modules", "lucide-static");
   if (!existsSync(join(pkgDir, "package.json"))) {
@@ -545,7 +545,7 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// The Lucide icon set (${seen.size} icons, ISC License), bundled with IzzyBlazor and drawn with a
-/// 1.5-unit stroke. Browse them at https://lucide.dev/icons.
+/// 2-unit stroke (--ib-icon-stroke changes it). Browse them at https://lucide.dev/icons.
 /// </summary>
 /// <example><code>&lt;Icon Name="Lucide.House" /&gt;</code></example>
 public static class Lucide
