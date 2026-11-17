@@ -10,17 +10,17 @@
 
 <ThemeScope Brand="blue" Gray="neutral" Class="@(Scrollbar == "none" ? "frame frame-page frame-block frame-no-scrollbar" : "frame frame-page frame-block")">
     <Stack Gap="new() { Base = 6, Md = 8 }">
-        <PageHeader Title="Customers" />
+        <PageHeader Title="Customers">
+            <PageHeaderActions>
+                <DataGridAdd For="crud-demo-customers" FloatBelow="Breakpoint.Sm" />
+            </PageHeaderActions>
+        </PageHeader>
 
-        <DataGrid TItem="DemoCustomer" Items="_customers" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
+        <DataGrid id="crud-demo-customers" TItem="DemoCustomer" Items="_customers" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
                   InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="crud-demo-customers" ExportExcelHref="frame/cli/crud/export.xlsx" ToolbarLabels
                   EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
                   NewItem="() => new DemoCustomer()" AddText="Add customer" OnSave="Save" OnDelete="Delete"
                   NoMatchesText="No customers match “{0}”" Grow>
-            <ToolbarContent>
-                <DataGridExport />
-                <DataGridAdd FloatBelow="Breakpoint.Sm" />
-            </ToolbarContent>
             <EmptyContent>
                 <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
                     <Button Href="frame/cli/crud?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add customer</Button>

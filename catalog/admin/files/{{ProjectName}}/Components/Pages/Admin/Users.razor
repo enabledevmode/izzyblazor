@@ -14,17 +14,20 @@
    a form post that comes back with a toast; Admin/UserAdmin.cs does the work and writes the audit log. *@
 @* A data page: it fills the main area, so the grid scrolls its own rows under its header. *@
 <Stack Gap="new() { Base = 6, Md = 8 }" Grow>
-    <PageHeader Title="Users" Description="People who can sign in to {{ProjectName}}." />
+    <PageHeader Title="Users" Description="People who can sign in to {{ProjectName}}.">
+        @* The page's main action; it opens the grid's invite dialog. On a phone it floats at the bottom corner. *@
+        <PageHeaderActions>
+            <DataGridAdd For="users" FloatBelow="Breakpoint.Sm" />
+        </PageHeaderActions>
+    </PageHeader>
 
-    <DataGrid TItem="UserRow" Items="_users" ItemKey="u => u.Id" RowLabel="u => u.Shown" Caption="Users" PageSize="25"
+    <DataGrid id="users" TItem="UserRow" Items="_users" ItemKey="u => u.Id" RowLabel="u => u.Shown" Caption="Users" PageSize="25"
               Searchable SearchLabel="Name or email" SmallScreen="DataGridSmallScreen.HideColumns" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditDialogTitle="@(u => u is null ? "Invite user" : $"Edit {u.Shown}")" EditSaveText="@(u => u is null ? "Send invite" : "Save changes")"
               NewItem="() => new UserRow()" AddText="Invite user" OnSave="SaveAsync"
               OnDelete="DeleteAsync" ItemDeletable="u => u.Id != _me" NoMatchesText="No users match “{0}”" Grow>
         <ToolbarContent>
             <DataGridSearch />
-            @* On a phone, Invite floats at the bottom corner, under the thumb. *@
-            <DataGridAdd FloatBelow="Breakpoint.Sm" />
         </ToolbarContent>
         <EmptyContent>
             <EmptyState Icon="Lucide.SearchX" Title="No users match" Description="Try another name, role or status.">

@@ -118,6 +118,18 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 
     private protected abstract double? ItemWidth { get; }
 
+    /// <summary>Whether it's in a Tile's or Card's header rather than on the page.</summary>
+    private protected bool InHeader => Host is not null;
+
+    /// <summary>Its buttons' size outside the grid's toolbar.</summary>
+    private protected virtual ControlSize OutsideSize => ControlSize.Sm;
+
+    /// <summary>What it draws outside the grid's toolbar.</summary>
+    private protected virtual RenderFragment OutsideBar => ItemBar;
+
+    /// <summary>Its floating button outside the grid's toolbar, where no toolbar floats it.</summary>
+    private protected virtual RenderFragment? OutsideFloat => null;
+
     /// <summary>What the toolbar reckons for it on the first paint.</summary>
     internal double? EstimatedWidth => Target is null ? null : ItemWidth;
 
@@ -181,8 +193,13 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
         }
         else if (Target is not null && On)
         {
-            // As in the grid's own toolbar: small, neutral, ghost buttons.
-            builder.AddContent(0, OutsideParts.Wrap(Grid.PartsId, "data-ib-grid", ButtonGroup.Defaults(Accent.Neutral, ButtonVariant.Ghost, ControlSize.Sm), ItemBar));
+            // As in the grid's own toolbar: neutral, ghost buttons, small unless the item says otherwise.
+            builder.AddContent(0, OutsideParts.Wrap(Grid.PartsId, "data-ib-grid", ButtonGroup.Defaults(Accent.Neutral, ButtonVariant.Ghost, OutsideSize), OutsideBar));
+            if (OutsideFloat is { } floating)
+            {
+                // Out of the buttons' cascade: a floating button leaves the flow, so it's in no group.
+                builder.AddContent(1, OutsideParts.Wrap(Grid.PartsId, "data-ib-grid", null, floating));
+            }
         }
     }
 
@@ -400,7 +417,8 @@ public sealed class DataGridAdd : DataGridToolbarItem
 
     /// <summary>
     /// Below this width it's a floating button at the screen's bottom corner, under the thumb, instead of
-    /// a toolbar button: <c>Breakpoint.Sm</c> on a phone. Off by default; for a page's one main action.
+    /// a toolbar button: <c>Breakpoint.Sm</c> on a phone. Off by default; for a page's one main action. It
+    /// floats outside the grid too, such as from a <c>PageHeader</c>'s actions with <c>For</c>.
     /// </summary>
     [Parameter] public Breakpoint? FloatBelow { get; set; }
 
@@ -424,6 +442,44 @@ public sealed class DataGridAdd : DataGridToolbarItem
     private protected override ToolbarFloat? ItemFloat => FloatBelow is null ? null : Grid.AddFloat;
 
     private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.AddLabel, startIcon: true, endIcon: false);
+
+    // On the page, such as in a PageHeader's actions, it's the page's main action: the page's button
+    // size. In a Tile's or Card's header, the header's small one.
+    private protected override ControlSize OutsideSize => InHeader ? ControlSize.Sm : ControlSize.Md;
+
+    // With FloatBelow, the floating button the toolbar would draw: below that width the button gives way to
+    // it, or over an empty list, where there's no float, to the empty state's action.
+    private protected override RenderFragment OutsideBar => FloatBelow is not { } below
+        ? ItemBar
+        : builder =>
+        {
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "class", LayoutItemProps.VisibilityClasses(null, below));
+            builder.AddContent(2, ItemBar);
+            builder.CloseElement();
+        };
+
+    private protected override RenderFragment? OutsideFloat => FloatBelow is not { } below || Grid.AddFloat is not { } a
+        ? null
+        : builder =>
+        {
+            builder.OpenComponent<FloatingButton>(0);
+            builder.AddComponentParameter(1, nameof(FloatingButton.Icon), a.Icon);
+            builder.AddComponentParameter(2, nameof(FloatingButton.Label), a.Label);
+            builder.AddComponentParameter(3, nameof(FloatingButton.Href), a.Href);
+            builder.AddComponentParameter(4, nameof(FloatingButton.HiddenFrom), below);
+            if (a.OnClick.HasDelegate)
+            {
+                builder.AddComponentParameter(5, nameof(FloatingButton.OnClick), a.OnClick);
+            }
+
+            if (a.Attributes is not null)
+            {
+                builder.AddMultipleAttributes(6, a.Attributes);
+            }
+
+            builder.CloseComponent();
+        };
 }
 
 /// <summary>

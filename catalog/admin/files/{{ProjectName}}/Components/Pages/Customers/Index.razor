@@ -15,25 +15,25 @@
    from CustomerExport.cs. *@
 @* A data page: it fills the main area, so the grid scrolls its own rows under its header. *@
 <Stack Gap="new() { Base = 6, Md = 8 }" Grow>
-    <PageHeader Title="Customers" />
+    <PageHeader Title="Customers">
+        @* The page's main action; it opens the grid's add dialog. On a phone it floats at the bottom corner. *@
+        @if (_canEdit)
+        {
+            <PageHeaderActions>
+                <DataGridAdd For="customers" FloatBelow="Breakpoint.Sm" />
+            </PageHeaderActions>
+        }
+    </PageHeader>
 
-    <DataGrid TItem="Customer" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
+    <DataGrid id="customers" TItem="Customer" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
               InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="customers" ExportExcelHref="customers/export.xlsx" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
               EditSaveText="@(x => x is null ? "Create customer" : "Save changes")"
               NewItem="@(_canEdit ? () => new Customer { Joined = DateOnly.FromDateTime(DateTime.Today) } : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
               AddText="Add customer" OnSave="SaveAsync" OnDelete="DeleteAsync"
               NoMatchesText="No customers match “{0}”" Grow>
-        <ToolbarContent>
-            <DataGridExport />
-            @* On a phone, Add floats at the bottom corner, under the thumb. *@
-            @if (_canEdit)
-            {
-                <DataGridAdd FloatBelow="Breakpoint.Sm" />
-            }
-        </ToolbarContent>
         <EmptyContent>
-            @* Add customer is in the toolbar above it; on a phone, where Add floats once there are
+            @* Add customer is in the page header above it; on a phone, where Add floats once there are
                customers, the empty state holds the button. *@
             <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
                 @if (_canEdit)
