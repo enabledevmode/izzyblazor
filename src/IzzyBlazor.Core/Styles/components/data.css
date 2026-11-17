@@ -441,6 +441,12 @@
     border-inline-start: 1px solid var(--ib-color-border);
   }
 
+  /* A header with filter or column-menu buttons divides its columns, so each button is plainly its
+     column's (a column's button sits at its end, beside the next column's title). */
+  .ib-table-grid > thead:has(.ib-table-filter-button:not([hidden])) > tr > th + th {
+    border-inline-start: 1px solid var(--ib-color-border);
+  }
+
   /* Borderless, it takes the color of whatever it sits in (a card, a panel). */
   .ib-table-borderless {
     --ib-table-bg: transparent;
@@ -616,11 +622,11 @@
     outline-offset: 0;
   }
 
-  /* A grid's idle header buttons fade until the header is hovered, holds focus or has its menu open,
+  /* A grid's column-menu buttons fade until the header is hovered, holds focus or has its menu open,
      where a pointer can hover: faded, not hidden, so they keep their place, take focus and are named.
-     A filter that's set always shows. */
+     Filter buttons always show, so it's plain which columns filter. */
   @media (hover: hover) and (pointer: fine) {
-    .ib-datagrid th:not(:hover, :focus-within, :has(:popover-open)) > .ib-table-head .ib-table-filter-button:not([data-active]) {
+    .ib-datagrid th:not(:hover, :focus-within, :has(:popover-open)) > .ib-table-head .ib-table-filter-button[data-ib-menu]:not([data-active]) {
       opacity: 0;
     }
   }
