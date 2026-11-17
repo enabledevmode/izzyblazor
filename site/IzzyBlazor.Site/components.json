@@ -1920,7 +1920,8 @@
       "id": "breadcrumb", "icon": "ChevronsRight", "name": "Breadcrumb", "category": "Navigation", "summary": "Shows where a page sits in the site, with a link back up to each level.", "parts": ["BreadcrumbItem"],
       "examples": [
         { "id": "breadcrumb-usage", "title": "Links and the current page", "lead": "A breadcrumb links to the pages above the current one. Give each `BreadcrumbItem` an `Href`, and leave it off the last, which is the current page. `Icon` adds an icon, such as a house for Home." },
-        { "id": "breadcrumb-slash", "title": "Slashes", "lead": "To separate items with slashes in place of chevrons, set `Separator` to `BreadcrumbSeparator.Slash`." }
+        { "id": "breadcrumb-slash", "title": "Slashes", "lead": "To separate items with slashes in place of chevrons, set `Separator` to `BreadcrumbSeparator.Slash`." },
+        { "id": "breadcrumb-text-only", "title": "A level with no page", "lead": "Some levels have no page to link to, such as a section's name. Set `TextOnly`, and the item is plain text that isn't the current page." }
       ]
     },
 

@@ -1,10 +1,21 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
 
-@* One step of a Breadcrumb: a link, or the current page when it has no Href. *@
+@* One step of a Breadcrumb: a link, the current page when it has no Href, or with TextOnly a
+   level that has no page of its own. *@
 
 <li class="@LiClass">
-    @if (Href is not null && !Current)
+    @if (IsText)
+    {
+        <span @attributes="AdditionalAttributes" class="@_class" style="@_style">
+            @if (Icon is { } icon)
+            {
+                <Icon Name="icon" />
+            }
+            @ChildContent
+        </span>
+    }
+    else if (Href is not null && !Current)
     {
         <a @attributes="AdditionalAttributes" href="@Href" class="@_class" style="@_style">
             @if (Icon is { } icon)
@@ -27,11 +38,17 @@
 </li>
 
 @code {
-    /// <summary>Where it links. Leave it out for the current page.</summary>
+    /// <summary>Where it links. Leave it out for the current page, or for a <see cref="TextOnly"/> level.</summary>
     [Parameter] public string? Href { get; set; }
 
     /// <summary>Marks this as the current page even though it has a link (it renders as text).</summary>
     [Parameter] public bool Current { get; set; }
+
+    /// <summary>
+    /// Shows it as plain text that isn't the current page, for a level with no page of its own, such
+    /// as a section's name: "Settings" in Home / Settings / Billing.
+    /// </summary>
+    [Parameter] public bool TextOnly { get; set; }
 
     /// <summary>An icon before the text, such as a house for Home.</summary>
     [Parameter] public IconData? Icon { get; set; }
@@ -42,6 +59,8 @@
     private string? _class;
     private string? _style;
 
+    private bool IsText => TextOnly && !Current;
+
     private string LiClass => VisibilityClasses is { } visibility ? $"ib-breadcrumb-item {visibility}" : "ib-breadcrumb-item";
 
     /// <inheritdoc />
@@ -49,7 +68,7 @@
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
-        classes.Add(Href is not null && !Current ? "ib-breadcrumb-link" : "ib-breadcrumb-current");
+        classes.Add(IsText ? "ib-breadcrumb-text" : Href is not null && !Current ? "ib-breadcrumb-link" : "ib-breadcrumb-current");
 
     /// <inheritdoc />
     protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
