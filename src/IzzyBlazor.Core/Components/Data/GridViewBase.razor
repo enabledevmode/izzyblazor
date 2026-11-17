@@ -373,6 +373,12 @@
     /// <summary>The edit dialog's title, from the row, which is the default for a new one. Defaults to "Edit" and the row's label, or "Add".</summary>
     [Parameter] public Func<TItem?, string>? EditDialogTitle { get; set; }
 
+    /// <summary>
+    /// The edit dialog's submit button, from the row (none for a new one), so it says what happens:
+    /// <c>u => u is null ? "Send invite" : "Save"</c>. Defaults to "Save".
+    /// </summary>
+    [Parameter] public Func<TItem?, string>? EditSaveText { get; set; }
+
     private string? _foundKey;
     private TItem? _found;
     private bool _finding;
@@ -1052,7 +1058,7 @@
                     @EditCancel
                     @if (!missing)
                     {
-                        <Button Submit>@TextDefaults.Save</Button>
+                        <Button Submit>@(EditSaveText is { } saveText ? saveText(_editIsNew ? default : _editItem) : TextDefaults.Save)</Button>
                     }
                 </DialogFooter>
             </Form>

@@ -18,7 +18,7 @@
 
     <DataGrid TItem="UserRow" Items="_users" ItemKey="u => u.Id" RowLabel="u => u.Shown" Caption="Users" PageSize="25"
               Searchable SearchLabel="Name or email" SmallScreen="DataGridSmallScreen.HideColumns" ToolbarLabels
-              EditMode="DataGridEditMode.Dialog" EditDialogTitle="@(u => u is null ? "Invite user" : $"Edit {u.Shown}")"
+              EditMode="DataGridEditMode.Dialog" EditDialogTitle="@(u => u is null ? "Invite user" : $"Edit {u.Shown}")" EditSaveText="@(u => u is null ? "Send invite" : "Save changes")"
               NewItem="() => new UserRow()" AddText="Invite user" OnSave="SaveAsync"
               OnDelete="DeleteAsync" ItemDeletable="u => u.Id != _me" NoMatchesText="No users match “{0}”" Grow>
         <ToolbarContent>
