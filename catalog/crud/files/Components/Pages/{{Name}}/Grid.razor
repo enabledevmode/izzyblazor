@@ -61,11 +61,11 @@
         <Columns>
 @*#each (Field in Fields) *@
 @*#if (Field.InList && Field.IsStatus) *@
-            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.WidthAttr}}{{Field.PriorityAttr}}{{Field.EditableAttr}} Sortable Context="x">
+            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.WidthAttr}}{{Field.PriorityAttr}}{{Field.EditableAttr}} Sortable{{Field.FilterAttr}} Context="x">
                 <Badge Status="Tone(x.{{Field.Name}})" Dot>@Label(x.{{Field.Name}})</Badge>
             </PropertyColumn>
 @*#elif (Field.InList) *@
-            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.FormatAttr}}{{Field.WidthAttr}}{{Field.PriorityAttr}}{{Field.EditableAttr}} Sortable />
+            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.FormatAttr}}{{Field.WidthAttr}}{{Field.PriorityAttr}}{{Field.EditableAttr}} Sortable{{Field.FilterAttr}} />
 @*#else *@
             @* In the edit dialog only; the column picker can show it. *@
             <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.FormatAttr}}{{Field.EditableAttr}} Visible="false" />

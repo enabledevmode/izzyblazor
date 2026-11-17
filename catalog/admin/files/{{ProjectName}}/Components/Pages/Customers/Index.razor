@@ -57,10 +57,10 @@
             <PropertyColumn Property="x => x.PostalCode" Title="Postal code" Visible="false" />
             @* In the edit dialog only; the column picker can show it. *@
             <PropertyColumn Property="x => x.Country" Title="Country" Visible="false" />
-            <PropertyColumn Property="x => x.Status" Title="Status" Width="Length.Rem(7.5)" Priority="1" Sortable Context="x">
+            <PropertyColumn Property="x => x.Status" Title="Status" Width="Length.Rem(7.5)" Priority="1" Sortable Filterable Context="x">
                 <Badge Status="Tone(x.Status)" Dot>@Label(x.Status)</Badge>
             </PropertyColumn>
-            <PropertyColumn Property="x => x.Plan" Title="Plan" Width="Length.Rem(7.5)" Sortable />
+            <PropertyColumn Property="x => x.Plan" Title="Plan" Width="Length.Rem(7.5)" Sortable Filterable />
             <PropertyColumn Property="x => x.LifetimeValue" Title="Lifetime value" Format="C" Width="Length.Rem(10.5)" Editable="false" Sortable />
             <PropertyColumn Property="x => x.Joined" Title="Joined" Format="MMM d, yyyy" Width="Length.Rem(8.5)" Sortable />
         </Columns>
