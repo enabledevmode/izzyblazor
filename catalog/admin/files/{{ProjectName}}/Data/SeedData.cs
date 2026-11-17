@@ -95,6 +95,13 @@ public static class SeedData
             "Aiko", "Liam", "Isabel", "Omar", "Freya", "Ravi", "Maya", "Tomás", "Leila", "Ethan", "Nadia", "Felix"];
         string[] last = ["Okafor", "Moreau", "Raman", "Becker", "Lindqvist", "García", "Kim", "Novak", "Dubois", "Mensah", "Rossi", "Fischer",
             "Tanaka", "O'Brien", "Santos", "Haddad", "Jensen", "Patel", "Chen", "Silva", "Nasser", "Walsh", "Petrova", "Wagner"];
+        // Their companies and where invoices go (not from random, so the rest of the sample data stays as it was):
+        // most at a company, some on their own.
+        string[] companies = ["Northwind Studio", "Bluebird Labs", "Harbor & Pine", "Lumen Analytics", "Copperline Design", "Fieldnote Co.",
+            "Brightwater Health", "Atlas Freight", "Kestrel Media", "Oakridge Partners", "Tidewell Foods", "Summit Learning"];
+        (string Street, string City, string Postal)[] places = [("220 Harbor Street", "San Francisco", "94107"), ("41 Elm Avenue", "Portland", "97205"),
+            ("1800 Lake Shore Drive", "Chicago", "60601"), ("75 Congress Street", "Austin", "78701"), ("9 Beacon Way", "Boston", "02108"),
+            ("310 Pine Street", "Seattle", "98101"), ("58 Canal Street", "New Orleans", "70130"), ("1200 Peachtree Street", "Atlanta", "30309")];
         var customers = new List<Customer>();
         for (var i = 0; i < 48; i++)
         {
@@ -105,6 +112,10 @@ public static class SeedData
             {
                 FirstName = f, LastName = l,
                 Email = $"{Plain(f)}.{Plain(l)}@{domain}",
+                Phone = $"+1 555 01{i:00}",
+                Company = i % 5 == 4 ? null : companies[i % companies.Length],
+                StreetAddress = places[i % places.Length].Street, City = places[i % places.Length].City,
+                PostalCode = places[i % places.Length].Postal, Country = "United States",
                 Status = i < 6 ? CustomerStatus.Trial : i % 8 == 3 ? CustomerStatus.Churned : CustomerStatus.Active,
                 Plan = (CustomerPlan)(random.Next(10) switch { < 4 => 0, < 8 => 1, _ => 2 }),
                 Joined = joined,
@@ -160,7 +171,7 @@ public static class SeedData
                 : (InvoiceStatus.Sent, issued, null);
             (invoice.Status, invoice.Sent, invoice.Paid) = state;
             if (invoice.IsOverdue(today) && invoice.Due.AddDays(7) <= today) invoice.LastReminder = invoice.Due.AddDays(7);
-            if (invoice.Status == InvoiceStatus.Paid) customer.LifetimeValue += invoice.Total;
+            if (invoice.Status == InvoiceStatus.Paid && invoice.Currency == Billing.Company.Currency) customer.LifetimeValue += invoice.Total;
             invoices.Add(invoice);
         }
         db.Invoices.AddRange(invoices);

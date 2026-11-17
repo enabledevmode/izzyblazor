@@ -116,7 +116,13 @@ else
                     <Grid Template='new() { Base = "minmax(0, 1fr)", Sm = "repeat(2, minmax(0, 1fr))" }' Gap="new() { Base = 4, Sm = 6 }" Align="Align.Start">
                         <DescriptionList Orientation="Orientation.Vertical" Size="ControlSize.Sm">
                             <DescriptionItem Term="Bill to">
-                                @InvoiceText.CustomerName(invoice)<br />@invoice.Customer?.Email
+                                @if (invoice.Customer is { } customer)
+                                {
+                                    @foreach (var line in InvoiceText.BillToLines(customer))
+                                    {
+                                        @line<br />
+                                    }
+                                }
                             </DescriptionItem>
                         </DescriptionList>
                         <DescriptionList Orientation="Orientation.Vertical" Size="ControlSize.Sm">
@@ -134,22 +140,22 @@ else
                             <PropertyColumn Property="l => l.Description" Context="l">
                                 @l.Description
                                 @* On a phone Qty and Unit price are hidden: the sum goes under the description. *@
-                                <TextBlock Size="TextSize.Sm" Color="Color.Muted" HiddenFrom="Breakpoint.Sm">@l.Quantity × @InvoiceText.Money(l.UnitPrice)</TextBlock>
+                                <TextBlock Size="TextSize.Sm" Color="Color.Muted" HiddenFrom="Breakpoint.Sm">@l.Quantity × @InvoiceText.Money(l.UnitPrice, invoice.Currency)</TextBlock>
                             </PropertyColumn>
                             <PropertyColumn Property="l => l.Quantity" Title="Qty" Align="CellAlign.End" Width="Length.Rem(4)" Class="invoice-wide" />
-                            <PropertyColumn Property="l => l.UnitPrice" Title="Unit price" Format="C" Align="CellAlign.End" Width="Length.Rem(7)" Class="invoice-wide" />
-                            <TemplateColumn Title="Amount" Align="CellAlign.End" Width="Length.Rem(7)" Context="l">@InvoiceText.Money(l.Amount)</TemplateColumn>
+                            <TemplateColumn Title="Unit price" Align="CellAlign.End" Width="Length.Rem(7)" Class="invoice-wide" Context="l">@InvoiceText.Money(l.UnitPrice, invoice.Currency)</TemplateColumn>
+                            <TemplateColumn Title="Amount" Align="CellAlign.End" Width="Length.Rem(7)" Context="l">@InvoiceText.Money(l.Amount, invoice.Currency)</TemplateColumn>
                         </Columns>
                     </Table>
 
                     <DescriptionList Size="ControlSize.Sm" Class="invoice-totals">
-                        <DescriptionItem Term="Subtotal">@InvoiceText.Money(invoice.Subtotal)</DescriptionItem>
-                        <DescriptionItem Term="@($"Tax ({(invoice.TaxRate * 100).ToString("0.##", CultureInfo.CurrentCulture)}%)")">@InvoiceText.Money(invoice.Tax)</DescriptionItem>
-                        <DescriptionItem Term="Total" Class="invoice-total">@InvoiceText.Money(invoice.Total)</DescriptionItem>
+                        <DescriptionItem Term="Subtotal">@InvoiceText.Money(invoice.Subtotal, invoice.Currency)</DescriptionItem>
+                        <DescriptionItem Term="@($"Tax ({(invoice.TaxRate * 100).ToString("0.##", CultureInfo.CurrentCulture)}%)")">@InvoiceText.Money(invoice.Tax, invoice.Currency)</DescriptionItem>
+                        <DescriptionItem Term="Total" Class="invoice-total">@InvoiceText.Money(invoice.Total, invoice.Currency)</DescriptionItem>
                         @if (invoice.Paid is { } paid)
                         {
-                            <DescriptionItem Term="@($"Paid {InvoiceText.Short(paid)}")" Class="invoice-paid">−@InvoiceText.Money(invoice.Total)</DescriptionItem>
-                            <DescriptionItem Term="Amount due" Class="invoice-total">@InvoiceText.Money(0)</DescriptionItem>
+                            <DescriptionItem Term="@($"Paid {InvoiceText.Short(paid)}")" Class="invoice-paid">−@InvoiceText.Money(invoice.Total, invoice.Currency)</DescriptionItem>
+                            <DescriptionItem Term="Amount due" Class="invoice-total">@InvoiceText.Money(0, invoice.Currency)</DescriptionItem>
                         }
                     </DescriptionList>
 
@@ -164,7 +170,7 @@ else
             <Stack Gap="new() { Base = 4, Lg = 6 }" LayoutOrder="new() { Base = -1, Lg = 0 }" Class="invoice-screen">
                 <Card Title="@(invoice.Status == InvoiceStatus.Paid ? "Paid" : "Amount due")" TitleLevel="2">
                     <Stack Gap="3">
-                        <TextBlock Size="TextSize.Xl3" Weight="FontWeight.Semibold" TabularNums Family="FontFamily.Heading">@InvoiceText.Money(invoice.Status == InvoiceStatus.Void ? 0 : invoice.Total)</TextBlock>
+                        <TextBlock Size="TextSize.Xl3" Weight="FontWeight.Semibold" TabularNums Family="FontFamily.Heading">@InvoiceText.Money(invoice.Status == InvoiceStatus.Void ? 0 : invoice.Total, invoice.Currency)</TextBlock>
                         <DescriptionList Size="ControlSize.Sm">
                             @if (invoice.Paid is { } paidOn)
                             {
@@ -338,7 +344,7 @@ else
         InvoiceState.Overdue => $"Was due {InvoiceText.Date(invoice.Due)}",
         InvoiceState.Void => "Void",
         _ => $"Due {InvoiceText.Date(invoice.Due)}",
-    } + $" · {InvoiceText.Money(invoice.Total)}";
+    } + $" · {InvoiceText.Money(invoice.Total, invoice.Currency)}";
 
     // What an event did to the invoice, after the person's name.
     private static string Verb(AuditEvent e, Invoice invoice)

@@ -16,6 +16,10 @@ public class Invoice : IAudited
 
     public int CustomerId { get; set; }
     public Customer? Customer { get; set; }
+
+    /// <summary>The ISO code of the currency its amounts are in, such as USD (Billing/Currencies.cs).</summary>
+    [Required, StringLength(3)] public string Currency { get; set; } = Billing.Company.Currency;
+
     public InvoiceStatus Status { get; set; }
     public DateOnly Issued { get; set; }
     public DateOnly Due { get; set; }

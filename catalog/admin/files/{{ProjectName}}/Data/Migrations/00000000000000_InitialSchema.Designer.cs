@@ -156,6 +156,18 @@ namespace {{RootNamespace}}.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(60)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(254)
@@ -177,11 +189,23 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Property<decimal>("LifetimeValue")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Phone")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Plan")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("StreetAddress")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -196,6 +220,11 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("INTEGER");

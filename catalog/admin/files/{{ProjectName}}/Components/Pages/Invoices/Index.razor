@@ -66,7 +66,7 @@
                     <PropertyColumn Property="i => i.Status" Priority="2" Context="i">
                         @{ var state = InvoiceText.State(i, _today); }
                         <Badge Status="InvoiceText.Tone(state)" Dot>@state</Badge>
-                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" TabularNums HiddenFrom="Breakpoint.Sm">@InvoiceText.Money(i.Total)</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" TabularNums HiddenFrom="Breakpoint.Sm">@InvoiceText.Money(i.Total, i.Currency)</TextBlock>
                     </PropertyColumn>
                     <PropertyColumn Property="i => i.Issued" Sortable Context="i">
                         <TextBlock Color="Color.Muted">@(i.Status == InvoiceStatus.Draft ? "—" : InvoiceText.Date(i.Issued))</TextBlock>
@@ -77,7 +77,7 @@
                         <TextBlock Color="@(late ? Color.DangerText : Color.Muted)" Weight="@(late ? FontWeight.Medium : FontWeight.Normal)">@(i.Status == InvoiceStatus.Draft ? "—" : InvoiceText.Date(i.Due))</TextBlock>
                     </PropertyColumn>
                     <TemplateColumn Title="Total" Align="CellAlign.End" Context="i">
-                        <TextBlock Weight="FontWeight.Medium" TabularNums>@InvoiceText.Money(i.Total)</TextBlock>
+                        <TextBlock Weight="FontWeight.Medium" TabularNums>@InvoiceText.Money(i.Total, i.Currency)</TextBlock>
                     </TemplateColumn>
                     <ActionColumn Context="i" Overflow="RowActionOverflow.Always">
                         <RowAction Icon="Lucide.Eye" Label="View" Href="@($"invoices/{i.Id}")" />
@@ -107,7 +107,8 @@
 
     private readonly DateOnly _today = InvoiceText.Today;
     private Counts _counts = new(0, 0, 0, 0, 0);
-    private decimal _outstanding, _overdue;
+    // What's owed and what's late, by currency (Money writes the company's first).
+    private List<(string Currency, decimal Amount)> _outstanding = [], _overdue = [];
     private bool _canEdit;
 
     // The tab shown: one of Tabs' keys, or null for All.
@@ -123,8 +124,8 @@
 
         // What's owed: every sent invoice not yet paid. Totals come from the lines, so they're added up here.
         var open = await Db.Invoices.AsNoTracking().Where(i => i.Status == InvoiceStatus.Sent).Include(i => i.Lines).ToListAsync();
-        _outstanding = open.Sum(i => i.Total);
-        _overdue = open.Where(i => i.Due < _today).Sum(i => i.Total);
+        _outstanding = [.. open.Select(i => (i.Currency, i.Total))];
+        _overdue = [.. open.Where(i => i.Due < _today).Select(i => (i.Currency, i.Total))];
         var byStatus = await Db.Invoices.GroupBy(i => i.Status).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(g => g.Key, g => g.Count);
         int Of(InvoiceStatus s) => byStatus.GetValueOrDefault(s);
         var overdue = open.Count(i => i.Due < _today);

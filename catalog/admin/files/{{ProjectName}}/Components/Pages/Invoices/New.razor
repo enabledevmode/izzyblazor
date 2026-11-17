@@ -63,10 +63,22 @@ else
                     </Combobox>
                     @if (Person(CustomerStep.CustomerId) is { } chosen)
                     {
-                        <DescriptionList Orientation="Orientation.Vertical" Size="ControlSize.Sm">
-                            <DescriptionItem Term="Bill to">@chosen.Name<br />@chosen.Email</DescriptionItem>
-                        </DescriptionList>
+                        @* What the invoice will say it's to, from the customer's record. *@
+                        <Card Size="ControlSize.Sm">
+                            <DescriptionList Orientation="Orientation.Vertical">
+                                <DescriptionItem Term="Bill to">
+                                    @InvoiceText.BillToName(chosen.Name, chosen.Company)<br />
+                                    @if (chosen.Address.Length > 0)
+                                    {
+                                        @chosen.Address<br />
+                                    }
+                                    @chosen.Email
+                                </DescriptionItem>
+                            </DescriptionList>
+                        </Card>
                     }
+                    <Select @bind-Value="CustomerStep.Currency" Label="Currency" Items="Currencies.All.Select(c => c.Code)"
+                            ItemText="code => Currencies.Of(code).Label" MaxWidth="Length.Rem(22.5)" />
                     @Actions("Continue", back: false)
                 </Form>
                 break;
@@ -80,12 +92,12 @@ else
                             <TextField @bind-Value="line.Description" Label="Description" />
                             <NumberField @bind-Value="line.Quantity" Label="Quantity" Min="1" StepButtons="StepButtons.None" Width="Length.Rem(5.5)" />
                             <NumberField @bind-Value="line.UnitPrice" Label="Unit price" Min="0" Step="0.01" StepButtons="StepButtons.None" Width="Length.Rem(8)">
-                                <StartAddon>@NumberFormatInfo.CurrentInfo.CurrencySymbol</StartAddon>
+                                <StartAddon>@Currencies.Of(_invoice?.Currency).Symbol.Trim()</StartAddon>
                             </NumberField>
-                            <FieldRepeaterValue Label="Amount" Width="Length.Rem(7)" Align="CellAlign.End">@InvoiceText.Money(line.Amount)</FieldRepeaterValue>
+                            <FieldRepeaterValue Label="Amount" Width="Length.Rem(7)" Align="CellAlign.End">@InvoiceText.Money(line.Amount, _invoice?.Currency)</FieldRepeaterValue>
                         </ChildContent>
                         <Footer>
-                            <TextBlock TabularNums><TextBlock As="span" Color="Color.Muted">Subtotal</TextBlock> <strong>@InvoiceText.Money(ItemsStep.Lines.Sum(l => l.Amount))</strong></TextBlock>
+                            <TextBlock TabularNums><TextBlock As="span" Color="Color.Muted">Subtotal</TextBlock> <strong>@InvoiceText.Money(ItemsStep.Lines.Sum(l => l.Amount), _invoice?.Currency)</strong></TextBlock>
                         </Footer>
                     </FieldRepeater>
                     @Actions("Continue", back: true)
@@ -111,8 +123,15 @@ else
                     @Question("Check and send", "Make sure everything’s right. You can still change any step.")
 
                     @Section("Customer", 1, @<DescriptionList>
-                        <DescriptionItem Term="Bill to">@InvoiceText.CustomerName(invoice)</DescriptionItem>
+                        <DescriptionItem Term="Bill to">
+                            @InvoiceText.BillToName(InvoiceText.CustomerName(invoice), invoice.Customer?.Company)
+                            @if (invoice.Customer is { } c && InvoiceText.AddressLine(c.StreetAddress, c.City, c.PostalCode) is { Length: > 0 } address)
+                            {
+                                <br />@address
+                            }
+                        </DescriptionItem>
                         <DescriptionItem Term="Email">@invoice.Customer?.Email</DescriptionItem>
+                        <DescriptionItem Term="Currency">@invoice.Currency</DescriptionItem>
                     </DescriptionList>)
 
                     @Section("Items", 2, @<Stack Gap="3">
@@ -120,17 +139,17 @@ else
                         {
                             <Row Gap="3" Justify="Justify.Between" Align="Align.Start">
                                 <TextBlock As="span">@line.Description <TextBlock As="span" Color="Color.Muted" TabularNums>× @line.Quantity</TextBlock></TextBlock>
-                                <TextBlock As="span" TabularNums>@InvoiceText.Money(line.Amount)</TextBlock>
+                                <TextBlock As="span" TabularNums>@InvoiceText.Money(line.Amount, invoice.Currency)</TextBlock>
                             </Row>
                         }
                         <Divider />
                         <Row Gap="3" Justify="Justify.Between">
                             <TextBlock As="span" Color="Color.Muted">Tax (@((invoice.TaxRate * 100).ToString("0.##", CultureInfo.CurrentCulture))%)</TextBlock>
-                            <TextBlock As="span" TabularNums>@InvoiceText.Money(invoice.Tax)</TextBlock>
+                            <TextBlock As="span" TabularNums>@InvoiceText.Money(invoice.Tax, invoice.Currency)</TextBlock>
                         </Row>
                         <Row Gap="3" Justify="Justify.Between">
                             <TextBlock As="span" Weight="FontWeight.Semibold">Total due</TextBlock>
-                            <TextBlock As="span" Weight="FontWeight.Semibold" TabularNums>@InvoiceText.Money(invoice.Total)</TextBlock>
+                            <TextBlock As="span" Weight="FontWeight.Semibold" TabularNums>@InvoiceText.Money(invoice.Total, invoice.Currency)</TextBlock>
                         </Row>
                     </Stack>)
 
@@ -213,14 +232,15 @@ else
             }
         }
 
-        _people = await Db.Customers.AsNoTracking().OrderBy(c => c.FirstName).ThenBy(c => c.LastName)
-            .Select(c => new Picked(c.Id, c.FirstName + " " + c.LastName, c.Email)).ToListAsync();
+        var customers = await Db.Customers.AsNoTracking().OrderBy(c => c.FirstName).ThenBy(c => c.LastName).ToListAsync();
+        _people = customers.Select(c => new Picked(c.Id, $"{c.FirstName} {c.LastName}", c.Email, c.Company,
+            InvoiceText.AddressLine(c.StreetAddress, c.City, c.PostalCode))).ToList();
 
         // A step opens once the ones before it are answered: Items needs the draft, Details and Review need a line.
         _reached = _invoice is null ? 1 : _invoice.Lines.Count == 0 ? 2 : 4;
         _step = Math.Clamp(StepQuery ?? (Editing ? 4 : 1), 1, _reached);
 
-        CustomerStep ??= new() { CustomerId = CustomerQuery ?? _invoice?.CustomerId };
+        CustomerStep ??= new() { CustomerId = CustomerQuery ?? _invoice?.CustomerId, Currency = _invoice?.Currency ?? Company.Currency };
         ItemsStep ??= new()
         {
             Lines = _invoice?.Lines.Count > 0
@@ -251,12 +271,13 @@ else
         if (_invoice is null)
         {
             // The draft starts here, so leaving now keeps it.
-            _invoice = await Invoices.StartDraftAsync(customerId);
+            _invoice = await Invoices.StartDraftAsync(customerId, Currencies.Of(CustomerStep.Currency).Code);
             Navigation.NavigateTo($"invoices/new?draft={_invoice.Id}&step=2");
             return;
         }
 
         _invoice.CustomerId = customerId;
+        _invoice.Currency = Currencies.Of(CustomerStep.Currency).Code;
         await Db.SaveChangesAsync();
         Navigation.NavigateTo(Here(2));
     }
@@ -424,12 +445,17 @@ else
             <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" AlignSelf="new() { Base = Align.Center, Sm = Align.Center }"><Anchor Href="@(Editing ? $"invoices/{_invoice!.Id}" : "invoices")" InheritColor>Cancel</Anchor></TextBlock>
         </Stack>;
 
-    private sealed record Picked(int Id, string Name, string Email);
+    // A customer to pick, with what the Bill to shows: their company and address on one line.
+    private sealed record Picked(int Id, string Name, string Email, string? Company, string Address);
 
     public sealed class CustomerInput
     {
         [Required(ErrorMessage = "Choose a customer.")]
         public int? CustomerId { get; set; }
+
+        /// <summary>The invoice's currency, by its ISO code.</summary>
+        [Required(ErrorMessage = "Choose a currency.")]
+        public string Currency { get; set; } = Company.Currency;
     }
 
     public sealed class ItemsInput

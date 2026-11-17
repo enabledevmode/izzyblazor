@@ -35,13 +35,14 @@ public sealed class InvoiceActions(ApplicationDbContext db, Audit audit)
     }
 
     /// <summary>A new draft for a customer, numbered next in the series, dated today on the default terms, with no lines yet; returns it.</summary>
-    public async Task<Invoice> StartDraftAsync(int customerId)
+    public async Task<Invoice> StartDraftAsync(int customerId, string currency)
     {
         var today = InvoiceText.Today;
         var draft = new Invoice
         {
             Number = await NextNumberAsync(),
             CustomerId = customerId,
+            Currency = currency,
             Status = InvoiceStatus.Draft,
             Issued = today,
             Due = today.AddDays(DefaultTerms),
@@ -68,9 +69,9 @@ public sealed class InvoiceActions(ApplicationDbContext db, Audit audit)
         if (invoice.Status != InvoiceStatus.Sent) return "Only a sent invoice can be marked paid.";
         (invoice.Status, invoice.Paid) = (InvoiceStatus.Paid, InvoiceText.Today);
         await db.SaveChangesAsync();
-        if (invoice.Customer is { } customer)
+        if (invoice.Customer is { } customer && invoice.Currency == Company.Currency)
         {
-            // A total kept for the Customers list, not a change anyone made: left out of the log.
+            // A total kept for the Customers list (in the company's currency), not a change anyone made: left out of the log.
             customer.LifetimeValue += invoice.Total;
             await SaveQuietlyAsync();
         }
