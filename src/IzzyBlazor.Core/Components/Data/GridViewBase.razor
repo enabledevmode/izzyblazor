@@ -375,7 +375,8 @@
 
     /// <summary>
     /// The edit dialog's submit button, from the row (none for a new one), so it says what happens:
-    /// <c>u => u is null ? "Send invite" : "Save"</c>. Defaults to "Save".
+    /// <c>u => u is null ? "Send invite" : "Save"</c>. Defaults to <see cref="AddText"/> ("Add") for a new
+    /// row, which the button adds, and "Save" for one being edited.
     /// </summary>
     [Parameter] public Func<TItem?, string>? EditSaveText { get; set; }
 
@@ -1058,7 +1059,7 @@
                     @EditCancel
                     @if (!missing)
                     {
-                        <Button Submit>@(EditSaveText is { } saveText ? saveText(_editIsNew ? default : _editItem) : TextDefaults.Save)</Button>
+                        <Button Submit>@(EditSaveText is { } saveText ? saveText(_editIsNew ? default : _editItem) : _editIsNew ? AddText ?? TextDefaults.Add : TextDefaults.Save)</Button>
                     }
                 </DialogFooter>
             </Form>
