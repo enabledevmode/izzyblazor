@@ -18,9 +18,9 @@
 <TextBlock>The grid's Columns and Export tools work this way by default.</TextBlock>
 
 <Heading Level="2">Floating on a phone</Heading>
-<TextBlock>A page's main action can leave the bar on a phone and float in the screen's bottom corner, where the thumb reaches it. Set <Code>FloatBelow="Breakpoint.Sm"</Code> on the button, and a <Code>FloatLabel</Code> that names it. The button needs a <Code>StartIcon</Code>, which the floating button shows.</TextBlock>
+<TextBlock>A page's main action can leave the bar on a phone and float in the screen's bottom corner, where the thumb reaches it. Set <Code>FloatBelow="Breakpoint.Sm"</Code> on the button. The button needs a <Code>StartIcon</Code>, which the floating button shows, and its text names the floating button. When the text isn't plain text, set <Code>FloatLabel</Code>.</TextBlock>
 <ExampleViewer Example="toolbar-float" />
-<TextBlock>The floating button keeps the item's link, form post or <Code>OnClick</Code>. A grid's <Code>DataGridAdd</Code> takes <Code>FloatBelow</Code> too.</TextBlock>
+<TextBlock>The floating button keeps the item's link, form post or <Code>OnClick</Code>. A grid's <Code>DataGridAdd</Code> takes <Code>FloatBelow</Code> too, and so does a <Code>Button</Code> in a page header's actions; see <Anchor Href="docs/components/page-header#actions-that-float-on-a-phone">Actions that float on a phone</Anchor>.</TextBlock>
 <TextBlock>When more than one item floats below the same width, they share a speed dial. Set the toolbar's <Code>FloatLabel</Code> to name it; it defaults to "Actions".</TextBlock>
 <ExampleViewer Example="toolbar-float-dial" />
 

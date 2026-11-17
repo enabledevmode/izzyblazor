@@ -7,9 +7,9 @@
     <Toolbar Label="Invoices" FloatLabel="Create">
         <ToolbarButton StartIcon="Lucide.Download" Href="#">Export</ToolbarButton>
         <ToolbarButton StartIcon="Lucide.UserPlus" Href="@To("customer")" Position="ToolbarPosition.End"
-                       FloatBelow="Breakpoint.Sm" FloatLabel="New customer">New customer</ToolbarButton>
+                       FloatBelow="Breakpoint.Sm">New customer</ToolbarButton>
         <ToolbarButton StartIcon="Lucide.Plus" Href="@To("invoice")" Accent="Accent.Primary" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End"
-                       FloatBelow="Breakpoint.Sm" FloatLabel="New invoice">New invoice</ToolbarButton>
+                       FloatBelow="Breakpoint.Sm">New invoice</ToolbarButton>
     </Toolbar>
     @if (Created is not null)
     {

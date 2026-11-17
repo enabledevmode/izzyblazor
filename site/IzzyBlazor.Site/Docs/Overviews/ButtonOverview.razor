@@ -37,6 +37,9 @@
 <TextBlock>A button can print the page, for a receipt or an invoice. Set <Code>Print</Code>. It opens the browser's print dialog. Style what prints with <Code>@("@media print")</Code>: an <Anchor Href="docs/components/app-shell">AppShell</Anchor> already leaves its header, sidebar and aside out. Printing needs JavaScript, so with it off the button isn't shown.</TextBlock>
 <ExampleViewer Example="button-print" />
 
+<Heading Level="2">Floating on a phone</Heading>
+<TextBlock>A page's main action can leave the page header on a phone and float in the screen's bottom corner. In a <Code>PageHeader</Code>'s <Code>PageHeaderActions</Code>, set <Code>FloatBelow="Breakpoint.Sm"</Code> on the button, which needs a <Code>StartIcon</Code>. See <Anchor Href="docs/components/page-header#actions-that-float-on-a-phone">Actions that float on a phone</Anchor>. In a toolbar, a <Code>ToolbarButton</Code> does the same.</TextBlock>
+
 <Heading Level="2">Loading and disabled</Heading>
 <TextBlock>A loading button shows a spinner and blocks clicks while its action runs. Set <Code>Loading</Code> to show it. To turn the button off, set <Code>Disabled</Code>.</TextBlock>
 <ExampleViewer Example="button-states" />
