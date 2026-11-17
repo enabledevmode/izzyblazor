@@ -20,11 +20,11 @@
                   InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="crud-demo-customers" ExportExcelHref="frame/cli/crud/export.xlsx" ToolbarLabels
                   EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
                   EditSaveText="@(x => x is null ? "Create customer" : "Save changes")"
-                  NewItem="() => new DemoCustomer { Joined = DateOnly.FromDateTime(DateTime.Today) }" AddText="Add customer" OnSave="Save" OnDelete="Delete"
+                  NewItem="() => new DemoCustomer { Joined = DateOnly.FromDateTime(DateTime.Today) }" AddText="New customer" OnSave="Save" OnDelete="Delete"
                   NoMatchesText="No customers match “{0}”" Grow>
             <EmptyContent>
                 <EmptyState Icon="Lucide.Inbox" Title="No customers yet" Description="Add your first customer to see them here.">
-                    <Button Href="frame/cli/crud?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">Add customer</Button>
+                    <Button Href="frame/cli/crud?add=1" StartIcon="Lucide.Plus" HiddenFrom="Breakpoint.Sm">New customer</Button>
                 </EmptyState>
             </EmptyContent>
             <Columns>
