@@ -139,6 +139,24 @@
     color: var(--ib-color-primary-text);
   }
 
+  /* Focus rings outside the tab, 2px off, so a focused tab doesn't look selected (a ring inside the
+     tint reads as more tint). The list makes room for the ring, as it would clip it (it scrolls sideways). */
+  .ib-tabs-soft > .ib-tabs-list {
+    margin: -0.25rem;
+    padding: 0.25rem;
+  }
+
+  .ib-tabs-soft > .ib-tabs-list > .ib-tab:is(:focus-visible, :has(> .ib-tab-input:focus-visible)) {
+    outline-offset: 2px;
+  }
+
+  /* On the selected tab's tint a gray count is lost (gray on blue): it takes the surface, in the tab's
+     color, so it stands out from the tint as it does from the page. A count in a status color keeps it. */
+  .ib-tabs-soft > .ib-tabs-list > .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) .ib-badge-neutral.ib-badge-soft {
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-primary-text);
+  }
+
   /* Segmented: a filled track with the selected tab raised, as SegmentedControl's (form.css). No
      outline: that matches a SegmentedControl to the fields beside it, and tabs aren't a field. */
   .ib-tabs-segmented > .ib-tabs-list {

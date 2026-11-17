@@ -56,7 +56,7 @@
             <PropertyColumn Property="u => u.Email" Visible="false" />
             <PropertyColumn Property="u => u.Role" Filterable Context="user">
                 <ChildContent>
-                    <Badge Variant="BadgeVariant.Outline">@user.Role</Badge>
+                    @user.Role
                 </ChildContent>
                 <EditTemplate Context="field">
                     <RadioGroup @bind-Value="field.Item.Role" ItemDescription="role => Roles.Summary(role.ToString())" @attributes="field.Attributes" />
