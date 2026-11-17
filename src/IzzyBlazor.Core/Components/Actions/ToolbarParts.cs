@@ -379,6 +379,11 @@ internal sealed class ToolbarMore : ComponentBase
     private static ToolbarOverflow Effective(IToolbarItem item) =>
         item.Separator || item.Menu is null || ToolbarOverflows.Never(item.Overflow) ? ToolbarOverflow.Never : ToolbarOverflows.Wide(item.Overflow);
 
+    // Whether it has a copy in the menu: at some width it can be there (only on a phone, say, as an item
+    // that's Always below Sm and Never above), though the wide screen's plan keeps it in the bar.
+    private static bool InMenu(IToolbarItem item) =>
+        item.Separator || (item.Menu is not null && !ToolbarOverflows.Never(item.Overflow));
+
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
@@ -387,7 +392,7 @@ internal sealed class ToolbarMore : ComponentBase
 
         // Nothing can move and no labels collapse: no "…" and no widths. (With CollapseLabels and
         // nothing to move, the "…" is there but never shows.)
-        if (!Context.CollapseLabels && !items.Exists(i => !i.Item.Separator && Effective(i.Item) != ToolbarOverflow.Never))
+        if (!Context.CollapseLabels && !items.Exists(i => !i.Item.Separator && InMenu(i.Item)))
         {
             return;
         }
@@ -417,7 +422,7 @@ internal sealed class ToolbarMore : ComponentBase
             // A copy of what can move; separators go with their neighbors.
             foreach (var (item, id) in items)
             {
-                if (!item.Separator && Effective(item) == ToolbarOverflow.Never)
+                if (!InMenu(item))
                 {
                     continue;
                 }

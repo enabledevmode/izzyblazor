@@ -30,22 +30,33 @@
     else
     {
         <Stack Gap="4" Grow>
-            @* On a phone only Overdue keeps its count, so all five tabs fit. *@
-            <TabNav Label="Status">
-                @foreach (var tab in Tabs)
-                {
-                    <TabLink Href="@(tab.Key is null ? "invoices" : $"invoices?status={tab.Key}")" Label="@tab.Label" Current="tab.Key == Shown"
-                             Badge="@_counts.Of(tab.Key).ToString("N0")" BadgeStatus="@(tab.Key == "overdue" && _counts.Overdue > 0 ? IzzyBlazor.Status.Danger : IzzyBlazor.Status.Neutral)"
-                             BadgeVisibleFrom="@(tab.Key == "overdue" ? null : Breakpoint.Sm)" />
-                }
-            </TabNav>
-
             <DataGrid TItem="Invoice" ItemsProvider="FindAsync" ItemKey="i => i.Id.ToString()" RowLabel="i => i.Number" Caption="Invoices"
                       PageSize="25" InitialSort="-number" Searchable SearchLabel="Search number or customer" SmallScreen="DataGridSmallScreen.HideColumns"
                       ItemDeletable="i => _canEdit && i.Status == InvoiceStatus.Draft" OnDelete="DeleteAsync"
                       NoMatchesText="No invoices match “{0}”" Grow>
                 <ToolbarContent>
                     <DataGridSearch />
+                    @* Status, the list's main filter: one chip at a time, each a link (?status=overdue) with its count.
+                       On a phone, where the search needs the row, they're in the "…" menu instead. *@
+                    <ToolbarItem Overflow="new() { Base = ToolbarOverflow.Always, Sm = ToolbarOverflow.Never }">
+                        <MenuContent>
+                            <MenuRadioGroup Label="Status" QueryKey="status" Value="@(Shown ?? "")">
+                                @foreach (var tab in Tabs)
+                                {
+                                    <MenuItem Value="@(tab.Key ?? "")">@tab.Label (@_counts.Of(tab.Key).ToString("N0"))</MenuItem>
+                                }
+                            </MenuRadioGroup>
+                        </MenuContent>
+                        <ChildContent>
+                            <TabNav Label="Status" Variant="TabsVariant.Soft">
+                                @foreach (var tab in Tabs)
+                                {
+                                    <TabLink Href="@(tab.Key is null ? "invoices" : $"invoices?status={tab.Key}")" Label="@tab.Label" Current="tab.Key == Shown"
+                                             Badge="@_counts.Of(tab.Key).ToString("N0")" BadgeStatus="@(tab.Key == "overdue" && _counts.Overdue > 0 ? IzzyBlazor.Status.Danger : IzzyBlazor.Status.Neutral)" />
+                                }
+                            </TabNav>
+                        </ChildContent>
+                    </ToolbarItem>
                     @* The grid's main action, as Add customer and Invite user are on theirs; it opens the
                        new-invoice wizard, so it's a link, not the grid's add dialog. A phone floats it. *@
                     @if (_canEdit)
