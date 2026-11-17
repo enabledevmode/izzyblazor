@@ -42,31 +42,13 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
     /// </summary>
     [Parameter] public Responsive<ToolbarOverflow> Overflow { get; set; }
 
-    /// <summary>
-    /// Below this width it's a floating button at the screen's bottom corner instead, with its
-    /// <see cref="ButtonBase.StartIcon"/> and <see cref="FloatLabel"/>: <c>Breakpoint.Sm</c> on a phone. Off by
-    /// default; for a page's main action. With more than one floating at the same width, they share a speed dial
-    /// (named by the Toolbar's <c>FloatLabel</c>).
-    /// </summary>
-    [Parameter] public Breakpoint? FloatBelow { get; set; }
-
-    /// <summary>What it does, as the floating button's accessible name ("New invoice"). Needed with <see cref="FloatBelow"/>.</summary>
-    [Parameter] public string? FloatLabel { get; set; }
-
     bool IToolbarItem.Separator => false;
 
     RenderFragment IToolbarItem.Bar => builder => base.BuildRenderTree(builder);
 
     Breakpoint? IToolbarItem.FloatBelow => FloatBelow;
 
-    ToolbarFloat? IToolbarItem.Float => FloatBelow is null ? null
-        : new ToolbarFloat(
-            StartIcon ?? throw new InvalidOperationException($"A {nameof(ToolbarButton)} with {nameof(FloatBelow)} needs a {nameof(StartIcon)} for its floating button."),
-            FloatLabel ?? throw new InvalidOperationException($"A {nameof(ToolbarButton)} with {nameof(FloatBelow)} needs a {nameof(FloatLabel)}: the floating button's name."))
-        {
-            Href = Href, Submit = Submit, Name = Name, Value = Value, FormAction = FormAction, Form = Form,
-            Disabled = Disabled || Loading, OnClick = OnClick,
-        };
+    ToolbarFloat? IToolbarItem.Float => FloatAction(nameof(ToolbarButton));
 
     // A menu item can't reset a form, and one wired up by its attributes does more than a menu item can.
     RenderFragment? IToolbarItem.Menu => Reset || !ToolbarControl.CopiesToMenu(AdditionalAttributes) ? null : builder =>

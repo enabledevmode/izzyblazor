@@ -1,0 +1,40 @@
+@inject NavigationManager Navigation
+
+@* A contact's page. On a phone its two actions leave the header and share a speed dial at the
+   screen's corner, named by the actions' FloatLabel. Each is a link that stays on this page. *@
+<Stack Gap="4" Padding="4">
+    <PageHeader Title="Olivia Chen" Description="Acme Co. · Customer">
+        <PageHeaderMedia>
+            <Avatar Name="Olivia Chen" Size="AvatarSize.Lg" Decorative />
+        </PageHeaderMedia>
+        <PageHeaderActions FloatLabel="Add">
+            <Button Href="@To("activity")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.CalendarPlus"
+                    FloatBelow="Breakpoint.Sm">Log activity</Button>
+            <Button Href="@To("deal")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
+        </PageHeaderActions>
+    </PageHeader>
+    @if (Added is not null)
+    {
+        <Alert Status="Status.Info">New @Added.</Alert>
+    }
+    <Stack Gap="2">
+        @foreach (var note in Notes)
+        {
+            <Card Padding="3">@note</Card>
+        }
+    </Stack>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "add")] private string? Added { get; set; }
+
+    private string To(string what) => Navigation.GetUriWithQueryParameter("add", what);
+
+    @* hide *@
+    private static readonly string[] Notes =
+    [
+        "Proposal shared", "Call logged · 25 minutes", "Contact added", "Intro email sent", "Met at the trade show",
+        "Asked for pricing", "Sent the case study", "Booked a demo",
+    ];
+    @* /hide *@
+}

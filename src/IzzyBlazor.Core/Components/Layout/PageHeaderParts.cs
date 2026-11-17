@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace IzzyBlazor;
 
 /// <summary>
@@ -32,4 +34,66 @@ public sealed class PageHeaderMedia : ComponentPart
 public sealed class PageHeaderActions : ComponentPart
 {
     internal override Type HostType => typeof(PageHeader);
+
+    /// <summary>
+    /// The speed dial's name when more than one of its buttons floats on a small screen
+    /// (<see cref="Button.FloatBelow"/>), such as "Create". Defaults to "Actions".
+    /// </summary>
+    [Parameter] public string? FloatLabel { get; set; }
+}
+
+/// <summary>The buttons of a <see cref="PageHeader"/>'s actions that float below a width (<see cref="Button.FloatBelow"/>).</summary>
+internal sealed class PageFloats
+{
+    private readonly List<(Button Owner, Breakpoint Below, ToolbarFloat Float)> _items = [];
+
+    /// <summary>Raised when a button starts or stops floating, or what it does changes.</summary>
+    public event Action? Changed;
+
+    public IEnumerable<(Breakpoint Below, ToolbarFloat Float)> Items => _items.Select(i => (i.Below, i.Float));
+
+    public void Set(Button owner, Breakpoint below, ToolbarFloat action)
+    {
+        var at = _items.FindIndex(i => ReferenceEquals(i.Owner, owner));
+        if (at < 0)
+        {
+            _items.Add((owner, below, action));
+        }
+        else if (_items[at].Below == below && _items[at].Float == action)
+        {
+            return;
+        }
+        else
+        {
+            _items[at] = (owner, below, action);
+        }
+
+        Changed?.Invoke();
+    }
+
+    public void Remove(Button owner)
+    {
+        if (_items.RemoveAll(i => ReferenceEquals(i.Owner, owner)) > 0)
+        {
+            Changed?.Invoke();
+        }
+    }
+}
+
+/// <summary>Draws a <see cref="PageHeader"/>'s floating buttons, and again as its actions' buttons change.</summary>
+internal sealed class PageHeaderFloats : ComponentBase, IDisposable
+{
+    [Parameter, EditorRequired] public PageFloats Floats { get; set; } = null!;
+
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Floats.Changed += StateHasChanged;
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) =>
+        FloatActions.Render(builder, "ib-page-header-floats", Label, Floats.Items);
+
+    /// <inheritdoc />
+    public void Dispose() => Floats.Changed -= StateHasChanged;
 }
