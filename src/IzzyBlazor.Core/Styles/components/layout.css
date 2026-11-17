@@ -82,16 +82,15 @@
   .ib-page-header-sm { --ib-ph-title: var(--ib-text-xl); --ib-ph-text: var(--ib-text-sm); }
   .ib-page-header-lg { --ib-ph-title: var(--ib-text-3xl); }
 
-  /* A record's avatar or icon before the title, centered on the text; over it below Sm. */
+  /* A record's avatar or icon before the title, centered on the text. The text's basis gives up
+     the room the avatar and the gap take, so they stay on one line down to a 320px phone. */
   .ib-page-header-media {
     display: flex;
     flex: none;
     align-self: center;
   }
 
-  @media (width < 640px) {
-    .ib-page-header-media + .ib-page-header-text { flex-basis: 100%; }
-  }
+  .ib-page-header-media + .ib-page-header-text { flex-basis: 10rem; }
 
   .ib-page-header-text {
     display: flex;
