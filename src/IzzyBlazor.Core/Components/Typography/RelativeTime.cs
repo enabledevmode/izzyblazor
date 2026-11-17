@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
-/// A time as how long ago it was, or how soon it is: "2 hours ago", "yesterday", "in 3 days". Past
+/// A time as how long ago it was, or how soon it is: "2 hours ago", "Yesterday", "In 3 days". Past
 /// <see cref="Threshold"/> it shows the date instead. The server writes the text, so it's right as the
 /// page loads, with JavaScript off too; the library's script keeps it current as the page stays open and
 /// writes it in the reader's language (the page's <c>lang</c>) and time zone.
@@ -40,6 +40,12 @@ public class RelativeTime : LayoutItemBase
     /// </summary>
     [Parameter] public TimeSpan? Threshold { get; set; } = TimeSpan.FromDays(30);
 
+    /// <summary>
+    /// Starts it with a capital ("Yesterday", "Just now"), as where it stands alone: a table cell, under a
+    /// title. Defaults to true; false within a sentence ("Signed in yesterday").
+    /// </summary>
+    [Parameter] public bool Capitalize { get; set; } = true;
+
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
@@ -58,23 +64,25 @@ public class RelativeTime : LayoutItemBase
         var (cssClass, style) = BuildRootAttributes();
         builder.OpenElement(0, "time");
         builder.AddMultipleAttributes(1, AdditionalAttributes);
-        AddTimeAttributes(builder, 2, value, Threshold, CultureInfo.CurrentCulture);
-        builder.AddAttribute(5, "class", cssClass);
-        builder.AddAttribute(6, "style", style);
-        builder.AddContent(7, Text(value, DateTimeOffset.UtcNow, Threshold, TextDefaults, CultureInfo.CurrentCulture));
+        AddTimeAttributes(builder, 2, value, Threshold, Capitalize, CultureInfo.CurrentCulture);
+        builder.AddAttribute(6, "class", cssClass);
+        builder.AddAttribute(7, "style", style);
+        builder.AddContent(8, Text(value, DateTimeOffset.UtcNow, Threshold, TextDefaults, CultureInfo.CurrentCulture, Capitalize));
         builder.CloseElement();
     }
 
     /// <summary>
     /// A relative time's attributes on a <c>time</c> element: <c>datetime</c>, the full date as
-    /// <c>title</c>, and the threshold the script reads (seconds; empty for none). Takes three sequence numbers.
+    /// <c>title</c>, the threshold the script reads (seconds; empty for none), and whether it starts with a
+    /// capital. Takes four sequence numbers.
     /// </summary>
-    internal static void AddTimeAttributes(RenderTreeBuilder builder, int sequence, DateTimeOffset value, TimeSpan? threshold, CultureInfo culture)
+    internal static void AddTimeAttributes(RenderTreeBuilder builder, int sequence, DateTimeOffset value, TimeSpan? threshold, bool capitalize, CultureInfo culture)
     {
         builder.AddAttribute(sequence, "datetime", value.ToString("o", CultureInfo.InvariantCulture));
         builder.AddAttribute(sequence + 1, "title", value.ToString("f", culture));
         builder.AddAttribute(sequence + 2, "data-ib-relative",
             threshold is { } t ? ((long)t.TotalSeconds).ToString(CultureInfo.InvariantCulture) : "");
+        builder.AddAttribute(sequence + 3, "data-ib-capitalize", capitalize ? "" : null);
     }
 
     /// <summary>
@@ -82,7 +90,13 @@ public class RelativeTime : LayoutItemBase
     /// picks the same unit: now under 45 seconds, minutes under 45 minutes, hours under 22 hours, then
     /// calendar days in the value's offset.
     /// </summary>
-    internal static string Text(DateTimeOffset value, DateTimeOffset now, TimeSpan? threshold, IzzyText text, CultureInfo culture)
+    internal static string Text(DateTimeOffset value, DateTimeOffset now, TimeSpan? threshold, IzzyText text, CultureInfo culture, bool capitalize)
+    {
+        var words = Words(value, now, threshold, text, culture);
+        return capitalize && words.Length > 0 ? char.ToUpper(words[0], culture) + words[1..] : words;
+    }
+
+    private static string Words(DateTimeOffset value, DateTimeOffset now, TimeSpan? threshold, IzzyText text, CultureInfo culture)
     {
         var ago = now - value;
         var past = ago >= TimeSpan.Zero;

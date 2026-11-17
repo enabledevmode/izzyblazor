@@ -301,8 +301,9 @@ public class TimelineItem : IzzyComponentBase
             var threshold = TimeSpan.FromDays(30);
             builder.OpenElement(20, "time");
             builder.AddAttribute(21, "class", "ib-timeline-time");
-            RelativeTime.AddTimeAttributes(builder, 22, value, threshold, System.Globalization.CultureInfo.CurrentCulture);
-            builder.AddContent(25, RelativeTime.Text(value, DateTimeOffset.UtcNow, threshold, TextDefaults, System.Globalization.CultureInfo.CurrentCulture));
+            // On its own line under the title, so it starts with a capital ("Yesterday").
+            RelativeTime.AddTimeAttributes(builder, 22, value, threshold, true, System.Globalization.CultureInfo.CurrentCulture);
+            builder.AddContent(26, RelativeTime.Text(value, DateTimeOffset.UtcNow, threshold, TextDefaults, System.Globalization.CultureInfo.CurrentCulture, true));
             builder.CloseElement();
         }
     }
