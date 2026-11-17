@@ -45,6 +45,18 @@
             <PropertyColumn Property="x => x.FirstName" Title="First name" Sortable />
             <PropertyColumn Property="x => x.LastName" Title="Last name" Sortable />
             <PropertyColumn Property="x => x.Email" Title="Email" Sortable />
+            @* In the edit dialog only; the column picker can show it. *@
+            <PropertyColumn Property="x => x.Phone" Title="Phone" Visible="false" />
+            @* In the edit dialog only; the column picker can show it. *@
+            <PropertyColumn Property="x => x.Company" Title="Company" Visible="false" />
+            @* In the edit dialog only; the column picker can show it. *@
+            <PropertyColumn Property="x => x.StreetAddress" Title="Street address" Visible="false" />
+            @* In the edit dialog only; the column picker can show it. *@
+            <PropertyColumn Property="x => x.City" Title="City" Visible="false" />
+            @* In the edit dialog only; the column picker can show it. *@
+            <PropertyColumn Property="x => x.PostalCode" Title="Postal code" Visible="false" />
+            @* In the edit dialog only; the column picker can show it. *@
+            <PropertyColumn Property="x => x.Country" Title="Country" Visible="false" />
             <PropertyColumn Property="x => x.Status" Title="Status" Width="Length.Rem(7.5)" Priority="1" Sortable Context="x">
                 <Badge Status="Tone(x.Status)" Dot>@Label(x.Status)</Badge>
             </PropertyColumn>
