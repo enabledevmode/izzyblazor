@@ -285,7 +285,7 @@ static partial class Crud
             ["FormatAttr"] = Format(f.Kind) is { Length: > 0 } format ? $" Format=\"{format}\"" : "",
             ["EditableAttr"] = f.ReadOnly ? " Editable=\"false\"" : "",
             // A list narrows by its choices: a filter in the column's header (the text columns have the search).
-            ["FilterAttr"] = f.Kind is FieldKind.Enum or FieldKind.Bool ? " Filterable" : "",
+            ["FilterAttr"] = Filtered(f.Kind) ? " Filterable" : "",
             ["WidthAttr"] = Width(f.Kind, f.ShortLabel) is { } rem ? $" Width=\"Length.Rem({rem.ToString(CultureInfo.InvariantCulture)})\"" : "",
             ["Type"] = f.Type,
             ["EnumType"] = f.Kind == FieldKind.Enum ? typeOf(f) : "",
@@ -330,9 +330,13 @@ static partial class Crud
     // A list column's width by what it holds, as the design sizes them (Status 120px, Orders 90px, Joined 130px),
     // so the grid fits them before hiding any; text takes what's left.
     static double? Width(FieldKind kind, string title) => ByKind(kind) is { } width
-        // Wide enough for the title and its sort arrow too: about 0.55rem a letter, 2.75rem of padding and arrow.
-        ? Math.Max(width, Math.Ceiling((title.Length * 0.55 + 2.75) * 2) / 2)
+        // Wide enough for the title and its sort arrow too: about 0.55rem a letter, 2.75rem of padding and arrow;
+        // a filtered column (choices) also has its filter button: 1.5rem and the gap before it.
+        ? Math.Max(width, Math.Ceiling((title.Length * 0.55 + 2.75) * 2) / 2) + (Filtered(kind) ? 2 : 0)
         : null;
+
+    // The columns a list filters in their headers: its choices (the text columns have the search).
+    static bool Filtered(FieldKind kind) => kind is FieldKind.Enum or FieldKind.Bool;
 
     static double? ByKind(FieldKind kind) => kind switch
     {
