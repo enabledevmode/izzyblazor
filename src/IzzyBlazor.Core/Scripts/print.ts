@@ -5,8 +5,7 @@
  */
 export function installPrint(): void {
   document.addEventListener("click", (event) => {
-    const button = (event.target as Element | null)?.closest?.("[data-ib-print]");
-    if (!(button instanceof HTMLButtonElement) || button.disabled || button.getAttribute("aria-disabled") === "true") return;
-    window.print();
+    // An enabled button, not a disabled or loading one.
+    if ((event.target as Element | null)?.closest?.("button[data-ib-print]:not(:disabled, [aria-disabled=true])")) window.print();
   });
 }

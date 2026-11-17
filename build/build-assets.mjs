@@ -363,6 +363,27 @@ const builds = [
     outfile: join(lib, "wwwroot", "treeselect.css"),
   },
   {
+    // A sheet of its own, linked by Slider and RangeSlider.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "slider.css")],
+    outfile: join(lib, "wwwroot", "slider.css"),
+  },
+  {
+    // A sheet of its own, linked by Diff.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "diff.css")],
+    outfile: join(lib, "wwwroot", "diff.css"),
+  },
+  {
+    // A sheet of its own, linked by Timeline.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "timeline.css")],
+    outfile: join(lib, "wwwroot", "timeline.css"),
+  },
+  {
     // A sheet of its own, linked by SpeedDial.
     ...common,
     sourcemap: false,
