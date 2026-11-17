@@ -18,7 +18,7 @@
                 <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" Size="ControlSize.Lg" />
                 <Checkbox @bind-Value="Model!.Consent" id="Sign_up_band_on-consent" />
                 <Button Submit Size="ControlSize.Lg" DisabledUntil="Sign_up_band_on-consent">@Action</Button>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">@Fine <TextBlock As="span" Color="Color.OnSurface" Style="white-space: nowrap"><Anchor Href="#" InheritColor>Privacy policy</Anchor></TextBlock></TextBlock>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">@Fine <TextBlock As="span" Color="Color.OnSurface" Wrap="TextWrap.NoWrap"><Anchor Href="#" InheritColor>Privacy policy</Anchor></TextBlock></TextBlock>
             </Form>
         </Column>
     </Container>
