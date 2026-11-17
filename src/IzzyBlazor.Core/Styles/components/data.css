@@ -166,12 +166,21 @@
     font-size: var(--ib-text-sm);
   }
 
+  /* Centered on the title's first line. A ghost button's padding is pulled out to the edge and up; a
+     link or a link-styled button has none, so it sits at the content's edge on the title's line. */
   .ib-card-actions {
     display: flex;
     flex: none;
+    align-items: center;
     gap: var(--ib-space-1);
+    min-block-size: calc(var(--ib-card-title) * var(--ib-leading-snug));
     margin-block-start: calc(var(--ib-space-1) * -1);
     margin-inline: auto calc(var(--ib-space-2) * -1);
+  }
+
+  .ib-card-actions:not(:has(.ib-btn:not(.ib-btn-link))) {
+    margin-block-start: 0;
+    margin-inline: auto 0;
   }
 
   .ib-card-body {

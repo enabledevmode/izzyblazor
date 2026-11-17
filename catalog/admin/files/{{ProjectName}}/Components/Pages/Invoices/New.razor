@@ -401,8 +401,8 @@ else
 
     // A review section: its answers, and a link back to the step that asked them.
     private RenderFragment Section(string title, int step, RenderFragment body) =>
-        @<Card Title="@title" TitleLevel="3">
-            <CardActions><Anchor Href="@Here(step)">Change<VisuallyHidden> @title.ToLowerInvariant()</VisuallyHidden></Anchor></CardActions>
+        @<Card Title="@title" TitleLevel="3" Size="ControlSize.Sm">
+            <CardActions><Button Href="@Here(step)" Variant="ButtonVariant.Link">Change<VisuallyHidden> @title.ToLowerInvariant()</VisuallyHidden></Button></CardActions>
             @body
         </Card>;
 
@@ -421,7 +421,7 @@ else
                 <Button Submit Name="go" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Save as draft</Button>
             }
             <Box Grow VisibleFrom="Breakpoint.Sm" />
-            <Anchor Href="@(Editing ? $"invoices/{_invoice!.Id}" : "invoices")" AlignSelf="new() { Base = Align.Center, Sm = Align.Center }">Cancel</Anchor>
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" AlignSelf="new() { Base = Align.Center, Sm = Align.Center }"><Anchor Href="@(Editing ? $"invoices/{_invoice!.Id}" : "invoices")" InheritColor>Cancel</Anchor></TextBlock>
         </Stack>;
 
     private sealed record Picked(int Id, string Name, string Email);
