@@ -1,0 +1,17 @@
+@* An app header's account menu: the avatar in place of the icon, round to match it, named by Label. *@
+<Row Gap="2" Align="Align.Center" Justify="Justify.End" PaddingX="3" PaddingY="2" Border="1" Radius="Radius.Md" Grow>
+    <Menu Placement="Placement.BottomEnd">
+        <Trigger>
+            <IconButton Label="Account" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context">
+                <Avatar Name="Maya Chen" Size="AvatarSize.Sm" Decorative />
+            </IconButton>
+        </Trigger>
+        <ChildContent>
+            <MenuGroup Label="Maya Chen">
+                <MenuItem Href="#" Icon="Lucide.User">Manage account</MenuItem>
+            </MenuGroup>
+            <MenuDivider />
+            <MenuItem Href="#" Icon="Lucide.LogOut">Log out</MenuItem>
+        </ChildContent>
+    </Menu>
+</Row>

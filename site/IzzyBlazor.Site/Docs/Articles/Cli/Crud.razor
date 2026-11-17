@@ -13,8 +13,9 @@
         <Heading Level="2">Add the page</Heading>
         <Code Block Language="bash">izzy add crud Customer</Code>
         <TextBlock>
-            This creates a page at <Code>/customers</Code>. The grid on it can search, sort and page the customers. Add and
-            Edit open a dialog that checks the form against the model's attributes, and Delete asks before it deletes.
+            This creates a page at <Code>/customers</Code>. The grid on it can search, sort and page the customers, and filters
+            its choice columns (an enum, a yes or no) from their headers. Add and Edit open a dialog that checks the form
+            against the model's attributes, and Delete asks before it deletes. A new customer's dates start at today.
         </TextBlock>
         @* The page izzy creates, live in a frame (Frame/CrudDemoFramePage.razor), at a desktop's or a phone's
            width. The switch reloads the page; data-site-return keeps the preview where it was on the screen. *@

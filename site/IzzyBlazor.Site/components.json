@@ -446,7 +446,7 @@
     {
       "id": "relative-time", "icon": "Clock3", "name": "RelativeTime", "category": "Typography", "summary": "Shows a time as how long ago it was, kept current.", "keywords": ["time ago", "timeago", "humanize", "timestamp", "from now"],
       "examples": [
-        { "id": "relative-time-usage", "title": "How long ago", "lead": "Set `Value` to a time, in UTC or with its offset. It reads \"2 hours ago\" or \"yesterday\", with the full date on hover, and stays current while the page is open.",
+        { "id": "relative-time-usage", "title": "How long ago", "lead": "Set `Value` to a time, in UTC or with its offset. It reads \"2 hours ago\" or \"Yesterday\", with the full date on hover, and stays current while the page is open. It starts with a capital, as it stands alone; within a sentence, set `Capitalize` to false.",
           "notes": {
             "noscript": "The times are as of when the page loaded, in the server's words.",
             "static": "The times stay current, in the reader's language and time zone.",
@@ -574,7 +574,8 @@
             "noscript": "Delete posts the file's name, and the page reloads without the file. Restore is a link back.",
             "static": "Delete posts without a full reload, and the response redirects to a URL listing what's deleted.",
             "interactive": "Delete runs OnClick in C#, and nothing is posted."
-          } }
+          } },
+        { "id": "icon-button-account-menu", "title": "An avatar in place of the icon", "lead": "To open an account menu from someone's picture, put an `Avatar` in the button instead of setting `Icon`. The button stays square, round around the avatar, and `Label` names it, so make the avatar `Decorative`." }
       ]
     },
 
@@ -3080,7 +3081,7 @@
             { "id": "data-grid-editing", "title": "Editing rows", "lead": "Dialog editing opens a form in a dialog where the user adds or edits a row. Set `EditMode` to `DataGridEditMode.Dialog`, and handle `OnSave`.", "after": ["Each column, shown or not, gets a field that matches its type. To lock one, such as the key, set its `Editable` to false. A save is a form post, and only editable columns receive a value from it.", "To reject a save, call `AddError` in `OnSave`. The dialog stays open with the error on its field.", "To add an Add button, set `NewItem`. To add a Delete action that asks first, set `OnDelete`. To limit editing or deleting by row, set `ItemEditable` or `ItemDeletable`.", "To order the actions or add your own, write an `ActionColumn`.", "The grid needs an explicit `TItem`. On static pages, the row type also needs a parameterless constructor."] },
             { "id": "data-grid-edit-in-row", "title": "Editing in the row", "lead": "Row editing changes a row where it stands, with Save and Cancel in place of its actions, and suits a few short fields. Set `EditMode` to `DataGridEditMode.Row`; it works with JavaScript off.", "after": ["Only the columns shown have a field, so a hidden column keeps its value. A new row starts at the top of the page.", "Sorting or changing page ends the edit and drops what was typed. It can't be used with `Virtualize` or loading on scroll."] },
             { "id": "data-grid-edit-cells", "title": "Editing one cell at a time", "modes": ["interactive"], "lead": "Cell editing changes one value at a time, the quickest way to make small changes. Set `EditMode` to `DataGridEditMode.Cell`.", "after": ["A click, Enter, F2 or typing opens a cell. Tab, Enter or a click elsewhere saves it.", "`OnSave` runs for each cell that changed, and an invalid cell stays open. A new row is edited as with `Row`.", "Cell editing is for interactive pages. On static pages the same grid edits a row at a time, as with `Row`."] },
-            { "id": "data-grid-two-columns", "title": "Laying out the edit dialog", "lead": "To lay out the edit dialog's form, set `EditColumns`, `EditLayout` and `EditDialogTitle`. The dialog widens to fit the columns; `EditDialogSize` sets its size yourself. This example uses two columns.", "after": ["In `EditDialog`, an `EditField` sets each field's place, `ColSpan`, `Label` and `Hint`. A column's `EditTemplate` replaces its field with your own.", "To show a disabled Delete with a tooltip instead of hiding it, set `DisabledReason` on the `DeleteAction`."] },
+            { "id": "data-grid-two-columns", "title": "Laying out the edit dialog", "lead": "To lay out the edit dialog's form, set `EditColumns`, `EditLayout` and `EditDialogTitle`, and `EditSaveText` for a button that says what it does, such as Create customer. The dialog widens to fit the columns; `EditDialogSize` sets its size yourself. This example uses two columns.", "after": ["In `EditDialog`, an `EditField` sets each field's place, `ColSpan`, `Label` and `Hint`. A column's `EditTemplate` replaces its field with your own.", "To show a disabled Delete with a tooltip instead of hiding it, set `DisabledReason` on the `DeleteAction`."] },
             { "id": "data-grid-own-form", "title": "A custom form in the dialog", "lead": "For a form that isn't fields of the row, write it in `EditDialogForm`; its context's `CloseAsync` closes the dialog once you've saved. The grid opens and closes the dialog; the form, its model and its post are yours. On static pages, guard against forged fields with a view model, as this example does." }
           ]
         },

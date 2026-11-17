@@ -14,7 +14,7 @@ public sealed class RelativeTimeTests(SiteFixture site) : IClassFixture<SiteFixt
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "frame/relative-time-usage?mode=static").ToString());
         var newest = page.Locator("time.ib-relative-time").First;
 
-        await Assertions.Expect(newest).ToHaveTextAsync("now");
+        await Assertions.Expect(newest).ToHaveTextAsync("Now");
         await page.Clock.FastForwardAsync("02:00:00");
         await Assertions.Expect(newest).ToHaveTextAsync("2 hours ago");
     }

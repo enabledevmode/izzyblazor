@@ -19,7 +19,7 @@
                     <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" Size="ControlSize.Lg" HideLabel Grow />
                     <Button Submit Size="ControlSize.Lg">@Action</Button>
                 </Stack>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">@Fine <TextBlock As="span" Color="Color.OnSurface" Style="white-space: nowrap"><Anchor Href="#" InheritColor>Privacy policy</Anchor></TextBlock></TextBlock>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">@Fine <TextBlock As="span" Color="Color.OnSurface" Wrap="TextWrap.NoWrap"><Anchor Href="#" InheritColor>Privacy policy</Anchor></TextBlock></TextBlock>
             </Form>
         </Column>
     </Container>
