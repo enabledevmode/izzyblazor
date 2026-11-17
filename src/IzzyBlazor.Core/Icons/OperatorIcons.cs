@@ -1,6 +1,6 @@
 namespace IzzyBlazor;
 
-/// <summary>Icons drawn for IzzyBlazor where Lucide's don't fit, at its 1.5 stroke to sit with it.</summary>
+/// <summary>Icons drawn for IzzyBlazor where Lucide's don't fit, at the default stroke to sit with them.</summary>
 internal static class OperatorIcons
 {
     /// <summary>

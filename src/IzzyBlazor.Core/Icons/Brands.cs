@@ -1,6 +1,6 @@
 // Brand logos as outlines, to sit with the Lucide icons, which no longer include brands: Tabler's brand
 // icons (@tabler/icons 3.49.0, MIT; see THIRD-PARTY-NOTICES.md), plus NuGet and .NET, which Tabler
-// doesn't have, drawn for IzzyBlazor. All on a 24px grid, drawn at Lucide's 1.5 stroke.
+// doesn't have, drawn for IzzyBlazor. All on a 24px grid, drawn at the default stroke, as Lucide's are.
 #nullable enable
 
 namespace IzzyBlazor;
