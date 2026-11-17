@@ -361,8 +361,14 @@
     /// <summary>How labels sit next to the edit dialog's fields, as <c>Form</c>'s <c>Layout</c>.</summary>
     [Parameter] public FormLayout EditLayout { get; set; } = FormLayout.Vertical;
 
-    /// <summary>The edit dialog's size. Defaults to <see cref="DialogSize.Md"/>.</summary>
-    [Parameter] public DialogSize EditDialogSize { get; set; } = DialogSize.Md;
+    /// <summary>
+    /// The edit dialog's size. Defaults to one wide enough for <see cref="EditColumns"/>: <see cref="DialogSize.Md"/>
+    /// for one column, <see cref="DialogSize.Lg"/> for two, <see cref="DialogSize.Xl"/> for more (a form shows
+    /// columns only when it has the width for them).
+    /// </summary>
+    [Parameter] public DialogSize? EditDialogSize { get; set; }
+
+    private DialogSize EditDialogShownSize => EditDialogSize ?? (EditColumns >= 3 ? DialogSize.Xl : EditColumns == 2 ? DialogSize.Lg : DialogSize.Md);
 
     /// <summary>The edit dialog's title, from the row, which is the default for a new one. Defaults to "Edit" and the row's label, or "Add".</summary>
     [Parameter] public Func<TItem?, string>? EditDialogTitle { get; set; }
@@ -782,7 +788,7 @@
         var found = isNew || (item is not null && CanEditRow(item));
         var label = EditDialogTitle?.Invoke(item)
             ?? (isNew ? TextDefaults.Add : item is null ? TextDefaults.Edit : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)));
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(isNew ? "" : key)">
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="EditDialogShownSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(isNew ? "" : key)">
             @if (found)
             {
                 @EditDialogForm!.Invoke(new DataGridEditFormContext<TItem>(item, isNew, EditCancel, () => EndEditAsync(saved: true)))
@@ -1023,7 +1029,7 @@
         SyncEdit(key, posted);
         var missing = _editModel is null && !IsLoading && !_finding;
         var title = EditDialogTitle is { } titled && _editModel is not null ? titled(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogShownSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
             <Form Columns="EditColumns" Layout="EditLayout" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
                 @if (missing)
                 {
