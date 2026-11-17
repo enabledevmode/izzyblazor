@@ -148,4 +148,14 @@ public class NavigationRenderTests : BunitContext
         Assert.Equal("/", cut.Find("a.ib-breadcrumb-link").GetAttribute("href"));
         Assert.Equal("page", cut.Find("span.ib-breadcrumb-current").GetAttribute("aria-current"));
     }
+
+    [Fact]
+    public void Breadcrumb_text_only_item_is_neither_a_link_nor_the_current_page()
+    {
+        var cut = Render<BreadcrumbItem>(p => p.Add(i => i.TextOnly, true).AddChildContent("Settings"));
+
+        var item = cut.Find("span.ib-breadcrumb-text");
+        Assert.False(item.HasAttribute("aria-current"));
+        Assert.Empty(cut.FindAll("a"));
+    }
 }
