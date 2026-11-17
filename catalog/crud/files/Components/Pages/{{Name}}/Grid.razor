@@ -25,6 +25,7 @@
     <DataGrid TItem="{{ModelType}}" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.{{Key}}.ToString()!" RowLabel="@(x => $"{{RowName}}")" Caption="{{Plural}}" PageSize="10"
               InitialSort="{{InitialSort}}" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="{{LayoutKey}}" ExportExcelHref="{{Route}}/export.xlsx" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New {{SingularLower}}" : "Edit {{SingularLower}}")"
+              EditSaveText="@(x => x is null ? "Create {{SingularLower}}" : "Save changes")"
 @*#if (HasEditPolicy) *@
               NewItem="@(_canEdit ? () => new {{ModelType}}{{NewItemInit}} : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
               AddText="Add {{SingularLower}}" OnSave="SaveAsync" OnDelete="DeleteAsync"

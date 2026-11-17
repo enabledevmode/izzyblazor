@@ -20,6 +20,7 @@
     <DataGrid TItem="Customer" ItemsProvider="Find" FindItem="FindAsync" ItemKey="x => x.Id.ToString()!" RowLabel="@(x => $"{x.FirstName} {x.LastName}")" Caption="Customers" PageSize="10"
               InitialSort="-joined" SmallScreen="DataGridSmallScreen.HideColumns" Searchable ColumnPicker LayoutKey="customers" ExportExcelHref="customers/export.xlsx" ToolbarLabels
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(x => x is null ? "New customer" : "Edit customer")"
+              EditSaveText="@(x => x is null ? "Create customer" : "Save changes")"
               NewItem="@(_canEdit ? () => new Customer { Joined = DateOnly.FromDateTime(DateTime.Today) } : null)" ItemEditable="_ => _canEdit" ItemDeletable="_ => _canEdit"
               AddText="Add customer" OnSave="SaveAsync" OnDelete="DeleteAsync"
               NoMatchesText="No customers match “{0}”" Grow>
