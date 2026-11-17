@@ -11,6 +11,9 @@
     the page recreates it and a box that defaults to true comes back checked. A disabled box
     posts nothing, like any disabled field; in a read-only Form it's disabled and posts its value.
 
+    On static pages a change does nothing until the form posts, unless SubmitOnChange posts it as
+    the box changes.
+
     `Indeterminate` shows a dash, for a "select all" box when only some are selected. It's display
     only: the box posts as unchecked ("false"), and choosing it clears the dash.
 
@@ -39,6 +42,7 @@
                @bind="CurrentValue"
                required="@IsRequired"
                disabled="@IsDisabled"
+               data-ib-submit="@(SubmitOnChange ? "" : null)"
                aria-invalid="@(Invalid ? "true" : null)"
                aria-describedby="@DescribedBy" />
         @if (Icon is { } icon)
@@ -101,6 +105,13 @@
     /// Decorative: screen readers read only the label. Use icons on every row of a group or none.
     /// </summary>
     [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>
+    /// Posts the form around it as it changes, such as a task marked done or a setting saved at once
+    /// on a static page. With JavaScript off, the form's own submit button posts it.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool SubmitOnChange { get; set; }
 
     /// <summary>Renders as a switch. Use <see cref="Switch"/> instead of setting this.</summary>
     protected virtual bool AsSwitch => false;

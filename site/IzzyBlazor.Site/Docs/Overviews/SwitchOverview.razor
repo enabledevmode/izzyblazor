@@ -1,5 +1,5 @@
 @* Switch's Overview, written by hand after Button's, Card's and MultiSelect's: settings rows (at
-   the end, with icons), saving as it changes on an interactive page, and states. Accessibility
+   the end, with icons), saving as it changes, and states. Accessibility
    and See also come from the doc comment. *@
 
 <TextBlock>A switch is a <Anchor Href="docs/components/checkbox">Checkbox</Anchor> that reads as on or off, for settings. It posts the same way, <Code>true</Code> or <Code>false</Code>, so it works on static pages with <Anchor Href="docs/common/render-modes">JavaScript off</Anchor>. For agreeing to something or choosing an item, use a checkbox.</TextBlock>
@@ -14,9 +14,9 @@
 <TextBlock>The icon is decorative, so give every row in a group an icon, or none.</TextBlock>
 
 <Heading Level="2">Saving as it changes</Heading>
-<TextBlock>On interactive pages, a switch can save each change as it happens. Bind it with <Code>@@bind-Value:after</Code> and save in the method it calls. Static pages save when the form posts, so they need a Save button.</TextBlock>
+<TextBlock>A setting can save as soon as it's switched. Set <Code>SubmitOnChange</Code>, and the switch posts its form as it changes, on static and interactive pages. Save in the form's <Code>OnValidSubmit</Code>.</TextBlock>
 <ExampleViewer Example="switch-save-on-change" />
-<TextBlock>To hide the Save button on interactive pages, check <Code>AssignedRenderMode</Code> as well as <Code>RendererInfo.IsInteractive</Code>. <Code>RendererInfo.IsInteractive</Code> is false while the page prerenders, so checking it alone shows the button and then hides it.</TextBlock>
+<TextBlock>With JavaScript off, nothing posts the form as the switch changes. Put a Save button in a <Code>noscript</Code>, so it shows only there. A <Anchor Href="docs/components/checkbox">Checkbox</Anchor> takes <Code>SubmitOnChange</Code> too, such as a task's box that marks it done.</TextBlock>
 
 <Heading Level="2">Sizes and disabled</Heading>
 <TextBlock>To line the switch up with buttons and other fields, set <Code>Size</Code>. For a switch the user can't change, set <Code>Disabled</Code>; a disabled switch doesn't post.</TextBlock>
