@@ -5,6 +5,7 @@
 @*
     The top of a page: its title (with a status badge beside it, if set), a muted line on what
     it's for, and actions at the end, which wrap under the text on narrow screens. The title is the page's h1 unless set.
+    A record's page can show its avatar or icon before the title (PageHeaderMedia), over it on a phone.
 
     Accessibility:
     - `Title` is a heading, an `h1` by default; set `TitleLevel` when the page has its own h1.
@@ -14,6 +15,10 @@
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @if (_scope.Shown<PageHeaderMedia>() is { } media)
+    {
+        <div class="ib-page-header-media">@_scope.Outlet(media)</div>
+    }
     <div class="ib-page-header-text">
         @if (Badge is not null)
         {
@@ -62,7 +67,7 @@
 
     /// <summary>
     /// Anything else under the description, such as a status line, and any
-    /// <see cref="PageHeaderActions"/>.
+    /// <see cref="PageHeaderMedia"/> or <see cref="PageHeaderActions"/>.
     /// </summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 

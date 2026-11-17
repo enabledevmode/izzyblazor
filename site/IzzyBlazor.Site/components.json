@@ -77,10 +77,11 @@
     },
 
     {
-      "id": "page-header", "icon": "PanelTop", "name": "PageHeader", "category": "Layout", "summary": "Shows a page's title, its status, what it's for, and its actions.", "keywords": ["page title", "heading", "toolbar"], "parts": ["PageHeaderActions"],
+      "id": "page-header", "icon": "PanelTop", "name": "PageHeader", "category": "Layout", "summary": "Shows a page's title, its status, what it's for, and its actions.", "keywords": ["page title", "heading", "toolbar"], "parts": ["PageHeaderMedia", "PageHeaderActions"],
       "examples": [
         { "id": "page-header-usage", "title": "Title, description and actions", "lead": "A page header names the page and says what it's for. Set `Title` and `Description`. For the page's main actions or its status, add `PageHeaderActions`; they sit at the end and wrap under the text on a phone." },
         { "id": "page-header-status-badge", "title": "A status beside the title", "lead": "For a record's page, such as one invoice, set `Badge` to where it stands and `BadgeStatus` to its color. The badge sits beside the title and wraps under a long one." },
+        { "id": "page-header-media", "title": "An avatar before the title", "lead": "For a person's or a company's page, put an `Avatar` in `PageHeaderMedia`. It sits before the title, centered on the text, and over it on a phone." },
         { "id": "page-header-sizes", "title": "Sizes", "lead": "`Size` sets the title's size: `Sm` for a section inside a page, `Md` (the default) for most pages, `Lg` for a page with little else on it, such as a sign-in form. For a header under the page's own h1, set `TitleLevel`." }
       ]
     },
