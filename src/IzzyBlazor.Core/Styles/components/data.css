@@ -442,9 +442,21 @@
   }
 
   /* A header with filter or column-menu buttons divides its columns, so each button is plainly its
-     column's (a column's button sits at its end, beside the next column's title). */
-  .ib-table-grid > thead:has(.ib-table-filter-button:not([hidden])) > tr > th + th {
-    border-inline-start: 1px solid var(--ib-color-border);
+     column's (it sits at its column's end, beside the next column's title): a short line, centered, in
+     the row lines' color, as a resize handle draws one. With ColumnLines the lines run full height
+     instead (above). None after the last column, or beside the narrow control columns (the expand,
+     select or drag column at the start, the row actions at the end); a resizable column's handle draws its own. */
+  :where(.ib-table:not(.ib-table-column-lines) .ib-table-grid > thead:has(.ib-table-filter-button:not([hidden])) > tr > th:not(.ib-frozen)) {
+    position: relative;
+  }
+
+  .ib-table:not(.ib-table-column-lines) .ib-table-grid > thead:has(.ib-table-filter-button:not([hidden])) > tr > th:not(:last-child, .ib-grid-lead, :has(+ .ib-grid-menu-cell), :has(> .ib-col-resize))::after {
+    content: "";
+    position: absolute;
+    inset-block: 30%;
+    inset-inline-end: 0;
+    border-inline-end: 1px solid var(--ib-color-border);
+    pointer-events: none;
   }
 
   /* Borderless, it takes the color of whatever it sits in (a card, a panel). */
@@ -1407,6 +1419,11 @@
     inset-block: 30%;
     inset-inline-end: 0;
     border-inline-end: 1px solid var(--ib-color-border);
+  }
+
+  /* No divider after the last column, or before the row actions: there's nothing beside it to divide from. */
+  .ib-datagrid thead th:is(:last-child, :has(+ .ib-grid-menu-cell)) > .ib-col-resize:not(:hover)::after {
+    border-inline-end-color: transparent;
   }
 
   .ib-col-resize:hover::after {
