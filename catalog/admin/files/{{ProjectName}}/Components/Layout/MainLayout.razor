@@ -5,9 +5,9 @@
    pages in groups and Settings at its foot. On wide screens it collapses to an icon rail (the button at
    its foot, remembered in a cookie); on phones it's a drawer behind the menu button. The header holds
    the page's breadcrumbs (PageCrumbs), the color scheme and your account. Only the main area scrolls, as in
-   an app: the header and sidebar stay where they are. Content is 1600px at most, centered, with the header's
-   content lined up over it. *@
-<AppShell ScrollMode="ShellScroll.Main" ContentWidth="Length.Rem(100)">
+   an app: the header and sidebar stay where they are. Page content is 1600px at most, centered; the header is
+   app chrome, so it spans the window beside the sidebar, the account menu in the corner. *@
+<AppShell ScrollMode="ShellScroll.Main">
     <AppHeader>
         <SidebarToggle HiddenFrom="Breakpoint.Md" />
         <Box VisibleFrom="Breakpoint.Md">
@@ -46,7 +46,7 @@
     </AppSidebar>
 
     @* A list page fills the main area (its top element has Grow), and its grid scrolls its own rows. *@
-    <AppMain PaddingY="new() { Base = 6, Md = 8 }">
+    <AppMain ContentWidth="Length.Rem(100)" PaddingY="new() { Base = 6, Md = 8 }">
         <ErrorGuard ShowDetails="DetailedErrors">
             @Body
         </ErrorGuard>
