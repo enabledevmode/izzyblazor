@@ -25,7 +25,7 @@
                         @foreach (var (_, allows, roles) in Policies.All)
                         {
                             var yes = roles.Contains(role);
-                            <ListItem Icon="@(yes ? Lucide.Check : Lucide.Minus)" IconColor="@(yes ? Color.Success : Color.Muted)">
+                            <ListItem Icon="@(yes ? Lucide.Check : Lucide.Minus)" IconColor="@(yes ? Color.SuccessText : Color.Muted)">
                                 <VisuallyHidden>@(yes ? "Allowed: " : "Not allowed: ")</VisuallyHidden>
                                 @if (yes)
                                 {
