@@ -50,7 +50,6 @@
                 @bind="CurrentValueAsString"
                 required="@IsRequired"
                 disabled="@IsDisabled"
-                data-ib-submit="@(SubmitOnChange ? "" : null)"
                 aria-invalid="@(Invalid ? "true" : null)"
                 aria-describedby="@DescribedBy">
             @if (ItemTemplate is not null)
@@ -102,13 +101,6 @@
     /// that can be empty, there while one is chosen. Off by default.
     /// </summary>
     [Parameter] public bool Clearable { get; set; }
-
-    /// <summary>
-    /// Posts the form around it as the choice changes, such as a sort order or a record's status on a
-    /// static page. With JavaScript off, the form's own submit button posts it.
-    /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
-    public bool SubmitOnChange { get; set; }
 
     /// <inheritdoc />
     protected override void OnParametersSet()

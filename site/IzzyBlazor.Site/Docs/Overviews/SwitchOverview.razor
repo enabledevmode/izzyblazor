@@ -14,7 +14,7 @@
 <TextBlock>The icon is decorative, so give every row in a group an icon, or none.</TextBlock>
 
 <Heading Level="2">Saving as it changes</Heading>
-<TextBlock>A setting can save as soon as it's switched. Set <Code>SubmitOnChange</Code>, and the switch posts its form as it changes, on static and interactive pages. Save in the form's <Code>OnValidSubmit</Code>.</TextBlock>
+<TextBlock>A setting can save as soon as it's switched. Set <Code>SubmitOnChange</Code>, and the switch posts its form as it changes, on static and interactive pages. Save in the form's <Code>OnValidSubmit</Code>. It posts the whole form, so it's for a form that holds only the switch. A form with several settings saves them together, with a Save button.</TextBlock>
 <ExampleViewer Example="switch-save-on-change" />
 <TextBlock>With JavaScript off, nothing posts the form as the switch changes. Put a Save button in a <Code>noscript</Code>, so it shows only there. A <Anchor Href="docs/components/checkbox">Checkbox</Anchor> takes <Code>SubmitOnChange</Code> too, such as a task's box that marks it done.</TextBlock>
 
