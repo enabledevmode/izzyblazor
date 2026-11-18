@@ -230,7 +230,7 @@
     },
 
     {
-      "id": "app-sidebar", "icon": "PanelLeft", "name": "AppSidebar", "category": "Layout", "summary": "Shows a sidebar that becomes a drawer or panel on small screens.", "keywords": ["sidebar", "navigation drawer"], "parts": ["SidebarHeader", "SidebarBody", "SidebarFooter", "SidebarToggle"],
+      "id": "app-sidebar", "icon": "PanelLeft", "name": "AppSidebar", "category": "Layout", "summary": "Shows a sidebar that becomes a drawer or panel on small screens.", "keywords": ["sidebar", "navigation drawer"], "parts": ["SidebarHeader", "SidebarBody", "SidebarFooter", "SidebarAccount", "SidebarToggle"],
       "features": [
         { "feature": "A column beside the page, from its breakpoint up" },
         { "feature": "A drawer or panel on phones, opened and closed by the menu button" },

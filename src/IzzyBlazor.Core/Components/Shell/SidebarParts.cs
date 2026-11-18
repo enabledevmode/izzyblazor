@@ -22,13 +22,13 @@ public sealed class SidebarHeader : ComponentPart
 }
 
 /// <summary>
-/// Pinned to the bottom of an <see cref="AppSidebar"/>, below the scrolling content: an account menu
-/// or settings. Write it directly in the sidebar.
+/// Pinned to the bottom of an <see cref="AppSidebar"/>, below the scrolling content: the account
+/// (<see cref="SidebarAccount"/>) or settings. Write it directly in the sidebar.
 /// </summary>
 /// <example>
 /// <code>
 /// &lt;SidebarFooter&gt;
-///     &lt;Menu ...&gt;...&lt;/Menu&gt;
+///     &lt;SidebarAccount Name="Ada Lovelace" Description="Owner" Href="/account" /&gt;
 /// &lt;/SidebarFooter&gt;
 /// </code>
 /// </example>

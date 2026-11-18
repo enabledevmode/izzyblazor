@@ -16,6 +16,8 @@
 <Heading Level="2">Pinned at the top and bottom</Heading>
 <TextBlock>A sidebar can pin content at its top and bottom while the links between them scroll. Put what stays at the top, such as a workspace, in a <Code>SidebarHeader</Code>, and what stays at the bottom, such as the account, in a <Code>SidebarFooter</Code>. Write both directly in the sidebar.</TextBlock>
 <Code Block Language="razor">@Pinned</Code>
+<TextBlock><Code>SidebarAccount</Code> is the signed-in person's row for the footer: an avatar, their name and a second line such as a role. With an <Code>Href</Code> it links to the account page. With <Anchor Href="docs/components/menu">menu</Anchor> items as its content it's a button, and the menu opens above it.</TextBlock>
+<Code Block Language="razor">@Account</Code>
 <TextBlock>In the drawer, the header shares the top row with the close button. With no <Code>SidebarHeader</Code>, the drawer's top row shows the shell's <Code>AppBrand</Code>. Links written straight in the sidebar are its body, so use <Code>SidebarBody</Code> only for spacing, such as a <Code>Gap</Code> between two lists.</TextBlock>
 
 <Heading Level="2">A panel under the header</Heading>
@@ -24,7 +26,7 @@
 <TextBlock>A <Anchor Href="docs/components/site-nav">SiteNav</Anchor> in the header puts its links at the top of the panel or drawer on phones, so a phone has one menu rather than two.</TextBlock>
 
 <Heading Level="2">An icon rail</Heading>
-<TextBlock>An icon rail is the sidebar shrunk to its icons on wide screens, which leaves more room for the page. The menu button collapses and expands it, and each link's text shows as a tooltip. Set <Code>Collapsible</Code> to turn it on.</TextBlock>
+<TextBlock>An icon rail is the sidebar shrunk to its icons on wide screens, which leaves more room for the page. The menu button collapses and expands it, and each link's text shows as a tooltip. A <Code>SidebarAccount</Code> shrinks to its avatar. Set <Code>Collapsible</Code> to turn it on.</TextBlock>
 <ExampleViewer Example="app-sidebar-icon-rail" WidthSwitch />
 <List>
     <ListItem>With <Anchor Href="docs/common/render-modes">IzzyBlazor's script</Anchor>, the user's choice is kept in a cookie that the server reads, so the next page arrives collapsed. The cookie is named after the sidebar's <Code>Id</Code>: <Code>rail-collapsed</Code> in this example, <Code>ib-sidebar-collapsed</Code> by default. To turn this off, set <Code>RememberState="false"</Code>.</ListItem>
@@ -94,6 +96,16 @@
         </AppSidebar>
         """;
 
+    private const string Account = """
+        <SidebarFooter>
+            <SidebarAccount Name="Ada Lovelace" Description="Owner">
+                <MenuItem Href="/account" Icon="Lucide.User">Account</MenuItem>
+                <MenuDivider />
+                <MenuItem Submit Form="logout-form" Icon="Lucide.LogOut">Log out</MenuItem>
+            </SidebarAccount>
+        </SidebarFooter>
+        """;
+
     private const string Pinned = """
         <AppSidebar>
             <SidebarHeader>
@@ -104,9 +116,7 @@
                 <NavMenu aria-label="Projects">...</NavMenu>
             </SidebarBody>
             <SidebarFooter>
-                <NavMenu aria-label="Account">
-                    <NavItem Href="/account" Icon="Lucide.CircleUser">Ada Lovelace</NavItem>
-                </NavMenu>
+                <SidebarAccount Name="Ada Lovelace" Description="Owner" Href="/account" />
             </SidebarFooter>
         </AppSidebar>
         """;

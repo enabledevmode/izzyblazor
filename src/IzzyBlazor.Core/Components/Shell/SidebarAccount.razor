@@ -1,0 +1,110 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the menu opens and closes, but arrow keys and type-ahead don't move between items.")]
+
+@*
+    The signed-in person's row in a SidebarFooter: their photo or initials, their name and a second
+    line such as their role. With menu items as its content it's a button that opens them above
+    the row; with an Href and no items it's a link to the account page. In the icon rail only the
+    avatar shows, with the name as its tooltip.
+
+    <SidebarFooter>
+        <SidebarAccount Name="Ada Lovelace" Description="Owner">
+            <MenuItem Href="/account" Icon="Lucide.User">Account</MenuItem>
+            <MenuDivider />
+            <MenuItem Submit Form="logout-form" Icon="Lucide.LogOut">Log out</MenuItem>
+        </SidebarAccount>
+    </SidebarFooter>
+
+    Accessibility:
+    - The button or link is named by the name and the description, in the icon rail too, where
+      they're hidden from sight. The avatar isn't read.
+    - The menu is a Menu: its roles, focus and keys are the same.
+
+    See also: Menu, AppSidebar, Avatar.
+*@
+
+@{
+    RenderFragment row =
+        @<text>
+            <Avatar Name="@Name" Src="@Src" Size="AvatarSize.Sm" Decorative />
+            <span class="ib-sidebar-account-text">
+                <span class="ib-sidebar-account-name">@Name</span>
+                @if (!string.IsNullOrEmpty(Description))
+                {
+                    <span class="ib-sidebar-account-description ib-collapsed-hide">@Description</span>
+                }
+            </span>
+        </text>;
+}
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/sidebar-account.css"]" />
+@if (ChildContent is null)
+{
+    <a @attributes="AdditionalAttributes" href="@Href" class="@_class" style="@Style">@row</a>
+}
+else
+{
+    <Menu Placement="Placement.TopStart" HiddenFrom="HiddenFrom" VisibleFrom="VisibleFrom">
+        <Trigger>
+            <button type="button" class="@_class" style="@Style" @attributes="Merged(context)">
+                @row
+                <Icon Name="Lucide.ChevronsUpDown" Class="ib-sidebar-account-chevron ib-collapsed-hide" />
+            </button>
+        </Trigger>
+        <ChildContent>@ChildContent</ChildContent>
+    </Menu>
+}
+
+@code {
+    /// <summary>The person's name: shown, and the source of the avatar's initials and their color.</summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+
+    /// <summary>A second, quieter line under the name, such as a role or an email address.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>The person's photo. Without one, or if it fails to load, their initials show.</summary>
+    [Parameter] public string? Src { get; set; }
+
+    /// <summary>Where the row links, such as the account page, when it has no menu items.</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// The menu's <see cref="MenuItem"/>s, <see cref="MenuGroup"/>s and <see cref="MenuDivider"/>s.
+    /// With them the row is a button that opens the menu above it.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        var classes = new ClassBuilder().Add("ib-sidebar-account");
+        if (ChildContent is null)
+        {
+            // The menu's wrapper carries these otherwise.
+            classes.Add(VisibilityClasses);
+        }
+
+        classes.Add(Class);
+        _class = classes.Build();
+    }
+
+    // One splat on the button: the menu's wiring over anything set on the component.
+    private IReadOnlyDictionary<string, object> Merged(IReadOnlyDictionary<string, object> trigger)
+    {
+        if (AdditionalAttributes is null or { Count: 0 })
+        {
+            return trigger;
+        }
+
+        var merged = new Dictionary<string, object>(AdditionalAttributes);
+        foreach (var (key, value) in trigger)
+        {
+            merged[key] = value;
+        }
+
+        return merged;
+    }
+}
