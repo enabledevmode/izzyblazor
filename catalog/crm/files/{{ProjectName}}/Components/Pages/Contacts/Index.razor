@@ -71,7 +71,7 @@
             </TemplateColumn>
             <PropertyColumn Property="c => c.Source" Title="Lead source" Visible="false" />
             <PropertyColumn Property="c => c.NextFollowUp" Title="Next follow-up" Visible="false" />
-            <PropertyColumn Property="c => c.Notes" Visible="false">
+            <PropertyColumn Property="c => c.Notes" Title="Background" Visible="false">
                 <EditTemplate Context="field">
                     <TextArea @bind-Value="field.Item.Notes" Placeholder="Helpful context about this person…" @attributes="field.Attributes" />
                 </EditTemplate>

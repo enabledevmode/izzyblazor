@@ -2,15 +2,21 @@
 @page "/contacts/{Id:int}/{Section}"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
+@using System.ComponentModel.DataAnnotations
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
+@inject IAuthorizationService Authorization
+@inject ToastService Toasts
 
 <PageTitle>@(_contact?.Name ?? "Contact")</PageTitle>
 
 @* A contact: who they are, and everything the team has done with them. Its sections are tabs with an address
    each (/contacts/7, /contacts/7/deals, /tasks, /notes), so each loads only its own data, can be linked to, and
-   Back works. Beside every section: the contact's details (Edit opens the Contacts grid's dialog and comes back
-   here) and what's next on the calendar. People who can't edit records (Viewers) see no buttons. *@
+   Back works. Beside every section: what's next on the calendar, the contact's details and their background
+   (Edit opens the Contacts grid's dialog and comes back here). On a phone, Email and Call sit under the name,
+   then what's next, then the sections. Notes are the team's own, newest first: a short one is written here and
+   shows whole; a titled one shows how it opens and links to the rest. People who can't edit records (Viewers)
+   read everything and can email or call, and see no other buttons. *@
 @if (_contact is { } contact)
 {
     <Column Gap="6">
@@ -21,14 +27,31 @@
         </PageCrumbs>
         <PageHeader Title="@contact.Name" Description="@Summary(contact)">
             <PageHeaderMedia><Avatar Name="@contact.Name" Size="AvatarSize.Lg" Decorative /></PageHeaderMedia>
-            <AuthorizeView Policy="@Policies.EditRecords">
-                @* On a phone the two float in the corner, behind one button. *@
-                <PageHeaderActions FloatLabel="Contact actions">
+            @* On a phone Email and Call are a row under the header, and the other two float in the corner behind one button. *@
+            <PageHeaderActions FloatLabel="Contact actions">
+                <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" VisibleFrom="Breakpoint.Sm">Email</Button>
+                @if (Tel(contact) is { } tel)
+                {
+                    <Button Href="@tel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" VisibleFrom="Breakpoint.Sm">Call</Button>
+                }
+                @if (_canEdit)
+                {
                     <Button Href="@($"activities/new?contact={Id}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.CalendarPlus" FloatBelow="Breakpoint.Sm">Log activity</Button>
                     <Button Href="@($"deals/new?contact={Id}")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
-                </PageHeaderActions>
-            </AuthorizeView>
+                }
+            </PageHeaderActions>
         </PageHeader>
+
+        <Grid Columns="@(Tel(contact) is null ? 1 : 2)" Gap="2" HiddenFrom="Breakpoint.Sm">
+            <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail">Email</Button>
+            @if (Tel(contact) is { } tel)
+            {
+                <Button Href="@tel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone">Call</Button>
+            }
+        </Grid>
+
+        @* Above the sections until the side column shows (1024px). *@
+        <Box HiddenFrom="Breakpoint.Lg">@NextFollowUp</Box>
 
         <TabNav Label="Contact sections">
             <TabLink Href="@($"contacts/{Id}")" Label="Activity" Match="NavLinkMatch.All" />
@@ -90,41 +113,85 @@
                         break;
 
                     case "notes":
-                        <Card Title="Account notes" TitleLevel="2">
-                            <CardBody Gap="3" Align="Align.Start">
-                                @if (Paragraphs(contact.Notes) is { Length: > 0 } notes)
-                                {
-                                    @foreach (var paragraph in notes)
-                                    {
-                                        <TextBlock Color="Color.Muted">@paragraph</TextBlock>
-                                    }
-                                }
-                                else
-                                {
-                                    <TextBlock Color="Color.Muted">No notes yet.</TextBlock>
-                                }
-                                <AuthorizeView Policy="@Policies.EditRecords">
-                                    <Button Href="@($"contacts/{Id}/notes?dialog=new-note")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Plus">Add note</Button>
-                                </AuthorizeView>
-                            </CardBody>
-                        </Card>
+                        @if (_canEdit)
+                        {
+                            <Card>
+                                <Form Model="Draft" FormName="add-note" OnValidSubmit="AddNoteAsync" RequiredMark="RequiredMark.None">
+                                    <TextArea @bind-Value="Draft!.Body" Label="Note" Rows="3" AutoGrow Placeholder="Goals, decisions, and next steps…" />
+                                    <FormActions>
+                                        <Button Submit>Add note</Button>
+                                    </FormActions>
+                                </Form>
+                            </Card>
+                        }
+                        @foreach (var note in _notes)
+                        {
+                            <Card @key="note.Id">
+                                <Comment Author="@(note.Author?.Name ?? "Someone")" Time="When.Zoned(note.Created, _workspace)" TimeText="@Written(note.Created)" Text="@note.Summary" HeadingLevel="3">
+                                    <Extra>
+                                        @if (_canEdit)
+                                        {
+                                            <Menu Placement="Placement.BottomEnd">
+                                                <Trigger>
+                                                    <IconButton Label="Note options" Icon="Lucide.Ellipsis" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @attributes="context" />
+                                                </Trigger>
+                                                <ChildContent>
+                                                    <MenuItem Href="@($"notes/{note.Id}/edit")" Icon="Lucide.Pencil">Edit</MenuItem>
+                                                    <MenuItem Href="@($"contacts/{Id}/notes?dialog=delete-note&note={note.Id}")" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                                                </ChildContent>
+                                            </Menu>
+                                        }
+                                    </Extra>
+                                    <Actions>
+                                        @if (note.Title.Length > 0)
+                                        {
+                                            <Row Gap="2" Align="Align.Center">
+                                                <Icon Name="Lucide.FileText" Size="IconSize.Sm" />
+                                                <TextBlock As="span" Size="TextSize.Sm"><Anchor Href="@($"notes/{note.Id}")">@note.Title</Anchor></TextBlock>
+                                            </Row>
+                                        }
+                                    </Actions>
+                                </Comment>
+                            </Card>
+                        }
+                        @if (_notes.Count == 0 && !_canEdit)
+                        {
+                            <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about {contact.FirstName} show here.")" /></Card>
+                        }
+
+                        @* Delete asks first: the menu's link opens this (?dialog=delete-note&note=5). *@
+                        @if (_canEdit && _notes.FirstOrDefault(n => n.Id == Note) is { } doomed)
+                        {
+                            <Dialog Id="delete-note" Title="Delete this note?" Size="DialogSize.Sm">
+                                <Form Model="Delete" FormName="delete-note" OnValidSubmit="DeleteNoteAsync">
+                                    <input type="hidden" name="Delete.Id" value="@doomed.Id" />
+                                    <TextBlock Color="Color.Muted">@(doomed.Title.Length > 0 ? doomed.Title : doomed.Summary)</TextBlock>
+                                    <DialogFooter>
+                                        <DialogClose>Cancel</DialogClose>
+                                        <Button Submit Accent="Accent.Danger">Delete</Button>
+                                    </DialogFooter>
+                                </Form>
+                            </Dialog>
+                        }
                         break;
                 }
             </Column>
 
             <Column Gap="4">
+                <Box VisibleFrom="Breakpoint.Lg">@NextFollowUp</Box>
+
                 <Card Title="Contact details" TitleLevel="2">
-                    <AuthorizeView Policy="@Policies.EditRecords">
+                    @if (_canEdit)
+                    {
                         <CardActions>
-                            <Button Href="@($"contacts?edit={Id}&return=/{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil">Edit</Button>
+                            <Button Href="@EditHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil">Edit</Button>
                         </CardActions>
-                    </AuthorizeView>
+                    }
                     <DescriptionList Orientation="Orientation.Vertical">
                         <DescriptionItem Term="Email"><Anchor Href="@($"mailto:{contact.Email}")">@contact.Email</Anchor></DescriptionItem>
-                        @if (!string.IsNullOrWhiteSpace(contact.Phone))
+                        @if (Tel(contact) is { } tel)
                         {
-                            @* A link that calls: the number's digits, with a leading + kept. *@
-                            <DescriptionItem Term="Phone"><Anchor Href="@($"tel:{new string(contact.Phone.Where(c => char.IsDigit(c) || c == '+').ToArray())}")">@contact.Phone</Anchor></DescriptionItem>
+                            <DescriptionItem Term="Phone"><Anchor Href="@tel">@contact.Phone</Anchor></DescriptionItem>
                         }
                         @if (contact.Company is { } company)
                         {
@@ -138,24 +205,24 @@
                     </DescriptionList>
                 </Card>
 
-                <Card Title="Next follow-up" TitleLevel="2">
-                    <CardBody Gap="3" Align="Align.Start">
-                        @if (_next is { } next)
+                @* What's worth knowing about them: the contact's own Background field, edited with the rest. *@
+                @if (Paragraphs(contact.Notes) is { Length: > 0 } background)
+                {
+                    <Card Title="Background" TitleLevel="2">
+                        @if (_canEdit)
                         {
-                            <Column Gap="0">
-                                <Heading Level="3" Size="TextSize.Sm">@next.Title</Heading>
-                                <TextBlock Color="Color.Muted">@($"{When.Day(DateOnly.FromDateTime(next.Start), _today)} · {When.Time(next.Start)}")</TextBlock>
-                            </Column>
+                            <CardActions>
+                                <Button Href="@EditHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil" aria-label="Edit background">Edit</Button>
+                            </CardActions>
                         }
-                        else
-                        {
-                            <TextBlock Color="Color.Muted">Nothing scheduled.</TextBlock>
-                        }
-                        <AuthorizeView Policy="@Policies.EditRecords">
-                            <Button Href="@($"activities/new?contact={Id}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Schedule activity</Button>
-                        </AuthorizeView>
-                    </CardBody>
-                </Card>
+                        <CardBody Gap="3">
+                            @foreach (var paragraph in background)
+                            {
+                                <TextBlock Color="Color.Muted">@paragraph</TextBlock>
+                            }
+                        </CardBody>
+                    </Card>
+                }
             </Column>
         </Grid>
     </Column>
@@ -171,6 +238,27 @@
     /// <summary>The tasks just ticked here, which stay in the list: "4,7".</summary>
     [SupplyParameterFromQuery] private string? Done { get; set; }
 
+    /// <summary>The note the delete dialog asks about (?dialog=delete-note&amp;note=5).</summary>
+    [SupplyParameterFromQuery] private int? Note { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    // The note being written on the Notes tab.
+    [SupplyParameterFromForm(FormName = "add-note")] private NoteDraft? Draft { get; set; }
+
+    // The note the delete dialog posted.
+    [SupplyParameterFromForm(FormName = "delete-note")] private NoteRef? Delete { get; set; }
+
+    private sealed class NoteDraft
+    {
+        [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string? Body { get; set; }
+    }
+
+    private sealed class NoteRef
+    {
+        public int Id { get; set; }
+    }
+
     private Workspace? _workspace;
     private DateOnly _today;
     private Contact? _contact;
@@ -178,6 +266,36 @@
     private List<Happened> _history = [];
     private List<Deal> _deals = [];
     private List<Activity> _tasks = [];
+    private List<Note> _notes = [];
+    private bool _canEdit;
+    private string? _me;
+
+    // Edit opens the Contacts grid's dialog, which comes back to this tab.
+    private string EditHref => $"contacts?edit={Id}&return=/{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}";
+
+    // What's next on the calendar with them: beside the sections on a wide screen, above them on a small one.
+    private RenderFragment NextFollowUp => __builder =>
+    {
+        <Card Title="Next follow-up" TitleLevel="2">
+            <CardBody Gap="3" Align="Align.Start">
+                @if (_next is { } next)
+                {
+                    <Column Gap="0">
+                        <Heading Level="3" Size="TextSize.Sm">@next.Title</Heading>
+                        <TextBlock Color="Color.Muted">@($"{When.Day(DateOnly.FromDateTime(next.Start), _today)} · {When.Time(next.Start)}")</TextBlock>
+                    </Column>
+                }
+                else
+                {
+                    <TextBlock Color="Color.Muted">Nothing scheduled.</TextBlock>
+                }
+                @if (_canEdit)
+                {
+                    <Button Href="@($"activities/new?contact={Id}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Schedule activity</Button>
+                }
+            </CardBody>
+        </Card>
+    };
 
     // Something in the contact's history: what, more about it, "who · when" as written, and when (the workspace's time).
     private sealed record Happened(string Title, string? About, string Time, DateTime When);
@@ -187,6 +305,11 @@
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
         var now = Clock.Now(_workspace);
         _today = DateOnly.FromDateTime(now);
+        var user = (await AuthState).User;
+        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
+        Draft ??= new();
+        Delete ??= new();
 
         _contact = await Db.Contacts.AsNoTracking().Include(c => c.Company).Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
         if (_contact is null || Section is not (null or "deals" or "tasks" or "notes"))
@@ -217,8 +340,48 @@
                     .Where(a => a.Type == ActivityType.Task && a.ContactId == Id && (a.Completed == null || ticked.Contains(a.Id)))
                     .OrderBy(a => a.Start).ToListAsync();
                 break;
+            case "notes":
+                _notes = await Db.Notes.AsNoTracking().Include(n => n.Author)
+                    .Where(n => n.ContactId == Id).OrderByDescending(n => n.Created).ToListAsync();
+                break;
         }
     }
+
+    // A short note, written on the page: no title, linked to the contact, yours.
+    private async Task AddNoteAsync()
+    {
+        if (!_canEdit) return;
+        var now = DateTime.UtcNow;
+        Db.Notes.Add(new Note { ContactId = Id, Body = Draft!.Body!.Trim(), AuthorId = _me, Created = now, Edited = now });
+        if (await Db.Contacts.FirstOrDefaultAsync(c => c.Id == Id) is { } contact) contact.LastActivity = now;
+        await Db.SaveChangesAsync();
+        Toasts.Success($"It’s on {_contact!.Name}’s page for the whole team.", "Note added");
+        Navigation.NavigateTo($"contacts/{Id}/notes");
+    }
+
+    private async Task DeleteNoteAsync()
+    {
+        if (!_canEdit) return;
+        if (await Db.Notes.FirstOrDefaultAsync(n => n.Id == Delete!.Id && n.ContactId == Id) is { } note)
+        {
+            Db.Notes.Remove(note);
+            await Db.SaveChangesAsync();
+            Toasts.Success(note.Title.Length > 0 ? note.Title : "The note is gone for everyone.", "Note deleted");
+        }
+
+        Navigation.NavigateTo($"contacts/{Id}/notes");
+    }
+
+    // When a note was written, as the app writes it: "Nov 14 · 12:10 PM".
+    private string Written(DateTime utc)
+    {
+        var at = When.Local(utc, _workspace);
+        return $"{When.Date(DateOnly.FromDateTime(at), _today)} · {When.Time(at)}";
+    }
+
+    // The number as a link that calls: its digits, a leading + kept. Null without one.
+    private static string? Tel(Contact contact) =>
+        string.IsNullOrWhiteSpace(contact.Phone) ? null : $"tel:{new string(contact.Phone.Where(c => char.IsDigit(c) || c == '+').ToArray())}";
 
     // The timeline, newest first: every activity with them that's finished, then the day they were added.
     private async Task LoadHistoryAsync(Contact contact)
