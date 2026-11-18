@@ -25,7 +25,8 @@ public sealed class DialogHeader : ComponentPart
 /// The row of buttons at the bottom of a <see cref="Dialog"/> or <see cref="Drawer"/>, usually a
 /// <see cref="DialogClose"/> and the main action. Write it last: last in the dialog, or last in a
 /// form that's last in the dialog, so its buttons stay inside the form and submit it. It reaches the
-/// dialog's edges (and follows <c>ContentPadding</c>) and stays in view when the body scrolls. In a
+/// dialog's edges (and follows <c>ContentPadding</c>) and stays in view when the body scrolls; after a
+/// <see cref="DialogBody"/>, only that scrolls, above the footer. In a
 /// side drawer it follows the content, so with little content it sits partway down.
 /// A row like <see cref="Row"/>, with <c>Gap</c>, <c>Align</c> and <c>Justify</c> (the buttons go at
 /// the end by default). Also for content shown by <see cref="DialogService"/>.
@@ -61,7 +62,8 @@ public class DialogFooter : FlexBase
 /// <c>Justify</c> and <c>Direction</c>, like <see cref="Stack"/>. Optional: content written straight
 /// in the dialog is its body too. It fills the dialog's height, so a <see cref="DialogFooter"/>
 /// after it sits at the bottom of a side drawer whatever the content's length; put it and the
-/// footer in a form to keep the footer's buttons in the form. With a DialogBody, put all the body's
+/// footer in a form to keep the footer's buttons in the form. With a footer straight after it, a long
+/// DialogBody is what scrolls, so the scrollbar stops at the footer. With a DialogBody, put all the body's
 /// content in it: text written beside it is laid out as separate rows. <see cref="Flush"/> runs it
 /// to the dialog's edges, for a table or a list.
 /// </summary>
