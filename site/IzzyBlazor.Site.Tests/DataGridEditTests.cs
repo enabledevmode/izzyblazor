@@ -68,8 +68,8 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         var dialog = page.Locator($"{Grid} dialog[open]");
         await dialog.GetByLabel("Customer").FillAsync("Brand New");
         await dialog.GetByLabel("Status").SelectOptionAsync("Pending");
-        // The dialog's submit button, whatever it reads.
-        await dialog.Locator("button[type=submit]").ClickAsync();
+        // The edit form's own submit button, whatever it reads (the dialog's Close posts another form).
+        await dialog.Locator("button[type=submit]:not([form])").ClickAsync();
         await Assertions.Expect(dialog).ToHaveCountAsync(0);
         await Assertions.Expect(rows.First).ToContainTextAsync("Brand New");
 
