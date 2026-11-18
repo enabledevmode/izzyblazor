@@ -1,0 +1,247 @@
+@page "/contacts/{Id:int}"
+@page "/contacts/{Id:int}/{Section}"
+@attribute [Authorize(Policy = Policies.ViewRecords)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+
+<PageTitle>@(_contact?.Name ?? "Contact")</PageTitle>
+
+@* A contact: who they are, and everything the team has done with them. Its sections are tabs with an address
+   each (/contacts/7, /contacts/7/deals, /tasks, /notes), so each loads only its own data, can be linked to, and
+   Back works. Beside every section: the contact's details (Edit opens the Contacts grid's dialog and comes back
+   here) and what's next on the calendar. People who can't edit records (Viewers) see no buttons. *@
+@if (_contact is { } contact)
+{
+    <Column Gap="6">
+        @* In the column, so on a phone the trail has the page's gap above the title. *@
+        <PageCrumbs Trail>
+            <BreadcrumbItem Href="contacts">Contacts</BreadcrumbItem>
+            <BreadcrumbItem>@contact.Name</BreadcrumbItem>
+        </PageCrumbs>
+        <PageHeader Title="@contact.Name" Description="@About(contact.Company?.Name, contact.Status.ToString())">
+            <PageHeaderMedia><Avatar Name="@contact.Name" Size="AvatarSize.Lg" Decorative /></PageHeaderMedia>
+            <AuthorizeView Policy="@Policies.EditRecords">
+                @* On a phone the two float in the corner, behind one button. *@
+                <PageHeaderActions FloatLabel="Contact actions">
+                    <Button Href="@($"activities/new?contact={Id}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.CalendarPlus" FloatBelow="Breakpoint.Sm">Log activity</Button>
+                    <Button Href="@($"deals/new?contact={Id}")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
+                </PageHeaderActions>
+            </AuthorizeView>
+        </PageHeader>
+
+        <TabNav Label="Contact sections">
+            <TabLink Href="@($"contacts/{Id}")" Label="Activity" Match="NavLinkMatch.All" />
+            <TabLink Href="@($"contacts/{Id}/deals")" Label="Deals" />
+            <TabLink Href="@($"contacts/{Id}/tasks")" Label="Tasks" />
+            <TabLink Href="@($"contacts/{Id}/notes")" Label="Notes" />
+        </TabNav>
+
+        @* The section, and beside it from 1024px the details: under it on smaller screens. *@
+        <Grid Template="@(new() { Base = "minmax(0, 1fr)", Lg = "minmax(0, 1fr) 20rem" })" Gap="4" Align="Align.Start">
+            <Column Gap="4">
+                @switch (Section)
+                {
+                    case null:
+                        <Card Title="Relationship timeline" TitleLevel="2">
+                            <CardActions><Badge>All activity</Badge></CardActions>
+                            <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
+                                @foreach (var item in _history)
+                                {
+                                    <TimelineItem Title="@item.Title" Time="@item.Time" DateTime="@item.When.ToString("yyyy-MM-ddTHH:mm")">
+                                        @if (!string.IsNullOrWhiteSpace(item.About))
+                                        {
+                                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@item.About</TextBlock>
+                                        }
+                                    </TimelineItem>
+                                }
+                            </Timeline>
+                        </Card>
+                        break;
+
+                    case "deals":
+                        @if (_deals.Count > 0)
+                        {
+                            <ListView Items="_deals" ItemKey="d => d.Id.ToString()" Label="@($"Deals with {contact.FirstName}")" Bordered
+                                      ItemText="d => d.Name" ItemHref="@(d => $"deals/{d.Id}")"
+                                      ItemDescription="@(d => $"{_workspace!.Money(d.Value)} · Expected {When.Date(d.ExpectedClose, _today)}")" Context="deal">
+                                <ItemActions><Badge Status="Tones.Of(deal.Stage)">@deal.Stage</Badge></ItemActions>
+                            </ListView>
+                        }
+                        else
+                        {
+                            <Card><EmptyState Icon="Lucide.Handshake" Size="ControlSize.Sm" Title="No open deals" Description="@($"Deals with {contact.FirstName} show here.")" /></Card>
+                        }
+                        break;
+
+                    case "tasks":
+                        <Card>
+                            <CardBody Flush>
+                                @if (_tasks.Count > 0)
+                                {
+                                    <TaskList Tasks="_tasks" Today="_today" Label="@($"Tasks for {contact.FirstName}")" />
+                                }
+                                else
+                                {
+                                    <EmptyState Icon="Lucide.CircleCheck" Size="ControlSize.Sm" Title="No open tasks" Description="@($"Tasks for {contact.FirstName} show here.")" />
+                                }
+                            </CardBody>
+                        </Card>
+                        break;
+
+                    case "notes":
+                        <Card Title="Account notes" TitleLevel="2">
+                            <CardBody Gap="3" Align="Align.Start">
+                                @if (Paragraphs(contact.Notes) is { Length: > 0 } notes)
+                                {
+                                    @foreach (var paragraph in notes)
+                                    {
+                                        <TextBlock Color="Color.Muted">@paragraph</TextBlock>
+                                    }
+                                }
+                                else
+                                {
+                                    <TextBlock Color="Color.Muted">No notes yet.</TextBlock>
+                                }
+                                <AuthorizeView Policy="@Policies.EditRecords">
+                                    <Button Href="@($"contacts/{Id}/notes?dialog=new-note")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Plus">Add note</Button>
+                                </AuthorizeView>
+                            </CardBody>
+                        </Card>
+                        break;
+                }
+            </Column>
+
+            <Column Gap="4">
+                <Card Title="Contact details" TitleLevel="2">
+                    <AuthorizeView Policy="@Policies.EditRecords">
+                        <CardActions>
+                            <Button Href="@($"contacts?edit={Id}&return=/{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil">Edit</Button>
+                        </CardActions>
+                    </AuthorizeView>
+                    <DescriptionList Orientation="Orientation.Vertical">
+                        <DescriptionItem Term="Email"><Anchor Href="@($"mailto:{contact.Email}")">@contact.Email</Anchor></DescriptionItem>
+                        @if (contact.Company is { } company)
+                        {
+                            <DescriptionItem Term="Company"><Anchor Href="@($"companies/{company.Id}")">@company.Name</Anchor></DescriptionItem>
+                        }
+                        @if (contact.Owner is { } owner)
+                        {
+                            <DescriptionItem Term="Relationship owner">@owner.Name</DescriptionItem>
+                        }
+                        <DescriptionItem Term="Status"><Badge Status="Tones.Of(contact.Status)">@contact.Status</Badge></DescriptionItem>
+                    </DescriptionList>
+                </Card>
+
+                <Card Title="Next follow-up" TitleLevel="2">
+                    <CardBody Gap="3" Align="Align.Start">
+                        @if (_next is { } next)
+                        {
+                            <Column Gap="0">
+                                <Heading Level="3" Size="TextSize.Sm">@next.Title</Heading>
+                                <TextBlock Color="Color.Muted">@($"{When.Day(DateOnly.FromDateTime(next.Start), _today)} · {When.Time(next.Start)}")</TextBlock>
+                            </Column>
+                        }
+                        else
+                        {
+                            <TextBlock Color="Color.Muted">Nothing scheduled.</TextBlock>
+                        }
+                        <AuthorizeView Policy="@Policies.EditRecords">
+                            <Button Href="@($"activities/new?contact={Id}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Schedule activity</Button>
+                        </AuthorizeView>
+                    </CardBody>
+                </Card>
+            </Column>
+        </Grid>
+    </Column>
+}
+
+@code {
+    /// <summary>The contact.</summary>
+    [Parameter] public int Id { get; set; }
+
+    /// <summary>The tab: none for Activity, or "deals", "tasks", "notes".</summary>
+    [Parameter] public string? Section { get; set; }
+
+    /// <summary>The tasks just ticked here, which stay in the list: "4,7".</summary>
+    [SupplyParameterFromQuery] private string? Done { get; set; }
+
+    private Workspace? _workspace;
+    private DateOnly _today;
+    private Contact? _contact;
+    private Activity? _next;
+    private List<Happened> _history = [];
+    private List<Deal> _deals = [];
+    private List<Activity> _tasks = [];
+
+    // Something in the contact's history: what, more about it, "who · when" as written, and when (the workspace's time).
+    private sealed record Happened(string Title, string? About, string Time, DateTime When);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
+        var now = Clock.Now(_workspace);
+        _today = DateOnly.FromDateTime(now);
+
+        _contact = await Db.Contacts.AsNoTracking().Include(c => c.Company).Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
+        if (_contact is null || Section is not (null or "deals" or "tasks" or "notes"))
+        {
+            _contact = null;
+            Navigation.NotFound();
+            return;
+        }
+
+        // What's next on the calendar with them: the first open activity that hasn't started.
+        _next = await Db.Activities.AsNoTracking()
+            .Where(a => a.ContactId == Id && a.Completed == null && a.Start >= now).OrderBy(a => a.Start).FirstOrDefaultAsync();
+
+        switch (Section)
+        {
+            case null:
+                await LoadHistoryAsync(_contact);
+                break;
+            case "deals":
+                _deals = await Db.Deals.AsNoTracking()
+                    .Where(d => d.ContactId == Id && d.Stage != DealStage.Won && d.Stage != DealStage.Lost).OrderBy(d => d.ExpectedClose).ToListAsync();
+                break;
+            case "tasks":
+                // Their open tasks, and those just ticked (?done=, from TaskCheck), which stay in sight.
+                var ticked = TaskCheck.Ids(Done);
+                _tasks = await Db.Activities.AsNoTracking()
+                    .Include(a => a.Contact!.Company).Include(a => a.Deal!.Company)
+                    .Where(a => a.Type == ActivityType.Task && a.ContactId == Id && (a.Completed == null || ticked.Contains(a.Id)))
+                    .OrderBy(a => a.Start).ToListAsync();
+                break;
+        }
+    }
+
+    // The timeline, newest first: every activity with them that's finished, then the day they were added.
+    private async Task LoadHistoryAsync(Contact contact)
+    {
+        var done = await Db.Activities.AsNoTracking().Include(a => a.AssignedTo)
+            .Where(a => a.ContactId == Id && a.Completed != null).OrderByDescending(a => a.Completed).ToListAsync();
+        _history = done.Select(a =>
+        {
+            var at = When.Local(a.Completed!.Value, _workspace);
+            return new Happened(
+                a.Type switch
+                {
+                    ActivityType.Call => $"Call logged · {a.Duration} minutes",
+                    ActivityType.Meeting => $"Meeting held · {a.Duration} minutes",
+                    _ => a.Title,
+                },
+                a.Agenda, About(a.AssignedTo?.Name, When.At(at, _today)), at);
+        }).ToList();
+
+        // Who added them, from the audit log; the day is the contact's own.
+        var id = Id.ToString();
+        var added = await Db.AuditEvents.AsNoTracking()
+            .Where(e => e.Action == AuditActions.Created && e.EntityType == nameof(Contact) && e.EntityId == id).OrderBy(e => e.Time).FirstOrDefaultAsync();
+        _history.Add(new Happened("Contact added", null, About(added?.ActorName, When.Day(contact.Added, _today)), contact.Added.ToDateTime(TimeOnly.MinValue)));
+    }
+
+    private static string[] Paragraphs(string? text) =>
+        (text ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static string About(params string?[] parts) => string.Join(" · ", parts.Where(p => !string.IsNullOrEmpty(p)));
+}

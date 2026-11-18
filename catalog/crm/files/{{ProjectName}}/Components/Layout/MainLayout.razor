@@ -50,8 +50,9 @@
     </AppSidebar>
 
     @* The page: up to 80rem wide, in the middle of the space beside the sidebar, so on a wide screen it isn't held
-       against one edge. A list page fills the main area (its top element has Grow), and its grid scrolls its own rows. *@
-    <AppMain ContentWidth="Length.Rem(80)" Padding="new() { Base = 4, Md = 6 }">
+       against one edge. The centered column has a 16px gutter each side, so the sides add only what's left of the
+       design's 24px from 768px up (16px on a phone). A list page fills the main area (its top element has Grow), and its grid scrolls its own rows. *@
+    <AppMain ContentWidth="Length.Rem(80)" PaddingY="new() { Base = 4, Md = 6 }" PaddingX="new() { Base = 0, Md = 2 }">
         <ErrorGuard ShowDetails="DetailedErrors">
             @Body
         </ErrorGuard>
