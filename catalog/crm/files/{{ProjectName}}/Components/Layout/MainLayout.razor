@@ -1,64 +1,79 @@
 @inherits LayoutComponentBase
+@using Microsoft.EntityFrameworkCore
 @inject IConfiguration Configuration
+@inject ApplicationDbContext Db
+@inject AuthenticationStateProvider Auth
 
-@* The admin console's shell: a sidebar the full height of the window, with the brand at its top, the
-   pages in groups and Settings at its foot. On wide screens it collapses to an icon rail (the button at
-   its foot, remembered in a cookie); on phones it's a drawer behind the menu button. The header holds
-   the page's breadcrumbs (PageCrumbs), the color scheme and your account. Only the main area scrolls, as in
-   an app: the header and sidebar stay where they are. Page content is 1600px at most, centered; the header is
-   app chrome, so it spans the window beside the sidebar, the account menu in the corner. *@
+@* The CRM's shell: a sidebar the full height of the window, with the brand and the workspace's name at its
+   top and the pages under them, each with its count. On wide screens it collapses to an icon rail (the button
+   at its top, remembered in a cookie); on phones it's a drawer behind the menu button. The header holds the
+   page's breadcrumbs (PageCrumbs), the color scheme and your account. Only the main area scrolls, as in an
+   app: the header and sidebar stay where they are. *@
 <AppShell ScrollMode="ShellScroll.Main">
     <AppHeader>
         <SidebarToggle HiddenFrom="Breakpoint.Md" />
+        <AppBrand Href="" Icon="Lucide.Handshake" Label="Izzy CRM" HiddenFrom="Breakpoint.Md" />
         <Box VisibleFrom="Breakpoint.Md">
             <SectionOutlet SectionName="@PageCrumbs.Section" />
         </Box>
         <Spacer />
-        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Menu" />
+        <ColorSchemeSwitch />
         <AccountMenu />
     </AppHeader>
 
-    <AppSidebar FullHeight Collapsible CollapseButton="true">
+    <AppSidebar FullHeight Collapsible CollapseButton="true" CollapseButtonPosition="VerticalPosition.Top">
         <SidebarHeader>
-            <AppBrand Href="" Icon="Lucide.Box" Label="{{ProjectName}}" />
+            <AppBrand Href="" Icon="Lucide.Handshake" Label="Izzy CRM" />
+            <TextBlock Size="TextSize.Xs" Color="Color.Muted" Class="ib-collapsed-hide">@_workspace</TextBlock>
         </SidebarHeader>
         <NavMenu>
-            <NavItem Href="" Match="NavLinkMatch.All" Icon="Lucide.Sun">My day</NavItem>
             <AuthorizeView Policy="@Policies.ViewRecords">
-                <NavItem Href="contacts" Icon="Lucide.Users">Contacts</NavItem>
-                <NavItem Href="companies" Icon="Lucide.Building">Companies</NavItem>
-                <NavItem Href="deals" Icon="Lucide.Columns3">Deal pipeline</NavItem>
+                <NavLabel>Workspace</NavLabel>
+                <NavItem Href="" Match="NavLinkMatch.All" Icon="Lucide.Sun" Badge="@Count(_due)" BadgeVariant="BadgeVariant.Plain">My day</NavItem>
+                <NavItem Href="contacts" Icon="Lucide.Users" Badge="@Count(_contacts)" BadgeVariant="BadgeVariant.Plain">Contacts</NavItem>
+                <NavItem Href="companies" Icon="Lucide.Building" Badge="@Count(_companies)" BadgeVariant="BadgeVariant.Plain">Companies</NavItem>
+                <NavItem Href="deals" Icon="Lucide.Columns3" Badge="@Count(_deals)" BadgeVariant="BadgeVariant.Plain">Deal pipeline</NavItem>
                 <NavItem Href="activities" Icon="Lucide.CalendarDays">Activities</NavItem>
                 <NavItem Href="reports" Icon="Lucide.ChartNoAxesCombined">Reports</NavItem>
             </AuthorizeView>
-            <AuthorizeView Policy="@Policies.ManageUsers">
-                <NavLabel>Admin</NavLabel>
-                <NavItem Href="admin/users" Icon="Lucide.Users">Users</NavItem>
-                <NavItem Href="admin/roles" Icon="Lucide.Shield">Roles</NavItem>
-                <AuthorizeView Policy="@Policies.ViewAudit" Context="audit">
-                    <NavItem Href="admin/audit" Icon="Lucide.RotateCcwClock">Audit log</NavItem>
-                </AuthorizeView>
-            </AuthorizeView>
         </NavMenu>
-        <SidebarFooter>
-            <NavMenu aria-label="Account">
-                <NavItem Href="Account/Manage" Icon="Lucide.Settings">Settings</NavItem>
-            </NavMenu>
-        </SidebarFooter>
     </AppSidebar>
 
-    @* A list page fills the main area (its top element has Grow), and its grid scrolls its own rows. *@
-    <AppMain ContentWidth="Length.Rem(100)" PaddingY="new() { Base = 6, Md = 8 }">
-        <ErrorGuard ShowDetails="DetailedErrors">
-            @Body
-        </ErrorGuard>
+    <AppMain Padding="new() { Base = 4, Md = 6 }">
+        <Container Size="ContainerSize.Xl" Align="ContainerAlign.Start" Gutters="false">
+            <ErrorGuard ShowDetails="DetailedErrors">
+                @Body
+            </ErrorGuard>
+        </Container>
     </AppMain>
 </AppShell>
 
 <ToastRegion />
 
 @code {
+    private string? _workspace;
+    private int _due, _contacts, _companies, _deals;
+
     // A page that throws shows an alert in its place; the exception itself only where
     // DetailedErrors is on, as appsettings.Development.json sets it.
     private bool DetailedErrors => Configuration.GetValue<bool>("DetailedErrors");
+
+    // The counts beside the links: what you have due by the end of today, everyone's contacts and
+    // companies, and the deals still open. No count shows for zero.
+    protected override async Task OnInitializedAsync()
+    {
+        var workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
+        _workspace = workspace?.Name;
+        var user = (await Auth.GetAuthenticationStateAsync()).User;
+        if (!user.IsInRole(Roles.Admin) && !user.IsInRole(Roles.Manager) && !user.IsInRole(Roles.Viewer)) return;
+
+        var me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var tomorrow = Clock.Today(workspace).AddDays(1).ToDateTime(TimeOnly.MinValue);
+        _due = await Db.Activities.CountAsync(a => a.Type == ActivityType.Task && a.Completed == null && a.AssignedToId == me && a.Start < tomorrow);
+        _contacts = await Db.Contacts.CountAsync();
+        _companies = await Db.Companies.CountAsync();
+        _deals = await Db.Deals.CountAsync(d => d.Stage != DealStage.Won && d.Stage != DealStage.Lost);
+    }
+
+    private static string? Count(int count) => count == 0 ? null : count.ToString("N0");
 }

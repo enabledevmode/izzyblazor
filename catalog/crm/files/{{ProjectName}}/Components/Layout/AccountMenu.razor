@@ -2,7 +2,7 @@
 @inject NavigationManager NavigationManager
 
 @* At the end of the header. Signed in: your avatar (your name's initials), opening a menu headed by your
-   name, to manage your account or log out. Signed out: Log in; there's no Register, as accounts
+   email, to reach Settings & team (admins), manage your account or log out. Signed out: Log in; there's no Register, as accounts
    come by invite. The name comes from your sign-in (Security/NameClaim.cs); with none set, the email. *@
 <AuthorizeView>
     <Authorized>
@@ -16,7 +16,10 @@
                 </IconButton>
             </Trigger>
             <ChildContent>
-                <MenuGroup Label="@(shown ?? "Account")">
+                <MenuGroup Label="@(context.User.Identity?.Name ?? shown ?? "Account")">
+                    <AuthorizeView Policy="@Policies.ManageUsers" Context="admin">
+                        <MenuItem Href="settings" Icon="Lucide.Settings2">Settings &amp; team</MenuItem>
+                    </AuthorizeView>
                     <MenuItem Href="Account/Manage" Icon="Lucide.User">Manage account</MenuItem>
                 </MenuGroup>
                 <MenuDivider />

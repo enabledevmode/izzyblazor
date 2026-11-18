@@ -14,7 +14,7 @@
     "fixed": {
       "Interactivity": "None", "AllInteractive": "false", "Auth": "Individual", "UseLocalDB": "false",
       "Empty": "false", "Nav": "Sidebar", "UseProgramMain": "false", "NoHttps": "false",
-      "Registration": "false"
+      "Registration": "false", "Preset": "Compact"
     }
   },
   "exclude": [
