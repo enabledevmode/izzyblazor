@@ -61,7 +61,7 @@
                 </EditTemplate>
             </TemplateColumn>
             <PropertyColumn Property="c => c.Status" Width="Length.Rem(7)" Priority="1" Sortable Filterable Context="contact">
-                <Badge Status="Tone(contact.Status)">@contact.Status</Badge>
+                <Badge Status="Tones.Of(contact.Status)">@contact.Status</Badge>
             </PropertyColumn>
             <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" Sortable EditBy="c => c.OwnerId" Context="contact">
                 <ChildContent>@contact.Owner?.Name</ChildContent>
@@ -181,11 +181,4 @@
         if (save.IsNew) Toasts.Success($"{contact.Name} is in your contacts.", "Contact created");
         else Toasts.Success($"{contact.Name} is up to date.", "Contact saved");
     }
-
-    private static Status Tone(ContactStatus status) => status switch
-    {
-        ContactStatus.Customer => Status.Success,
-        ContactStatus.Prospect => Status.Info,
-        _ => Status.Neutral,
-    };
 }

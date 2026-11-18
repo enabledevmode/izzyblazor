@@ -40,6 +40,9 @@ public static class When
         return day == today ? $"Today, {Time(time)}" : Day(day, today);
     }
 
+    /// <summary>A day and its time, in a record's history: "Today, 9:15 AM", "Nov 14, 11:00 AM".</summary>
+    public static string At(DateTime time, DateOnly today) => $"{Day(DateOnly.FromDateTime(time), today)}, {Time(time)}";
+
     /// <summary>A meeting's hours: "2:00–2:45 PM", or "11:30 AM–12:15 PM" across noon.</summary>
     public static string Hours(DateTime start, DateTime end)
     {

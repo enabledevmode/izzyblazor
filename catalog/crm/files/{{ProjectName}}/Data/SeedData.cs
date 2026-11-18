@@ -82,6 +82,7 @@ public static class SeedData
             };
         var olivia = Someone("Olivia", "Chen", acme, ContactStatus.Customer, jamie, Utc(0, 9, 15), -7, "Marketing director");
         olivia.NextFollowUp = Day(2);
+        olivia.Notes = "Prefers email for proposals and a short call for scope changes.\n\nBudget agreed in principle. Confirm the final decision-maker before closing.";
         var marcus = Someone("Marcus", "Reed", brightside, ContactStatus.Lead, jamie, Utc(-1, 15), -8);
         var sofia = Someone("Sofia", "Patel", fieldwork, ContactStatus.Prospect, alex, Utc(-3, 14), -1);
         var ethan = Someone("Ethan", "Brooks", acme, ContactStatus.Customer, alex, Utc(-4, 11), -7, "Operations lead");
