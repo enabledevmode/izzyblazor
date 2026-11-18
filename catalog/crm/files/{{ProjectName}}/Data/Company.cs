@@ -8,7 +8,7 @@ public class Company : IAudited
 {
     public int Id { get; set; }
 
-    [Required, StringLength(120)] public string Name { get; set; } = "";
+    [Required(ErrorMessage = "Enter a company name."), StringLength(120)] public string Name { get; set; } = "";
 
     [StringLength(200)] public string? Website { get; set; }
 

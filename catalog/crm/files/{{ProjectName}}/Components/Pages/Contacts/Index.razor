@@ -146,9 +146,10 @@
     private async ValueTask<DataResult<Contact>> FindAsync(DataRequest<Contact> request)
     {
         var query = Db.Contacts.AsNoTracking().Include(c => c.Company).Include(c => c.Owner).AsQueryable();
-        if (request.Search?.Trim() is { Length: > 0 } search)
+        // Lower case on both sides, so "olivia" finds Olivia in any database.
+        if (request.Search?.Trim().ToLower() is { Length: > 0 } search)
         {
-            query = query.Where(c => (c.FirstName + " " + c.LastName).Contains(search) || c.Email.Contains(search) || c.Company!.Name.Contains(search));
+            query = query.Where(c => (c.FirstName + " " + c.LastName).ToLower().Contains(search) || c.Email.ToLower().Contains(search) || c.Company!.Name.ToLower().Contains(search));
         }
         return await (request with { Search = null }).ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
     }

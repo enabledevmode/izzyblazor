@@ -1,0 +1,180 @@
+@page "/companies"
+@attribute [Authorize(Policy = Policies.ViewRecords)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject IAuthorizationService Authorization
+@inject ToastService Toasts
+
+<PageTitle>Companies</PageTitle>
+
+@* Companies: every account, with how many people the team knows there and what its open deals are worth. The grid
+   searches, sorts and pages in the database, and adds and edits in a dialog made from its columns: /companies?add=1
+   opens it, /companies?edit=3 edits one, and &return=/companies/3 goes back to the page that asked. Rows have no
+   Edit of their own (RowActions): a company's page has it. People who can't edit records (Viewers) see the list alone. *@
+<PageCrumbs><BreadcrumbItem>Companies</BreadcrumbItem></PageCrumbs>
+
+@* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
+<Column Gap="6" Grow>
+    <PageHeader Title="Companies" Description="A shared view of every account.">
+        @* On a phone it floats in the corner. *@
+        @if (_canEdit)
+        {
+            <PageHeaderActions>
+                <DataGridAdd For="companies" ShowLabel FloatBelow="Breakpoint.Sm" />
+            </PageHeaderActions>
+        }
+    </PageHeader>
+
+    <DataGrid id="companies" TItem="Company" ItemsProvider="FindAsync" FindItem="GetAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Companies"
+              PageSize="25" InitialSort="name" Searchable SmallScreen="DataGridSmallScreen.HideColumns"
+              EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(c => c is null ? "New company" : "Edit company")"
+              EditSaveText="@(c => c is null ? "Create company" : "Save changes")" AddText="Add company"
+              NewItem="@(_canEdit ? New : null)" ItemEditable="_ => _canEdit" RowActions="false" OnSave="SaveAsync" Grow>
+        <ToolbarContent>
+            <DataGridSearch />
+        </ToolbarContent>
+        <NoMatchesContent>
+            <EmptyState Icon="Lucide.SearchX" Title="No matching companies" Description="Try a different name, city, or owner. Your other companies are still here." />
+        </NoMatchesContent>
+        <Columns>
+            <TemplateColumn Title="Company" SortKey="name" SortBy="c => c.Name" Sortable Context="company">
+                <Row Gap="3" Align="Align.Center">
+                    <Avatar Icon="Lucide.BuildingComplex" Size="AvatarSize.Sm" Accent="Accent.Neutral" Square Decorative />
+                    <TextBlock Weight="FontWeight.Medium" Truncate><Anchor Href="@($"companies/{company.Id}")" InheritColor Underline="AnchorUnderline.Hover">@company.Name</Anchor></TextBlock>
+                </Row>
+            </TemplateColumn>
+            @* In the dialog only: the Company column shows the name. *@
+            <PropertyColumn Property="c => c.Name" Title="Company name" Visible="false" />
+            <PropertyColumn Property="c => c.Website" Visible="false">
+                <EditTemplate Context="field">
+                    <TextField @bind-Value="field.Item.Website" Placeholder="https://" @attributes="field.Attributes" />
+                </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c => c.Industry" Visible="false" />
+            <PropertyColumn Property="c => c.Size" Title="Company size" Visible="false" />
+            <PropertyColumn Property="c => c.City" Visible="false" />
+            <PropertyColumn Property="c => c.Country" Visible="false">
+                <EditTemplate Context="field">
+                    <Select @bind-Value="field.Item.Country" Items="Company.Countries" @attributes="field.Attributes" />
+                </EditTemplate>
+            </PropertyColumn>
+            @* Counted and added up in the database when sorted by; shown from the people and open deals each row loads. *@
+            <TemplateColumn Title="Contacts" SortKey="contacts" SortBy="c => c.Contacts.Count" Sortable Align="CellAlign.End" Width="Length.Rem(8)" Context="company">
+                @company.Contacts.Count
+            </TemplateColumn>
+            <TemplateColumn Title="Open deals" SortKey="deals" SortBy="c => c.Deals.Count(d => d.Stage < DealStage.Won)" Sortable Align="CellAlign.End" Width="Length.Rem(9)" Context="company">
+                @company.Deals.Count
+            </TemplateColumn>
+            <TemplateColumn Title="Pipeline value" SortKey="value" SortBy="c => c.Deals.Where(d => d.Stage < DealStage.Won).Sum(d => (double)d.Value)" Sortable
+                            Align="CellAlign.End" Width="Length.Rem(9.5)" Priority="1" Context="company">
+                @_workspace?.Money(company.Deals.Sum(d => d.Value))
+            </TemplateColumn>
+            <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" Sortable EditBy="c => c.OwnerId" Context="company">
+                <ChildContent>@company.Owner?.Name</ChildContent>
+                <EditTemplate Context="field">
+                    <Select @bind-Value="field.Item.OwnerId" Items="_ownerIds" ItemText="id => _owners[id!]" @attributes="field.Attributes" />
+                </EditTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="c => c.Status" Visible="false" />
+            <PropertyColumn Property="c => c.Notes" Title="Background" Visible="false">
+                <EditTemplate Context="field">
+                    <TextArea @bind-Value="field.Item.Notes" Placeholder="Goals, preferences, or background…" @attributes="field.Attributes" />
+                </EditTemplate>
+            </PropertyColumn>
+        </Columns>
+        <EditDialog>
+            @if (Add is not null)
+            {
+                <TextBlock Color="Color.Muted" ColSpan="GridSpan.Full">Create a shared account for related people and deals.</TextBlock>
+            }
+            <EditField Key="name" />
+            <EditField Key="website" />
+            <EditField Key="industry" />
+            <EditField Key="size" />
+            <EditField Key="city" />
+            <EditField Key="country" />
+            <EditField Key="owner" Label="Account owner" />
+            <EditField Key="status" />
+            <EditField Key="notes" ColSpan="GridSpan.Full" />
+        </EditDialog>
+    </DataGrid>
+</Column>
+
+@code {
+    /// <summary>The add dialog is open (?add=1).</summary>
+    [SupplyParameterFromQuery] private string? Add { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    // Who may add and edit: the EditRecords policy.
+    private bool _canEdit;
+    private string? _me;
+    private Workspace? _workspace;
+    private DateOnly _today;
+
+    // The dialog's choice of owner: every team member, by name.
+    private Dictionary<string, string> _owners = [];
+    private List<string?> _ownerIds = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthState).User;
+        _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
+        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
+        _today = DateOnly.FromDateTime(Clock.Now(_workspace));
+
+        _owners = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
+        _ownerIds = _owners.OrderBy(o => o.Value).Select(o => (string?)o.Key).ToList();
+    }
+
+    // A new company as the dialog first shows it: yours, a prospect, with the first of each list chosen.
+    private Company New() => new()
+    {
+        OwnerId = _me, Status = CompanyStatus.Prospect, Industry = Industry.DesignTechnology, Size = CompanySize.UpTo10,
+        Country = Company.Countries[0],
+    };
+
+    // The grid's page of companies, from the database, each with its people and its open deals (the row's counts
+    // and value). Its search looks in names, cities and owners' names.
+    private async ValueTask<DataResult<Company>> FindAsync(DataRequest<Company> request)
+    {
+        var query = Db.Companies.AsNoTracking().Include(c => c.Owner).Include(c => c.Contacts)
+            .Include(c => c.Deals.Where(d => d.Stage < DealStage.Won)).AsSplitQuery().AsQueryable();
+        // Lower case on both sides, so "acme" finds Acme Co. in any database.
+        if (request.Search?.Trim().ToLower() is { Length: > 0 } search)
+        {
+            query = query.Where(c => c.Name.ToLower().Contains(search) || c.City!.ToLower().Contains(search) || c.Owner!.Name!.ToLower().Contains(search));
+        }
+        return await (request with { Search = null }).ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+    }
+
+    // The company an edit address (?edit=3) names, which may be on another page of the grid.
+    private async Task<Company?> GetAsync(string key) =>
+        int.TryParse(key, out var id) ? await Db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id) : null;
+
+    private async Task SaveAsync(DataGridSave<Company> save)
+    {
+        if (!_canEdit) return;
+        var company = save.Item;
+        // The dialog has already checked the fields against Company's attributes, which hold the messages (Data/Company.cs).
+        if (save.IsNew)
+        {
+            company.Added = _today;
+            Db.Companies.Add(company);
+        }
+        else if (await Db.Companies.FirstOrDefaultAsync(c => c.Id == company.Id) is { } saved)
+        {
+            save.CopyTo(saved);
+        }
+        else
+        {
+            save.AddError("This company isn’t here any more.");
+            return;
+        }
+        // The audit log records it as it saves (Auditing/AuditInterceptor.cs).
+        await Db.SaveChangesAsync();
+        if (save.IsNew) Toasts.Success($"{company.Name} is in your companies.", "Company created");
+        else Toasts.Success($"{company.Name} is up to date.", "Company saved");
+    }
+}
