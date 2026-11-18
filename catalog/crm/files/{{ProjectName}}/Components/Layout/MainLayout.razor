@@ -23,8 +23,7 @@
 
     <AppSidebar FullHeight Collapsible CollapseButton="true" CollapseButtonPosition="VerticalPosition.Top">
         <SidebarHeader>
-            <AppBrand Href="" Icon="Lucide.Handshake" Label="Izzy CRM" />
-            <TextBlock Size="TextSize.Xs" Color="Color.Muted" Class="ib-collapsed-hide">@_workspace</TextBlock>
+            <AppBrand Href="" Icon="Lucide.Handshake" Label="Izzy CRM" Description="@_workspace" />
         </SidebarHeader>
         <NavMenu>
             <AuthorizeView Policy="@Policies.ViewRecords">

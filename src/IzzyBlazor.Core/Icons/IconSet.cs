@@ -134,6 +134,9 @@ public enum IconPurpose
 
     /// <summary>From one end of a range to the other.</summary>
     RangeTo,
+
+    /// <summary>Collapse or expand a sidebar.</summary>
+    Sidebar,
 }
 
 /// <summary>
@@ -188,6 +191,7 @@ public class IconSet
         IconPurpose.FirstPage => IzzyBlazor.Lucide.ChevronsLeft,
         IconPurpose.Panel => IzzyBlazor.Lucide.PanelRight,
         IconPurpose.RangeTo => IzzyBlazor.Lucide.ArrowRight,
+        IconPurpose.Sidebar => IzzyBlazor.Lucide.PanelLeft,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 
