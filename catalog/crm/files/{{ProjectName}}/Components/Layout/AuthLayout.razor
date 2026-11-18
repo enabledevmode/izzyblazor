@@ -1,0 +1,24 @@
+@inherits LayoutComponentBase
+@inject IConfiguration Configuration
+
+@* The signed-out pages' frame (log in, two-factor, forgot and reset password, confirm email, locked
+   out): the app's name and the color scheme in the header, the form centered under it (AccountPanel).
+   No sidebar and no account menu: nothing else here works until you sign in. *@
+<AppShell>
+    <AppHeader>
+        <AppBrand Href="" Icon="Lucide.Box" Label="{{ProjectName}}" />
+        <Spacer />
+        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Menu" />
+    </AppHeader>
+
+    @* ContentWidth for the page gutter, as in MainLayout; AccountPanel centers its column in it. *@
+    <AppMain ContentWidth="Length.Rem(100)" PaddingY="new() { Base = 6, Md = 8 }">
+        <ErrorGuard ShowDetails="DetailedErrors">
+            @Body
+        </ErrorGuard>
+    </AppMain>
+</AppShell>
+
+@code {
+    private bool DetailedErrors => Configuration.GetValue<bool>("DetailedErrors");
+}

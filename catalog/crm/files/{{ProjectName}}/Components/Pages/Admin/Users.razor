@@ -1,0 +1,233 @@
+@page "/admin/users"
+@attribute [Authorize(Policy = Policies.ManageUsers)]
+@inject UserAdmin Admin
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+@inject ToastService Toasts
+@inject IWebHostEnvironment Environment
+
+<PageTitle>Users</PageTitle>
+
+@* Everyone who can sign in, on one grid like the app's other lists: Invite user adds in a dialog, Edit changes a
+   name, email or role in one, and each row's ⋯ menu acts on the account. A row opens to the account's details.
+   Search and the Role and Status filters are in the address, so a filtered list can be shared. Every action is
+   a form post that comes back with a toast; Admin/UserAdmin.cs does the work and writes the audit log. *@
+@* A data page: it fills the main area, so the grid scrolls its own rows under its header. *@
+<Stack Gap="new() { Base = 6, Md = 8 }" Grow>
+    <PageHeader Title="Users" Description="People who can sign in to {{ProjectName}}.">
+        @* The page's main action; it opens the grid's invite dialog. On a phone it floats at the bottom corner. *@
+        <PageHeaderActions>
+            <DataGridAdd For="users" FloatBelow="Breakpoint.Sm" />
+        </PageHeaderActions>
+    </PageHeader>
+
+    <DataGrid id="users" TItem="UserRow" Items="_users" ItemKey="u => u.Id" RowLabel="u => u.Shown" Caption="Users" PageSize="25"
+              Searchable SearchLabel="Name or email" SmallScreen="DataGridSmallScreen.HideColumns" ToolbarLabels
+              EditMode="DataGridEditMode.Dialog" EditDialogTitle="@(u => u is null ? "Invite user" : $"Edit {u.Shown}")" EditSaveText="@(u => u is null ? "Send invite" : "Save changes")"
+              NewItem="() => new UserRow()" AddText="Invite user" OnSave="SaveAsync"
+              OnDelete="DeleteAsync" ItemDeletable="u => u.Id != _me" NoMatchesText="No users match “{0}”" Grow>
+        <ToolbarContent>
+            <DataGridSearch />
+        </ToolbarContent>
+        <EmptyContent>
+            <EmptyState Icon="Lucide.SearchX" Title="No users match" Description="Try another name, role or status.">
+                <Button Href="admin/users" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear filters</Button>
+            </EmptyState>
+        </EmptyContent>
+        <EditDialog>
+            <EditField Key="email" Hint="@(Inviting ? "We'll email them a link to set a password." : null)" />
+            <EditField Key="name" Label="Name" Hint="They can change it after they sign in." />
+            <EditField Key="role" />
+        </EditDialog>
+        <Columns>
+            <PropertyColumn Property="u => u.Name" Title="User" Sortable Context="user">
+                <Row Gap="3" Align="Align.Center">
+                    <Avatar Name="@user.Shown" Size="AvatarSize.Sm" Decorative />
+                    <Stack Gap="0" Grow>
+                        <Row Gap="2" Align="Align.Center">
+                            <TextBlock Weight="FontWeight.Medium" Truncate>@user.Shown</TextBlock>
+                            @if (user.Id == _me)
+                            {
+                                <Badge Accent="Accent.Primary">You</Badge>
+                            }
+                        </Row>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@user.Email</TextBlock>
+                    </Stack>
+                </Row>
+            </PropertyColumn>
+            @* In the dialogs only: the User column shows it. *@
+            <PropertyColumn Property="u => u.Email" Visible="false" />
+            <PropertyColumn Property="u => u.Role" Filterable Context="user">
+                <ChildContent>
+                    @user.Role
+                </ChildContent>
+                <EditTemplate Context="field">
+                    <RadioGroup @bind-Value="field.Item.Role" ItemDescription="role => Roles.Summary(role.ToString())" @attributes="field.Attributes" />
+                </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="u => u.Status" Filterable Editable="false" Priority="1" Context="user">
+                <Badge Status="StatusColor(user.Status)" Dot>@user.Status</Badge>
+            </PropertyColumn>
+            <PropertyColumn Property="u => u.LastSignIn" Title="Last sign-in" Sortable Editable="false" Context="user">
+                @if (user.LastSignIn is { } at)
+                {
+                    <RelativeTime Value="new DateTimeOffset(DateTime.SpecifyKind(at, DateTimeKind.Utc))" Color="Color.Muted" />
+                }
+                else
+                {
+                    <TextBlock Color="Color.Muted" Italic>Never</TextBlock>
+                }
+            </PropertyColumn>
+            <ActionColumn Context="user" Overflow="RowActionOverflow.Always">
+                <EditAction />
+                <RowAction Icon="@(user.Status == UserStatus.Invited ? Lucide.Send : Lucide.KeyRound)" Label="@(user.Status == UserStatus.Invited ? "Resend invite" : "Send password reset")"
+                           Form="user-action" Name="reset" Value="@user.Id" Visible="user.Status != UserStatus.Deactivated" />
+                <RowAction Icon="Lucide.LockOpen" Label="Unlock" Form="user-action" Name="unlock" Value="@user.Id" Visible="user.Status == UserStatus.Locked" />
+                <RowAction Icon="Lucide.ShieldOff" Label="Reset two-factor" Form="user-action" Name="twofactor" Value="@user.Id" Visible="user.TwoFactor" />
+                <RowAction Icon="Lucide.UserCheck" Label="Reactivate" Form="user-action" Name="reactivate" Value="@user.Id" Visible="user.Status == UserStatus.Deactivated" />
+                <RowAction Icon="Lucide.UserX" Label="Deactivate" Href="@Navigation.GetUriWithQueryParameter("deactivate", user.Id)" Visible="user.Status != UserStatus.Deactivated && user.Id != _me" />
+                <DeleteAction />
+            </ActionColumn>
+        </Columns>
+        <DetailTemplate>
+            <Stack Gap="3">
+                <DescriptionList Columns="2">
+                    <DescriptionItem Term="Email">@(context.EmailConfirmed ? "Confirmed" : "Not confirmed yet")</DescriptionItem>
+                    <DescriptionItem Term="Two-factor">@(context.TwoFactor ? "On" : "Off")</DescriptionItem>
+                    <DescriptionItem Term="Account created">@context.Created.ToString("MMM d, yyyy")</DescriptionItem>
+                    @if (context.Status == UserStatus.Locked && context.LockedUntil is { } until)
+                    {
+                        <DescriptionItem Term="Locked">
+                            @context.FailedAttempts failed sign-ins, until <RelativeTime Value="until" Capitalize="false" />
+                        </DescriptionItem>
+                    }
+                </DescriptionList>
+                <Button Href="@($"admin/audit?f-who={Uri.EscapeDataString(context.Id)}")" Variant="ButtonVariant.Link" EndIcon="Lucide.ArrowRight" AlignSelf="Align.Start">View their activity</Button>
+            </Stack>
+        </DetailTemplate>
+    </DataGrid>
+</Stack>
+
+@* The row menu's posts: they name the action and the user. *@
+<form id="user-action" method="post" @formname="user-action" @onsubmit="ActAsync">
+    <AntiforgeryToken />
+</form>
+
+@if (_deactivating is { } leaving)
+{
+    <Dialog Open QueryKey="deactivate" Title="@($"Deactivate {leaving.Shown}?")" Size="DialogSize.Sm" CloseOnBackdrop="false" ShowCloseButton="false">
+        <TextBlock>They can't sign in until they're reactivated. Nothing they did is lost.</TextBlock>
+        <DialogFooter>
+            <Button Href="admin/users" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+            <Button Submit Form="user-action" Name="deactivate" Value="@leaving.Id" Accent="Accent.Danger">Deactivate</Button>
+        </DialogFooter>
+    </Dialog>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "deactivate")] private string? DeactivateId { get; set; }
+    [SupplyParameterFromQuery(Name = "add")] private string? Adding { get; set; }
+    [SupplyParameterFromForm(FormName = "user-action", Name = "reset")] private string? ResetId { get; set; }
+    [SupplyParameterFromForm(FormName = "user-action", Name = "unlock")] private string? UnlockId { get; set; }
+    [SupplyParameterFromForm(FormName = "user-action", Name = "twofactor")] private string? TwoFactorId { get; set; }
+    [SupplyParameterFromForm(FormName = "user-action", Name = "deactivate")] private string? DeactivatePostId { get; set; }
+    [SupplyParameterFromForm(FormName = "user-action", Name = "reactivate")] private string? ReactivateId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private List<UserRow> _users = [];
+    private UserRow? _deactivating;
+    private string? _me;
+
+    // The Add dialog is the invite (?add=1); the same fields edit an account.
+    private bool Inviting => Adding is not null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _me = UserManager.GetUserId((await AuthState).User);
+        _users = await Admin.ListAsync();
+        _deactivating = _users.FirstOrDefault(u => u.Id == DeactivateId && u.Id != _me && u.Status != UserStatus.Deactivated);
+    }
+
+    private async Task SaveAsync(DataGridSave<UserRow> save)
+    {
+        if (save.IsNew)
+        {
+            var (link, error) = await Admin.InviteAsync(save.Item);
+            if (error is not null)
+            {
+                save.AddError(u => u.Email, error);
+                return;
+            }
+            Toasts.Success($"{save.Item.Shown} will get an email with a link to set a password. It expires in a day.", "Invite sent", DevLink(link));
+            return;
+        }
+
+        if (await UserManager.FindByIdAsync(save.Item.Id) is not { } user)
+        {
+            save.AddError("This user isn't here any more.");
+            return;
+        }
+        if (await Admin.UpdateAsync(user, save.Item, _me) is { } why) save.AddError(why);
+        else Toasts.Success($"{save.Item.Shown}'s account is saved.", "User saved");
+    }
+
+    private async Task ActAsync()
+    {
+        var id = ResetId ?? UnlockId ?? TwoFactorId ?? DeactivatePostId ?? ReactivateId;
+        if (await UserManager.FindByIdAsync(id ?? "") is not { } user)
+        {
+            Toasts.Error("That user isn't here any more.");
+        }
+        else
+        {
+            var name = user.Name ?? user.Email;
+            if (ResetId is not null)
+            {
+                var invited = UserAdmin.StatusOf(user) == UserStatus.Invited;
+                var link = await Admin.SendPasswordResetAsync(user);
+                Toasts.Success(invited ? $"{name} will get the invite again." : $"{name} will get an email with a link to set a new password.",
+                    invited ? "Invite sent" : "Password reset sent", DevLink(link));
+            }
+            else if (UnlockId is not null)
+            {
+                await Admin.UnlockAsync(user);
+                Toasts.Success($"{name} can sign in again.", "User unlocked");
+            }
+            else if (TwoFactorId is not null)
+            {
+                await Admin.ResetTwoFactorAsync(user);
+                Toasts.Success($"{name} will set up two-factor again at their next sign-in.", "Two-factor reset");
+            }
+            else if (DeactivatePostId is not null)
+            {
+                if (await Admin.DeactivateAsync(user, _me) is { } why) Toasts.Error(why);
+                else Toasts.Success($"{name} can't sign in until they're reactivated.", "User deactivated");
+            }
+            else
+            {
+                await Admin.ReactivateAsync(user);
+                Toasts.Success($"{name} can sign in again.", "User reactivated");
+            }
+        }
+        // Back to the list as it was, with no post to repeat on a reload.
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("deactivate", (string?)null));
+    }
+
+    private async Task DeleteAsync(DataGridDelete<UserRow> delete)
+    {
+        if (await UserManager.FindByIdAsync(delete.Item.Id) is not { } user) return;
+        if (await Admin.DeleteAsync(user, _me) is { } why) delete.AddError(why);
+        else Toasts.Success($"{delete.Item.Shown} no longer has access.", "User deleted");
+    }
+
+    // In development no mail is sent (IdentityNoOpEmailSender), so the toast offers the link itself.
+    private ToastAction? DevLink(string? link) => Environment.IsDevelopment() && link is not null ? new("Open the link", link) : null;
+
+    private static Status StatusColor(UserStatus status) => status switch
+    {
+        UserStatus.Active => Status.Success,
+        UserStatus.Invited => Status.Info,
+        UserStatus.Locked => Status.Warning,
+        _ => Status.Neutral,
+    };
+}
