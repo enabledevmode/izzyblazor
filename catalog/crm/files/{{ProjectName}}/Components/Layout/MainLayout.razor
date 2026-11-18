@@ -49,12 +49,12 @@
         </SidebarFooter>
     </AppSidebar>
 
-    <AppMain Padding="new() { Base = 4, Md = 6 }">
-        <Container Size="ContainerSize.Xl" Align="ContainerAlign.Start" Gutters="false">
-            <ErrorGuard ShowDetails="DetailedErrors">
-                @Body
-            </ErrorGuard>
-        </Container>
+    @* The page: up to 80rem wide, in the middle of the space beside the sidebar, so on a wide screen it isn't held
+       against one edge. A list page fills the main area (its top element has Grow), and its grid scrolls its own rows. *@
+    <AppMain ContentWidth="Length.Rem(80)" Padding="new() { Base = 4, Md = 6 }">
+        <ErrorGuard ShowDetails="DetailedErrors">
+            @Body
+        </ErrorGuard>
     </AppMain>
 </AppShell>
 
