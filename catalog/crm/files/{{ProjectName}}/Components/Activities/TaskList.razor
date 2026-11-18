@@ -3,7 +3,8 @@
    task's Contact (with its Company) and Deal (with its Company) for the second line. *@
 <ListView Items="Tasks" ItemKey="t => t.Id.ToString()" ItemLabel="t => t.Title" Label="@Label" Context="task">
     <ChildContent>
-        <Row Gap="3" Align="Align.Center">
+        @* 16px from the box to the text, as the design draws it. *@
+        <Row Gap="4" Align="Align.Center">
             <TaskCheck @key="task.Id" Task="task" />
             <Column Gap="0" Grow>
                 <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" Color="@(task.Completed is null ? default(Responsive<Color>) : Color.Muted)"
