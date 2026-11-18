@@ -353,7 +353,14 @@
                                         else if (EmptySearch is { } words)
                                         {
                                             @* About the search, not the data: what was looked for, and the way back. *@
-                                            @string.Format(System.Globalization.CultureInfo.CurrentCulture, NoMatchesText ?? TextDefaults.NoMatchesFor, words)
+                                            @if (NoMatchesContent is not null)
+                                            {
+                                                @NoMatchesContent(words)
+                                            }
+                                            else
+                                            {
+                                                @string.Format(System.Globalization.CultureInfo.CurrentCulture, NoMatchesText ?? TextDefaults.NoMatchesFor, words)
+                                            }
                                             <div class="ib-table-empty-clear">
                                                 @ClearAction(true, () => ClearSearchHref, ClearSearchAsync, TextDefaults.ClearSearch)
                                             </div>

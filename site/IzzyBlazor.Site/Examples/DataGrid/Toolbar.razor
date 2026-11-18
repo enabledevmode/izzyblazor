@@ -1,10 +1,14 @@
-@* Your own buttons above the grid, and a search box whose words are in the address. *@
+@* Your own buttons above the grid, and a search box whose words are in the address. A search that
+   matches nothing shows NoMatchesContent, with the grid's own Clear search under it. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" Caption="Orders with tools" Searchable QueryPrefix="tools-" Grow>
     <ToolbarContent>
         <ToolbarButton StartIcon="Lucide.Plus" Position="ToolbarPosition.End" Variant="ButtonVariant.Outline">New order</ToolbarButton>
         <ToolbarButton StartIcon="Lucide.Download" Position="ToolbarPosition.End">Export</ToolbarButton>
     </ToolbarContent>
+    <NoMatchesContent Context="words">
+        <EmptyState Icon="Lucide.SearchX" Title="@($"No orders match “{words}”")" Description="Try an order number or a customer's name." Size="ControlSize.Sm" />
+    </NoMatchesContent>
     <Columns>
         <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
         <PropertyColumn Property="o => o.Customer" Sortable />
