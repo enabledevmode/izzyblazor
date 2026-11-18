@@ -1057,23 +1057,26 @@
         var title = EditDialogTitle is { } titled && _editModel is not null ? titled(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
         <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogShownSize" CloseOnBackdrop="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)" data-ib-return="@EditReturn">
             <Form Columns="EditColumns" Layout="EditLayout" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
-                @if (missing)
-                {
-                    <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
-                }
-                else if (_editModel is not null)
-                {
-                    <FormErrors />
-                    var placed = PlacedKeys;
-                    @if (EditDialog is not null)
+                @* The dialog's body (DialogBody's class): a long form scrolls here, above the footer. A grid of the form's columns itself. *@
+                <div class="ib-dialog-content ib-form-grid ib-form-grid-@Math.Clamp(EditColumns, 1, 4)" style="gap: var(--ib-space-5)">
+                    @if (missing)
                     {
-                        <CascadingValue TValue="DataGridEditFields" Value="EditFieldsOf">@EditDialog</CascadingValue>
+                        <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
                     }
-                    @foreach (var column in EditableColumns.Where(c => !placed.Contains(c.EditKey!)))
+                    else if (_editModel is not null)
                     {
-                        @EditorOf(column)
+                        <FormErrors />
+                        var placed = PlacedKeys;
+                        @if (EditDialog is not null)
+                        {
+                            <CascadingValue TValue="DataGridEditFields" Value="EditFieldsOf">@EditDialog</CascadingValue>
+                        }
+                        @foreach (var column in EditableColumns.Where(c => !placed.Contains(c.EditKey!)))
+                        {
+                            @EditorOf(column)
+                        }
                     }
-                }
+                </div>
                 <DialogFooter>
                     @EditCancel
                     @if (!missing)

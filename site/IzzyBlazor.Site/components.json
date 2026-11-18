@@ -1736,7 +1736,7 @@
             "static": "Rename posts without a full reload. When the server finds an error, the dialog opens again at the field.",
             "interactive": "The field is checked when it changes, and Rename runs C# and closes the dialog."
           } },
-        { "id": "dialog-parts", "title": "Header, body and footer" },
+        { "id": "dialog-parts", "title": "Header, body and footer", "after": ["A long `DialogBody` with a `DialogFooter` straight after it scrolls by itself, so the scrollbar stops at the footer. Without a `DialogBody`, the whole body scrolls and the footer stays in view over it."] },
         { "id": "dialog-placement", "title": "Size and placement" },
         { "id": "dialog-service", "title": "Dialogs from code", "modes": ["interactive"] }
       ]
