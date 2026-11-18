@@ -834,10 +834,11 @@
     }
 
     // "November 2026"; across two months "Oct – Nov 2026"; across two years "Dec 2026 – Jan 2027".
-    private static string TitleOf(SchedulerView view, DateOnly date, DateOnly first, DateOnly last, CultureInfo culture)
+    // The period shown; "month" is how one month reads: in full, or short ("Nov 2026") for a narrow screen.
+    private static string TitleOf(SchedulerView view, DateOnly date, DateOnly first, DateOnly last, CultureInfo culture, string month = "Y")
     {
-        if (view == SchedulerView.Month) return date.ToString("Y", culture);
-        if (first.Month == last.Month && first.Year == last.Year) return first.ToString("Y", culture);
+        if (view == SchedulerView.Month) return date.ToString(month, culture);
+        if (first.Month == last.Month && first.Year == last.Year) return first.ToString(month, culture);
         return first.Year == last.Year
             ? $"{first.ToString("MMM", culture)} – {last.ToString("MMM yyyy", culture)}"
             : $"{first.ToString("MMM yyyy", culture)} – {last.ToString("MMM yyyy", culture)}";
@@ -1045,7 +1046,15 @@
                         var outside = day.Month != date.Month;
                         <div class="@(DayClass("ib-sched-cell", day, today) + (outside ? " ib-sched-outside" : ""))" style="grid-column:@(d + 1)" role="group" aria-current="@(day == today ? "date" : null)" aria-label="@day.ToString("D", culture)" data-ib-day="@day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
                             <div class="ib-sched-cell-head">
-                                <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@string.Format(culture, TextDefaults.SchedulerShowDay, day.ToString("D", culture))">@(day.Day == 1 ? day.ToString("MMMM d", culture) : day.Day.ToString(culture))</a>
+                                <a class="ib-sched-day-link" href="@Href(SchedulerView.Day, day)" @onclick="() => GoAsync(SchedulerView.Day, day)" @onclick:preventDefault="Bound" aria-label="@string.Format(culture, TextDefaults.SchedulerShowDay, day.ToString("D", culture))">@if (day.Day == 1)
+                                {
+                                    @* The month with its first day, where there's room; the number alone on a narrow screen. *@
+                                    <span class="ib-sched-day-full">@day.ToString("MMMM d", culture)</span><span class="ib-sched-day-short">@day.Day.ToString(culture)</span>
+                                }
+                                else
+                                {
+                                    @day.Day.ToString(culture)
+                                }</a>
                                 @DayExtra(day)
                             </div>
                             <ul class="ib-sched-pills">
@@ -1222,7 +1231,7 @@
         @* The period, a button to a month to go to any date (Outlook's). *@
         <Popover Placement="Placement.BottomStart" Class="ib-sched-jump">
             <Trigger>
-                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Class="ib-sched-title" @attributes="context"><span aria-live="polite">@TitleOf(view, date, first, last, culture)</span><span class="ib-visually-hidden">, @TextDefaults.SchedulerGoTo.ToLower(culture)</span></Button>
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Class="ib-sched-title" @attributes="context"><span aria-live="polite"><span class="ib-sched-title-long">@TitleOf(view, date, first, last, culture)</span><span class="ib-sched-title-short">@TitleOf(view, date, first, last, culture, "MMM yyyy")</span></span><span class="ib-visually-hidden">, @TextDefaults.SchedulerGoTo.ToLower(culture)</span></Button>
             </Trigger>
             <ChildContent>
                 @* A GET form: with script, a day chosen goes there at once; with none, Go does. *@

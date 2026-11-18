@@ -427,6 +427,7 @@
     text-decoration: none;
   }
   .ib-sched-day-link:hover { background-color: var(--ib-color-fill-subtle); }
+  .ib-sched-day-short, .ib-sched-title-short { display: none; }
   .ib-sched-outside .ib-sched-day-link { color: var(--ib-color-muted); }
   .ib-sched-week > .ib-sched-bar-event { grid-row-end: span 1; }
   .ib-sched-pills {
@@ -546,7 +547,25 @@
     .ib-sched-new { width: var(--ib-btn-h); padding-inline: 0; }
     .ib-sched-day-head { padding-inline: var(--ib-space-1); }
     .ib-sched-pill .ib-sched-time { display: none; }
+    /* A list is read for its times: there they stay, on a line of their own over the title. */
+    .ib-sched-agenda .ib-sched-pill { display: grid; grid-template-columns: 3px minmax(0, auto) minmax(0, 1fr); row-gap: 0; align-items: baseline; }
+    .ib-sched-agenda .ib-sched-pill::before { grid-area: 1 / 1 / span 2; }
+    .ib-sched-agenda .ib-sched-pill .ib-sched-time { display: block; grid-column: 2 / -1; width: auto; }
     .ib-sched-agenda-day { grid-template-columns: 1fr; }
+    /* A month on a phone: the day's number alone, centered over its column, and appointments from edge
+       to edge of the cell, their titles cut where the cell ends so as many letters show as fit. */
+    .ib-sched-day-full, .ib-sched-title-long { display: none; }
+    .ib-sched-day-short, .ib-sched-title-short { display: inline; }
+    /* Bars too: to the cell's edges, the title from its start. */
+    .ib-sched-month .ib-sched-bar-event { justify-content: flex-start; margin-inline: 1px; padding-inline: 2px; border-inline-start-width: 2px; }
+    .ib-sched-month .ib-sched-bar-text > .ib-sched-name { text-overflow: clip; }
+    .ib-sched-cell { padding-inline: 1px; }
+    .ib-sched-cell-head { justify-content: center; }
+    .ib-sched-day-link { align-self: center; }
+    .ib-sched-month .ib-sched-pill { gap: 2px; padding-inline: 0 1px; }
+    .ib-sched-month .ib-sched-pill::before { width: 2px; }
+    .ib-sched-month .ib-sched-pill > span[aria-hidden] { text-overflow: clip; }
+    .ib-sched-more { display: block; overflow: hidden; padding-inline: 2px; white-space: nowrap; }
   }
 
   @media (forced-colors: active) {
