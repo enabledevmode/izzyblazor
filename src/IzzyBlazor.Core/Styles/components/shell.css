@@ -1299,6 +1299,32 @@
     .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-collapsed-show {
       display: revert;
     }
+
+    /* The rail's top, with a brand and the button at the top: the brand's mark is the button. The
+       button lies over the mark and shows in its place under the pointer or with focus; a tap
+       needs no hover. A button of its own under the mark was a row too many. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):has(> .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto)) {
+      position: relative;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) {
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) > .ib-shell-collapse-btn {
+      opacity: 0;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):is(:hover, :has(> .ib-shell-collapse > .ib-shell-collapse-input:focus-visible)) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) > .ib-shell-collapse-btn {
+      opacity: 1;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):has(> .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto)):is(:hover, :has(> .ib-shell-collapse > .ib-shell-collapse-input:focus-visible)) > .ib-shell-sidebar-slot .ib-shell-brand {
+      opacity: 0;
+    }
   }
 
   @media (width >= 768px) {
@@ -1502,6 +1528,32 @@
 
     .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-collapsed-show {
       display: revert;
+    }
+
+    /* The rail's top, with a brand and the button at the top: the brand's mark is the button. The
+       button lies over the mark and shows in its place under the pointer or with focus; a tap
+       needs no hover. A button of its own under the mark was a row too many. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):has(> .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto)) {
+      position: relative;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) {
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) > .ib-shell-collapse-btn {
+      opacity: 0;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):is(:hover, :has(> .ib-shell-collapse > .ib-shell-collapse-input:focus-visible)) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) > .ib-shell-collapse-btn {
+      opacity: 1;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):has(> .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto)):is(:hover, :has(> .ib-shell-collapse > .ib-shell-collapse-input:focus-visible)) > .ib-shell-sidebar-slot .ib-shell-brand {
+      opacity: 0;
     }
   }
 
@@ -1707,6 +1759,32 @@
     .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-collapsed-show {
       display: revert;
     }
+
+    /* The rail's top, with a brand and the button at the top: the brand's mark is the button. The
+       button lies over the mark and shows in its place under the pointer or with focus; a tap
+       needs no hover. A button of its own under the mark was a row too many. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):has(> .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto)) {
+      position: relative;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) {
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) > .ib-shell-collapse-btn {
+      opacity: 0;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):is(:hover, :has(> .ib-shell-collapse > .ib-shell-collapse-input:focus-visible)) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) > .ib-shell-collapse-btn {
+      opacity: 1;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):has(> .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto)):is(:hover, :has(> .ib-shell-collapse > .ib-shell-collapse-input:focus-visible)) > .ib-shell-sidebar-slot .ib-shell-brand {
+      opacity: 0;
+    }
   }
 
   @media (width >= 1280px) {
@@ -1910,6 +1988,32 @@
 
     .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-collapsed-show {
       display: revert;
+    }
+
+    /* The rail's top, with a brand and the button at the top: the brand's mark is the button. The
+       button lies over the mark and shows in its place under the pointer or with focus; a tap
+       needs no hover. A button of its own under the mark was a row too many. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):has(> .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto)) {
+      position: relative;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) {
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) > .ib-shell-collapse-btn {
+      opacity: 0;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):is(:hover, :has(> .ib-shell-collapse > .ib-shell-collapse-input:focus-visible)) > .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto) > .ib-shell-collapse-btn {
+      opacity: 1;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-slot .ib-shell-brand):has(> .ib-shell-collapse:not(.ib-shell-collapse-nobutton, .ib-shell-collapse-auto)):is(:hover, :has(> .ib-shell-collapse > .ib-shell-collapse-input:focus-visible)) > .ib-shell-sidebar-slot .ib-shell-brand {
+      opacity: 0;
     }
   }
 

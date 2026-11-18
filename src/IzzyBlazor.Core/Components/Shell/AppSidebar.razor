@@ -155,7 +155,7 @@
     [Parameter] public string Id { get; set; } = "ib-sidebar";
 
     /// <summary>
-    /// Lets people shrink it to an icon rail on wide screens, with a chevron at its top and
+    /// Lets people shrink it to an icon rail on wide screens, with a collapse button and
     /// <see cref="SidebarToggle"/>. Works with JavaScript off; below the breakpoint it is the
     /// usual drawer.
     /// </summary>
@@ -182,13 +182,18 @@
     [Parameter] public bool RememberState { get; set; } = true;
 
     /// <summary>
-    /// The chevron at the top of the sidebar. By default (<c>null</c>) it shows only when the shell
+    /// The sidebar's own collapse button. By default (<c>null</c>) it shows only when the shell
     /// has no <see cref="SidebarToggle"/>, which collapses the sidebar on wide screens itself.
     /// <c>true</c> always shows it; <c>false</c> never does.
     /// </summary>
     [Parameter] public bool? CollapseButton { get; set; }
 
-    /// <summary>Where the chevron goes: <see cref="VerticalPosition.Bottom"/> (the default, in the footer row) or <see cref="VerticalPosition.Top"/>.</summary>
+    /// <summary>
+    /// Where the collapse button goes: <see cref="VerticalPosition.Bottom"/> (the default, in the footer row) or
+    /// <see cref="VerticalPosition.Top"/>, at the end of the <see cref="SidebarHeader"/>'s row. At the top, beside an
+    /// <see cref="AppBrand"/>, the collapsed rail shows only the brand's mark, which is the button there: the
+    /// button shows in its place under the pointer or with keyboard focus, and a press expands the sidebar.
+    /// </summary>
     [Parameter] public VerticalPosition CollapseButtonPosition { get; set; } = VerticalPosition.Bottom;
 
     /// <summary>The drawer's close button name. Defaults to "Close menu".</summary>
