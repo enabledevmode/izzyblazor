@@ -13,7 +13,8 @@
    page that asked. Rows have no Edit of their own (RowActions): a contact's page has it. People who can't edit records (Viewers) see the list alone. *@
 <PageCrumbs><BreadcrumbItem>Contacts</BreadcrumbItem></PageCrumbs>
 
-<Column Gap="6">
+@* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
+<Column Gap="6" Grow>
     <PageHeader Title="Contacts" Description="The people behind your relationships.">
         @* On a phone the two float in the corner, behind one button. *@
         @if (_canEdit)
@@ -29,7 +30,7 @@
               PageSize="25" InitialSort="-lastactivity" Searchable SearchLabel="Search contacts…" SmallScreen="DataGridSmallScreen.HideColumns"
               EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(c => c is null ? "New contact" : "Edit contact")"
               EditSaveText="@(c => c is null ? "Create contact" : "Save changes")" AddText="Add contact"
-              NewItem="@(_canEdit ? New : null)" ItemEditable="_ => _canEdit" RowActions="false" OnSave="SaveAsync">
+              NewItem="@(_canEdit ? New : null)" ItemEditable="_ => _canEdit" RowActions="false" OnSave="SaveAsync" Grow>
         <ToolbarContent>
             <DataGridSearch />
             <DataGridFilter Column="status" />
