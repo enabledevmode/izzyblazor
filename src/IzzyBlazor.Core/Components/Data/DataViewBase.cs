@@ -95,6 +95,13 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// </summary>
     [Parameter] public string? NoMatchesText { get; set; }
 
+    /// <summary>
+    /// Shown in place of <see cref="NoMatchesText"/> when a grid's search matches no rows, with the words
+    /// searched for as its context: an <see cref="EmptyState"/> with an icon and a line on what to try. The
+    /// grid's own "Clear search" stays under it, so it needs no action of its own.
+    /// </summary>
+    [Parameter] public RenderFragment<string>? NoMatchesContent { get; set; }
+
     /// <summary>Shown in place of "Couldn't load the rows." when loading fails, before the Retry button.</summary>
     [Parameter] public RenderFragment? ErrorContent { get; set; }
 
