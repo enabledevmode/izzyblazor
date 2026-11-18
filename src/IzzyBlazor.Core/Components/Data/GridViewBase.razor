@@ -109,6 +109,8 @@
     [Parameter] public Func<TItem, bool>? ItemDeletable { get; set; }
 
     /// <summary>
+    /// A link from another page can open the dialog and come back: <c>/contacts?edit=42&amp;return=/contacts/42</c>
+    /// goes to <c>return</c>, a path on this site, when the dialog saves or closes, in place of the grid's page.
     /// The key of the row being edited, or null. Binding it (<c>@bind-EditKey</c>) on an interactive page
     /// keeps it, with sort and page, in the component. Otherwise it's in the address (<c>?edit=42</c>), or
     /// where another of them is bound, such as <c>Page</c>, kept in the component.
@@ -213,9 +215,19 @@
     private bool _ending;
     private string? _stateDeleteKey;
 
-    // Every key an editor or a dialog of the grid's puts in the address, taken out.
-    internal string EditEndHref => Navigation.GetUriWithQueryParameters(
-        new[] { EditQueryKey, AddQueryKey, AddUnderQueryKey, DeleteQueryKey }.Concat(LinkClears).Distinct().ToDictionary(k => k, _ => (object?)null));
+    private string ReturnQueryKey => $"{QueryPrefix}return";
+
+    // Where the edit or add dialog goes when it ends, for one opened by a link from another page
+    // (/contacts?edit=7&return=/contacts/7): that page, in place of the grid's own. Only a path on this
+    // site, so the link can't send anyone elsewhere.
+    private string? EditReturn =>
+        !UseState && (Adding || CurrentEditKey is not null) && QueryValue(ReturnQueryKey) is { Length: > 0 } path
+        && path[0] == '/' && (path.Length == 1 || (path[1] != '/' && path[1] != '\\')) && !path.Any(char.IsControl)
+            ? path : null;
+
+    // Every key an editor or a dialog of the grid's puts in the address, taken out; or the page it came from.
+    internal string EditEndHref => EditReturn ?? Navigation.GetUriWithQueryParameters(
+        new[] { EditQueryKey, AddQueryKey, AddUnderQueryKey, DeleteQueryKey, ReturnQueryKey }.Concat(LinkClears).Distinct().ToDictionary(k => k, _ => (object?)null));
 
     /// <summary>Whether the grid is on its way out of an editor: the address hasn't caught up yet.</summary>
     internal bool EditEnding => _ending;
@@ -314,7 +326,7 @@
         _cellKey is not null && column == _cellColumn && _editModel is not null && KeyOf(item) == _cellKey ? EditCell(column) : null;
 
     /// <inheritdoc />
-    internal override IReadOnlyList<string> LinkClears => CanEdit || CanDelete ? [EditQueryKey, AddQueryKey, AddUnderQueryKey, DeleteQueryKey] : [];
+    internal override IReadOnlyList<string> LinkClears => CanEdit || CanDelete ? [EditQueryKey, AddQueryKey, AddUnderQueryKey, DeleteQueryKey, ReturnQueryKey] : [];
 
     private string? _rowFormId;
 
@@ -795,7 +807,7 @@
         var found = isNew || (item is not null && CanEditRow(item));
         var label = EditDialogTitle?.Invoke(item)
             ?? (isNew ? TextDefaults.Add : item is null ? TextDefaults.Edit : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)));
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="EditDialogShownSize" CloseOnBackdrop="false" data-ib-edit-for="@(isNew ? "" : key)">
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="EditDialogShownSize" CloseOnBackdrop="false" data-ib-edit-for="@(isNew ? "" : key)" data-ib-return="@EditReturn">
             @if (found)
             {
                 @EditDialogForm!.Invoke(new DataGridEditFormContext<TItem>(item, isNew, EditCancel, () => EndEditAsync(saved: true)))
@@ -1036,7 +1048,7 @@
         SyncEdit(key, posted);
         var missing = _editModel is null && !IsLoading && !_finding;
         var title = EditDialogTitle is { } titled && _editModel is not null ? titled(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogShownSize" CloseOnBackdrop="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogShownSize" CloseOnBackdrop="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)" data-ib-return="@EditReturn">
             <Form Columns="EditColumns" Layout="EditLayout" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
                 @if (missing)
                 {

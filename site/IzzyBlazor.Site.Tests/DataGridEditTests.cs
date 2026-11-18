@@ -79,6 +79,28 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         await Assertions.Expect(rows.First).Not.ToContainTextAsync("Brand New");
     }
 
+    // A link from another page opens the dialog with where to go back to; a save goes there, and an
+    // address on another site is ignored.
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_dialog_opened_with_a_return_address_goes_back_there_and_never_off_the_site(string mode)
+    {
+        var (browser, page) = await OpenAsync(mode);
+        await using var _ = browser;
+        var edit = await page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First.Locator("a[aria-label^='Edit']").GetAttributeAsync("href");
+        var dialog = page.Locator($"{Grid} dialog[open]");
+
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"{edit}&edits-return=//example.com/").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await dialog.Locator("[data-ib-edit-cancel]").ClickAsync();
+        await Assertions.Expect(dialog).ToHaveCountAsync(0);
+        Assert.Contains("/docs/components/data-grid/editing", page.Url);
+
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"{edit}&edits-return=/docs/components/button").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await dialog.Locator("button[type=submit]:not([form])").ClickAsync();
+        await page.WaitForURLAsync("**/docs/components/button");
+    }
+
     // The button isn't drawn for a paid order, but anyone can type the address.
     [Fact]
     public async Task A_row_that_cant_be_deleted_cant_be_by_its_address()
