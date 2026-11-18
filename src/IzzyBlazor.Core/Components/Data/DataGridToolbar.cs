@@ -193,6 +193,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
         }
         else if (Target is not null && On)
         {
+            Outside(true);
             // As in the grid's own toolbar: neutral, ghost buttons, small unless the item says otherwise.
             builder.AddContent(0, OutsideParts.Wrap(Grid.PartsId, "data-ib-grid", ButtonGroup.Defaults(Accent.Neutral, ButtonVariant.Ghost, OutsideSize), OutsideBar));
             if (OutsideFloat is { } floating)
@@ -201,6 +202,15 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
                 builder.AddContent(1, OutsideParts.Wrap(Grid.PartsId, "data-ib-grid", null, floating));
             }
         }
+        else if (!_joined)
+        {
+            Outside(false);
+        }
+    }
+
+    /// <summary>Runs as it draws outside the grid's toolbar, shown or not, and with false as it goes.</summary>
+    private protected virtual void Outside(bool shown)
+    {
     }
 
     private void Leave()
@@ -215,6 +225,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
     /// <inheritdoc />
     public void Dispose()
     {
+        Outside(false);
         Leave();
         _slot.Dispose();
     }
@@ -418,7 +429,8 @@ public sealed class DataGridAdd : DataGridToolbarItem
     /// <summary>
     /// Below this width it's a floating button at the screen's bottom corner, under the thumb, instead of
     /// a toolbar button: <c>Breakpoint.Sm</c> on a phone. Off by default; for a page's one main action. It
-    /// floats outside the grid too, such as from a <c>PageHeader</c>'s actions with <c>For</c>.
+    /// floats outside the grid too, such as from a <c>PageHeader</c>'s actions with <c>For</c>, where it
+    /// shares a speed dial with any <c>Button</c> that floats there too.
     /// </summary>
     [Parameter] public Breakpoint? FloatBelow { get; set; }
 
@@ -459,7 +471,29 @@ public sealed class DataGridAdd : DataGridToolbarItem
             builder.CloseElement();
         };
 
-    private protected override RenderFragment? OutsideFloat => FloatBelow is not { } below || Grid.AddFloat is not { } a
+    /// <summary>The <see cref="PageHeader"/> whose actions it's in, which draws its floating button with its other buttons'.</summary>
+    [CascadingParameter] internal PageFloats? PageFloats { get; set; }
+
+    // In a PageHeader's actions the header floats it, so with another button floating there they share a
+    // speed dial and never sit on each other.
+    private protected override void Outside(bool shown)
+    {
+        if (PageFloats is null)
+        {
+            return;
+        }
+
+        if (shown && FloatBelow is { } below && Grid.AddFloat is { } a)
+        {
+            PageFloats.Set(this, below, a with { GridPart = Grid.PartsId });
+        }
+        else
+        {
+            PageFloats.Remove(this);
+        }
+    }
+
+    private protected override RenderFragment? OutsideFloat => PageFloats is not null || FloatBelow is not { } below || Grid.AddFloat is not { } a
         ? null
         : builder =>
         {

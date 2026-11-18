@@ -42,17 +42,20 @@ public sealed class PageHeaderActions : ComponentPart
     [Parameter] public string? FloatLabel { get; set; }
 }
 
-/// <summary>The buttons of a <see cref="PageHeader"/>'s actions that float below a width (<see cref="Button.FloatBelow"/>).</summary>
+/// <summary>
+/// The buttons of a <see cref="PageHeader"/>'s actions that float below a width (<see cref="Button.FloatBelow"/>,
+/// or a grid's <see cref="DataGridAdd"/>), so several share one speed dial.
+/// </summary>
 internal sealed class PageFloats
 {
-    private readonly List<(Button Owner, Breakpoint Below, ToolbarFloat Float)> _items = [];
+    private readonly List<(object Owner, Breakpoint Below, ToolbarFloat Float)> _items = [];
 
     /// <summary>Raised when a button starts or stops floating, or what it does changes.</summary>
     public event Action? Changed;
 
     public IEnumerable<(Breakpoint Below, ToolbarFloat Float)> Items => _items.Select(i => (i.Below, i.Float));
 
-    public void Set(Button owner, Breakpoint below, ToolbarFloat action)
+    public void Set(object owner, Breakpoint below, ToolbarFloat action)
     {
         var at = _items.FindIndex(i => ReferenceEquals(i.Owner, owner));
         if (at < 0)
@@ -71,7 +74,7 @@ internal sealed class PageFloats
         Changed?.Invoke();
     }
 
-    public void Remove(Button owner)
+    public void Remove(object owner)
     {
         if (_items.RemoveAll(i => ReferenceEquals(i.Owner, owner)) > 0)
         {
@@ -92,7 +95,8 @@ internal sealed class PageHeaderFloats : ComponentBase, IDisposable
 
     /// <inheritdoc />
     protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) =>
-        FloatActions.Render(builder, "ib-page-header-floats", Label, Floats.Items);
+        // A header's main action is its last button; in a speed dial it's the first, nearest the thumb.
+        FloatActions.Render(builder, "ib-page-header-floats", Label, Floats.Items.Reverse());
 
     /// <inheritdoc />
     public void Dispose() => Floats.Changed -= StateHasChanged;

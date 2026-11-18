@@ -70,6 +70,9 @@ internal sealed record ToolbarFloat(IconData Icon, string Label)
 
     /// <summary>More attributes for its element, such as a grid's edit hooks.</summary>
     public IReadOnlyDictionary<string, object>? Attributes { get; init; }
+
+    /// <summary>The id of the grid it's a part of, outside that grid: alone, its button is marked as the grid's, for the grid's script.</summary>
+    public string? GridPart { get; init; }
 }
 
 internal sealed class ToolbarContext(string rootId)

@@ -105,7 +105,8 @@ public class Button : ButtonBase, IDisposable
     /// <see cref="ButtonBase.StartIcon"/> and <see cref="FloatLabel"/>: <c>Breakpoint.Sm</c> on a phone. For a
     /// page's main action, in a <see cref="PageHeader"/>'s <see cref="PageHeaderActions"/> or, as a
     /// <see cref="ToolbarButton"/>, in a <see cref="Toolbar"/>. With more than one floating at the same width,
-    /// they share a speed dial, named by the actions' or the toolbar's <c>FloatLabel</c>. Off by default.
+    /// they share a speed dial, named by the actions' or the toolbar's <c>FloatLabel</c>; a header's last button, its
+    /// main action, is the dial's first, nearest the thumb. Off by default.
     /// </summary>
     [Parameter] public Breakpoint? FloatBelow { get; set; }
 

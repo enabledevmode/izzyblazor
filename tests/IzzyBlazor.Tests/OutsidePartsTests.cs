@@ -50,7 +50,8 @@ public class OutsidePartsTests : BunitContext
         Assert.All(cut.FindAll(".ib-page-header-actions a.ib-btn"), b => Assert.Contains("ib-visible-from-sm", b.ClassName));
         Assert.Equal("Add", cut.FindComponent<SpeedDial>().Instance.Label);
         var actions = cut.FindComponents<SpeedDialAction>().Select(a => (a.Instance.Label, a.Instance.Href)).ToList();
-        Assert.Equal([("Log activity", "/activities/new"), ("New deal", "/deals/new")], actions);
+        // The header's last button, its main action, is the dial's first.
+        Assert.Equal([("New deal", "/deals/new"), ("Log activity", "/activities/new")], actions);
     }
 
     [Fact]
@@ -62,10 +63,22 @@ public class OutsidePartsTests : BunitContext
         var button = cut.Find(".ib-page-header-actions .ib-visible-from-sm a");
         Assert.Equal("Add customer", button.TextContent.Trim());
         Assert.DoesNotContain("ib-btn-sm", button.ClassName);
-        var floating = cut.Find(".ib-page-header-actions a.ib-hidden-from-sm");
+        var floating = cut.Find(".ib-page-header-floats .ib-part a.ib-hidden-from-sm");
         Assert.Equal(button.GetAttribute("href"), floating.GetAttribute("href"));
         Assert.Contains("add=1", button.GetAttribute("href"));
         Assert.DoesNotContain("Add customer", cut.Find("ib-table").TextContent);
+    }
+
+    [Fact]
+    public void Add_and_a_button_floating_in_one_page_header_share_a_speed_dial()
+    {
+        var cut = Render<PartsProbe>(p => p.Add(c => c.Kind, "grid-add-and-button-in-header"));
+
+        // One floating button, not two on each other; the header's last action is the dial's first.
+        Assert.Empty(cut.FindAll("a.ib-btn-float"));
+        var actions = cut.FindAll(".ib-page-header-floats .ib-sd-action");
+        Assert.Equal(["Add customer", "Import customers"], actions.Select(a => a.TextContent.Trim()));
+        Assert.Contains("add=1", actions[0].GetAttribute("href"));
     }
 
     [Fact]
