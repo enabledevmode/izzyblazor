@@ -49,7 +49,8 @@
         {
             <span class="ib-check-icon" aria-hidden="true"><Icon Name="icon" /></span>
         }
-        <span class="ib-check-label">
+        @* HideLabel: the name stays for screen readers, as on the other fields. *@
+        <span class="@(HideLabel ? "ib-check-label ib-visually-hidden" : "ib-check-label")">
             @if (ChildContent is not null)
             {
                 @ChildContent
