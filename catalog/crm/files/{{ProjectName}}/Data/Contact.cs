@@ -8,13 +8,14 @@ public class Contact : IAudited
 {
     public int Id { get; set; }
 
-    [Required, StringLength(60)] public string FirstName { get; set; } = "";
+    [Required(ErrorMessage = "Enter a first name."), StringLength(60)] public string FirstName { get; set; } = "";
 
-    [Required, StringLength(60)] public string LastName { get; set; } = "";
+    [Required(ErrorMessage = "Enter a last name."), StringLength(60)] public string LastName { get; set; } = "";
 
-    [Required, EmailAddress, StringLength(256)] public string Email { get; set; } = "";
+    [Required(ErrorMessage = "Enter an email address."), EmailAddress(ErrorMessage = "Enter an email address like name@example.com."), StringLength(256)]
+    public string Email { get; set; } = "";
 
-    [Phone, StringLength(40)] public string? Phone { get; set; }
+    [Phone(ErrorMessage = "Enter a phone number, digits with spaces or dashes."), StringLength(40)] public string? Phone { get; set; }
 
     [StringLength(80)] public string? JobTitle { get; set; }
 

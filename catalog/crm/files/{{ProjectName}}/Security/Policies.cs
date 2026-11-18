@@ -18,8 +18,8 @@ public static class Roles
     public static string Summary(string role) => role switch
     {
         Admin => "Everything, including users, roles and the audit log.",
-        Manager => "[Copy needed: Manager summary]",
-        Viewer => "[Copy needed: Viewer summary]",
+        Manager => "Contacts, companies, deals and activities: add, edit and delete.",
+        Viewer => "Sees every record and report. Can't change anything.",
         _ => "",
     };
 
@@ -27,8 +27,8 @@ public static class Roles
     public static string Description(string role) => role switch
     {
         Admin => "Runs the app: everything Managers do, plus people and the audit log.",
-        Manager => "[Copy needed: Manager description]",
-        Viewer => "[Copy needed: Viewer description]",
+        Manager => "Works the pipeline: adds and edits contacts, companies, deals and activities.",
+        Viewer => "Follows along: sees every record and report, and changes nothing.",
         _ => "",
     };
 }
