@@ -1214,12 +1214,15 @@
         var culture = CultureInfo.CurrentCulture;
         var (view, date) = (CurrentView, CurrentDate);
         var period = PeriodOf(view).ToLower(culture);
+        @* A pair: side by side with no gap, each narrower than an icon button so the two chevrons read as one control. *@
+        <span class="ib-sched-arrows">
         <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" @onclick="() => GoAsync(view, SchedulerLayout.Step(view, date, -1, AgendaDays))" @onclick:preventDefault="Bound" data-ib-key="@Key("p")" aria-keyshortcuts="@Key("P")" aria-label="@string.Format(culture, TextDefaults.SchedulerPrevious, period)">
             <Icon Purpose="IconPurpose.ChevronLeft" />
         </a>
         <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@Href(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" @onclick="() => GoAsync(view, SchedulerLayout.Step(view, date, 1, AgendaDays))" @onclick:preventDefault="Bound" data-ib-key="@Key("n")" aria-keyshortcuts="@Key("N")" aria-label="@string.Format(culture, TextDefaults.SchedulerNext, period)">
             <Icon Purpose="IconPurpose.ChevronRight" />
         </a>
+        </span>
     };
 
     RenderFragment ISchedulerToolbar.PeriodPart => __builder =>

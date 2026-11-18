@@ -428,6 +428,9 @@
   }
   .ib-sched-day-link:hover { background-color: var(--ib-color-fill-subtle); }
   .ib-sched-day-short, .ib-sched-title-short, .ib-sched-today-leaf { display: none; }
+  /* The arrows: a pair with no gap, each 1.75rem wide (over the 24px a target needs) and a button's height. */
+  .ib-sched-arrows { display: inline-flex; }
+  .ib-sched-arrows > .ib-btn { width: 1.75rem; padding-inline: 0; }
   .ib-sched-outside .ib-sched-day-link { color: var(--ib-color-muted); }
   .ib-sched-week > .ib-sched-bar-event { grid-row-end: span 1; }
   .ib-sched-pills {
