@@ -121,6 +121,10 @@
                             <Card @key="note.Id">
                                 <Comment Author="@(note.Author?.Name ?? "Someone")" Time="When.Zoned(note.Created, _workspace)" TimeText="@Written(note.Created)" HeadingLevel="3">
                                     <Extra>
+                                        @if (note.Edited > note.Created)
+                                        {
+                                            <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">Edited</TextBlock>
+                                        }
                                         @if (_canEdit)
                                         {
                                             <Menu Placement="Placement.BottomEnd">
@@ -128,7 +132,7 @@
                                                     <IconButton Label="Note options" Icon="Lucide.Ellipsis" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @attributes="context" />
                                                 </Trigger>
                                                 <ChildContent>
-                                                    <MenuItem Href="@($"notes/{note.Id}/edit")" Icon="Lucide.Pencil">Edit</MenuItem>
+                                                    <MenuItem Href="@($"contacts/{Id}/notes?dialog=edit-note&note={note.Id}")" Icon="Lucide.Pencil">Edit</MenuItem>
                                                     <MenuItem Href="@($"contacts/{Id}/notes?dialog=delete-note&note={note.Id}")" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
                                                 </ChildContent>
                                             </Menu>
@@ -146,7 +150,22 @@
                             <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about {contact.FirstName} show here.")" /></Card>
                         }
 
-                        @* Delete asks first: the menu's link opens this (?dialog=delete-note&note=5). *@
+                        @* A note's menu opens these: Edit (?dialog=edit-note&note=5) changes its text in a dialog. *@
+                        @if (_canEdit && Edit is not null && _notes.Any(n => n.Id == Note))
+                        {
+                            <Dialog Id="edit-note" Title="Edit note" CloseOnBackdrop="false">
+                                <Form Model="Edit" FormName="edit-note" OnValidSubmit="SaveNoteAsync" RequiredMark="RequiredMark.None">
+                                    <input type="hidden" name="Edit.Id" value="@Note" />
+                                    <TextArea @bind-Value="Edit.Body" Label="Note" Rows="6" AutoGrow autofocus />
+                                    <DialogFooter>
+                                        <DialogClose>Cancel</DialogClose>
+                                        <Button Submit>Save note</Button>
+                                    </DialogFooter>
+                                </Form>
+                            </Dialog>
+                        }
+
+                        @* Delete asks first (?dialog=delete-note&note=5). *@
                         @if (_canEdit && _notes.FirstOrDefault(n => n.Id == Note) is { } doomed)
                         {
                             <Dialog Id="delete-note" Title="Delete this note?" Size="DialogSize.Sm">
@@ -225,13 +244,23 @@
     /// <summary>The tasks just ticked here, which stay in the list: "4,7".</summary>
     [SupplyParameterFromQuery] private string? Done { get; set; }
 
-    /// <summary>The note the delete dialog asks about (?dialog=delete-note&amp;note=5).</summary>
+    /// <summary>The note the edit or delete dialog is about (?dialog=edit-note&amp;note=5).</summary>
     [SupplyParameterFromQuery] private int? Note { get; set; }
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     // The note being written on the Notes tab.
     [SupplyParameterFromForm(FormName = "add-note")] private NoteDraft? Draft { get; set; }
+
+    // The note being changed in the edit dialog.
+    [SupplyParameterFromForm(FormName = "edit-note")] private NoteEdit? Edit { get; set; }
+
+    private sealed class NoteEdit
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string? Body { get; set; }
+    }
 
     // The note the delete dialog posted.
     [SupplyParameterFromForm(FormName = "delete-note")] private NoteRef? Delete { get; set; }
@@ -330,6 +359,8 @@
             case "notes":
                 _notes = await Db.Notes.AsNoTracking().Include(n => n.Author)
                     .Where(n => n.ContactId == Id).OrderByDescending(n => n.Created).ToListAsync();
+                // The edit dialog starts with the note's text; a post that came back keeps what was typed.
+                if (Edit is null && _notes.FirstOrDefault(n => n.Id == Note) is { } editing) Edit = new NoteEdit { Id = editing.Id, Body = editing.Body };
                 break;
         }
     }
@@ -343,6 +374,20 @@
         if (await Db.Contacts.FirstOrDefaultAsync(c => c.Id == Id) is { } contact) contact.LastActivity = now;
         await Db.SaveChangesAsync();
         Toasts.Success($"It’s on {_contact!.Name}’s page for the whole team.", "Note added");
+        Navigation.NavigateTo($"contacts/{Id}/notes");
+    }
+
+    private async Task SaveNoteAsync()
+    {
+        if (!_canEdit) return;
+        if (await Db.Notes.FirstOrDefaultAsync(n => n.Id == Edit!.Id && n.ContactId == Id) is { } note && note.Body != Edit!.Body!.Trim())
+        {
+            note.Body = Edit.Body.Trim();
+            note.Edited = DateTime.UtcNow;
+            await Db.SaveChangesAsync();
+            Toasts.Success("Everyone sees the new text.", "Note saved");
+        }
+
         Navigation.NavigateTo($"contacts/{Id}/notes");
     }
 
