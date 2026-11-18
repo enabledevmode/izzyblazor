@@ -1264,6 +1264,7 @@
 
     /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
     .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide,
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-brand-text,
     .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-brand-label {
       position: absolute;
       width: 1px;
@@ -1494,6 +1495,7 @@
 
     /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
     .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide,
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-brand-text,
     .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-brand-label {
       position: absolute;
       width: 1px;
@@ -1724,6 +1726,7 @@
 
     /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
     .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide,
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-brand-text,
     .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-brand-label {
       position: absolute;
       width: 1px;
@@ -1954,6 +1957,7 @@
 
     /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
     .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide,
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-brand-text,
     .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-brand-label {
       position: absolute;
       width: 1px;
