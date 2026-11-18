@@ -740,7 +740,9 @@
   .ib-dialog-body {
     /* The side padding, which a flush DialogBody reaches out across. */
     --ib-dialog-px: var(--ib-space-6);
-    flex: 1;
+    /* As tall as its content, less when the dialog is at its limit, more in a drawer. Not "flex: 1": its 0%
+       basis in a dialog of no set height is nothing in Safari, which showed a line of the body and scrolled the rest. */
+    flex: 1 1 auto;
     min-height: 0;
     overflow: auto;
     padding: var(--ib-space-2) var(--ib-space-6) var(--ib-space-5);
