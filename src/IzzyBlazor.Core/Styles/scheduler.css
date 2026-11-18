@@ -427,7 +427,7 @@
     text-decoration: none;
   }
   .ib-sched-day-link:hover { background-color: var(--ib-color-fill-subtle); }
-  .ib-sched-day-short, .ib-sched-title-short { display: none; }
+  .ib-sched-day-short, .ib-sched-title-short, .ib-sched-today-leaf { display: none; }
   .ib-sched-outside .ib-sched-day-link { color: var(--ib-color-muted); }
   .ib-sched-week > .ib-sched-bar-event { grid-row-end: span 1; }
   .ib-sched-pills {
@@ -545,6 +545,25 @@
     /* With the funnel hidden, the dot sits in the corner. */
     .ib-sched-cats-btn[data-active]::after { top: 4px; inset-inline: auto 4px; }
     .ib-sched-new { width: var(--ib-btn-h); padding-inline: 0; }
+    /* The menus and New stay together: beside the navigation where they fit, on a row of their own
+       where they don't, at its end either way. */
+    .ib-sched-bar .ib-toolbar-wrap > .ib-toolbar-end { display: flex; flex-wrap: nowrap; margin-inline-start: auto; }
+    .ib-sched-bar .ib-toolbar-wrap > .ib-toolbar-end > :first-child :first-child { margin-inline-start: 0; }
+    /* Today is a calendar leaf with the day's number: the width of an icon button. */
+    .ib-sched-today-text { display: none; }
+    .ib-sched-today-btn { width: var(--ib-btn-h); padding-inline: 0; }
+    .ib-sched-today-leaf {
+      display: inline-grid;
+      place-items: center;
+      width: 1.25rem;
+      height: 1.25rem;
+      border: 1.5px solid currentColor;
+      border-block-start-width: 3.5px;
+      border-radius: 3px;
+      font-size: 0.625rem;
+      font-weight: var(--ib-weight-semibold);
+      line-height: 1;
+    }
     .ib-sched-day-head { padding-inline: var(--ib-space-1); }
     .ib-sched-pill .ib-sched-time { display: none; }
     /* A list is read for its times: there they stay, on a line of their own over the title. */

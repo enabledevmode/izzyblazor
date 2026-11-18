@@ -1205,7 +1205,8 @@
         var culture = CultureInfo.CurrentCulture;
         var (view, date) = (CurrentView, CurrentDate);
         var period = PeriodOf(view).ToLower(culture);
-        <a class="ib-btn ib-btn-neutral ib-btn-ghost" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" @onclick="() => GoAsync(view, DateOnly.FromDateTime(DateTime.Now))" @onclick:preventDefault="Bound" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")">@TextDefaults.SchedulerToday</a>
+        @* On a narrow screen, a calendar leaf with today's number in place of the word (Android's calendar); its name is the same. *@
+        <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-sched-today-btn" href="@Href(view, DateOnly.FromDateTime(DateTime.Now))" @onclick="() => GoAsync(view, DateOnly.FromDateTime(DateTime.Now))" @onclick:preventDefault="Bound" data-ib-key="@Key("t")" aria-keyshortcuts="@Key("T")" aria-label="@TextDefaults.SchedulerToday"><span class="ib-sched-today-text">@TextDefaults.SchedulerToday</span><span class="ib-sched-today-leaf" aria-hidden="true">@DateTime.Now.Day.ToString(culture)</span></a>
     };
 
     RenderFragment ISchedulerToolbar.ArrowsPart => __builder =>

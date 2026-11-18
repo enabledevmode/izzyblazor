@@ -35,7 +35,8 @@ public class OutsidePartsTests : BunitContext
         var cut = Render<PartsProbe>(p => p.Add(c => c.Kind, "scheduler-for"));
 
         var bar = cut.Find(".page-bar");
-        Assert.Equal("Today", bar.QuerySelector("a")!.TextContent.Trim());
+        // The Scheduler's own Today link, by what it is, not what it reads.
+        Assert.NotNull(bar.QuerySelector("a.ib-sched-today-btn"));
         Assert.Equal(3, bar.QuerySelectorAll(".ib-part").Length);
         Assert.Empty(cut.FindAll("ib-scheduler .ib-sched-bar"));
     }
