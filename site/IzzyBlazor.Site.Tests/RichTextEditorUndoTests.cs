@@ -15,17 +15,17 @@ public sealed class RichTextEditorUndoTests(SiteFixture site) : IClassFixture<Si
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 }, Locale = "en-US" });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/rich-text-editor?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
 
-        // Typing is one step until a pause; Ctrl+B still formats what's typed next.
+        // Typing is one step until a pause; Ctrl+B (Cmd+B on a Mac, as the editor takes it) still formats what's typed next.
         var comment = page.Locator("[data-ex='rich-text-editor-comment']");
         var text = comment.Locator(".ib-rich-text-surface");
         await text.ClickAsync();
         await page.Keyboard.TypeAsync("Hello ");
-        await page.Keyboard.PressAsync("Control+b");
+        await page.Keyboard.PressAsync("ControlOrMeta+b");
         await page.Keyboard.TypeAsync("bold");
         await Assertions.Expect(text.Locator("b, strong")).ToHaveTextAsync("bold");
         await page.WaitForTimeoutAsync(1200);
         await page.Keyboard.TypeAsync(" more");
-        await page.Keyboard.PressAsync("Control+z");
+        await page.Keyboard.PressAsync("ControlOrMeta+z");
         await Assertions.Expect(text).ToHaveTextAsync("Hello bold");
 
         // A color undone and redone, the value following.
@@ -38,7 +38,7 @@ public sealed class RichTextEditorUndoTests(SiteFixture site) : IClassFixture<Si
         await flyer.GetByRole(AriaRole.Menuitemradio, new() { Name = "Red" }).ClickAsync();
         await Assertions.Expect(line.Locator("span.ib-color-red")).ToHaveTextAsync("Talks");
 
-        await line.PressAsync("Control+z");
+        await line.PressAsync("ControlOrMeta+z");
         await Assertions.Expect(line.Locator("span.ib-color-red")).ToHaveCountAsync(0);
         await Assertions.Expect(flyer.Locator("textarea")).Not.ToHaveValueAsync(new System.Text.RegularExpressions.Regex("ib-color-red"));
 
