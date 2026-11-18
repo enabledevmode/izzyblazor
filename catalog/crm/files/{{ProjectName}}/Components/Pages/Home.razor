@@ -25,12 +25,12 @@
         <Card><Stat Label="Closing this month" Value="@Money(_closing.Sum(d => d.Value))" Description="@($"{Count(_closing.Count, "deal")} in proposal or negotiation")" /></Card>
 
         <Column Gap="4" ColSpan="new() { Md = 2 }" AlignSelf="Align.Start">
-            <Card Title="Your next moves" TitleLevel="2">
-                <CardActions><Anchor Href="activities/tasks">View all</Anchor></CardActions>
+            <Card Title="Your next moves" TitleLevel="2" Size="ControlSize.Sm">
+                <CardActions><TextBlock As="span" Size="TextSize.Sm"><Anchor Href="activities/tasks">View all</Anchor></TextBlock></CardActions>
                 <CardBody Flush>
                     @if (_tasks.Count > 0)
                     {
-                        <TaskList Tasks="_tasks" Today="_today" Label="Your next moves" />
+                        <TaskList Tasks="_tasks.Take(Shown).ToList()" Today="_today" Label="Your next moves" />
                     }
                     else
                     {
@@ -41,7 +41,7 @@
 
             @if (_meeting is not null)
             {
-                <Card Title="Upcoming meeting" TitleLevel="2">
+                <Card Title="Upcoming meeting" TitleLevel="2" Size="ControlSize.Sm">
                     <CardActions><Badge Accent="Accent.Primary">@When.Day(DateOnly.FromDateTime(_meeting.Start), _today)</Badge></CardActions>
                     <CardBody Flush>
                         <ListView Items="@(new[] { _meeting })" ItemKey="m => m.Id.ToString()" Label="Upcoming meeting"
@@ -50,7 +50,7 @@
                             <ItemActions>
                                 @if (meeting.ContactId is { } contact)
                                 {
-                                    <Anchor Href="@($"contacts/{contact}")">View contact</Anchor>
+                                    <TextBlock As="span" Size="TextSize.Sm"><Anchor Href="@($"contacts/{contact}")">View contact</Anchor></TextBlock>
                                 }
                             </ItemActions>
                         </ListView>
@@ -59,8 +59,8 @@
             }
         </Column>
 
-        <Card Title="Recent activity" TitleLevel="2" AlignSelf="Align.Start">
-            <Timeline TimePlacement="TimelinePlacement.Below">
+        <Card Title="Recent activity" TitleLevel="2" Size="ControlSize.Sm" AlignSelf="Align.Start">
+            <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
                 @foreach (var item in _recent)
                 {
                     <TimelineItem Title="@item.Title" Time="@($"{item.By} · {When.Happened(item.When, _today)}")" DateTime="@item.When.ToString("yyyy-MM-ddTHH:mm")">
@@ -75,6 +75,9 @@
 @code {
     /// <summary>The tasks just ticked here, which stay in the list: "4,7".</summary>
     [SupplyParameterFromQuery] private string? Done { get; set; }
+
+    // Your next moves lists this many, the most overdue first; View all has the rest.
+    private const int Shown = 5;
 
     private Workspace? _workspace;
     private DateTime _now;
