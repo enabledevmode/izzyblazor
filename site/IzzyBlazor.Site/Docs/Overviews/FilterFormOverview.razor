@@ -38,6 +38,15 @@
 <ExampleViewer Example="filter-form-books" />
 <TextBlock>The form removes a table's page number with or without a <Code>QueryPrefix</Code>, such as <Code>books-page</Code>.</TextBlock>
 
+<Heading Level="2">On a phone</Heading>
+<TextBlock>A row of filters takes most of a phone's screen once it wraps. To keep the search in the row and put the other fields in a panel, set <Code>CollapseBelow="Breakpoint.Sm"</Code>. A Filters button opens the panel and shows how many of its filters are set.</TextBlock>
+<ExampleViewer Example="filter-form-collapse" />
+<List>
+    <ListItem>In the panel, each field shows its <Code>Label</Code> above it, and filters wait for Apply.</ListItem>
+    <ListItem>Above the width, the fields are in the row as usual, with the search first.</ListItem>
+    <ListItem>To rename the button, set <Code>FiltersText</Code>.</ListItem>
+</List>
+
 <Heading Level="2">Custom inputs</Heading>
 <TextBlock>A filter form can contain inputs of your own, such as a number. Put any input with a <Code>name</Code> in the form, and list the names in <Code>Fields</Code>, so the form doesn't also carry their old values over from the URL.</TextBlock>
 <Code Block Language="razor">@OwnFields</Code>
@@ -62,6 +71,7 @@
             <tr><td><Code>Label</Code></td><td>The search landmark's name</td><td>"Filters"</td></tr>
             <tr><td><Code>ApplyText</Code></td><td>The Apply button's text</td><td>"Apply"</td></tr>
             <tr><td><Code>ClearText</Code></td><td>The Clear link's text</td><td>"Clear"</td></tr>
+            <tr><td><Code>FiltersText</Code></td><td>The text of the button that opens the panel</td><td>"Filters"</td></tr>
         </tbody>
     </table>
 </Prose>

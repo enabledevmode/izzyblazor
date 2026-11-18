@@ -1,0 +1,55 @@
+@* An orders page: on a phone the search stays, and the status, owner and date are behind Filters. *@
+<Stack Gap="4" Padding="4">
+    <Heading Level="1" Size="TextSize.Xl">Orders</Heading>
+    <FilterForm Label="Filter orders" CollapseBelow="Breakpoint.Sm">
+        <FilterSearch Name="customer" Label="Customer" Placeholder="Search customers" />
+        <FilterSelect Name="status" Label="Status" Items="Statuses" />
+        <FilterSelect Name="owner" Label="Owner" Items="Owners" AllText="All owners" />
+        <FilterDate Name="since" Label="Since" />
+    </FilterForm>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" aria-live="polite">@Found.Count() of @All.Length orders</TextBlock>
+    <List Plain Gap="3">
+        @foreach (var order in Found)
+        {
+            <ListItem>
+                <Row Gap="2" Align="Align.Center">
+                    <TextBlock As="span">@order.Customer</TextBlock>
+                    <Badge Size="BadgeSize.Sm">@order.Status</Badge>
+                    <Spacer />
+                    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@order.Placed.ToString("MMM d")</TextBlock>
+                </Row>
+            </ListItem>
+        }
+    </List>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "customer")] private string? Customer { get; set; }
+    [SupplyParameterFromQuery(Name = "status")] private string? Status { get; set; }
+    [SupplyParameterFromQuery(Name = "owner")] private string? Owner { get; set; }
+    [SupplyParameterFromQuery(Name = "since")] private DateOnly? Since { get; set; }
+
+    private IEnumerable<Order> Found => All
+        .Where(o => string.IsNullOrWhiteSpace(Customer) || o.Customer.Contains(Customer, StringComparison.OrdinalIgnoreCase))
+        .Where(o => string.IsNullOrEmpty(Status) || o.Status == Status)
+        .Where(o => string.IsNullOrEmpty(Owner) || o.Owner == Owner)
+        .Where(o => Since is null || o.Placed >= Since);
+
+    @* hide *@
+    private static readonly string[] Statuses = ["Paid", "Pending", "Refunded"];
+
+    private static readonly string[] Owners = ["Priya Shah", "Marcus Bell"];
+
+    private static readonly Order[] All =
+    [
+        new("Northwind Traders", "Paid", "Priya Shah", new(2027, 3, 18)),
+        new("Fabrikam Outfitters", "Pending", "Marcus Bell", new(2027, 3, 16)),
+        new("Contoso Coffee", "Paid", "Priya Shah", new(2027, 3, 11)),
+        new("Adventure Works", "Refunded", "Marcus Bell", new(2027, 3, 9)),
+        new("Tailspin Toys", "Pending", "Priya Shah", new(2027, 3, 4)),
+        new("Wide World Importers", "Paid", "Marcus Bell", new(2027, 2, 26)),
+    ];
+
+    private sealed record Order(string Customer, string Status, string Owner, DateOnly Placed);
+    @* /hide *@
+}

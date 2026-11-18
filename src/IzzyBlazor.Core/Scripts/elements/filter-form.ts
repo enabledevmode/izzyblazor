@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { TypingGuard, changedFromServer, isPageKey, navigateTo } from "../filtering";
+import { supportsAnchor, track } from "../position";
 
 /**
  * <ib-filter-form> makes a FilterForm live: the search box applies after a pause in typing,
@@ -11,6 +12,9 @@ import { TypingGuard, changedFromServer, isPageKey, navigateTo } from "../filter
  * While someone keeps typing, a response for an earlier value can arrive and reset the box;
  * the element puts back what they typed. Text being composed with an input method (Chinese,
  * Japanese, Korean) is left alone until it's committed.
+ *
+ * A form that collapses (CollapseBelow) has a panel of fields on a narrow screen. While it's open
+ * its fields wait for Apply, which closes it, as Clear does.
  */
 class FilterForm extends IzzyElement {
   #timer = 0;
@@ -22,6 +26,16 @@ class FilterForm extends IzzyElement {
 
   private get live(): boolean {
     return this.hasAttribute("data-live");
+  }
+
+  /** The panel of a form that collapses, while it's open: on a wide screen it's never open. */
+  private get openPanel(): HTMLElement | null {
+    return this.querySelector<HTMLElement>(".ib-filter-more:popover-open");
+  }
+
+  /** Whether a field waits for Apply: it's in the open panel. */
+  private waits(target: EventTarget | null): boolean {
+    return !!this.openPanel?.contains(target as Node);
   }
 
   protected setup(signal: AbortSignal): void {
@@ -64,7 +78,7 @@ class FilterForm extends IzzyElement {
         // changes; any other input of your own (a date, a number) after a pause, since typing a
         // date with the keyboard changes it once per part.
         const target = event.target as HTMLElement;
-        if (!this.live || typedIn(target)) return;
+        if (!this.live || typedIn(target) || this.waits(target)) return;
         if (target.matches("select, input[type=checkbox], input[type=radio]")) this.apply(false);
         else if (target instanceof HTMLInputElement && target.type !== "hidden") {
           clearTimeout(this.#timer);
@@ -85,6 +99,7 @@ class FilterForm extends IzzyElement {
         if (!(event.target as Element).closest?.(".ib-filter-clear")) return;
         clearTimeout(this.#timer);
         this.#typing.clear();
+        this.openPanel?.hidePopover();
         if ((event as PointerEvent).pointerType === "touch") return;
         const first =
           [...form.querySelectorAll<HTMLElement>("input:not([type=hidden], :disabled), select:not(:disabled), textarea:not(:disabled)")].find(
@@ -105,6 +120,24 @@ class FilterForm extends IzzyElement {
     );
 
     form.addEventListener("focusout", (event) => this.#typing.forget(event.target as HTMLInputElement), { signal });
+
+    // The panel, where the browser can't anchor it: as wide as the form, under it.
+    const panel = this.querySelector<HTMLElement>(".ib-filter-more");
+    if (panel && !supportsAnchor) {
+      let stop = () => {};
+      panel.addEventListener(
+        "toggle",
+        (event) => {
+          stop();
+          stop = () => {};
+          if ((event as ToggleEvent).newState !== "open") return;
+          panel.style.width = `${form.offsetWidth}px`;
+          stop = track(panel, form, "bottom-start");
+        },
+        { signal }
+      );
+      signal.addEventListener("abort", () => stop());
+    }
     signal.addEventListener("abort", () => clearTimeout(this.#timer));
 
     // Back and Forward show another filter: what was being typed no longer applies.
@@ -129,7 +162,7 @@ class FilterForm extends IzzyElement {
   }
 
   private typed(input: HTMLInputElement): void {
-    if (!this.live || !typedIn(input)) return;
+    if (!this.live || !typedIn(input) || this.waits(input)) return;
     this.#typing.typed(input);
     clearTimeout(this.#timer);
     this.#timer = window.setTimeout(() => this.apply(true), 350);
@@ -140,6 +173,7 @@ class FilterForm extends IzzyElement {
     const form = this.form;
     if (!form || this.#typing.composing) return;
     this.#typing.restore();
+    this.openPanel?.hidePopover();
 
     // The same values a native submit would send (disabled fields out, the submitter's
     // name=value in), minus the hidden fields that only carry the rest of the URL over.
