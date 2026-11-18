@@ -202,6 +202,11 @@
     margin-inline: calc(var(--ib-card-p) * -1);
   }
 
+  /* A list's rows keep the card's side padding, so their content lines up with the card's title and actions. */
+  .ib-card-flush > .ib-listview {
+    --ib-listview-px: var(--ib-card-p);
+  }
+
   /* A table's own frame would draw a box inside the card: the card is its frame. */
   .ib-card-flush > .ib-table {
     --ib-table-bg: var(--ib-card-bg, var(--ib-color-surface));
