@@ -7,8 +7,7 @@ namespace IzzyBlazor;
 /// A region of a component, written among the component's content and drawn by the component in
 /// its own place, such as <see cref="CardHeader"/> or <see cref="SidebarFooter"/>. Because it's
 /// drawn at the component's level, a form or cascading value it's written inside doesn't reach its
-/// content. (Parts drawn where they're written, such as <see cref="DialogFooter"/>, are ordinary
-/// components instead.)
+/// content. (<see cref="DialogFooter"/> is drawn this way too, and passes its form on to its buttons.)
 /// </summary>
 public abstract class ComponentPart : ComponentBase, IDisposable
 {
@@ -27,6 +26,9 @@ public abstract class ComponentPart : ComponentBase, IDisposable
     /// <summary>The component that draws this part.</summary>
     internal abstract Type HostType { get; }
 
+    /// <summary>The name in the error for a part written outside its host.</summary>
+    internal virtual string PartName => GetType().Name;
+
     /// <inheritdoc />
     protected sealed override void OnParametersSet()
     {
@@ -34,7 +36,7 @@ public abstract class ComponentPart : ComponentBase, IDisposable
         {
             var host = HostType.Name;
             _scope = Scope?.Find(HostType)
-                ?? throw new InvalidOperationException($"{GetType().Name} must be inside {("AEIOU".Contains(host[0]) ? "an" : "a")} {host}.");
+                ?? throw new InvalidOperationException($"{PartName} must be inside {("AEIOU".Contains(host[0]) ? "an" : "a")} {host}.");
             _added = true;
             _scope.Add(this);
         }
@@ -109,6 +111,9 @@ internal sealed class PartScope
     public static PartScope Discard { get; } = new();
 
     public PartScope? Parent { get; }
+
+    /// <summary>Whether this scope's own host is a <typeparamref name="T"/>, with no other host between.</summary>
+    public bool HostIs<T>() => _host is T;
 
     private bool Discards => _host is null && _standsIn is null;
 

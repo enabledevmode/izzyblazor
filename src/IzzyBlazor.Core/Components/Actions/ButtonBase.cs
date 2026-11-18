@@ -46,6 +46,9 @@ public abstract class ButtonBase : LayoutItemBase
 
     private bool Floating => FloatSpot is not null;
 
+    /// <summary>The form this button was written in, when it's drawn outside it (a <see cref="DialogFooter"/>).</summary>
+    [CascadingParameter] internal FormOwner? FormOwner { get; set; }
+
     /// <summary>The label.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 

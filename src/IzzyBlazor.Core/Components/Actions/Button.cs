@@ -209,7 +209,7 @@ public class Button : ButtonBase, IDisposable
         builder.AddAttribute(2, "name", Name);
         builder.AddAttribute(3, "value", Value);
         builder.AddAttribute(4, "formaction", FormAction);
-        builder.AddAttribute(5, "form", Form);
+        builder.AddAttribute(5, "form", IzzyBlazor.FormOwner.For(FormOwner, Form, Submit || Reset));
         builder.AddAttribute(6, "disabled", Disabled);
         builder.AddAttribute(7, "data-ib-disabled-until", DisabledUntil);
         builder.AddAttribute(8, "data-ib-disabled-until-value", DisabledUntil is null ? null : DisabledUntilValue);

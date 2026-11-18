@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
@@ -23,11 +24,12 @@ public sealed class DialogHeader : ComponentPart
 
 /// <summary>
 /// The row of buttons at the bottom of a <see cref="Dialog"/> or <see cref="Drawer"/>, usually a
-/// <see cref="DialogClose"/> and the main action. Write it last: last in the dialog, or last in a
-/// form that's last in the dialog, so its buttons stay inside the form and submit it. It reaches the
-/// dialog's edges (and follows <c>ContentPadding</c>) and stays in view when the body scrolls; after a
-/// <see cref="DialogBody"/>, only that scrolls, above the footer. In a
-/// side drawer it follows the content, so with little content it sits partway down.
+/// <see cref="DialogClose"/> and the main action. Write it anywhere in the dialog, usually last; the
+/// dialog draws it under its body, so the body scrolls above it and the scrollbar stops at it. In a
+/// side drawer it sits at the bottom. Written in a <see cref="Form"/>, its <c>Submit</c> and
+/// <c>Reset</c> buttons still act on that form, and Enter in a field still submits it; the form's
+/// fields belong in the form, not the footer. Other cascading values it's written inside don't
+/// reach its content.
 /// A row like <see cref="Row"/>, with <c>Gap</c>, <c>Align</c> and <c>Justify</c> (the buttons go at
 /// the end by default). Also for content shown by <see cref="DialogService"/>.
 /// </summary>
@@ -46,6 +48,12 @@ public sealed class DialogHeader : ComponentPart
 /// </example>
 public class DialogFooter : FlexBase
 {
+    [CascadingParameter] private FormOwner? Owner { get; set; }
+
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    [CascadingParameter] private FormOptions? Options { get; set; }
+
     /// <inheritdoc />
     protected override Responsive<Direction> LayoutDirection => IzzyBlazor.Direction.Row;
 
@@ -55,15 +63,74 @@ public class DialogFooter : FlexBase
         base.BuildAttributes(classes, styles);
         classes.Add("ib-dialog-footer");
     }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        // Handed to the dialog, which draws it after its body.
+        builder.OpenComponent<DialogFooterPart>(0);
+        builder.AddComponentParameter(1, nameof(ComponentPart.ChildContent), (RenderFragment)Draw);
+        builder.CloseComponent();
+    }
+
+    // Drawn outside the form it was written in: its buttons get the form's id, and what a form
+    // cascades (the edit context, its options) is passed on.
+    private void Draw(RenderTreeBuilder builder)
+    {
+        RenderFragment row = DrawRow;
+        if (Owner is null)
+        {
+            row(builder);
+            return;
+        }
+
+        builder.OpenComponent<CascadingValue<FormOwner>>(0);
+        builder.AddComponentParameter(1, nameof(CascadingValue<FormOwner>.Value), Owner with { Detached = true });
+        builder.AddComponentParameter(2, nameof(CascadingValue<FormOwner>.ChildContent), (RenderFragment)(owned =>
+        {
+            owned.OpenComponent<CascadingValue<EditContext?>>(0);
+            owned.AddComponentParameter(1, nameof(CascadingValue<EditContext?>.Value), EditContext);
+            owned.AddComponentParameter(2, nameof(CascadingValue<EditContext?>.ChildContent), (RenderFragment)(edited =>
+            {
+                edited.OpenComponent<CascadingValue<FormOptions?>>(0);
+                edited.AddComponentParameter(1, nameof(CascadingValue<FormOptions?>.Value), Options);
+                edited.AddComponentParameter(2, nameof(CascadingValue<FormOptions?>.ChildContent), row);
+                edited.CloseComponent();
+            }));
+            owned.CloseComponent();
+        }));
+        builder.CloseComponent();
+    }
+
+    private void DrawRow(RenderTreeBuilder builder) => base.BuildRenderTree(builder);
+}
+
+/// <summary>What a <see cref="DialogFooter"/> hands its <see cref="Dialog"/> to draw.</summary>
+internal sealed class DialogFooterPart : ComponentPart
+{
+    internal override Type HostType => typeof(Dialog);
+
+    internal override string PartName => nameof(DialogFooter);
+}
+
+/// <summary>
+/// The form a component is written in. A <see cref="DialogFooter"/> is drawn outside its form, so it
+/// passes this on <see cref="Detached"/>, and its submit and reset buttons name the form by id.
+/// </summary>
+/// <param name="Id">The form element's id; null when the form renders none.</param>
+/// <param name="Detached">Whether the content is drawn outside the form element.</param>
+internal sealed record FormOwner(string? Id, bool Detached = false)
+{
+    /// <summary>The <c>form</c> attribute for a button that submits or resets: its own, else the form it was detached from.</summary>
+    public static string? For(FormOwner? owner, string? form, bool acts) =>
+        form ?? (acts && owner is { Detached: true } ? owner.Id : null);
 }
 
 /// <summary>
 /// A <see cref="Dialog"/>'s body with layout props: a column with <c>Gap</c>, <c>Align</c>,
 /// <c>Justify</c> and <c>Direction</c>, like <see cref="Stack"/>. Optional: content written straight
-/// in the dialog is its body too. It fills the dialog's height, so a <see cref="DialogFooter"/>
-/// after it sits at the bottom of a side drawer whatever the content's length; put it and the
-/// footer in a form to keep the footer's buttons in the form. With a footer straight after it, a long
-/// DialogBody is what scrolls, so the scrollbar stops at the footer. With a DialogBody, put all the body's
+/// in the dialog is its body too. It fills the dialog's height, so <c>Justify</c> can center its
+/// content in a side drawer. With a DialogBody, put all the body's
 /// content in it: text written beside it is laid out as separate rows. <see cref="Flush"/> runs it
 /// to the dialog's edges, for a table or a list.
 /// </summary>

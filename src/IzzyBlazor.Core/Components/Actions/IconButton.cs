@@ -128,7 +128,7 @@ public class IconButton : ButtonBase
             builder.AddAttribute(7, "name", Name);
             builder.AddAttribute(8, "value", Value);
             builder.AddAttribute(9, "formaction", FormAction);
-            builder.AddAttribute(10, "form", Form);
+            builder.AddAttribute(10, "form", IzzyBlazor.FormOwner.For(FormOwner, Form, Submit || Reset));
             builder.AddAttribute(11, "data-ib-print", PrintButtons.Attribute(Print, Submit || Reset, nameof(IconButton)));
             if (OnClick.HasDelegate && !Loading)
             {

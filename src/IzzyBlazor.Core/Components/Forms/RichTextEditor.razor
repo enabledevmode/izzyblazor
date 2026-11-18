@@ -133,12 +133,12 @@
                         <input class="ib-field-input" id="@(FieldId)-link-text" type="text" autocomplete="off" data-ib-link="text" />
                     </div>
                     <label class="ib-rich-text-check"><input type="checkbox" data-ib-link="tab" /> @TextDefaults.RichTextLinkNewTab</label>
-                    <footer class="ib-dialog-footer">
-                        <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" class="ib-rich-text-remove" data-ib-link="remove">@TextDefaults.RichTextLinkRemove</Button>
-                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-link="cancel">@TextDefaults.Cancel</Button>
-                        <Button Size="ControlSize.Sm" data-ib-link="apply">@TextDefaults.RichTextLinkApply</Button>
-                    </footer>
                 </div>
+                <footer class="ib-dialog-footer">
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" class="ib-rich-text-remove" data-ib-link="remove">@TextDefaults.RichTextLinkRemove</Button>
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-link="cancel">@TextDefaults.Cancel</Button>
+                    <Button Size="ControlSize.Sm" data-ib-link="apply">@TextDefaults.RichTextLinkApply</Button>
+                </footer>
             </dialog>
         }
         @if (CustomColors && HasAny(RichTextTools.TextColor | RichTextTools.Highlight) && ShowsToolbar)
@@ -152,11 +152,11 @@
                     data-ib-color="@TextDefaults.RichTextCustomTextColor" data-ib-highlight="@TextDefaults.RichTextCustomHighlight">
                 <div class="ib-dialog-body">
                     <ColorPanelView Text="TextDefaults" Swatches="NoSwatches" ShowEyedropper />
-                    <footer class="ib-dialog-footer">
-                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-custom="cancel">@TextDefaults.Cancel</Button>
-                        <Button Size="ControlSize.Sm" data-ib-custom="apply">@TextDefaults.Apply</Button>
-                    </footer>
                 </div>
+                <footer class="ib-dialog-footer">
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-custom="cancel">@TextDefaults.Cancel</Button>
+                    <Button Size="ControlSize.Sm" data-ib-custom="apply">@TextDefaults.Apply</Button>
+                </footer>
             </dialog>
         }
         @if (ShowsCount)
@@ -211,12 +211,12 @@
                     </div>
                     <label class="ib-rich-text-check"><input type="checkbox" data-ib-image="decorative" /> @TextDefaults.RichTextImageDecorative</label>
                     <p class="ib-field-error" role="alert" data-ib-image="error" hidden></p>
-                    <footer class="ib-dialog-footer">
-                        <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" class="ib-rich-text-remove" data-ib-image="remove">@TextDefaults.RichTextImageRemove</Button>
-                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-image="cancel">@TextDefaults.Cancel</Button>
-                        <Button Size="ControlSize.Sm" data-ib-image="apply">@TextDefaults.RichTextLinkApply</Button>
-                    </footer>
                 </div>
+                <footer class="ib-dialog-footer">
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" Size="ControlSize.Sm" class="ib-rich-text-remove" data-ib-image="remove">@TextDefaults.RichTextImageRemove</Button>
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-image="cancel">@TextDefaults.Cancel</Button>
+                    <Button Size="ControlSize.Sm" data-ib-image="apply">@TextDefaults.RichTextLinkApply</Button>
+                </footer>
             </dialog>
         }
         @if (Has(RichTextTools.Table) && ShowsToolbar)
@@ -237,11 +237,11 @@
                         </div>
                     </div>
                     <label class="ib-rich-text-check"><input type="checkbox" checked data-ib-table="header" /> @TextDefaults.RichTextTableHeader</label>
-                    <footer class="ib-dialog-footer">
-                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-table="cancel">@TextDefaults.Cancel</Button>
-                        <Button Size="ControlSize.Sm" data-ib-table="apply">@TextDefaults.RichTextLinkApply</Button>
-                    </footer>
                 </div>
+                <footer class="ib-dialog-footer">
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-table="cancel">@TextDefaults.Cancel</Button>
+                    <Button Size="ControlSize.Sm" data-ib-table="apply">@TextDefaults.RichTextLinkApply</Button>
+                </footer>
             </dialog>
         }
         @if (Has(RichTextTools.CodeBlock) && ShowsToolbar && Languages.Count > 0)

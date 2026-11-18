@@ -19,7 +19,7 @@
 <Heading Level="2">Header, body and footer</Heading>
 <TextBlock>A dialog has a heading, a body, and a footer of buttons. For a plain heading, set <Code>Title</Code>; for a heading with an icon or a badge, add a <Code>DialogHeader</Code>. To lay out the body, put it in a <Code>DialogBody</Code> and set <Code>Gap</Code> and the other layout parameters; put the buttons in a <Code>DialogFooter</Code>.</TextBlock>
 <ExampleViewer Example="dialog-parts" />
-<TextBlock>The footer stays in view when the body scrolls. To run a table or list to the edges, set <Code>ContentPadding="0"</Code> on the dialog or <Code>Flush</Code> on its <Code>DialogBody</Code>.</TextBlock>
+<TextBlock>The footer stays under the body: a long body scrolls above it, and the scrollbar stops at the footer. To run a table or list to the edges, set <Code>ContentPadding="0"</Code> on the dialog or <Code>Flush</Code> on its <Code>DialogBody</Code>.</TextBlock>
 
 <Heading Level="2">Size and placement</Heading>
 <TextBlock>A dialog opens in the middle of the screen by default, or as a panel along an edge. To set its width, set <Code>Size</Code> (<Code>Sm</Code>, <Code>Md</Code>, <Code>Lg</Code>, <Code>Xl</Code> or <Code>Full</Code>), or <Code>Width</Code> for another width. To open it at an edge, set <Code>Placement</Code>.</TextBlock>
@@ -30,7 +30,7 @@
 <TextBlock>The user closes a dialog with Escape, the close button, a <Code>DialogClose</Code>, or a click on the backdrop. For a form the user could lose with a stray click, set <Code>CloseOnBackdrop="false"</Code>; Escape, the close button and a <Code>DialogClose</Code> still close it. When the footer's buttons are enough, set <Code>ShowCloseButton="false"</Code>.</TextBlock>
 
 <Heading Level="2">A form in a dialog</Heading>
-<TextBlock>A dialog often contains a short form, such as renaming a file, with its buttons in the dialog's footer. Put a <Anchor Href="docs/components/form">Form</Anchor> in the dialog, with its <Code>FormActions</Code> last. The buttons become the dialog's footer and still submit the form.</TextBlock>
+<TextBlock>A dialog often contains a short form, such as renaming a file, with its buttons in the dialog's footer. Put a <Anchor Href="docs/components/form">Form</Anchor> in the dialog and end it with its <Code>FormActions</Code>. The buttons become the dialog's footer and still submit the form.</TextBlock>
 <ExampleViewer Example="dialog-rename" />
 <List>
     <ListItem>On static pages, a form post closes the dialog.</ListItem>
