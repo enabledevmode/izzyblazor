@@ -1,0 +1,58 @@
+@* Tasks as rows: a box that marks the task done (TaskCheck), its title (to the task's page) over who it's with,
+   and when it's due at the end. A done task stays, struck through, until the page next leaves it out. Load each
+   task's Contact (with its Company) and Deal (with its Company) for the second line. *@
+<ListView Items="Tasks" ItemKey="t => t.Id.ToString()" ItemLabel="t => t.Title" Label="@Label" Context="task">
+    <ChildContent>
+        <Row Gap="3" Align="Align.Center">
+            <TaskCheck @key="task.Id" Task="task" />
+            <Column Gap="0" Grow>
+                <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" Color="@(task.Completed is null ? default(Responsive<Color>) : Color.Muted)"
+                           Decoration="@(task.Completed is null ? null : TextDecoration.LineThrough)">
+                    <Anchor Href="@($"activities/{task.Id}")" InheritColor Underline="AnchorUnderline.Hover">@task.Title</Anchor>
+                </TextBlock>
+                @if (With(task) is { Length: > 0 } with)
+                {
+                    <TextBlock Size="TextSize.Xs" Color="Color.Muted">@with</TextBlock>
+                }
+            </Column>
+        </Row>
+    </ChildContent>
+    <ItemActions>
+        @if (task.Completed is not null)
+        {
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" Wrap="TextWrap.NoWrap">Completed</TextBlock>
+        }
+        else
+        {
+            <TextBlock As="span" Size="TextSize.Sm" Wrap="TextWrap.NoWrap"
+                       Color="@(DateOnly.FromDateTime(task.Start) < Today ? Color.DangerText : Color.Muted)">@((Due ?? DefaultDue)(task))</TextBlock>
+        }
+    </ItemActions>
+</ListView>
+
+@code {
+    /// <summary>The tasks, in the order to show them.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<Activity> Tasks { get; set; } = [];
+
+    /// <summary>The workspace's today (Clock.Today): a task due before it is overdue.</summary>
+    [Parameter, EditorRequired] public DateOnly Today { get; set; }
+
+    /// <summary>The list's name for screen readers, such as the card's title.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>Adds the deal to the second line: "Olivia Chen · Acme Co. · Website redesign".</summary>
+    [Parameter] public bool ShowDeal { get; set; }
+
+    /// <summary>The due text, in place of "Overdue · Nov 16" and "Today · 11:00 AM", for a list already grouped by day.</summary>
+    [Parameter] public Func<Activity, string>? Due { get; set; }
+
+    private string DefaultDue(Activity task) => When.Due(task.Start, Today);
+
+    // "Olivia Chen · Acme Co.": the contact and their company, or the deal's company for a task with no contact.
+    private string With(Activity task) => string.Join(" · ", new[]
+    {
+        task.Contact?.Name,
+        (task.Contact?.Company ?? task.Deal?.Company)?.Name,
+        ShowDeal || task.Contact is null ? task.Deal?.Name : null,
+    }.Where(part => !string.IsNullOrEmpty(part)));
+}
