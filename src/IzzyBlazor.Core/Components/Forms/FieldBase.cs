@@ -40,7 +40,8 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
 
     /// <summary>
     /// Keeps the label for screen readers but doesn't show it, as in a toolbar or a one-field
-    /// newsletter form. Checkboxes and switches show their label beside the box, so this doesn't apply.
+    /// newsletter form. On a checkbox or switch it leaves only the box, for a row whose text already says
+    /// what the box is for, such as a task in a list.
     /// </summary>
     [Parameter] public bool HideLabel { get; set; }
 
