@@ -121,6 +121,11 @@
                     </AuthorizeView>
                     <DescriptionList Orientation="Orientation.Vertical">
                         <DescriptionItem Term="Email"><Anchor Href="@($"mailto:{contact.Email}")">@contact.Email</Anchor></DescriptionItem>
+                        @if (!string.IsNullOrWhiteSpace(contact.Phone))
+                        {
+                            @* A link that calls: the number's digits, with a leading + kept. *@
+                            <DescriptionItem Term="Phone"><Anchor Href="@($"tel:{new string(contact.Phone.Where(c => char.IsDigit(c) || c == '+').ToArray())}")">@contact.Phone</Anchor></DescriptionItem>
+                        }
                         @if (contact.Company is { } company)
                         {
                             <DescriptionItem Term="Company"><Anchor Href="@($"companies/{company.Id}")">@company.Name</Anchor></DescriptionItem>
