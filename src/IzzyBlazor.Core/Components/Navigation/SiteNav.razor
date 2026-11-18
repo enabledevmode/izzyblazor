@@ -31,6 +31,8 @@
     See also: NavMenu, AppSidebar, AppShell, Menu.
 *@
 
+@* Its styles are a sheet of its own: an app with a sidebar has no SiteNav. Before the element, so it never shows unstyled. *@
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/site-nav.css"]" />
 <ib-site-nav @attributes="AdditionalAttributes" class="@_class" style="@_style">
 @* One list for both copies: of links to one page told apart by the query, one is current (NavLinks). *@
 <CascadingValue Value="_links" IsFixed="true">

@@ -51,3 +51,4 @@ artifacts/
 # Local scratch pages and Claude output, not part of the site
 site/IzzyBlazor.Site/Components/Pages/Scratch/
 Claude outputs/
+src/IzzyBlazor.Core/wwwroot/site-nav.css

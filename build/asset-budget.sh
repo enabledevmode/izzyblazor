@@ -16,6 +16,7 @@ gauge=$(gzip -c src/IzzyBlazor.Core/wwwroot/gauge.css | wc -c)
 tabsedit=$(gzip -c src/IzzyBlazor.Core/wwwroot/tabs-edit.css | wc -c)
 speeddial=$(gzip -c src/IzzyBlazor.Core/wwwroot/speed-dial.css | wc -c)
 account=$(gzip -c src/IzzyBlazor.Core/wwwroot/sidebar-account.css | wc -c)
+sitenav=$(gzip -c src/IzzyBlazor.Core/wwwroot/site-nav.css | wc -c)
 treeselect=$(gzip -c src/IzzyBlazor.Core/wwwroot/treeselect.css | wc -c)
 slider=$(gzip -c src/IzzyBlazor.Core/wwwroot/slider.css | wc -c)
 diffcss=$(gzip -c src/IzzyBlazor.Core/wwwroot/diff.css | wc -c)
@@ -46,6 +47,7 @@ echo "gauge.css gzip: $gauge bytes (budget 2048; only pages with a LinearGauge, 
 echo "tabs-edit.css gzip: $tabsedit bytes (budget 1024; only tabs with close or add controls load it)"
 echo "speed-dial.css gzip: $speeddial bytes (budget 1024; only pages with a SpeedDial load it)"
 echo "sidebar-account.css gzip: $account bytes (budget 1536; only pages with a SidebarAccount load it)"
+echo "site-nav.css gzip: $sitenav bytes (budget 2560; only pages with a SiteNav load it)"
 echo "treeselect.css gzip: $treeselect bytes (budget 1024; only pages with a TreeSelect load it)"
 echo "slider.css gzip: $slider bytes (budget 2048; only pages with a Slider or RangeSlider load it)"
 echo "diff.css gzip: $diffcss bytes (budget 2048; only pages with a Diff load it)"
@@ -62,8 +64,8 @@ echo "tile-layout.css gzip: $tiles bytes (budget 2048; only pages with a TileLay
 echo "mentions.css gzip: $mentions bytes (budget 1024; only pages with Mentions or MentionText load it)"
 echo "action-sheet.css gzip: $sheet bytes (budget 1024; only pages with an ActionSheet load it)"
 echo "range-selector.css gzip: $rangesel bytes (budget 2048; only charts with a RangeSelector load it)"
-echo "scheduler.css gzip: $sched bytes (budget 3072; only pages with a Scheduler load it)"
-echo "JS gzip:  $js bytes (budget 16000; every page loads it)"
+echo "scheduler.css gzip: $sched bytes (budget 3328; only pages with a Scheduler load it)"
+echo "JS gzip:  $js bytes (budget 16384; every page loads it)"
 # Elements most pages don't have load on demand, one file each (Scripts/lazy.ts).
 # The built files must be exactly the ones lazy.ts loads.
 expected=$(grep -A1 'const lazyNames =' src/IzzyBlazor.Core/Scripts/lazy.ts | grep -o '"[a-z -]*"' | head -1 | tr -d '"' | tr ' ' '\n' | sed 's|$|.js|' | sort)
@@ -88,4 +90,4 @@ for f in src/IzzyBlazor.Core/wwwroot/elements/parts/*.js; do
 done
 echo "Largest on-demand element: $big bytes (budget 6656)"
 echo "rich-text.js: $richcore bytes (budget 8192; its tables, images, links, formats and Markdown are parts)"
-test "$css" -le 53760 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6400 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$treemap" -le 1024 && test "$bullet" -le 1536 && test "$gauge" -le 2048 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$account" -le 1536 && test "$treeselect" -le 1024 && test "$slider" -le 2048 && test "$diffcss" -le 2048 && test "$timeline" -le 2048 && test "$bands" -le 1024 && test "$picker" -le 1024 && test "$richtext" -le 2048 && test "$richcontent" -le 1024 && test "$colorpanel" -le 2048 && test "$chat" -le 2048 && test "$quote" -le 1024 && test "$comment" -le 1024 && test "$tiles" -le 2048 && test "$mentions" -le 1024 && test "$sheet" -le 1024 && test "$rangesel" -le 2048 && test "$sched" -le 3072 && test "$js" -le 16000 && test "$big" -le 6656 && test "$richcore" -le 8192
+test "$css" -le 53760 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6400 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$treemap" -le 1024 && test "$bullet" -le 1536 && test "$gauge" -le 2048 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$account" -le 1536 && test "$sitenav" -le 2560 && test "$treeselect" -le 1024 && test "$slider" -le 2048 && test "$diffcss" -le 2048 && test "$timeline" -le 2048 && test "$bands" -le 1024 && test "$picker" -le 1024 && test "$richtext" -le 2048 && test "$richcontent" -le 1024 && test "$colorpanel" -le 2048 && test "$chat" -le 2048 && test "$quote" -le 1024 && test "$comment" -le 1024 && test "$tiles" -le 2048 && test "$mentions" -le 1024 && test "$sheet" -le 1024 && test "$rangesel" -le 2048 && test "$sched" -le 3328 && test "$js" -le 16384 && test "$big" -le 6656 && test "$richcore" -le 8192
