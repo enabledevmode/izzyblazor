@@ -14,8 +14,8 @@
    each (/contacts/7, /contacts/7/deals, /tasks, /notes), so each loads only its own data, can be linked to, and
    Back works. Beside every section: what's next on the calendar, the contact's details and their background
    (Edit opens the Contacts grid's dialog and comes back here). On a phone the header's buttons float in the
-   corner, and what's next comes before the sections. Notes are the team's own, newest first: a short one is written here and
-   shows whole; a titled one shows how it opens and links to the rest. People who can't edit records (Viewers)
+   corner, and what's next comes before the sections. Notes are the team's own, newest first, each shown whole: a note has
+   no title, it is its text. People who can't edit records (Viewers)
    read everything and can email or call, and see no other buttons. *@
 @if (_contact is { } contact)
 {
@@ -119,7 +119,7 @@
                         @foreach (var note in _notes)
                         {
                             <Card @key="note.Id">
-                                <Comment Author="@(note.Author?.Name ?? "Someone")" Time="When.Zoned(note.Created, _workspace)" TimeText="@Written(note.Created)" Text="@note.Summary" HeadingLevel="3">
+                                <Comment Author="@(note.Author?.Name ?? "Someone")" Time="When.Zoned(note.Created, _workspace)" TimeText="@Written(note.Created)" HeadingLevel="3">
                                     <Extra>
                                         @if (_canEdit)
                                         {
@@ -134,15 +134,10 @@
                                             </Menu>
                                         }
                                     </Extra>
-                                    <Actions>
-                                        @if (note.Title.Length > 0)
-                                        {
-                                            <Row Gap="2" Align="Align.Center">
-                                                <Icon Name="Lucide.FileText" Size="IconSize.Sm" />
-                                                <TextBlock As="span" Size="TextSize.Sm"><Anchor Href="@($"notes/{note.Id}")">@note.Title</Anchor></TextBlock>
-                                            </Row>
-                                        }
-                                    </Actions>
+                                    <ChildContent>
+                                        @* The note, whole: its text is Markdown, so a list or a link in it shows as one. *@
+                                        <Markdown Text="@note.Body" TopHeading="4" Size="ProseSize.Sm" />
+                                    </ChildContent>
                                 </Comment>
                             </Card>
                         }
@@ -157,7 +152,7 @@
                             <Dialog Id="delete-note" Title="Delete this note?" Size="DialogSize.Sm">
                                 <Form Model="Delete" FormName="delete-note" OnValidSubmit="DeleteNoteAsync">
                                     <input type="hidden" name="Delete.Id" value="@doomed.Id" />
-                                    <TextBlock Color="Color.Muted">@(doomed.Title.Length > 0 ? doomed.Title : doomed.Summary)</TextBlock>
+                                    <TextBlock Color="Color.Muted">@doomed.Opening</TextBlock>
                                     <DialogFooter>
                                         <DialogClose>Cancel</DialogClose>
                                         <Button Submit Accent="Accent.Danger">Delete</Button>
@@ -339,7 +334,7 @@
         }
     }
 
-    // A short note, written on the page: no title, linked to the contact, yours.
+    // A note written on the page: linked to the contact, yours.
     private async Task AddNoteAsync()
     {
         if (!_canEdit) return;
@@ -358,7 +353,7 @@
         {
             Db.Notes.Remove(note);
             await Db.SaveChangesAsync();
-            Toasts.Success(note.Title.Length > 0 ? note.Title : "The note is gone for everyone.", "Note deleted");
+            Toasts.Success("The note is gone for everyone.", "Note deleted");
         }
 
         Navigation.NavigateTo($"contacts/{Id}/notes");
