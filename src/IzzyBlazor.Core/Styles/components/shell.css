@@ -1146,6 +1146,19 @@
       justify-content: center;
     }
 
+    /* In the rail the button is one of its icons: a nav link's height, and its icon's size. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-collapse-btn {
+      --ib-btn-h: var(--ib-control-h-md);
+      --ib-icon-size: 1.25rem;
+      width: var(--ib-control-h-md);
+      height: var(--ib-control-h-md);
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-collapse-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
     .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head,
     .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-foot {
       flex-direction: column;
@@ -1375,6 +1388,19 @@
 
     .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-collapse {
       justify-content: center;
+    }
+
+    /* In the rail the button is one of its icons: a nav link's height, and its icon's size. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-collapse-btn {
+      --ib-btn-h: var(--ib-control-h-md);
+      --ib-icon-size: 1.25rem;
+      width: var(--ib-control-h-md);
+      height: var(--ib-control-h-md);
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-collapse-icon {
+      width: 1.25rem;
+      height: 1.25rem;
     }
 
     .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head,
@@ -1608,6 +1634,19 @@
       justify-content: center;
     }
 
+    /* In the rail the button is one of its icons: a nav link's height, and its icon's size. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-collapse-btn {
+      --ib-btn-h: var(--ib-control-h-md);
+      --ib-icon-size: 1.25rem;
+      width: var(--ib-control-h-md);
+      height: var(--ib-control-h-md);
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-collapse-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
     .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head,
     .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-foot {
       flex-direction: column;
@@ -1837,6 +1876,19 @@
 
     .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-collapse {
       justify-content: center;
+    }
+
+    /* In the rail the button is one of its icons: a nav link's height, and its icon's size. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-collapse-btn {
+      --ib-btn-h: var(--ib-control-h-md);
+      --ib-icon-size: 1.25rem;
+      width: var(--ib-control-h-md);
+      height: var(--ib-control-h-md);
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-collapse-icon {
+      width: 1.25rem;
+      height: 1.25rem;
     }
 
     .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head,
