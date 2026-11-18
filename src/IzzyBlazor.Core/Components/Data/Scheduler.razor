@@ -1262,7 +1262,7 @@
             var hiddenCount = Kinds.Count(c => Hidden.Contains(c.Value));
             <Menu Placement="Placement.BottomEnd" Class="ib-sched-cats">
                 <Trigger>
-                    <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="ib-sched-cats-btn"
+                    <Button StartIcon="IconSet.Current.Get(IconPurpose.Filter)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Class="ib-sched-cats-btn"
                             data-active="@(hiddenCount > 0 ? "" : null)" aria-label="@(hiddenCount > 0 ? string.Format(culture, TextDefaults.SchedulerCategoriesHidden, hiddenCount, Kinds.Count) : null)" @attributes="context">@TextDefaults.SchedulerCategories</Button>
                 </Trigger>
                 <ChildContent>
@@ -1285,7 +1285,7 @@
                address drawn while the form was open still has after it closes in the browser. *@
             <Menu Placement="Placement.BottomEnd" Class="ib-sched-views">
         <Trigger>
-            <Button StartIcon="IconSet.Current.Get(IconPurpose.Calendar)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="ib-sched-views-btn" @attributes="context">@ViewName(view)</Button>
+            <Button StartIcon="IconSet.Current.Get(IconPurpose.Calendar)" EndIcon="IconSet.Current.Get(IconPurpose.ChevronDown)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Class="ib-sched-views-btn" @attributes="context">@ViewName(view)</Button>
         </Trigger>
         <ChildContent>
                 @if (Bound)
