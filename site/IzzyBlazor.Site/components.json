@@ -1522,7 +1522,8 @@
       "features": [
         { "feature": "Filters in the URL, applied with Apply or Enter; Clear removes them" },
         { "feature": "Keeps the rest of the URL and goes back to page 1" },
-        { "feature": "Applies as the user types and on each change, without a full reload", "noscript": "none", "static": "full", "interactive": "full" }
+        { "feature": "Applies as the user types and on each change, without a full reload", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Folds the filters into a panel on a phone, with a count of those set" }
       ],
       "examples": [
         { "id": "filter-form-usage", "title": "Search, select and checkbox", "lead": "A filter form puts a search and filters in the URL. Add a `FilterSearch`, `FilterSelect` or `FilterCheckbox` for each one. The page reads them from the URL with `[SupplyParameterFromQuery]` and filters its own data.",
@@ -1540,6 +1541,11 @@
           "notes": {
             "noscript": "Press Enter or Apply to filter.",
             "static": "Filters apply after a pause once a date changes, without a full reload."
+          } },
+        { "id": "filter-form-collapse", "title": "On a phone", "height": 460, "page": true, "widthSwitch": true,
+          "notes": {
+            "noscript": "The Filters button opens the panel, and Apply reloads the page with the filters.",
+            "static": "In the panel, filters wait for Apply, which closes it. The search still applies as the user types."
           } },
         { "id": "filter-form-books", "title": "With a table",
           "notes": {

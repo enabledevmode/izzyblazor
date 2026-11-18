@@ -2461,6 +2461,350 @@
       display: none;
     }
   }
+
+  /*
+   * CollapseBelow. On a wide screen the panel has no box, so its fields are the row's; its button
+   * and the panel's own Clear and Apply aren't there. Below the width (the blocks that follow) the
+   * search and the button share the row, and the panel is a popover as wide as the form, under it.
+   */
+  .ib-pop.ib-filter-more {
+    display: contents;
+  }
+
+  .ib-filter-more-button,
+  .ib-filter-panel-foot {
+    display: none;
+  }
+
+  @media (width < 40rem) {
+    .ib-filter-collapse-sm .ib-filter-row {
+      flex-wrap: nowrap;
+      gap: var(--ib-space-2);
+    }
+
+    .ib-filter-collapse-sm .ib-filter-row > .ib-filter-search {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-sm .ib-filter-more-button {
+      display: inline-flex;
+      flex: none;
+    }
+
+    .ib-filter-collapse-sm .ib-pop.ib-filter-more {
+      display: none;
+      flex-direction: column;
+      gap: var(--ib-space-3);
+      width: auto;
+      max-width: none;
+      padding: 0.875rem;
+    }
+
+    .ib-filter-collapse-sm .ib-pop.ib-filter-more:popover-open {
+      display: flex;
+    }
+
+    /* Stacked, each under its name: a panel has the room a row of filters doesn't. */
+    .ib-filter-collapse-sm .ib-filter-more .ib-filter-label {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+
+    .ib-filter-collapse-sm .ib-filter-more > .ib-filter-field {
+      flex: none;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-sm .ib-filter-more > .ib-filter-buttons {
+      display: none;
+    }
+
+    /* Clear at the start and Apply at the end, with or without Clear. In the panel, filters wait for Apply. */
+    .ib-filter-collapse-sm .ib-filter-panel-foot {
+      display: flex;
+      align-items: center;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      font-size: var(--ib-text-sm);
+    }
+
+    @supports (anchor-name: --a) {
+      .ib-filter-collapse-sm .ib-pop.ib-filter-more {
+        inset: calc(anchor(bottom) + var(--ib-pop-gap)) anchor(right) auto anchor(left);
+      }
+    }
+  }
+
+  @media (width < 48rem) {
+    .ib-filter-collapse-md .ib-filter-row {
+      flex-wrap: nowrap;
+      gap: var(--ib-space-2);
+    }
+
+    .ib-filter-collapse-md .ib-filter-row > .ib-filter-search {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-md .ib-filter-more-button {
+      display: inline-flex;
+      flex: none;
+    }
+
+    .ib-filter-collapse-md .ib-pop.ib-filter-more {
+      display: none;
+      flex-direction: column;
+      gap: var(--ib-space-3);
+      width: auto;
+      max-width: none;
+      padding: 0.875rem;
+    }
+
+    .ib-filter-collapse-md .ib-pop.ib-filter-more:popover-open {
+      display: flex;
+    }
+
+    /* Stacked, each under its name: a panel has the room a row of filters doesn't. */
+    .ib-filter-collapse-md .ib-filter-more .ib-filter-label {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+
+    .ib-filter-collapse-md .ib-filter-more > .ib-filter-field {
+      flex: none;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-md .ib-filter-more > .ib-filter-buttons {
+      display: none;
+    }
+
+    /* Clear at the start and Apply at the end, with or without Clear. In the panel, filters wait for Apply. */
+    .ib-filter-collapse-md .ib-filter-panel-foot {
+      display: flex;
+      align-items: center;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      font-size: var(--ib-text-sm);
+    }
+
+    @supports (anchor-name: --a) {
+      .ib-filter-collapse-md .ib-pop.ib-filter-more {
+        inset: calc(anchor(bottom) + var(--ib-pop-gap)) anchor(right) auto anchor(left);
+      }
+    }
+  }
+
+  @media (width < 64rem) {
+    .ib-filter-collapse-lg .ib-filter-row {
+      flex-wrap: nowrap;
+      gap: var(--ib-space-2);
+    }
+
+    .ib-filter-collapse-lg .ib-filter-row > .ib-filter-search {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-lg .ib-filter-more-button {
+      display: inline-flex;
+      flex: none;
+    }
+
+    .ib-filter-collapse-lg .ib-pop.ib-filter-more {
+      display: none;
+      flex-direction: column;
+      gap: var(--ib-space-3);
+      width: auto;
+      max-width: none;
+      padding: 0.875rem;
+    }
+
+    .ib-filter-collapse-lg .ib-pop.ib-filter-more:popover-open {
+      display: flex;
+    }
+
+    /* Stacked, each under its name: a panel has the room a row of filters doesn't. */
+    .ib-filter-collapse-lg .ib-filter-more .ib-filter-label {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+
+    .ib-filter-collapse-lg .ib-filter-more > .ib-filter-field {
+      flex: none;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-lg .ib-filter-more > .ib-filter-buttons {
+      display: none;
+    }
+
+    /* Clear at the start and Apply at the end, with or without Clear. In the panel, filters wait for Apply. */
+    .ib-filter-collapse-lg .ib-filter-panel-foot {
+      display: flex;
+      align-items: center;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      font-size: var(--ib-text-sm);
+    }
+
+    @supports (anchor-name: --a) {
+      .ib-filter-collapse-lg .ib-pop.ib-filter-more {
+        inset: calc(anchor(bottom) + var(--ib-pop-gap)) anchor(right) auto anchor(left);
+      }
+    }
+  }
+
+  @media (width < 80rem) {
+    .ib-filter-collapse-xl .ib-filter-row {
+      flex-wrap: nowrap;
+      gap: var(--ib-space-2);
+    }
+
+    .ib-filter-collapse-xl .ib-filter-row > .ib-filter-search {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-xl .ib-filter-more-button {
+      display: inline-flex;
+      flex: none;
+    }
+
+    .ib-filter-collapse-xl .ib-pop.ib-filter-more {
+      display: none;
+      flex-direction: column;
+      gap: var(--ib-space-3);
+      width: auto;
+      max-width: none;
+      padding: 0.875rem;
+    }
+
+    .ib-filter-collapse-xl .ib-pop.ib-filter-more:popover-open {
+      display: flex;
+    }
+
+    /* Stacked, each under its name: a panel has the room a row of filters doesn't. */
+    .ib-filter-collapse-xl .ib-filter-more .ib-filter-label {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+
+    .ib-filter-collapse-xl .ib-filter-more > .ib-filter-field {
+      flex: none;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-xl .ib-filter-more > .ib-filter-buttons {
+      display: none;
+    }
+
+    /* Clear at the start and Apply at the end, with or without Clear. In the panel, filters wait for Apply. */
+    .ib-filter-collapse-xl .ib-filter-panel-foot {
+      display: flex;
+      align-items: center;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      font-size: var(--ib-text-sm);
+    }
+
+    @supports (anchor-name: --a) {
+      .ib-filter-collapse-xl .ib-pop.ib-filter-more {
+        inset: calc(anchor(bottom) + var(--ib-pop-gap)) anchor(right) auto anchor(left);
+      }
+    }
+  }
+
+  @media (width < 96rem) {
+    .ib-filter-collapse-xxl .ib-filter-row {
+      flex-wrap: nowrap;
+      gap: var(--ib-space-2);
+    }
+
+    .ib-filter-collapse-xxl .ib-filter-row > .ib-filter-search {
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-xxl .ib-filter-more-button {
+      display: inline-flex;
+      flex: none;
+    }
+
+    .ib-filter-collapse-xxl .ib-pop.ib-filter-more {
+      display: none;
+      flex-direction: column;
+      gap: var(--ib-space-3);
+      width: auto;
+      max-width: none;
+      padding: 0.875rem;
+    }
+
+    .ib-filter-collapse-xxl .ib-pop.ib-filter-more:popover-open {
+      display: flex;
+    }
+
+    /* Stacked, each under its name: a panel has the room a row of filters doesn't. */
+    .ib-filter-collapse-xxl .ib-filter-more .ib-filter-label {
+      position: static;
+      width: auto;
+      height: auto;
+      margin: 0;
+      overflow: visible;
+      clip: auto;
+      white-space: normal;
+    }
+
+    .ib-filter-collapse-xxl .ib-filter-more > .ib-filter-field {
+      flex: none;
+      max-width: none;
+    }
+
+    .ib-filter-collapse-xxl .ib-filter-more > .ib-filter-buttons {
+      display: none;
+    }
+
+    /* Clear at the start and Apply at the end, with or without Clear. In the panel, filters wait for Apply. */
+    .ib-filter-collapse-xxl .ib-filter-panel-foot {
+      display: flex;
+      align-items: center;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+      font-size: var(--ib-text-sm);
+    }
+
+    @supports (anchor-name: --a) {
+      .ib-filter-collapse-xxl .ib-pop.ib-filter-more {
+        inset: calc(anchor(bottom) + var(--ib-pop-gap)) anchor(right) auto anchor(left);
+      }
+    }
+  }
 }
 
 /* SegmentedControl: radio buttons drawn as joined segments on a track. The track is the field's

@@ -13,6 +13,26 @@ internal sealed class FilterFormContext
 
     public Action? Changed { get; set; }
 
+    /// <summary>Whether the form folds its fields into a panel below a width; the searches stay in its row.</summary>
+    public bool Collapses { get; set; }
+
+    /// <summary>The form's searches, which it draws in its row when it collapses.</summary>
+    public List<FilterSearch> Searches { get; } = [];
+
+    public void Add(FilterSearch search)
+    {
+        Searches.Add(search);
+        Changed?.Invoke();
+    }
+
+    public void Remove(FilterSearch search)
+    {
+        if (Searches.Remove(search))
+        {
+            Changed?.Invoke();
+        }
+    }
+
     public void Register(string name)
     {
         if (Names.Add(name))
@@ -96,7 +116,7 @@ public abstract class FilterFieldBase : ComponentBase, IDisposable
         Read();
     }
 
-    private void Read()
+    private protected void Read()
     {
         var query = QueryString.Of(Navigation.Uri);
         CurrentValue = query.TryGetValue(Name, out var value) ? value.ToString() : null;
@@ -112,14 +132,22 @@ public abstract class FilterFieldBase : ComponentBase, IDisposable
     protected RenderFragment HiddenLabel(string text) => builder =>
     {
         builder.OpenElement(0, "label");
-        builder.AddAttribute(1, "class", "ib-visually-hidden");
+        builder.AddAttribute(1, "class", "ib-field-label ib-filter-label ib-visually-hidden");
         builder.AddAttribute(2, "for", ControlId);
         builder.AddContent(3, text);
         builder.CloseElement();
     };
 
     /// <inheritdoc />
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        OnDispose();
+    }
+
+    private protected virtual void OnDispose()
+    {
+    }
 }
 
 /// <summary>A search box for a <see cref="FilterForm"/>. Its value is <c>?q=</c> by default.</summary>
@@ -131,12 +159,37 @@ public sealed class FilterSearch : FilterFieldBase
     /// <summary>Hint text inside the box. Defaults to "Search".</summary>
     [Parameter] public string? Placeholder { get; set; }
 
+    /// <summary>The search, drawn by a form that collapses: it stays in the form's row, out of the panel.</summary>
+    internal RenderFragment Hoisted => builder =>
+    {
+        // The form draws before this field's own parameters are set: read the address now.
+        Read();
+        Draw(builder);
+    };
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        Form?.Add(this);
+    }
+
+    private protected override void OnDispose() => Form?.Remove(this);
+
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        if (Form is not { Collapses: true })
+        {
+            Draw(builder);
+        }
+    }
+
+    private void Draw(RenderTreeBuilder builder)
+    {
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", FieldClass("search"));
-        builder.AddContent(2, HiddenLabel(Label ?? TextDefaults.Search));
+        builder.SetKey(this);
+        builder.AddAttribute(1, "class", FieldClass("search"));        builder.AddContent(2, HiddenLabel(Label ?? TextDefaults.Search));
         builder.OpenElement(10, "div");
         builder.AddAttribute(11, "class", "ib-field-control ib-has-start");
         builder.OpenComponent<Icon>(12);

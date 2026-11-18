@@ -26,6 +26,9 @@
     - The new results aren't announced, so say how many there are in a live region (a `Table`'s
       range under it is read when it changes).
     - Without script, or with `Live` false, an Apply button submits; "Clear" is a link.
+    - With `CollapseBelow`, on a narrow screen the fields other than the search are in a panel that a
+      "Filters" button opens. The button says whether the panel is open, and shows how many filters
+      are set. In the panel each field's `Label` shows, and Escape or a click outside closes it.
     See also: Table, Pagination, TextField, Select.
 *@
 
@@ -35,16 +38,37 @@
         {
             <input type="hidden" name="@key" value="@value" />
         }
-        <CascadingValue Value="_context" IsFixed="true">
-            @ChildContent
-        </CascadingValue>
-        <div class="ib-filter-buttons">
-            <button type="submit" class="ib-btn ib-btn-neutral ib-btn-outline ib-filter-apply">@(ApplyText ?? TextDefaults.Apply)</button>
-            @if (HasValues)
+        @* Collapsing: the searches stay in the row; the other fields are in the row on a wide screen, and
+           in the panel the button opens below the width. *@
+        @if (CollapseBelow is null)
+        {
+            <CascadingValue Value="_context" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+            @Buttons("ib-filter-buttons", "ib-btn ib-btn-neutral ib-btn-outline ib-filter-apply", "ib-btn ib-btn-neutral ib-btn-ghost ib-filter-clear")
+        }
+        else
+        {
+            @foreach (var search in _context.Searches)
             {
-                <a href="@ClearHref" class="ib-btn ib-btn-neutral ib-btn-ghost ib-filter-clear">@(ClearText ?? TextDefaults.Clear)</a>
+                @search.Hoisted
             }
-        </div>
+            <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-filter-more-button" popovertarget="@PanelId">
+                <Icon Purpose="IconPurpose.Filter" />
+                <span>@(FiltersText ?? TextDefaults.Filters)</span>
+                @if (PanelCount > 0)
+                {
+                    <Badge Accent="Accent.Primary" Class="ib-filter-count">@PanelCount</Badge>
+                }
+            </button>
+            <div id="@PanelId" popover="auto" class="ib-pop ib-popover ib-filter-more" style="@($"position-anchor:{StyleValues.AnchorName(PanelId)}")">
+                <CascadingValue Value="_context" IsFixed="true">
+                    @ChildContent
+                </CascadingValue>
+                @Buttons("ib-filter-buttons", "ib-btn ib-btn-neutral ib-btn-outline ib-filter-apply", "ib-btn ib-btn-neutral ib-btn-ghost ib-filter-clear")
+                @Buttons("ib-filter-panel-foot", "ib-btn ib-btn-primary ib-btn-solid ib-btn-sm", "ib-anchor ib-filter-clear")
+            </div>
+        }
     </form>
 </ib-filter-form>
 
@@ -67,7 +91,31 @@
     /// <summary>The text of the link that removes every filter. Defaults to "Clear".</summary>
     [Parameter] public string? ClearText { get; set; }
 
+    /// <summary>
+    /// Below this width, such as <c>Breakpoint.Sm</c> on a phone, the search stays in the row and the other
+    /// fields go in a panel that a "Filters" button opens, with Clear and Apply. The button shows how many
+    /// of them are set. A <see cref="FilterSearch"/> comes first in the row. Off by default.
+    /// </summary>
+    [Parameter] public Breakpoint? CollapseBelow { get; set; }
+
+    /// <summary>The text of the button that opens the panel (<see cref="CollapseBelow"/>). Defaults to "Filters".</summary>
+    [Parameter] public string? FiltersText { get; set; }
+
     private readonly FilterFormContext _context = new();
+    private string? _panelId;
+
+    private string PanelId => _panelId ??= IdGenerator.Next("ib-filter-more");
+
+    // The filters set in the panel: every field but the searches, which stay in the row.
+    private int PanelCount => Query.Count(q => IsField(q.Key) && !_context.Searches.Any(s => string.Equals(s.Name, q.Key, StringComparison.OrdinalIgnoreCase)) && q.Value.Any(v => !string.IsNullOrEmpty(v)));
+
+    private RenderFragment Buttons(string box, string apply, string clear) => @<div class="@box">
+        <button type="submit" class="@apply">@(ApplyText ?? TextDefaults.Apply)</button>
+        @if (HasValues)
+        {
+            <a href="@ClearHref" class="@clear">@(ClearText ?? TextDefaults.Clear)</a>
+        }
+    </div>;
     private string? _class;
     private string? _style;
 
@@ -90,12 +138,23 @@
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        _context.Collapses = CollapseBelow is not null;
+        (_class, _style) = BuildRootAttributes();
+    }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-filter-form");
+        if (CollapseBelow is { } below)
+        {
+            // The panel spans the form: it's the panel's anchor.
+            classes.Add($"ib-filter-collapse-{below.Name()}");
+            styles.AddRaw($"anchor-name:{StyleValues.AnchorName(PanelId)}");
+        }
+
         base.BuildAttributes(classes, styles);
     }
 

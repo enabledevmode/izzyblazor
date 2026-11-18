@@ -248,6 +248,24 @@ public class DataRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_collapsing_filter_form_keeps_the_search_in_its_row_and_counts_the_panels_filters()
+    {
+        GoTo("/orders?q=ada&status=Paid&large=true");
+        var cut = Render<FilterForm>(p => p.Add(f => f.CollapseBelow, Breakpoint.Sm).Add(f => f.ChildContent, FilterFields));
+
+        // The search is the row's, with its value; the other fields are the panel's, which the button opens.
+        Assert.Equal("ada", cut.Find("form > .ib-filter-search input").GetAttribute("value"));
+        var panel = cut.Find("form > [popover].ib-filter-more");
+        Assert.Empty(panel.QuerySelectorAll("input[type=search]"));
+        Assert.Equal(3, panel.QuerySelectorAll("select, input[type=checkbox], input[type=date]").Length);
+        var button = cut.Find("button.ib-filter-more-button");
+        Assert.Equal(panel.Id, button.GetAttribute("popovertarget"));
+
+        // The count is of the panel's filters: the search shows its own.
+        Assert.Equal("2", cut.Find(".ib-filter-count").TextContent.Trim());
+    }
+
+    [Fact]
     public void Filter_fields_read_their_values_from_the_url()
     {
         GoTo("/orders?q=ada&status=Paid&large=true&from=2026-10-01");
