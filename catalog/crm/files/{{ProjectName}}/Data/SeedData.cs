@@ -74,11 +74,14 @@ public static class SeedData
         var evergreen = Account("Evergreen", "evergreen.example", jamie, CompanyStatus.Prospect, -9);
         db.Companies.AddRange(acme, brightside, fieldwork, evergreen);
 
+        var phones = 0;
         Contact Someone(string first, string last, Company company, ContactStatus status, ApplicationUser owner, DateTime last_, int added, string? title = null) =>
             new()
             {
                 FirstName = first, LastName = last, Email = $"{first.ToLowerInvariant()}@{company.Website}", Company = company,
                 JobTitle = title, Status = status, OwnerId = owner.Id, Source = LeadSource.Referral, LastActivity = last_, Added = Day(added),
+                // Numbers kept for fiction (555-01xx), one each.
+                Phone = $"(212) 555-01{++phones:00}",
             };
         var olivia = Someone("Olivia", "Chen", acme, ContactStatus.Customer, jamie, Utc(0, 9, 15), -7, "Marketing director");
         olivia.NextFollowUp = Day(2);
