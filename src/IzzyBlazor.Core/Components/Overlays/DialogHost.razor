@@ -18,8 +18,9 @@
 {
     @foreach (var entry in _service.Open)
     {
-        <Dialog @key="entry.Instance.Id"
-                Id="@entry.Instance.Id"
+        @* Around the dialog, so the content's DialogFooter, which the dialog draws, gets it too. *@
+        <CascadingValue @key="entry.Instance.Id" Value="entry.Instance" IsFixed="true">
+        <Dialog Id="@entry.Instance.Id"
                 Title="@entry.Title"
                 Size="entry.Options.Size"
                 Width="@(entry.Options.Width is { } width ? width : default(Responsive<Length>))"
@@ -34,10 +35,9 @@
                 data-ib-brand="@BrandName(entry.Options)"
                 data-ib-density="@(entry.Options.Density?.ToString().ToLowerInvariant())"
                 aria-label="@(entry.Title is null ? entry.Options.Label : null)">
-            <CascadingValue Value="entry.Instance" IsFixed="true">
-                <DynamicComponent Type="entry.Component" Parameters="entry.Parameters" />
-            </CascadingValue>
+            <DynamicComponent Type="entry.Component" Parameters="entry.Parameters" />
         </Dialog>
+        </CascadingValue>
     }
 }
 

@@ -3,15 +3,23 @@
 
 @*
     The row of buttons at the end of a form. It takes the whole row in a form with Columns and puts
-    the buttons at the end. Last in a form that fills a Dialog or Drawer, it becomes the dialog's
-    footer, like DialogFooter: it reaches the edges and stays in view when the body scrolls.
+    the buttons at the end. In a Dialog or Drawer it's the dialog's footer, as a DialogFooter is: drawn
+    under the body, which scrolls above it. (Not inside a Card or another component with parts of
+    its own in the dialog: there it stays where it's written.)
     <FormActions>
         <Button Href="/orders" Variant="ButtonVariant.Outline">Cancel</Button>
         <Button Submit>Save</Button>
     </FormActions>
 *@
 
-<div @attributes="AdditionalAttributes" class="@_class" style="@_style">@ChildContent</div>
+@if (Scope?.HostIs<Dialog>() == true)
+{
+    <DialogFooter @attributes="AdditionalAttributes" Class="@Class" Style="@Style" Justify="Justify">@ChildContent</DialogFooter>
+}
+else
+{
+    <div @attributes="AdditionalAttributes" class="@_class" style="@_style">@ChildContent</div>
+}
 
 @code {
     /// <summary>The buttons, in reading order: usually Cancel, then the main action.</summary>
@@ -19,6 +27,8 @@
 
     /// <summary>Where the buttons go along the row. Defaults to the end.</summary>
     [Parameter] public Responsive<Justify> Justify { get; set; }
+
+    [CascadingParameter] private PartScope? Scope { get; set; }
 
     private string? _class;
     private string? _style;

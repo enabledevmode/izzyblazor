@@ -69,7 +69,7 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         await dialog.GetByLabel("Customer").FillAsync("Brand New");
         await dialog.GetByLabel("Status").SelectOptionAsync("Pending");
         // The edit form's own submit button, whatever it reads (the dialog's Close posts another form).
-        await dialog.Locator("button[type=submit]:not([form])").ClickAsync();
+        await dialog.Locator(".ib-dialog-footer button[type=submit]").ClickAsync();
         await Assertions.Expect(dialog).ToHaveCountAsync(0);
         await Assertions.Expect(rows.First).ToContainTextAsync("Brand New");
 
@@ -97,7 +97,7 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         Assert.Contains("/docs/components/data-grid/editing", page.Url);
 
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"{edit}&edits-return=/docs/components/button").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        await dialog.Locator("button[type=submit]:not([form])").ClickAsync();
+        await dialog.Locator(".ib-dialog-footer button[type=submit]").ClickAsync();
         await page.WaitForURLAsync("**/docs/components/button");
     }
 

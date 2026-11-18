@@ -9,7 +9,7 @@
 <TextBlock>The trigger and the link work on <Anchor Href="docs/common/render-modes">static pages</Anchor>, with JavaScript off too. <Anchor Href="docs/components/dialog#opening-the-dialog">Dialog's Overview</Anchor> shows each in every render mode.</TextBlock>
 
 <Heading Level="2">A form in a drawer</Heading>
-<TextBlock>A drawer can contain a form, such as a list of filters, with its buttons at the bottom. Put a <Anchor Href="docs/components/form">Form</Anchor> in the drawer, with its fields in a <Code>DialogBody</Code> and its <Code>FormActions</Code> last. The body fills the drawer's height, so the buttons sit at its bottom as the footer and still submit the form.</TextBlock>
+<TextBlock>A drawer can contain a form, such as a list of filters, with its buttons at the bottom. Put a <Anchor Href="docs/components/form">Form</Anchor> in the drawer and end it with its <Code>FormActions</Code>. The buttons become the drawer's footer, at its bottom, and still submit the form.</TextBlock>
 <ExampleViewer Example="drawer-usage" />
 <List>
     <ListItem>A form post on static pages closes the drawer.</ListItem>
@@ -40,7 +40,7 @@
 <TextBlock>An app's navigation doesn't need a Drawer. In an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, the <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> becomes a drawer below its breakpoint by itself, opened by a <Code>SidebarToggle</Code>, with JavaScript off too.</TextBlock>
 
 <Heading Level="2">Header, footer and closing</Heading>
-<TextBlock>Put the content in a <Code>DialogBody</Code> and the buttons in a <Code>DialogFooter</Code> after it. The body fills the drawer's height, so the footer sits at its bottom. Without a body, the footer follows the content partway down.</TextBlock>
+<TextBlock>Put the buttons in a <Code>DialogFooter</Code>. It sits at the drawer's bottom, and long content scrolls above it. To lay out the content, put it in a <Code>DialogBody</Code> and set <Code>Gap</Code>.</TextBlock>
 <TextBlock>Everything else works as on a dialog: <Code>Title</Code> or a <Code>DialogHeader</Code>, <Code>DialogClose</Code>, <Code>CloseOnBackdrop</Code>, <Code>ShowCloseButton</Code>, <Code>InsideForm</Code> and the close button's <Code>CloseLabel</Code>. <Anchor Href="docs/components/dialog">Dialog's Overview</Anchor> covers each.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>

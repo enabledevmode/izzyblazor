@@ -12,8 +12,8 @@
     can hold the form.
 
     Parts written among the content: DialogHeader (heading content in place of Title, drawn in the
-    header row) and DialogFooter (the button row, written last, where it is: last in the dialog or
-    last in a form that's last in it, so a form's submit button can be in the footer).
+    header row) and DialogFooter (the button row, drawn under the body, which scrolls above it;
+    written in a form, its submit button still submits that form).
 
     Ways to open it:
       - DialogTrigger: a button with commandfor="id" command="show-modal" (native, with a
@@ -96,9 +96,14 @@
                     }
                 </header>
             }
-            <div class="@_bodyClass" style="@_bodyStyle">
-                <CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue>
-            </div>
+            <CascadingValue Value="_scope" IsFixed="true">
+                <div class="@_bodyClass" style="@_bodyStyle">@ChildContent</div>
+                @* Under the body, which scrolls above it. *@
+                @if (_scope.Shown<DialogFooterPart>() is { } footer)
+                {
+                    @_scope.Outlet(footer)
+                }
+            </CascadingValue>
         </CascadingValue>
         </CascadingValue>
         </CascadingValue>
@@ -225,7 +230,7 @@
         var bodyStyles = new StyleBuilder();
         ApplyResponsive(bodyClasses, bodyStyles, ContentPadding, "ib-px", "px", StyleValues.Spacing);
         ApplyResponsive(bodyClasses, bodyStyles, ContentPadding, "ib-py", "py", StyleValues.Spacing);
-        // The same value for a DialogFooter in the body, which reaches out to the body's edges.
+        // The same value for a flush DialogBody, which reaches out to the body's edges.
         ApplyResponsive(bodyClasses, bodyStyles, ContentPadding, "ib-dialog-pad", "dlgpad", StyleValues.Spacing);
         _bodyClass = bodyClasses.Build();
         _bodyStyle = bodyStyles.Build();

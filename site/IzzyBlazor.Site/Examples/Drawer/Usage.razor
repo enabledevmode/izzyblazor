@@ -7,13 +7,12 @@
 
 <Drawer Id="order-filters" Title="Filters" Size="DialogSize.Sm" @bind-Open="_open">
     <Form Model="Model" FormName="drawer-usage" OnValidSubmit="Apply">
-        @* DialogBody fills the drawer's height, so the footer after it sits at the bottom. *@
         <DialogBody Gap="5">
             <RadioGroup @bind-Value="Model!.Status" />
             <Checkbox @bind-Value="Model!.PaidOnly" />
             <Checkbox @bind-Value="Model!.Archived" />
         </DialogBody>
-        @* Last in the form, the button is the drawer's footer and still submits it. Choices stay in
+        @* In a drawer, the form's button is the drawer's footer and still submits it. Choices stay in
            the drawer until it's pressed; the close button leaves the shown orders as they are. *@
         <FormActions>
             <Button Submit>Show orders</Button>

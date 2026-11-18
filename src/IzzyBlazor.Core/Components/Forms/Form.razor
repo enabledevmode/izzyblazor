@@ -44,6 +44,7 @@
               novalidate="@(NativeValidation ? null : "novalidate")"
               enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
+              id="@FormId"
               class="@_class"
               style="@_style">
         @Body
@@ -62,6 +63,7 @@ else
               novalidate="@(NativeValidation ? null : "novalidate")"
               enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
+              id="@FormId"
               class="@_class"
               style="@_style">
         @Body
@@ -191,6 +193,14 @@ else
 
     private int ColumnCount => Math.Clamp(Columns, 1, 4);
 
+    // In a dialog the form has an id: the dialog draws a DialogFooter outside the form, and the
+    // footer's submit button names its form by it.
+    [CascadingParameter] private DialogContext? InDialog { get; set; }
+
+    private FormOwner _owner = new(null);
+
+    private string? FormId => AdditionalAttributes?.TryGetValue("id", out var id) == true ? id as string : _owner.Id;
+
     // OnValidSubmit, then (with ConfirmLeave, on an interactive page) the form counts as saved; a
     // filled honeypot goes to OnSpam instead.
     private EventCallback<EditContext> ValidSubmit =>
@@ -309,6 +319,7 @@ else
             @Validator
         }
 
+        <CascadingValue Value="_owner" IsFixed="true">
         <CascadingValue Value="_options">
             @if (ColumnCount > 1)
             {
@@ -321,6 +332,7 @@ else
             {
                 @ChildContent
             }
+        </CascadingValue>
         </CascadingValue>
     };
 
@@ -345,6 +357,11 @@ else
     protected override void OnParametersSet()
     {
         (_class, _style) = BuildRootAttributes();
+
+        if (_owner.Id is null && InDialog is not null)
+        {
+            _owner = new FormOwner(AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string given ? given : IdGenerator.Next("ib-form"));
+        }
 
         // Keep the same instance while nothing changed (fields read it on their own renders).
         var options = new FormOptions(Disabled, ReadOnly, RequiredMark);

@@ -90,7 +90,7 @@
         <Heading Level="2">Groups, actions and errors</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/components/fieldset">Fieldset</Anchor> groups related fields under a <Code>Label</Code>. It can set its own <Code>Columns</Code>, or show <Code>Dividers</Code> between rows.</ListItem>
-            <ListItem><Code>FormActions</Code> is the row of buttons at the end of the form. When it comes last in a form that fills a dialog or drawer, it becomes the footer and stays in view.</ListItem>
+            <ListItem><Code>FormActions</Code> is the row of buttons at the end of the form. In a dialog or drawer it becomes the footer, under the fields, which scroll above it.</ListItem>
             <ListItem><Code>FormErrors</Code> lists every message under "Please fix the following". It receives focus after a failed submit, even with JavaScript off.</ListItem>
             <ListItem>To show one property's messages for an input of your own, use <Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code>. Set the input's <Code>aria-describedby</Code> to the FieldError's <Code>Id</Code>.</ListItem>
         </List>

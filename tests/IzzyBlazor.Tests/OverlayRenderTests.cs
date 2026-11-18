@@ -203,6 +203,41 @@ public class OverlayRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_forms_actions_are_the_dialogs_footer_under_its_body_and_still_submit_the_form()
+    {
+        // One model, as a page holds: a new one each render would rebuild the form every time.
+        var model = new object();
+        var dialog = Render<Dialog>(p => p
+            .Add(d => d.Id, "rename")
+            .Add(d => d.Title, "Rename")
+            .AddChildContent(b =>
+            {
+                b.OpenComponent<Form>(0);
+                b.AddComponentParameter(1, nameof(Form.Model), model);
+                b.AddComponentParameter(2, nameof(Form.ChildContent), (RenderFragment)(form =>
+                {
+                    form.OpenComponent<FormActions>(0);
+                    form.AddComponentParameter(1, nameof(FormActions.ChildContent), (RenderFragment)(f =>
+                    {
+                        f.OpenComponent<Button>(0);
+                        f.AddComponentParameter(1, nameof(Button.Submit), true);
+                        f.AddComponentParameter(2, nameof(Button.ChildContent), (RenderFragment)(c => c.AddContent(0, "Save")));
+                        f.CloseComponent();
+                    }));
+                    form.CloseComponent();
+                }));
+                b.CloseComponent();
+            }));
+
+        // The body scrolls above the footer, so the footer is beside it, outside the form.
+        var save = dialog.Find("dialog > .ib-dialog-footer button");
+        Assert.Empty(dialog.FindAll(".ib-dialog-body .ib-dialog-footer"));
+        var form = dialog.Find(".ib-dialog-body form.ib-form");
+        Assert.False(string.IsNullOrEmpty(form.Id));
+        Assert.Equal(form.Id, save.GetAttribute("form"));
+    }
+
+    [Fact]
     public void Dialog_inside_a_form_closes_with_commands_and_renders_no_form()
     {
         var dialog = Render<Dialog>(p => p

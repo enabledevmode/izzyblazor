@@ -8,7 +8,7 @@
 <Dialog Id="rename" Title="Rename project" Size="DialogSize.Sm" @bind-Open="_open">
     <Form Model="Model" FormName="rename" OnValidSubmit="Save" OnInvalidSubmit="() => _open = true">
         <TextField @bind-Value="Model!.Name" Hint="3 to 40 characters, no slashes." autofocus />
-        @* Last in the form, the buttons are the dialog's footer and submit the form. *@
+        @* In a dialog, the form's buttons are the dialog's footer and still submit the form. *@
         <FormActions>
             <DialogClose>Cancel</DialogClose>
             <Button Submit>Rename</Button>
