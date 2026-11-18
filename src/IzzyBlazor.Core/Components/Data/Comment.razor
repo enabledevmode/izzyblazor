@@ -58,6 +58,12 @@ else
     [Parameter] public bool RelativeTime { get; set; }
 
     /// <summary>
+    /// <see cref="Time"/> as your app writes it, such as "Nov 14 · 12:10 PM", in place of the culture's
+    /// short date and time. <see cref="Time"/> still gives the machine-readable value.
+    /// </summary>
+    [Parameter] public string? TimeText { get; set; }
+
+    /// <summary>
     /// More on the author's line, after the time: a <see cref="Badge"/> such as "Author" or
     /// "Moderator", the word "Edited", or a <see cref="Menu"/> of what you can do with it.
     /// </summary>
@@ -122,13 +128,13 @@ else
                         {
                             <span class="ib-comment-dot" aria-hidden="true">·</span>
                         }
-                        @if (RelativeTime)
+                        @if (RelativeTime && TimeText is null)
                         {
                             <IzzyBlazor.RelativeTime Value="time" Threshold="TimeSpan.FromDays(7)" />
                         }
                         else
                         {
-                            <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)">@time.ToString("g", CultureInfo.CurrentCulture)</time>
+                            <time datetime="@time.ToString("o", CultureInfo.InvariantCulture)">@(TimeText ?? time.ToString("g", CultureInfo.CurrentCulture))</time>
                         }
                     }
                     @Extra
