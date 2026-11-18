@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { emitToggle, isBehind } from "../toggle";
+import { navigateTo } from "../filtering";
 
 /**
  * <ib-dialog> wraps a Dialog's <dialog>. Opening by DialogTrigger, closing, Escape, focus
@@ -36,7 +37,13 @@ class DialogRoot extends IzzyElement {
     });
     this.#observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
 
-    dialog.addEventListener("close", () => this.clearQuery(dialog), { signal });
+    dialog.addEventListener("close", () => {
+      // A grid's editor opened by a link from another page goes back there (data-ib-return), in place of
+      // staying on the grid's. On an interactive page C# does it.
+      const back = dialog.getAttribute("data-ib-return");
+      if (back && !this.hasAttribute("data-ib-interactive")) navigateTo(new URL(back, location.origin), false);
+      else this.clearQuery(dialog);
+    }, { signal });
     // A grid editor's Cancel is a link, for no script. With it, closing here keeps the page and hands focus back.
     dialog.addEventListener("click", (event) => {
       if ((event.target as Element).closest("[data-ib-edit-cancel]")) {
