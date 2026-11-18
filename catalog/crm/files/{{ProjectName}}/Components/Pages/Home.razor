@@ -25,7 +25,7 @@
         <Card><Stat Label="Closing this month" Value="@Money(_closing.Sum(d => d.Value))" Description="@($"{Count(_closing.Count, "deal")} in proposal or negotiation")" /></Card>
 
         <Column Gap="4" ColSpan="new() { Md = 2 }" AlignSelf="Align.Start">
-            <Card Title="Your next moves" TitleLevel="2" Size="ControlSize.Sm">
+            <Card Title="Your next moves" TitleLevel="2">
                 <CardActions><TextBlock As="span" Size="TextSize.Sm"><Anchor Href="activities/tasks">View all</Anchor></TextBlock></CardActions>
                 <CardBody Flush>
                     @if (_tasks.Count > 0)
@@ -41,7 +41,7 @@
 
             @if (_meeting is not null)
             {
-                <Card Title="Upcoming meeting" TitleLevel="2" Size="ControlSize.Sm">
+                <Card Title="Upcoming meeting" TitleLevel="2">
                     <CardActions><Badge Accent="Accent.Primary">@When.Day(DateOnly.FromDateTime(_meeting.Start), _today)</Badge></CardActions>
                     <CardBody Flush>
                         <ListView Items="@(new[] { _meeting })" ItemKey="m => m.Id.ToString()" Label="Upcoming meeting"
@@ -59,7 +59,7 @@
             }
         </Column>
 
-        <Card Title="Recent activity" TitleLevel="2" Size="ControlSize.Sm" AlignSelf="Align.Start">
+        <Card Title="Recent activity" TitleLevel="2" AlignSelf="Align.Start">
             <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
                 @foreach (var item in _recent)
                 {
