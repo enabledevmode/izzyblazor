@@ -1,10 +1,17 @@
-@* A page's breadcrumbs: in the header on wide screens, at the top of the page on phones, where the
-   header has no room for them. Put it first on the page:
-   <PageCrumbs><BreadcrumbItem Href="admin/users">Users</BreadcrumbItem><BreadcrumbItem>Maya Chen</BreadcrumbItem></PageCrumbs> *@
+@* A page's breadcrumbs. On wide screens they're in the header, after "Workspace"; on phones, where the header
+   has no room, a page below another shows them above its title. Put it first on the page:
+   <PageCrumbs><BreadcrumbItem Href="contacts">Contacts</BreadcrumbItem><BreadcrumbItem>Olivia Chen</BreadcrumbItem></PageCrumbs>
+   A top-level page has one item, so it shows none on a phone. *@
 <SectionContent SectionName="@Section">
-    <Breadcrumb>@ChildContent</Breadcrumb>
+    <Breadcrumb Separator="BreadcrumbSeparator.Slash">
+        <BreadcrumbItem TextOnly>Workspace</BreadcrumbItem>
+        @ChildContent
+    </Breadcrumb>
 </SectionContent>
-<Breadcrumb HiddenFrom="Breakpoint.Md">@ChildContent</Breadcrumb>
+@if (Trail)
+{
+    <Breadcrumb Separator="BreadcrumbSeparator.Slash" HiddenFrom="Breakpoint.Md">@ChildContent</Breadcrumb>
+}
 
 @code {
     /// <summary>The header's place for them (MainLayout's SectionOutlet).</summary>
@@ -12,4 +19,7 @@
 
     /// <summary>The BreadcrumbItems, the current page last.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>A page below another: its trail shows above its title on a phone.</summary>
+    [Parameter] public bool Trail { get; set; }
 }
