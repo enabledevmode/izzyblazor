@@ -30,5 +30,8 @@ public class Workspace : IAudited
     /// <summary>The time zones the settings offer.</summary>
     public static IReadOnlyList<string> TimeZones { get; } = ["America/New_York", "America/Chicago"];
 
+    /// <summary>An amount in the workspace's currency, in whole units: "$18,000".</summary>
+    public string Money(decimal amount) => (Currency switch { "GBP" => "£", "EUR" => "€", _ => "$" }) + amount.ToString("N0");
+
     string IAudited.AuditName => Name;
 }
