@@ -41,6 +41,12 @@
     [Parameter] public bool Disabled { get; set; }
 
     /// <summary>
+    /// Why the tab is <see cref="Disabled"/>, such as "On the Business plan": its tooltip, which screen
+    /// readers read after its name.
+    /// </summary>
+    [Parameter] public string? DisabledReason { get; set; }
+
+    /// <summary>
     /// How the current URL must match <see cref="Href"/> for the tab to be selected. <c>Prefix</c>
     /// (the default) also selects it on pages below it. A link with a query string (<c>?tab=billing</c>)
     /// is selected only when the current query string is the same, and then a tab whose link has no
@@ -61,7 +67,7 @@
 
     [CascadingParameter] internal TabNav? Context { get; set; }
 
-    private (string, string, IconData?, string?, Status, Breakpoint?, bool, NavLinkMatch, bool?)? _shown;
+    private (string, string, IconData?, string?, Status, Breakpoint?, bool, string?, NavLinkMatch, bool?)? _shown;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -83,7 +89,7 @@
     protected override void OnParametersSet()
     {
         // TabNav renders the link, so tell it when what it shows has changed.
-        var shown = (Href, Label, Icon, Badge, BadgeStatus, BadgeVisibleFrom, Disabled, Match, Current);
+        var shown = (Href, Label, Icon, Badge, BadgeStatus, BadgeVisibleFrom, Disabled, DisabledReason, Match, Current);
         if (_shown is { } previous && previous != shown)
         {
             Context?.Changed();

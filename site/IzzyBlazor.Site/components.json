@@ -1925,7 +1925,7 @@
         { "feature": "A tab marked current from C# (TabLink Current)" }
       ],
       "examples": [
-        { "id": "tab-nav-usage", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL as current.", "after": ["`Variant`, `Size` and `FullWidth` work as on Tabs.", "A tab stays current on the pages below its link, so a `settings` tab is current on `settings/billing` too. To stop that, set `Match=\"NavLinkMatch.All\"`."] },
+        { "id": "tab-nav-usage", "title": "Tabs that are links", "lead": "Each `TabLink` is a link to its page, here to this page with `?view=`. The server marks the tab for the current URL as current.", "after": ["`Variant`, `Size` and `FullWidth` work as on Tabs.", "A tab stays current on the pages below its link, so a `settings` tab is current on `settings/billing` too. To stop that, set `Match=\"NavLinkMatch.All\"`.", "A `Disabled` tab isn't a link. To say why, set `DisabledReason`, which shows as its tooltip."] },
         { "id": "tab-nav-counts", "title": "Counts that fit a phone", "lead": "`Badge` puts a count after a tab's label, and `BadgeStatus` colors one that needs attention. A row of five tabs with counts is too wide for a phone, so set `BadgeVisibleFrom=\"Breakpoint.Sm\"` on the counts that matter less: they show from Sm up." }
       ]
     },
