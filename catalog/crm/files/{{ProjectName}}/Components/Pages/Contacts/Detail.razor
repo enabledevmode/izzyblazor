@@ -13,8 +13,8 @@
 @* A contact: who they are, and everything the team has done with them. Its sections are tabs with an address
    each (/contacts/7, /contacts/7/deals, /tasks, /notes), so each loads only its own data, can be linked to, and
    Back works. Beside every section: what's next on the calendar, the contact's details and their background
-   (Edit opens the Contacts grid's dialog and comes back here). On a phone, Email and Call sit under the name,
-   then what's next, then the sections. Notes are the team's own, newest first: a short one is written here and
+   (Edit opens the Contacts grid's dialog and comes back here). On a phone the header's buttons float in the
+   corner, and what's next comes before the sections. Notes are the team's own, newest first: a short one is written here and
    shows whole; a titled one shows how it opens and links to the rest. People who can't edit records (Viewers)
    read everything and can email or call, and see no other buttons. *@
 @if (_contact is { } contact)
@@ -27,12 +27,12 @@
         </PageCrumbs>
         <PageHeader Title="@contact.Name" Description="@Summary(contact)">
             <PageHeaderMedia><Avatar Name="@contact.Name" Size="AvatarSize.Lg" Decorative /></PageHeaderMedia>
-            @* On a phone Email and Call are a row under the header, and the other two float in the corner behind one button. *@
+            @* On a phone all four float in the corner, behind one button: one place for what you can do. *@
             <PageHeaderActions FloatLabel="Contact actions">
-                <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" VisibleFrom="Breakpoint.Sm">Email</Button>
+                <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" FloatBelow="Breakpoint.Sm">Email</Button>
                 @if (Tel(contact) is { } tel)
                 {
-                    <Button Href="@tel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" VisibleFrom="Breakpoint.Sm">Call</Button>
+                    <Button Href="@tel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" FloatBelow="Breakpoint.Sm">Call</Button>
                 }
                 @if (_canEdit)
                 {
@@ -41,14 +41,6 @@
                 }
             </PageHeaderActions>
         </PageHeader>
-
-        <Grid Columns="@(Tel(contact) is null ? 1 : 2)" Gap="2" HiddenFrom="Breakpoint.Sm">
-            <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail">Email</Button>
-            @if (Tel(contact) is { } tel)
-            {
-                <Button Href="@tel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone">Call</Button>
-            }
-        </Grid>
 
         @* Above the sections until the side column shows (1024px). *@
         <Box HiddenFrom="Breakpoint.Lg">@NextFollowUp</Box>
