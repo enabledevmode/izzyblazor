@@ -404,11 +404,6 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Property<DateTime>("Edited")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");

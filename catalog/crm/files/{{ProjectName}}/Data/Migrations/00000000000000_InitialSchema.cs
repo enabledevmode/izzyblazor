@@ -392,7 +392,6 @@ namespace {{RootNamespace}}.Data.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Title = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
                     ContactId = table.Column<int>(type: "INTEGER", nullable: true),
                     DealId = table.Column<int>(type: "INTEGER", nullable: true),
                     Body = table.Column<string>(type: "TEXT", maxLength: 20000, nullable: false),

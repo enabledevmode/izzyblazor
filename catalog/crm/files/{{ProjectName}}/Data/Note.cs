@@ -3,13 +3,10 @@ using {{RootNamespace}}.Auditing;
 
 namespace {{RootNamespace}}.Data;
 
-/// <summary>A note the whole team can find, linked to a contact, a deal or both. Its text is Markdown.</summary>
+/// <summary>A note the whole team can find, linked to a contact, a deal or both. It has no title: it is its text, which is Markdown.</summary>
 public class Note : IAudited
 {
     public int Id { get; set; }
-
-    /// <summary>Its title; empty for a short note written on a record's page, which shows whole there.</summary>
-    [StringLength(120)] public string Title { get; set; } = "";
 
     public int? ContactId { get; set; }
     public Contact? Contact { get; set; }
@@ -28,20 +25,15 @@ public class Note : IAudited
     /// <summary>When it was last changed, in UTC.</summary>
     public DateTime Edited { get; set; }
 
-    /// <summary>
-    /// What a list of notes shows: a short note whole, and a titled one's opening paragraph (cut at 160
-    /// characters), beside a link to the rest.
-    /// </summary>
-    public string Summary
+    /// <summary>How it opens, for a place with room for a line: the delete dialog, the audit log.</summary>
+    public string Opening
     {
         get
         {
-            if (Title.Length == 0) return Body.Trim();
-            var first = Body.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .FirstOrDefault(line => !line.StartsWith('#')) ?? "";
-            return first.Length <= 160 ? first : first[..157].TrimEnd() + "…";
+            var line = Body.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? "";
+            return line.Length <= 80 ? line : line[..77].TrimEnd() + "…";
         }
     }
 
-    string IAudited.AuditName => Title.Length > 0 ? Title : "Note";
+    string IAudited.AuditName => Opening;
 }
