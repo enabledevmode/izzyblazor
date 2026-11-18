@@ -8,7 +8,8 @@ public class Note : IAudited
 {
     public int Id { get; set; }
 
-    [Required, StringLength(120)] public string Title { get; set; } = "";
+    /// <summary>Its title; empty for a short note written on a record's page, which shows whole there.</summary>
+    [StringLength(120)] public string Title { get; set; } = "";
 
     public int? ContactId { get; set; }
     public Contact? Contact { get; set; }
@@ -16,7 +17,7 @@ public class Note : IAudited
     public int? DealId { get; set; }
     public Deal? Deal { get; set; }
 
-    [Required, StringLength(20000)] public string Body { get; set; } = "";
+    [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string Body { get; set; } = "";
 
     public string? AuthorId { get; set; }
     public ApplicationUser? Author { get; set; }
@@ -27,5 +28,20 @@ public class Note : IAudited
     /// <summary>When it was last changed, in UTC.</summary>
     public DateTime Edited { get; set; }
 
-    string IAudited.AuditName => Title;
+    /// <summary>
+    /// What a list of notes shows: a short note whole, and a titled one's opening paragraph (cut at 160
+    /// characters), beside a link to the rest.
+    /// </summary>
+    public string Summary
+    {
+        get
+        {
+            if (Title.Length == 0) return Body.Trim();
+            var first = Body.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault(line => !line.StartsWith('#')) ?? "";
+            return first.Length <= 160 ? first : first[..157].TrimEnd() + "…";
+        }
+    }
+
+    string IAudited.AuditName => Title.Length > 0 ? Title : "Note";
 }
