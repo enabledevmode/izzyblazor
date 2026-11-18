@@ -187,6 +187,7 @@ NumberField
 OnThisPage
 PageHeader
 PageHeaderActions
+PageHeaderMedia
 Pagination
 PasswordField
 PickList
