@@ -1,0 +1,33 @@
+// Izzy CRM: a whole static app over the izzy-blazor starter (Individual accounts, every page static, the sidebar):
+// contacts, companies, a deal pipeline, activities and reports, with Identity roles, settings and team, an audit
+// log of every change, seeded sample data and deploy files that need no sticky sessions. Accounts come by invite:
+// no Register page. Design: artifacts/izzyblazor-handoff-crm.md.
+{
+  "id": "crm",
+  "name": "Izzy CRM",
+  "kind": "kit",
+  "category": "App kits",
+  "summary": "A whole CRM, every page static: contacts, companies, a deal pipeline, activities and reports, with a team, roles, an audit log and sample data.",
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "none", "Auto": "none" },
+  "base": {
+    "item": "izzy-blazor",
+    "fixed": {
+      "Interactivity": "None", "AllInteractive": "false", "Auth": "Individual", "UseLocalDB": "false",
+      "Empty": "false", "Nav": "Sidebar", "UseProgramMain": "false", "NoHttps": "false",
+      "Registration": "false"
+    }
+  },
+  "exclude": [
+    {
+      "if": "true",
+      "paths": [
+        "{{ProjectName}}/Data/app.db",
+        "{{ProjectName}}/Data/SqlLite/**",
+        "{{ProjectName}}/Components/Pages/Counter.*",
+        "{{ProjectName}}/Components/Pages/Weather.*",
+        "{{ProjectName}}/Components/Pages/Contact.*",
+        "{{ProjectName}}/Components/Pages/Auth.*"
+      ]
+    }
+  ]
+}
