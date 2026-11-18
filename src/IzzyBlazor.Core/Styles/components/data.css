@@ -2729,6 +2729,11 @@
     color: var(--ib-color-muted);
   }
 
+  /* Beside two lines of text, a 1em icon looks small: 20px. */
+  .ib-listview-row:has(.ib-listview-description) {
+    --ib-icon-size: 1.25rem;
+  }
+
   .ib-listview-text {
     display: flex;
     flex-direction: column;
