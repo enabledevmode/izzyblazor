@@ -1,0 +1,187 @@
+@page "/contacts"
+@attribute [Authorize(Policy = Policies.ViewRecords)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject IAuthorizationService Authorization
+
+<PageTitle>Contacts</PageTitle>
+
+@* Contacts: everyone the team knows, the one last heard from first. The grid searches, filters by status, sorts
+   and pages in the database, and adds and edits in a dialog made from its columns: /contacts?add=1 opens it
+   (&company=3 with that company chosen), /contacts?edit=7 edits one, and &return=/contacts/7 goes back to the
+   page that asked. Rows have no Edit of their own (RowActions): a contact's page has it. People who can't edit records (Viewers) see the list alone. *@
+<PageCrumbs><BreadcrumbItem>Contacts</BreadcrumbItem></PageCrumbs>
+
+<Column Gap="6">
+    <PageHeader Title="Contacts" Description="The people behind your relationships.">
+        @* On a phone the two float in the corner, behind one button. *@
+        @if (_canEdit)
+        {
+            <PageHeaderActions FloatLabel="[Copy needed: speed dial name]">
+                <Button Href="contacts/import" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Upload" FloatBelow="Breakpoint.Sm">Import contacts</Button>
+                <DataGridAdd For="contacts" ShowLabel FloatBelow="Breakpoint.Sm" />
+            </PageHeaderActions>
+        }
+    </PageHeader>
+
+    <DataGrid id="contacts" TItem="Contact" ItemsProvider="FindAsync" FindItem="GetAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Contacts"
+              PageSize="25" InitialSort="-lastactivity" Searchable SearchLabel="Search contacts…" SmallScreen="DataGridSmallScreen.HideColumns"
+              EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(c => c is null ? "New contact" : "Edit contact")"
+              EditSaveText="@(c => c is null ? "Create contact" : "Save changes")" AddText="Add contact"
+              NewItem="@(_canEdit ? New : null)" ItemEditable="_ => _canEdit" RowActions="false" OnSave="SaveAsync">
+        <ToolbarContent>
+            <DataGridSearch />
+            <DataGridFilter Column="status" />
+        </ToolbarContent>
+        <NoMatchesContent>
+            <EmptyState Icon="Lucide.SearchX" Title="No matching contacts" Description="Try a different name, company, or email address. Your other contacts are still here." />
+        </NoMatchesContent>
+        <Columns>
+            <TemplateColumn Title="Name" SortKey="name" SortBy="c => c.FirstName" Sortable Context="contact">
+                <Row Gap="3" Align="Align.Center">
+                    <Avatar Name="@contact.Name" Size="AvatarSize.Sm" Decorative />
+                    <Stack Gap="0" Grow>
+                        <TextBlock Weight="FontWeight.Medium" Truncate><Anchor Href="@($"contacts/{contact.Id}")" InheritColor Underline="AnchorUnderline.Hover">@contact.Name</Anchor></TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@contact.Email</TextBlock>
+                    </Stack>
+                </Row>
+            </TemplateColumn>
+            @* In the dialog only: the Name column shows them. *@
+            <PropertyColumn Property="c => c.FirstName" Title="First name" Visible="false" />
+            <PropertyColumn Property="c => c.LastName" Title="Last name" Visible="false" />
+            <PropertyColumn Property="c => c.Email" Title="Email address" Visible="false" />
+            <PropertyColumn Property="c => c.Phone" Title="Phone number" Visible="false" />
+            <PropertyColumn Property="c => c.JobTitle" Title="Job title" Visible="false" />
+            <TemplateColumn Title="Company" SortKey="company" SortBy="c => c.Company!.Name" Sortable EditBy="c => c.CompanyId" Context="contact">
+                <ChildContent>@contact.Company?.Name</ChildContent>
+                <EditTemplate Context="field">
+                    <Select @bind-Value="field.Item.CompanyId" Items="_companyIds" ItemText="id => _companies[id!.Value]" Placeholder="Choose a company" @attributes="field.Attributes" />
+                </EditTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="c => c.Status" Width="Length.Rem(7)" Priority="1" Sortable Filterable Context="contact">
+                <Badge Status="Tone(contact.Status)">@contact.Status</Badge>
+            </PropertyColumn>
+            <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" Sortable EditBy="c => c.OwnerId" Context="contact">
+                <ChildContent>@contact.Owner?.Name</ChildContent>
+                <EditTemplate Context="field">
+                    <Select @bind-Value="field.Item.OwnerId" Items="_ownerIds" ItemText="id => _owners[id!]" @attributes="field.Attributes" />
+                </EditTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="c => c.Source" Title="Lead source" Visible="false" />
+            <PropertyColumn Property="c => c.NextFollowUp" Title="Next follow-up" Visible="false" />
+            <PropertyColumn Property="c => c.Notes" Visible="false">
+                <EditTemplate Context="field">
+                    <TextArea @bind-Value="field.Item.Notes" Placeholder="Helpful context about this person…" @attributes="field.Attributes" />
+                </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c => c.LastActivity" Title="Last activity" Width="Length.Rem(9)" Sortable Editable="false" Context="contact">
+                @(contact.LastActivity is { } at ? When.Day(DateOnly.FromDateTime(When.Local(at, _workspace)), _today) : null)
+            </PropertyColumn>
+        </Columns>
+        <EditDialog>
+            @if (Add is not null)
+            {
+                <TextBlock Color="Color.Muted" ColSpan="GridSpan.Full">Add a person and connect them to the right company.</TextBlock>
+            }
+            <EditField Key="firstname" />
+            <EditField Key="lastname" />
+            <EditField Key="email" />
+            <EditField Key="phone" />
+            <EditField Key="jobtitle" />
+            <EditField Key="company" />
+            <EditField Key="owner" />
+            <EditField Key="status" />
+            <EditField Key="source" />
+            <EditField Key="nextfollowup" />
+            <EditField Key="notes" ColSpan="GridSpan.Full" />
+        </EditDialog>
+    </DataGrid>
+</Column>
+
+@code {
+    /// <summary>The add dialog is open (?add=1).</summary>
+    [SupplyParameterFromQuery] private string? Add { get; set; }
+
+    /// <summary>The company a new contact starts with (&amp;company=3), from a company's Add contact.</summary>
+    [SupplyParameterFromQuery] private int? Company { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    // Who may add and edit: the EditRecords policy.
+    private bool _canEdit;
+    private string? _me;
+    private Workspace? _workspace;
+    private DateOnly _today;
+
+    // The dialog's choices: every company and every team member, by name.
+    private Dictionary<int, string> _companies = [];
+    private List<int?> _companyIds = [];
+    private Dictionary<string, string> _owners = [];
+    private List<string?> _ownerIds = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthState).User;
+        _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
+        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
+        _today = DateOnly.FromDateTime(Clock.Now(_workspace));
+
+        _companies = await Db.Companies.AsNoTracking().OrderBy(c => c.Name).ToDictionaryAsync(c => c.Id, c => c.Name);
+        _companyIds = _companies.OrderBy(c => c.Value).Select(c => (int?)c.Key).ToList();
+        _owners = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
+        _ownerIds = _owners.OrderBy(o => o.Value).Select(o => (string?)o.Key).ToList();
+    }
+
+    // A new contact as the dialog first shows it: yours, a lead, with the company the address names.
+    private Contact New() => new()
+    {
+        OwnerId = _me, Status = ContactStatus.Lead, Source = LeadSource.Referral,
+        CompanyId = Company is { } id && _companies.ContainsKey(id) ? id : null,
+    };
+
+    // The grid's page of contacts, from the database. Its search looks in names, emails and company names.
+    private async ValueTask<DataResult<Contact>> FindAsync(DataRequest<Contact> request)
+    {
+        var query = Db.Contacts.AsNoTracking().Include(c => c.Company).Include(c => c.Owner).AsQueryable();
+        if (request.Search?.Trim() is { Length: > 0 } search)
+        {
+            query = query.Where(c => (c.FirstName + " " + c.LastName).Contains(search) || c.Email.Contains(search) || c.Company!.Name.Contains(search));
+        }
+        return await (request with { Search = null }).ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+    }
+
+    // The contact an edit address (?edit=7) names, which may be on another page of the grid.
+    private async Task<Contact?> GetAsync(string key) =>
+        int.TryParse(key, out var id) ? await Db.Contacts.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id) : null;
+
+    private async Task SaveAsync(DataGridSave<Contact> save)
+    {
+        if (!_canEdit) return;
+        var contact = save.Item;
+        // The dialog has already checked the fields against Contact's attributes ([Required], [EmailAddress], …).
+        if (save.IsNew)
+        {
+            contact.Added = _today;
+            Db.Contacts.Add(contact);
+        }
+        else if (await Db.Contacts.FirstOrDefaultAsync(c => c.Id == contact.Id) is { } saved)
+        {
+            save.CopyTo(saved);
+        }
+        else
+        {
+            save.AddError("[Copy needed: contact no longer exists]");
+            return;
+        }
+        // The audit log records it as it saves (Auditing/AuditInterceptor.cs).
+        await Db.SaveChangesAsync();
+    }
+
+    private static Status Tone(ContactStatus status) => status switch
+    {
+        ContactStatus.Customer => Status.Success,
+        ContactStatus.Prospect => Status.Info,
+        _ => Status.Neutral,
+    };
+}
