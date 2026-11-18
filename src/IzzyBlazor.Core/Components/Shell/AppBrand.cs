@@ -6,7 +6,8 @@ namespace IzzyBlazor;
 /// <summary>
 /// The app or site name in an <see cref="AppHeader"/> (or a sidebar's header), with an icon or
 /// logo before it, usually linking home. It stays on one line: on a narrow screen the name is cut
-/// short with an ellipsis rather than wrapping or pushing the header's buttons off.
+/// short with an ellipsis rather than wrapping or pushing the header's buttons off. A
+/// <see cref="Description"/> adds a second line under the name.
 /// </summary>
 /// <example>
 /// <code>
@@ -22,6 +23,12 @@ public class AppBrand : LayoutItemBase, IDisposable
 {
     /// <summary>The name, shown and used as the link's name.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>
+    /// A second, quieter line under the name, such as the workspace or team the app is showing. In a
+    /// sidebar's icon rail it hides with the name.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
 
     /// <summary>Where it links, usually <c>"/"</c>. Unset: plain text, not a link.</summary>
     [Parameter] public string? Href { get; set; }
@@ -91,10 +98,27 @@ public class AppBrand : LayoutItemBase, IDisposable
             builder.CloseComponent();
         }
 
-        builder.OpenElement(13, "span");
-        builder.AddAttribute(14, "class", HideLabel ? "ib-visually-hidden" : "ib-shell-brand-label");
-        builder.AddContent(15, Label);
-        builder.CloseElement();
+        if (Description is null || HideLabel)
+        {
+            builder.OpenElement(13, "span");
+            builder.AddAttribute(14, "class", HideLabel ? "ib-visually-hidden" : "ib-shell-brand-label");
+            builder.AddContent(15, Label);
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.OpenElement(16, "span");
+            builder.AddAttribute(17, "class", "ib-shell-brand-text");
+            builder.OpenElement(18, "span");
+            builder.AddAttribute(19, "class", "ib-shell-brand-label");
+            builder.AddContent(20, Label);
+            builder.CloseElement();
+            builder.OpenElement(21, "span");
+            builder.AddAttribute(22, "class", "ib-shell-brand-description ib-collapsed-hide");
+            builder.AddContent(23, Description);
+            builder.CloseElement();
+            builder.CloseElement();
+        }
 
         builder.CloseElement();
     }

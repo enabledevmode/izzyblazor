@@ -129,6 +129,29 @@
     text-overflow: ellipsis;
   }
 
+  /* With a Description: the name over it, both beside the icon, each cut short on its own line. */
+  .ib-shell-brand > .ib-shell-brand-text {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    line-height: var(--ib-leading-tight, 1.25);
+  }
+
+  /* Two lines of text take a bigger mark. */
+  .ib-shell-brand:has(> .ib-shell-brand-text) > .ib-shell-brand-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .ib-shell-brand-description {
+    overflow: hidden;
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-xs);
+    font-weight: var(--ib-weight-normal);
+    text-overflow: ellipsis;
+  }
+
   a.ib-shell-brand:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
@@ -1032,11 +1055,7 @@
     outline-offset: 2px;
   }
 
-  /* The chevron points the way the sidebar will move: toward its own edge, then back. */
-  .ib-shell-collapse-icon {
-    transition: rotate var(--ib-duration-normal) var(--ib-ease);
-  }
-
+  /* The icon is a window with its sidebar: on the side this sidebar is on. */
   .ib-shell-sidebar-end .ib-shell-collapse-icon,
   .ib-shell-collapse-icon:dir(rtl) {
     scale: -1 1;
@@ -1044,10 +1063,6 @@
 
   .ib-shell-sidebar-end .ib-shell-collapse-icon:dir(rtl) {
     scale: 1 1;
-  }
-
-  .ib-shell-collapse-input:checked + .ib-shell-collapse-btn .ib-shell-collapse-icon {
-    rotate: 180deg;
   }
 
   .ib-shell-sidebar-collapsible > .ib-shell-sidebar-inner {
@@ -1980,8 +1995,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ib-shell-sidebar,
-    .ib-shell-collapse-icon {
+    .ib-shell-sidebar {
       transition: none !important;
     }
   }
