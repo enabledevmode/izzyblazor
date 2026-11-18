@@ -19,7 +19,7 @@
             <BreadcrumbItem Href="contacts">Contacts</BreadcrumbItem>
             <BreadcrumbItem>@contact.Name</BreadcrumbItem>
         </PageCrumbs>
-        <PageHeader Title="@contact.Name" Description="@About(contact.Company?.Name, contact.Status.ToString())">
+        <PageHeader Title="@contact.Name" Description="@Summary(contact)">
             <PageHeaderMedia><Avatar Name="@contact.Name" Size="AvatarSize.Lg" Decorative /></PageHeaderMedia>
             <AuthorizeView Policy="@Policies.EditRecords">
                 @* On a phone the two float in the corner, behind one button. *@
@@ -244,6 +244,12 @@
             .Where(e => e.Action == AuditActions.Created && e.EntityType == nameof(Contact) && e.EntityId == id).OrderBy(e => e.Time).FirstOrDefaultAsync();
         _history.Add(new Happened("Contact added", null, About(added?.ActorName, When.Day(contact.Added, _today)), contact.Added.ToDateTime(TimeOnly.MinValue)));
     }
+
+    // Under the name: "Marketing director · Acme Co.". Without a job title, the status takes its place after the
+    // company ("Acme Co. · Customer"); all three wrap on a phone, and the status is in Contact details.
+    private static string Summary(Contact contact) => string.IsNullOrWhiteSpace(contact.JobTitle)
+        ? About(contact.Company?.Name, contact.Status.ToString())
+        : About(contact.JobTitle, contact.Company?.Name);
 
     private static string[] Paragraphs(string? text) =>
         (text ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
