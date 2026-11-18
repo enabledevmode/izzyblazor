@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject IAuthorizationService Authorization
+@inject ToastService Toasts
 
 <PageTitle>Contacts</PageTitle>
 
@@ -17,7 +18,7 @@
         @* On a phone the two float in the corner, behind one button. *@
         @if (_canEdit)
         {
-            <PageHeaderActions FloatLabel="[Copy needed: speed dial name]">
+            <PageHeaderActions FloatLabel="Add contacts">
                 <Button Href="contacts/import" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Upload" FloatBelow="Breakpoint.Sm">Import contacts</Button>
                 <DataGridAdd For="contacts" ShowLabel FloatBelow="Breakpoint.Sm" />
             </PageHeaderActions>
@@ -159,7 +160,7 @@
     {
         if (!_canEdit) return;
         var contact = save.Item;
-        // The dialog has already checked the fields against Contact's attributes ([Required], [EmailAddress], …).
+        // The dialog has already checked the fields against Contact's attributes, which hold the messages (Data/Contact.cs).
         if (save.IsNew)
         {
             contact.Added = _today;
@@ -171,11 +172,13 @@
         }
         else
         {
-            save.AddError("[Copy needed: contact no longer exists]");
+            save.AddError("This contact isn’t here any more.");
             return;
         }
         // The audit log records it as it saves (Auditing/AuditInterceptor.cs).
         await Db.SaveChangesAsync();
+        if (save.IsNew) Toasts.Success($"{contact.Name} is in your contacts.", "Contact created");
+        else Toasts.Success($"{contact.Name} is up to date.", "Contact saved");
     }
 
     private static Status Tone(ContactStatus status) => status switch

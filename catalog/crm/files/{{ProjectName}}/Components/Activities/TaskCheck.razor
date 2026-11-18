@@ -3,6 +3,7 @@
 @inject Audit Audit
 @inject IAuthorizationService Authorization
 @inject NavigationManager Navigation
+@inject ToastService Toasts
 
 @* A task's box: ticking it posts and marks the task done, clearing it reopens the task. A form of its own, holding
    only the box, so it saves as it changes (SubmitOnChange); the page then loads again, with the task in ?done=.
@@ -46,6 +47,7 @@
             Db.Auditing = true;
             if (Model.Done)
                 await Audit.RecordAsync(AuditActions.Completed, nameof(Activity), task.Id.ToString(), task.Title, [new AuditChange("Status", null, "Completed")]);
+            Toasts.Success(task.Title, Model.Done ? "Task completed" : "Task reopened");
         }
 
         // Back to the page, which loads again with its counts up to date. Its address lists the tasks just done
