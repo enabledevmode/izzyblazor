@@ -384,6 +384,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "timeline.css"),
   },
   {
+    // A sheet of its own, linked by SiteNav.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "site-nav.css")],
+    outfile: join(lib, "wwwroot", "site-nav.css"),
+  },
+  {
     // A sheet of its own, linked by SidebarAccount.
     ...common,
     sourcemap: false,
