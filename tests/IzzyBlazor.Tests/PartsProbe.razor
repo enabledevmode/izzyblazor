@@ -42,8 +42,13 @@
         </PageHeader>
         break;
     case "grid-add-in-header":
+    case "grid-add-and-button-in-header":
         <PageHeader Title="Customers">
             <PageHeaderActions>
+                @if (Kind == "grid-add-and-button-in-header")
+                {
+                    <Button Href="/customers/import" StartIcon="Lucide.Upload" FloatBelow="Breakpoint.Sm">Import customers</Button>
+                }
                 <DataGridAdd For="customers" FloatBelow="Breakpoint.Sm" />
             </PageHeaderActions>
         </PageHeader>

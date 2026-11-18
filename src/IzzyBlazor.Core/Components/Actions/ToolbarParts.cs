@@ -485,6 +485,13 @@ internal static class FloatActions
             if (actions.Count == 1)
             {
                 var a = actions[0];
+                if (a.GridPart is not null)
+                {
+                    builder.OpenElement(30, "div");
+                    builder.AddAttribute(31, "class", "ib-part");
+                    builder.AddAttribute(32, "data-ib-grid", a.GridPart);
+                }
+
                 builder.OpenComponent<FloatingButton>(0);
                 builder.AddComponentParameter(1, nameof(FloatingButton.Icon), a.Icon);
                 builder.AddComponentParameter(2, nameof(FloatingButton.Label), a.Label);
@@ -507,6 +514,10 @@ internal static class FloatActions
                 }
 
                 builder.CloseComponent();
+                if (a.GridPart is not null)
+                {
+                    builder.CloseElement();
+                }
             }
             else
             {
