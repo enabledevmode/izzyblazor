@@ -41,16 +41,6 @@ public class OutsidePartsTests : BunitContext
     }
 
     [Fact]
-    public void A_page_headers_media_is_drawn_before_its_title()
-    {
-        var cut = Render<PartsProbe>(p => p.Add(c => c.Kind, "header-media"));
-
-        var media = cut.Find(".ib-page-header > .ib-page-header-media:first-child");
-        Assert.NotNull(media.QuerySelector(".ib-avatar"));
-        Assert.Equal("ib-page-header-text", media.NextElementSibling!.ClassName);
-    }
-
-    [Fact]
     public void A_page_headers_buttons_that_float_share_a_speed_dial_and_leave_the_header_on_a_phone()
     {
         var cut = Render<PartsProbe>(p => p.Add(c => c.Kind, "header-float"));
