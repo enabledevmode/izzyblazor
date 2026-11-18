@@ -7,7 +7,8 @@
 @* The CRM's shell: a sidebar the full height of the window, with the brand and the workspace's name at its
    top and the pages under them, each with its count. On wide screens it collapses to an icon rail (the button
    at its top, remembered in a cookie); on phones it's a drawer behind the menu button. The header holds the
-   page's breadcrumbs (PageCrumbs), the color scheme and your account. Only the main area scrolls, as in an
+   page's breadcrumbs (PageCrumbs) and the color scheme; your account is the row at the sidebar's foot, or the
+   header's avatar on a phone. Only the main area scrolls, as in an
    app: the header and sidebar stay where they are. *@
 <AppShell ScrollMode="ShellScroll.Main">
     <AppHeader>
@@ -36,6 +37,16 @@
                 <NavItem Href="reports" Icon="Lucide.ChartNoAxesCombined">Reports</NavItem>
             </AuthorizeView>
         </NavMenu>
+        <SidebarFooter>
+            <AuthorizeView>
+                @* Your account, from Md up; on a phone the header's avatar opens the same menu. *@
+                <SidebarAccount Name="@(NameClaim.Shown(context.User) ?? "")"
+                                Description="@(context.User.IsInRole(Roles.Admin) ? "Workspace admin" : null)"
+                                VisibleFrom="Breakpoint.Md">
+                    <AccountMenuItems />
+                </SidebarAccount>
+            </AuthorizeView>
+        </SidebarFooter>
     </AppSidebar>
 
     <AppMain Padding="new() { Base = 4, Md = 6 }">

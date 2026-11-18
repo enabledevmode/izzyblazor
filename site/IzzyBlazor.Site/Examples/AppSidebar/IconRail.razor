@@ -26,9 +26,11 @@
             <NavItem Href='@To("billing")' Icon="Lucide.CreditCard">Billing</NavItem>
         </NavMenu>
         <SidebarFooter>
-            <NavMenu aria-label="Account">
-                <NavItem Href='@To("account")' Icon="Lucide.CircleUser">Ada Lovelace</NavItem>
-            </NavMenu>
+            <SidebarAccount Name="Ada Lovelace" Description="Owner">
+                <MenuItem Href='@To("account")' Icon="Lucide.User">Account</MenuItem>
+                <MenuDivider />
+                <MenuItem Href="#" Icon="Lucide.LogOut">Log out</MenuItem>
+            </SidebarAccount>
         </SidebarFooter>
     </AppSidebar>
 

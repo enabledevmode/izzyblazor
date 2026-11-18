@@ -225,6 +225,7 @@ Section
 SectionHeader
 SegmentedControl
 Select
+SidebarAccount
 SidebarBody
 SidebarFooter
 SidebarHeader

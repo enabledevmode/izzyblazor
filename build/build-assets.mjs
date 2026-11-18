@@ -384,6 +384,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "timeline.css"),
   },
   {
+    // A sheet of its own, linked by SidebarAccount.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "sidebar-account.css")],
+    outfile: join(lib, "wwwroot", "sidebar-account.css"),
+  },
+  {
     // A sheet of its own, linked by SpeedDial.
     ...common,
     sourcemap: false,

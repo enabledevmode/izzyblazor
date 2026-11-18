@@ -23,6 +23,7 @@ src/IzzyBlazor.Core/wwwroot/bullet.css
 src/IzzyBlazor.Core/wwwroot/gauge.css
 src/IzzyBlazor.Core/wwwroot/tabs-edit.css
 src/IzzyBlazor.Core/wwwroot/speed-dial.css
+src/IzzyBlazor.Core/wwwroot/sidebar-account.css
 src/IzzyBlazor.Core/wwwroot/treeselect.css
 src/IzzyBlazor.Core/wwwroot/bands.css
 src/IzzyBlazor.Core/wwwroot/column-picker.css

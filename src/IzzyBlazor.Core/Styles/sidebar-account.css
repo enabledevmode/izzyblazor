@@ -1,0 +1,413 @@
+/*
+ * SidebarAccount, built to wwwroot/sidebar-account.css and linked by the component, so pages
+ * without one don't pay for it. The signed-in person's row in the sidebar's footer, a button (its
+ * menu opens above it) or a link: the avatar, then the name over a quieter line, each cut short on
+ * its own line. The menu's wrapper fills the footer, so the menu is at least the row's width.
+ */
+@layer izzy.components {
+  .ib-pop-root:has(> .ib-sidebar-account) {
+    display: flex;
+    min-width: 0;
+  }
+
+  .ib-sidebar-account {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 0.375rem var(--ib-space-2);
+    border: 0;
+    border-radius: var(--ib-radius-md);
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-sidebar-account:not([href], button) {
+    cursor: default;
+  }
+
+  /* In a collapsible sidebar the 32px avatar sits on the icons' line, so it doesn't shift as the
+     sidebar collapses (see --ib-sb-icon-pad, which places an 18px icon). */
+  .ib-shell-sidebar-collapsible .ib-sidebar-account {
+    padding-inline-start: max(0px, calc(var(--ib-sb-icon-pad) - 0.4375rem));
+  }
+
+  :is(a[href], button).ib-sidebar-account:hover,
+  .ib-sidebar-account:has(+ :popover-open) {
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+  }
+
+  .ib-sidebar-account:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-sidebar-account-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.3;
+  }
+
+  .ib-sidebar-account-name,
+  .ib-sidebar-account-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ib-sidebar-account-name {
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-sidebar-account-description {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-sidebar-account-chevron {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    color: var(--ib-color-muted);
+  }
+
+  /*
+   * In the icon rail (one block per sidebar breakpoint, as shell.css has them): only the avatar,
+   * centered on the rail. The description and chevron hide with .ib-collapsed-hide; the name stays
+   * for screen readers and is the tooltip on hover and focus, as a nav link's text is, but not
+   * beside the open menu.
+   */
+  @media (width >= 640px) {
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account {
+      justify-content: center;
+      gap: 0;
+      width: auto;
+      padding: var(--ib-space-1);
+      anchor-scope: --ib-nav-tip;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account-text {
+      display: contents;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account-name {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      clip-path: inset(50%);
+    }
+
+    @supports (position-area: inline-end) {
+      .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible {
+        anchor-name: --ib-nav-tip;
+      }
+
+      .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible .ib-sidebar-account-name {
+        z-index: 50;
+        width: max-content;
+        max-width: 16rem;
+        height: auto;
+        margin-inline-start: var(--ib-space-2);
+        padding: var(--ib-space-1) var(--ib-space-2);
+        clip-path: none;
+        border-radius: var(--ib-radius-sm);
+        background-color: var(--ib-color-on-surface);
+        color: var(--ib-color-surface);
+        font-size: var(--ib-text-xs);
+        font-weight: var(--ib-weight-normal);
+        position-anchor: --ib-nav-tip;
+        position-area: inline-end;
+        position-try-fallbacks: flip-inline;
+        pointer-events: none;
+      }
+
+      .ib-shell-sidebar-end.ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible .ib-sidebar-account-name {
+        margin-inline: 0 var(--ib-space-2);
+        position-area: inline-start;
+      }
+
+      @media (hover: hover) {
+        .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) {
+          anchor-name: --ib-nav-tip;
+        }
+
+        .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) .ib-sidebar-account-name {
+          z-index: 50;
+          width: max-content;
+          max-width: 16rem;
+          height: auto;
+          margin-inline-start: var(--ib-space-2);
+          padding: var(--ib-space-1) var(--ib-space-2);
+          clip-path: none;
+          border-radius: var(--ib-radius-sm);
+          background-color: var(--ib-color-on-surface);
+          color: var(--ib-color-surface);
+          font-size: var(--ib-text-xs);
+          font-weight: var(--ib-weight-normal);
+          position-anchor: --ib-nav-tip;
+          position-area: inline-end;
+          position-try-fallbacks: flip-inline;
+          pointer-events: none;
+        }
+
+        .ib-shell-sidebar-end.ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) .ib-sidebar-account-name {
+          margin-inline: 0 var(--ib-space-2);
+          position-area: inline-start;
+        }
+      }
+    }
+  }
+
+  @media (width >= 768px) {
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account {
+      justify-content: center;
+      gap: 0;
+      width: auto;
+      padding: var(--ib-space-1);
+      anchor-scope: --ib-nav-tip;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account-text {
+      display: contents;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account-name {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      clip-path: inset(50%);
+    }
+
+    @supports (position-area: inline-end) {
+      .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible {
+        anchor-name: --ib-nav-tip;
+      }
+
+      .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible .ib-sidebar-account-name {
+        z-index: 50;
+        width: max-content;
+        max-width: 16rem;
+        height: auto;
+        margin-inline-start: var(--ib-space-2);
+        padding: var(--ib-space-1) var(--ib-space-2);
+        clip-path: none;
+        border-radius: var(--ib-radius-sm);
+        background-color: var(--ib-color-on-surface);
+        color: var(--ib-color-surface);
+        font-size: var(--ib-text-xs);
+        font-weight: var(--ib-weight-normal);
+        position-anchor: --ib-nav-tip;
+        position-area: inline-end;
+        position-try-fallbacks: flip-inline;
+        pointer-events: none;
+      }
+
+      .ib-shell-sidebar-end.ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible .ib-sidebar-account-name {
+        margin-inline: 0 var(--ib-space-2);
+        position-area: inline-start;
+      }
+
+      @media (hover: hover) {
+        .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) {
+          anchor-name: --ib-nav-tip;
+        }
+
+        .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) .ib-sidebar-account-name {
+          z-index: 50;
+          width: max-content;
+          max-width: 16rem;
+          height: auto;
+          margin-inline-start: var(--ib-space-2);
+          padding: var(--ib-space-1) var(--ib-space-2);
+          clip-path: none;
+          border-radius: var(--ib-radius-sm);
+          background-color: var(--ib-color-on-surface);
+          color: var(--ib-color-surface);
+          font-size: var(--ib-text-xs);
+          font-weight: var(--ib-weight-normal);
+          position-anchor: --ib-nav-tip;
+          position-area: inline-end;
+          position-try-fallbacks: flip-inline;
+          pointer-events: none;
+        }
+
+        .ib-shell-sidebar-end.ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) .ib-sidebar-account-name {
+          margin-inline: 0 var(--ib-space-2);
+          position-area: inline-start;
+        }
+      }
+    }
+  }
+
+  @media (width >= 1024px) {
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account {
+      justify-content: center;
+      gap: 0;
+      width: auto;
+      padding: var(--ib-space-1);
+      anchor-scope: --ib-nav-tip;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account-text {
+      display: contents;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account-name {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      clip-path: inset(50%);
+    }
+
+    @supports (position-area: inline-end) {
+      .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible {
+        anchor-name: --ib-nav-tip;
+      }
+
+      .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible .ib-sidebar-account-name {
+        z-index: 50;
+        width: max-content;
+        max-width: 16rem;
+        height: auto;
+        margin-inline-start: var(--ib-space-2);
+        padding: var(--ib-space-1) var(--ib-space-2);
+        clip-path: none;
+        border-radius: var(--ib-radius-sm);
+        background-color: var(--ib-color-on-surface);
+        color: var(--ib-color-surface);
+        font-size: var(--ib-text-xs);
+        font-weight: var(--ib-weight-normal);
+        position-anchor: --ib-nav-tip;
+        position-area: inline-end;
+        position-try-fallbacks: flip-inline;
+        pointer-events: none;
+      }
+
+      .ib-shell-sidebar-end.ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible .ib-sidebar-account-name {
+        margin-inline: 0 var(--ib-space-2);
+        position-area: inline-start;
+      }
+
+      @media (hover: hover) {
+        .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) {
+          anchor-name: --ib-nav-tip;
+        }
+
+        .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) .ib-sidebar-account-name {
+          z-index: 50;
+          width: max-content;
+          max-width: 16rem;
+          height: auto;
+          margin-inline-start: var(--ib-space-2);
+          padding: var(--ib-space-1) var(--ib-space-2);
+          clip-path: none;
+          border-radius: var(--ib-radius-sm);
+          background-color: var(--ib-color-on-surface);
+          color: var(--ib-color-surface);
+          font-size: var(--ib-text-xs);
+          font-weight: var(--ib-weight-normal);
+          position-anchor: --ib-nav-tip;
+          position-area: inline-end;
+          position-try-fallbacks: flip-inline;
+          pointer-events: none;
+        }
+
+        .ib-shell-sidebar-end.ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) .ib-sidebar-account-name {
+          margin-inline: 0 var(--ib-space-2);
+          position-area: inline-start;
+        }
+      }
+    }
+  }
+
+  @media (width >= 1280px) {
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account {
+      justify-content: center;
+      gap: 0;
+      width: auto;
+      padding: var(--ib-space-1);
+      anchor-scope: --ib-nav-tip;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account-text {
+      display: contents;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account-name {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      clip-path: inset(50%);
+    }
+
+    @supports (position-area: inline-end) {
+      .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible {
+        anchor-name: --ib-nav-tip;
+      }
+
+      .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible .ib-sidebar-account-name {
+        z-index: 50;
+        width: max-content;
+        max-width: 16rem;
+        height: auto;
+        margin-inline-start: var(--ib-space-2);
+        padding: var(--ib-space-1) var(--ib-space-2);
+        clip-path: none;
+        border-radius: var(--ib-radius-sm);
+        background-color: var(--ib-color-on-surface);
+        color: var(--ib-color-surface);
+        font-size: var(--ib-text-xs);
+        font-weight: var(--ib-weight-normal);
+        position-anchor: --ib-nav-tip;
+        position-area: inline-end;
+        position-try-fallbacks: flip-inline;
+        pointer-events: none;
+      }
+
+      .ib-shell-sidebar-end.ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:focus-visible .ib-sidebar-account-name {
+        margin-inline: 0 var(--ib-space-2);
+        position-area: inline-start;
+      }
+
+      @media (hover: hover) {
+        .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) {
+          anchor-name: --ib-nav-tip;
+        }
+
+        .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) .ib-sidebar-account-name {
+          z-index: 50;
+          width: max-content;
+          max-width: 16rem;
+          height: auto;
+          margin-inline-start: var(--ib-space-2);
+          padding: var(--ib-space-1) var(--ib-space-2);
+          clip-path: none;
+          border-radius: var(--ib-radius-sm);
+          background-color: var(--ib-color-on-surface);
+          color: var(--ib-color-surface);
+          font-size: var(--ib-text-xs);
+          font-weight: var(--ib-weight-normal);
+          position-anchor: --ib-nav-tip;
+          position-area: inline-end;
+          position-try-fallbacks: flip-inline;
+          pointer-events: none;
+        }
+
+        .ib-shell-sidebar-end.ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-sidebar-account:hover:not(:has(+ :popover-open)) .ib-sidebar-account-name {
+          margin-inline: 0 var(--ib-space-2);
+          position-area: inline-start;
+        }
+      }
+    }
+  }
+}
