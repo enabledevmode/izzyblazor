@@ -109,6 +109,13 @@
     [Parameter] public Func<TItem, bool>? ItemDeletable { get; set; }
 
     /// <summary>
+    /// Whether rows have their actions: Edit, Delete and an <c>ActionColumn</c>'s. Defaults to true. False for
+    /// a grid whose rows link to a page that has them: the dialogs still open from their addresses
+    /// (<c>/contacts?edit=42</c>), and the grid has no actions column.
+    /// </summary>
+    [Parameter] public bool RowActions { get; set; } = true;
+
+    /// <summary>
     /// A link from another page can open the dialog and come back: <c>/contacts?edit=42&amp;return=/contacts/42</c>
     /// goes to <c>return</c>, a path on this site, when the dialog saves or closes, in place of the grid's page.
     /// The key of the row being edited, or null. Binding it (<c>@bind-EditKey</c>) on an interactive page
@@ -1079,7 +1086,7 @@
     };
 
     // Cells have no Edit button, but a new row in them still has Save and Cancel.
-    private bool HasActionCell => ActionColumn is not null || CanDelete || (CanEdit && (!CellMode || CanAdd));
+    private bool HasActionCell => RowActions && (ActionColumn is not null || CanDelete || (CanEdit && (!CellMode || CanAdd)));
 
     /// <summary>
     /// Remembers how each person has arranged the columns, in a cookie under this name, so the server
