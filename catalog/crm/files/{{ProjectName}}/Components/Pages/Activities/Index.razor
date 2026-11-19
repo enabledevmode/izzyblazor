@@ -1,0 +1,105 @@
+@page "/activities"
+@attribute [Authorize(Policy = Policies.ViewRecords)]
+@using System.Globalization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject IAuthorizationService Authorization
+@inject NavigationManager Navigation
+
+<PageTitle>Activities</PageTitle>
+
+@* Activities: your calendar. The meetings, calls and tasks assigned to you, on the working week; the Scheduler's
+   toolbar goes to other weeks and views (a day, a month, a list), and keeps both in the address. Each one links
+   to its own page. The database is asked only for the days shown. Tasks is the same activities as a list
+   (Tasks.razor). People who can't edit records (Viewers) get no Schedule activity. *@
+<PageCrumbs><BreadcrumbItem>Activities</BreadcrumbItem></PageCrumbs>
+
+@* It fills the main area: the calendar's hours scroll, the page doesn't. *@
+<Column Gap="6" Grow>
+    <PageHeader Title="Activities" Description="Keep every commitment connected to a customer.">
+        @* On a phone it floats in the corner. *@
+        @if (_canEdit)
+        {
+            <PageHeaderActions>
+                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", "new-activity")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Schedule activity</Button>
+            </PageHeaderActions>
+        }
+    </PageHeader>
+
+    <TabNav Label="Activities view" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+        <TabLink Href="activities" Label="Week" Icon="Lucide.CalendarDays" Current />
+        <TabLink Href="activities/tasks" Label="Tasks" Icon="Lucide.List" />
+    </TabNav>
+
+    <Card Title="@Period" TitleLevel="2" Grow>
+        <CardActions><Badge Accent="Accent.Primary">Your calendar</Badge></CardActions>
+        <CardBody Flush>
+            <Scheduler TItem="Activity" Items="Mine" Start="a => a.Start" End="a => a.Start.AddMinutes(a.Duration)" Title="a => a.Title" Detail="With"
+                       ItemHref="@(a => $"activities/{a.Id}")" View="SchedulerView.WorkWeek" Date="_today" Label="Your calendar" Grow />
+        </CardBody>
+    </Card>
+</Column>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    /// <summary>The Scheduler's view, which it keeps in the address: "week", "month", … (the work week when there's none).</summary>
+    [SupplyParameterFromQuery] private string? View { get; set; }
+
+    /// <summary>The day the Scheduler is on, which it keeps in the address: "2026-11-23" (today when there's none).</summary>
+    [SupplyParameterFromQuery] private string? Date { get; set; }
+
+    // Who may schedule: the EditRecords policy.
+    private bool _canEdit;
+    private string? _me;
+    private DateOnly _today;
+
+    // Everything assigned to you, done or not, with who it's with. The Scheduler adds the days to the query.
+    private IQueryable<Activity> Mine => Db.Activities.AsNoTracking()
+        .Include(a => a.Contact!.Company).Include(a => a.Deal!.Company)
+        .Where(a => a.AssignedToId == _me);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthState).User;
+        _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
+        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _today = Clock.Today(await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync());
+    }
+
+    // "Olivia Chen · Acme Co.", under an activity's title: the contact and their company, or the deal's company.
+    private static string? With(Activity activity) => string.Join(" · ", new[]
+    {
+        activity.Contact?.Name,
+        (activity.Contact?.Company ?? activity.Deal?.Company)?.Name,
+    }.Where(part => !string.IsNullOrEmpty(part))) is { Length: > 0 } with ? with : null;
+
+    // The card's title, for what the Scheduler shows: "This week", "Next week", "Week of Nov 30"; a day or a month
+    // in its own views.
+    private string Period
+    {
+        get
+        {
+            var day = DateOnly.TryParseExact(Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var asked) ? asked : _today;
+            switch (View)
+            {
+                case "day":
+                    return When.Day(day, _today);
+                case "month":
+                    return (day.Year, day.Month) == (_today.Year, _today.Month) ? "This month" : day.ToString("MMMM yyyy", CultureInfo.CurrentCulture);
+                case "agenda":
+                    return day == _today ? "Coming up" : $"From {When.Date(day, _today)}";
+                default:
+                    // The week's Monday: what the work week starts on, and a day in any culture's week.
+                    static DateOnly Monday(DateOnly d) => d.AddDays(-(((int)d.DayOfWeek + 6) % 7));
+                    return ((Monday(day).DayNumber - Monday(_today).DayNumber) / 7) switch
+                    {
+                        0 => "This week",
+                        1 => "Next week",
+                        -1 => "Last week",
+                        _ => $"Week of {When.Date(Monday(day), _today)}",
+                    };
+            }
+        }
+    }
+}
