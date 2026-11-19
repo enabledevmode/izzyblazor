@@ -46,7 +46,12 @@
                 </Row>
             </TemplateColumn>
             @* In the dialog only: the Company column shows the name. *@
-            <PropertyColumn Property="c => c.Name" Title="Company name" Visible="false" />
+            @* autocomplete: a company's name, so the browser doesn't offer the user's own contact details. *@
+            <PropertyColumn Property="c => c.Name" Title="Company name" Visible="false">
+                <EditTemplate Context="field">
+                    <TextField @bind-Value="field.Item.Name" autocomplete="organization" @attributes="field.Attributes" />
+                </EditTemplate>
+            </PropertyColumn>
             <PropertyColumn Property="c => c.Website" Visible="false">
                 <EditTemplate Context="field">
                     <TextField @bind-Value="field.Item.Website" Placeholder="https://" @attributes="field.Attributes" />
