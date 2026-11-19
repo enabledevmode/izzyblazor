@@ -185,12 +185,10 @@
         Navigation.NavigateTo(Href);
     }
 
-    // When a note was written, as the app writes it: "Nov 14 · 12:10 PM". Sharing a card, which is a side column's,
-    // the day alone, so the name, the day and the menu stay on one line.
+    // When a note was written, as the app writes it: "Nov 14 · 12:10 PM".
     private string Written(DateTime utc)
     {
         var at = When.Local(utc, Workspace);
-        var day = When.Date(DateOnly.FromDateTime(at), Today);
-        return Cards ? $"{day} · {When.Time(at)}" : day;
+        return $"{When.Date(DateOnly.FromDateTime(at), Today)} · {When.Time(at)}";
     }
 }

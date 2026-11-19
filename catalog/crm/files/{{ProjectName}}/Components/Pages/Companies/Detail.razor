@@ -9,10 +9,10 @@
 <PageTitle>@(_company?.Name ?? "Company")</PageTitle>
 
 @* A company: its people, its open deals, and what the team has done with them. Its sections are tabs with an
-   address each (/companies/3, /companies/3/deals, /activity), so each loads only its own data, can be linked to,
+   address each (/companies/3, /companies/3/deals, /activity, /notes), so each loads only its own data, can be linked to,
    and Back works. Above them: who looks after the account, what's open in the pipeline and what's next on the
    calendar. Beside every section: the company's details and background (Edit opens the Companies grid's dialog and
-   comes back here), and the team's notes about its people and deals. On a phone the header's buttons float in
+   comes back here). Notes are the team's own about its people and deals (Components/Notes/NoteList.razor). On a phone the header's buttons float in
    the corner. People who can't edit records (Viewers) read everything and see no buttons. *@
 @if (_company is { } company)
 {
@@ -45,6 +45,7 @@
             <TabLink Href="@($"companies/{Id}")" Label="People" Match="NavLinkMatch.All" />
             <TabLink Href="@($"companies/{Id}/deals")" Label="Deals" />
             <TabLink Href="@($"companies/{Id}/activity")" Label="Activity" />
+            <TabLink Href="@($"companies/{Id}/notes")" Label="Notes" />
         </TabNav>
 
         @* The section, and beside it from 1024px the details: under it on smaller screens. *@
@@ -108,6 +109,19 @@
                             </Timeline>
                         </Card>
                         break;
+
+                    @* A note is about a person or a deal, so a company's notes are those about its people and its deals:
+                       each says which. *@
+                    case "notes":
+                        @if (_notes.Count > 0)
+                        {
+                            <NoteList Notes="_notes" CanEdit="_canEdit" Href="@Here" Workspace="_workspace" Today="_today" Cards About />
+                        }
+                        else
+                        {
+                            <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about the people and deals at {company.Name} show here.")" /></Card>
+                        }
+                        break;
                 }
             </Column>
 
@@ -163,18 +177,6 @@
                         </CardBody>
                     </Card>
                 }
-
-                @* A note is about a person or a deal, so a company's notes are those about its people and its deals. *@
-                <Card Title="Related notes" TitleLevel="2">
-                    @if (_notes.Count > 0)
-                    {
-                        <NoteList Notes="_notes" CanEdit="_canEdit" Href="@Here" Workspace="_workspace" Today="_today" About />
-                    }
-                    else
-                    {
-                        <TextBlock Color="Color.Muted">Notes about the people and deals at @company.Name show here.</TextBlock>
-                    }
-                </Card>
             </Column>
         </Grid>
     </Column>
@@ -184,7 +186,7 @@
     /// <summary>The company.</summary>
     [Parameter] public int Id { get; set; }
 
-    /// <summary>The tab: none for People, or "deals", "activity".</summary>
+    /// <summary>The tab: none for People, or "deals", "activity", "notes".</summary>
     [Parameter] public string? Section { get; set; }
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
@@ -202,7 +204,7 @@
     private List<Note> _notes = [];
     private bool _canEdit;
 
-    // This tab's address: where Edit, a new contact and a note's dialogs come back to.
+    // This tab's address: where Edit and a note's dialogs come back to.
     private string Here => Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0];
 
     // Edit opens the Companies grid's dialog; Add contact the Contacts grid's, with this company chosen.
@@ -220,7 +222,7 @@
         _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, Policies.EditRecords)).Succeeded;
 
         _company = await Db.Companies.AsNoTracking().Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
-        if (_company is null || Section is not (null or "deals" or "activity"))
+        if (_company is null || Section is not (null or "deals" or "activity" or "notes"))
         {
             _company = null;
             Navigation.NotFound();
@@ -228,14 +230,11 @@
         }
 
         // On every tab: the open deals (the pipeline's figure, and the Deals tab), what's next on the calendar with
-        // anyone here or about any of its deals, and the notes about them.
+        // anyone here or about any of its deals.
         _open = await Db.Deals.AsNoTracking()
             .Where(d => d.CompanyId == Id && d.Stage != DealStage.Won && d.Stage != DealStage.Lost).OrderBy(d => d.ExpectedClose).ToListAsync();
         _next = await Theirs(Db.Activities.AsNoTracking())
             .Where(a => a.Completed == null && a.Start >= now).OrderBy(a => a.Start).FirstOrDefaultAsync();
-        _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal)
-            .Where(n => (n.Contact != null && n.Contact.CompanyId == Id) || (n.Deal != null && n.Deal.CompanyId == Id))
-            .OrderByDescending(n => n.Created).ToListAsync();
 
         switch (Section)
         {
@@ -245,6 +244,11 @@
                 break;
             case "activity":
                 await LoadHistoryAsync(_company);
+                break;
+            case "notes":
+                _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal)
+                    .Where(n => (n.Contact != null && n.Contact.CompanyId == Id) || (n.Deal != null && n.Deal.CompanyId == Id))
+                    .OrderByDescending(n => n.Created).ToListAsync();
                 break;
         }
     }
