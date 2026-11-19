@@ -1,0 +1,143 @@
+@page "/activities/tasks"
+@attribute [Authorize(Policy = Policies.ViewRecords)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject IAuthorizationService Authorization
+@inject NavigationManager Navigation
+
+<PageTitle>Tasks</PageTitle>
+
+@* Tasks: yours that are still open, by when they're due: overdue, today, then what's ahead. Ticking one marks it
+   done (Components/Activities/TaskCheck.razor) and it stays in sight, struck through, until you leave the page.
+   Completed tasks (?status=completed) lists the ones you've finished, the latest first, where clearing a box
+   reopens one. New task opens the activity form over the page, as a task
+   (Components/Activities/ActivityDialog.razor). The calendar is the same activities by week (Index.razor). *@
+<Column Gap="6">
+    @* In the column, so on a phone the trail has the page's gap above the title. *@
+    <PageCrumbs Trail>
+        <BreadcrumbItem Href="activities">Activities</BreadcrumbItem>
+        <BreadcrumbItem>Tasks</BreadcrumbItem>
+    </PageCrumbs>
+    <PageHeader Title="Tasks" Description="Your commitments, organized by due date.">
+        @* On a phone it floats in the corner. *@
+        @if (_canEdit)
+        {
+            <PageHeaderActions>
+                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ActivityDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New task</Button>
+            </PageHeaderActions>
+        }
+    </PageHeader>
+
+    @* The view strip: the switch, what the list covers, and the way to the other half at the end. *@
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <TabNav Label="Activities view" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+            <TabLink Href="activities" Label="Week" Icon="Lucide.CalendarDays" />
+            <TabLink Href="activities/tasks" Label="Tasks" Icon="Lucide.List" Current />
+        </TabNav>
+        <Tag>@(Completed ? "Assigned to me · Completed" : "Assigned to me · Open")</Tag>
+        <Spacer />
+        @if (Completed)
+        {
+            <Button Href="activities/tasks" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Open tasks</Button>
+        }
+        else
+        {
+            <Button Href="activities/tasks?status=completed" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Completed tasks</Button>
+        }
+    </Row>
+
+    <Column Gap="4">
+        @if (Completed)
+        {
+            <Card Title="Completed" TitleLevel="2">
+                @if (_tasks.Count > 0)
+                {
+                    <CardActions><Badge>@Count(_tasks.Count)</Badge></CardActions>
+                }
+                <CardBody Flush>
+                    @if (_tasks.Count > 0)
+                    {
+                        <TaskList Tasks="_tasks" Today="_today" Label="Completed" ShowDeal />
+                    }
+                    else
+                    {
+                        <EmptyState Icon="Lucide.ListChecks" Size="ControlSize.Sm" Title="Nothing completed yet" Description="Tasks you finish show here." />
+                    }
+                </CardBody>
+            </Card>
+        }
+        else if (_tasks.Count == 0)
+        {
+            <Card><EmptyState Icon="Lucide.CircleCheck" Size="ControlSize.Sm" Title="You’re all caught up" Description="You have no open tasks." /></Card>
+        }
+        else
+        {
+            @if (Group(t => Day(t) < _today) is { Count: > 0 } overdue)
+            {
+                <Card Title="Overdue" TitleLevel="2">
+                    <CardActions><Badge Status="Status.Warning">@Count(overdue.Count)</Badge></CardActions>
+                    <CardBody Flush><TaskList Tasks="overdue" Today="_today" Label="Overdue" ShowDeal Due="@(t => When.Date(Day(t), _today))" /></CardBody>
+                </Card>
+            }
+            @if (Group(t => Day(t) == _today) is { Count: > 0 } today)
+            {
+                <Card Title="Today" TitleLevel="2">
+                    <CardActions><Badge>@Count(today.Count)</Badge></CardActions>
+                    <CardBody Flush><TaskList Tasks="today" Today="_today" Label="Today" ShowDeal Due="@(t => When.Time(t.Start))" /></CardBody>
+                </Card>
+            }
+            @if (Group(t => Day(t) > _today) is { Count: > 0 } upcoming)
+            {
+                <Card Title="Upcoming" TitleLevel="2">
+                    <CardBody Flush><TaskList Tasks="upcoming" Today="_today" Label="Upcoming" ShowDeal Due="@(t => When.Day(Day(t), _today))" /></CardBody>
+                </Card>
+            }
+        }
+    </Column>
+</Column>
+
+<ActivityDialog CanEdit="_canEdit" Type="ActivityType.Task" />
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    /// <summary>"completed" lists the finished tasks in place of the open ones.</summary>
+    [SupplyParameterFromQuery(Name = "status")] private string? Which { get; set; }
+
+    /// <summary>The tasks just ticked here, which stay in the list: "4,7".</summary>
+    [SupplyParameterFromQuery] private string? Done { get; set; }
+
+    // Completed tasks show this many, the latest first.
+    private const int Shown = 50;
+
+    private bool Completed => Which == "completed";
+
+    // Who may add: the EditRecords policy.
+    private bool _canEdit;
+    private DateOnly _today;
+    private List<Activity> _tasks = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var user = (await AuthState).User;
+        _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
+        var me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _today = Clock.Today(await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync());
+
+        // Yours, with who each is with. A task just ticked or cleared here (?done=, from TaskCheck) stays where it was.
+        var ticked = TaskCheck.Ids(Done);
+        var mine = Db.Activities.AsNoTracking()
+            .Include(a => a.Contact!.Company).Include(a => a.Deal!.Company)
+            .Where(a => a.Type == ActivityType.Task && a.AssignedToId == me);
+        _tasks = Completed
+            ? await mine.Where(a => a.Completed != null).OrderByDescending(a => a.Completed).Take(Shown).ToListAsync()
+            : await mine.Where(a => a.Completed == null || ticked.Contains(a.Id)).OrderBy(a => a.Start).ToListAsync();
+    }
+
+    private static DateOnly Day(Activity task) => DateOnly.FromDateTime(task.Start);
+
+    private List<Activity> Group(Func<Activity, bool> due) => _tasks.Where(due).ToList();
+
+    // "1 task", "2 tasks".
+    private static string Count(int tasks) => tasks == 1 ? "1 task" : $"{tasks:N0} tasks";
+}

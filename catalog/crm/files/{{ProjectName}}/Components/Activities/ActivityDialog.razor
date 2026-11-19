@@ -11,6 +11,7 @@
    <ActivityDialog CanEdit="_canEdit" />                  the calendar or the task list: schedule
    <ActivityDialog CanEdit="_canEdit" Contact="Id" />     a contact: schedule, with them chosen
    <ActivityDialog CanEdit="_canEdit" Deal="Id" />        a deal: schedule, with it and its primary contact chosen
+   <ActivityDialog CanEdit="_canEdit" Type="ActivityType.Task" />   the task list: a new one starts as a task
    <ActivityDialog CanEdit="_canEdit" Activity="Id" />    an activity: edit
 
    It saves and comes back to the page, without the ?dialog. A meeting, a call or a task: a task's date and time
@@ -58,6 +59,9 @@
 
     /// <summary>The activity <c>?dialog=edit-activity</c> edits: the page's own.</summary>
     [Parameter] public int? Activity { get; set; }
+
+    /// <summary>What a new activity starts as: a meeting, unless the page is about another kind.</summary>
+    [Parameter] public ActivityType Type { get; set; } = ActivityType.Meeting;
 
     /// <summary>The person a new activity starts with: the page's own.</summary>
     [Parameter] public int? Contact { get; set; }
@@ -153,7 +157,7 @@
                 var with = Contact is { } person && _contacts.ContainsKey(person) ? Contact : about is { } chosen ? _deals[chosen].ContactId : null;
                 Input = new ActivityInput
                 {
-                    Type = ActivityType.Meeting, ContactId = with, DealId = about, Reminder = 30,
+                    Type = Type, ContactId = with, DealId = about, Reminder = 30,
                     Date = DateOnly.FromDateTime(next), StartTime = TimeOnly.FromDateTime(next),
                     AssignedToId = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
                 };
