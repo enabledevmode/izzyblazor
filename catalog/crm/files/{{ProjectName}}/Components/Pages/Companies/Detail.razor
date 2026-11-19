@@ -2,9 +2,11 @@
 @page "/companies/{Id:int}/{Section}"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
+@using System.ComponentModel.DataAnnotations
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 @inject IAuthorizationService Authorization
+@inject ToastService Toasts
 
 <PageTitle>@(_company?.Name ?? "Company")</PageTitle>
 
@@ -110,16 +112,24 @@
                         </Card>
                         break;
 
-                    @* A note is about a person or a deal, so a company's notes are those about its people and its deals:
-                       each says which. *@
+                    @* As a contact's Notes: a box to write one about the company, then the notes, newest first. The
+                       notes about its people and its deals are here too; each of those says who or which. *@
                     case "notes":
-                        @if (_notes.Count > 0)
+                        @if (_canEdit)
                         {
-                            <NoteList Notes="_notes" CanEdit="_canEdit" Href="@Here" Workspace="_workspace" Today="_today" Cards About />
+                            <Card>
+                                <Form Model="Draft" FormName="add-note" OnValidSubmit="AddNoteAsync" RequiredMark="RequiredMark.None">
+                                    <TextArea @bind-Value="Draft!.Body" Label="Note" Rows="3" AutoGrow Placeholder="Goals, decisions, and next steps…" />
+                                    <FormActions>
+                                        <Button Submit>Add note</Button>
+                                    </FormActions>
+                                </Form>
+                            </Card>
                         }
-                        else
+                        <NoteList Notes="_notes" CanEdit="_canEdit" Href="@Here" Workspace="_workspace" Today="_today" Cards About />
+                        @if (_notes.Count == 0 && !_canEdit)
                         {
-                            <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about the people and deals at {company.Name} show here.")" /></Card>
+                            <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about {company.Name}, its people and its deals show here.")" /></Card>
                         }
                         break;
                 }
@@ -189,6 +199,14 @@
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    // The note being written on the Notes tab.
+    [SupplyParameterFromForm(FormName = "add-note")] private NoteDraft? Draft { get; set; }
+
+    private sealed class NoteDraft
+    {
+        [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string? Body { get; set; }
+    }
+
     // Activity lists this many, the newest first.
     private const int Shown = 20;
 
@@ -201,6 +219,7 @@
     private List<Happened> _history = [];
     private List<Note> _notes = [];
     private bool _canEdit;
+    private string? _me;
 
     // This tab's address: where Edit and a note's dialogs come back to.
     private string Here => Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0];
@@ -217,7 +236,10 @@
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync() ?? new Workspace();
         var now = Clock.Now(_workspace);
         _today = DateOnly.FromDateTime(now);
-        _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, Policies.EditRecords)).Succeeded;
+        var user = (await AuthState).User;
+        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
+        Draft ??= new();
 
         _company = await Db.Companies.AsNoTracking().Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
         if (_company is null || Section is not (null or "deals" or "activity" or "notes"))
@@ -245,10 +267,21 @@
                 break;
             case "notes":
                 _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal)
-                    .Where(n => (n.Contact != null && n.Contact.CompanyId == Id) || (n.Deal != null && n.Deal.CompanyId == Id))
+                    .Where(n => n.CompanyId == Id || (n.Contact != null && n.Contact.CompanyId == Id) || (n.Deal != null && n.Deal.CompanyId == Id))
                     .OrderByDescending(n => n.Created).ToListAsync();
                 break;
         }
+    }
+
+    // A note written on the page: about the company, yours.
+    private async Task AddNoteAsync()
+    {
+        if (!_canEdit) return;
+        var now = DateTime.UtcNow;
+        Db.Notes.Add(new Note { CompanyId = Id, Body = Draft!.Body!.Trim(), AuthorId = _me, Created = now, Edited = now });
+        await Db.SaveChangesAsync();
+        Toasts.Success($"It’s on {_company!.Name}’s page for the whole team.", "Note added");
+        Navigation.NavigateTo($"companies/{Id}/notes");
     }
 
     // The activities with the company's people, or about its deals.

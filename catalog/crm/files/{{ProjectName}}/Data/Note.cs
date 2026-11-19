@@ -3,7 +3,10 @@ using {{RootNamespace}}.Auditing;
 
 namespace {{RootNamespace}}.Data;
 
-/// <summary>A note the whole team can find, linked to a contact, a deal or both. It has no title: it is its text, which is Markdown.</summary>
+/// <summary>
+/// A note the whole team can find, about a contact, a deal (or both) or a company, written on that record's page.
+/// It has no title: it is its text, which is Markdown.
+/// </summary>
 public class Note : IAudited
 {
     public int Id { get; set; }
@@ -13,6 +16,10 @@ public class Note : IAudited
 
     public int? DealId { get; set; }
     public Deal? Deal { get; set; }
+
+    /// <summary>The company it's about, for a note written on a company's page. A company's page also shows the notes about its people and deals.</summary>
+    public int? CompanyId { get; set; }
+    public Company? Company { get; set; }
 
     [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string Body { get; set; } = "";
 
