@@ -92,6 +92,15 @@ app.MapGet("/company-logos/{id:int}", async (int id, ApplicationDbContext db, Ht
     return Results.File(logo.Data, logo.ContentType);
 }).RequireAuthorization(Policies.ViewRecords);
 
+// A file attached to a deal, from the database, for people who may see records: always a download, whatever
+// it is, so nothing uploaded opens as a page of this site.
+app.MapGet("/deal-attachments/{id:int}", async (int id, ApplicationDbContext db, HttpContext http) =>
+{
+    if (await db.DealAttachments.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id) is not { } file) return Results.NotFound();
+    http.Response.Headers.XContentTypeOptions = "nosniff";
+    return Results.File(file.Data, file.ContentType, file.FileName);
+}).RequireAuthorization(Policies.ViewRecords);
+
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 

@@ -403,6 +403,47 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.ToTable("Deals");
                 });
 
+            modelBuilder.Entity("{{RootNamespace}}.Data.DealAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Added")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AddedById")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<int>("DealId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddedById");
+
+                    b.HasIndex("DealId");
+
+                    b.ToTable("DealAttachments");
+                });
+
             modelBuilder.Entity("{{RootNamespace}}.Data.Note", b =>
                 {
                     b.Property<int>("Id")
@@ -739,6 +780,24 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Navigation("Contact");
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("{{RootNamespace}}.Data.DealAttachment", b =>
+                {
+                    b.HasOne("{{RootNamespace}}.Data.ApplicationUser", "AddedBy")
+                        .WithMany()
+                        .HasForeignKey("AddedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("{{RootNamespace}}.Data.Deal", "Deal")
+                        .WithMany()
+                        .HasForeignKey("DealId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AddedBy");
+
+                    b.Navigation("Deal");
                 });
 
             modelBuilder.Entity("{{RootNamespace}}.Data.Note", b =>

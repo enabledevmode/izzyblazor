@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<CompanyLogo> CompanyLogos => Set<CompanyLogo>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<Deal> Deals => Set<Deal>();
+    public DbSet<DealAttachment> DealAttachments => Set<DealAttachment>();
     public DbSet<Activity> Activities => Set<Activity>();
     public DbSet<Note> Notes => Set<Note>();
 
@@ -39,6 +40,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Deal>().HasOne(d => d.Contact).WithMany().HasForeignKey(d => d.ContactId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Deal>().HasOne(d => d.Owner).WithMany().HasForeignKey(d => d.OwnerId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Deal>().HasIndex(d => d.Stage);
+        // A deal's files go with it.
+        builder.Entity<DealAttachment>().HasOne(f => f.Deal).WithMany().HasForeignKey(f => f.DealId).OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<DealAttachment>().HasOne(f => f.AddedBy).WithMany().HasForeignKey(f => f.AddedById).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Activity>().HasOne(a => a.Contact).WithMany().HasForeignKey(a => a.ContactId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Activity>().HasOne(a => a.Deal).WithMany().HasForeignKey(a => a.DealId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Activity>().HasOne(a => a.AssignedTo).WithMany().HasForeignKey(a => a.AssignedToId).OnDelete(DeleteBehavior.SetNull);

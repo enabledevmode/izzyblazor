@@ -407,6 +407,37 @@ namespace {{RootNamespace}}.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DealAttachments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    DealId = table.Column<int>(type: "INTEGER", nullable: false),
+                    FileName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    ContentType = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Size = table.Column<long>(type: "INTEGER", nullable: false),
+                    Data = table.Column<byte[]>(type: "BLOB", nullable: false),
+                    Added = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    AddedById = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DealAttachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DealAttachments_AspNetUsers_AddedById",
+                        column: x => x.AddedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_DealAttachments_Deals_DealId",
+                        column: x => x.DealId,
+                        principalTable: "Deals",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Notes",
                 columns: table => new
                 {
@@ -553,6 +584,16 @@ namespace {{RootNamespace}}.Data.Migrations
                 column: "OwnerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DealAttachments_AddedById",
+                table: "DealAttachments",
+                column: "AddedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DealAttachments_DealId",
+                table: "DealAttachments",
+                column: "DealId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Deals_CompanyId",
                 table: "Deals",
                 column: "CompanyId");
@@ -625,6 +666,9 @@ namespace {{RootNamespace}}.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "DataProtectionKeys");
+
+            migrationBuilder.DropTable(
+                name: "DealAttachments");
 
             migrationBuilder.DropTable(
                 name: "Notes");
