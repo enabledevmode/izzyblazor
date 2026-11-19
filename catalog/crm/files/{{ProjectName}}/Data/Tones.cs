@@ -13,6 +13,14 @@ public static class Tones
         _ => Status.Neutral,
     };
 
+    /// <summary>A company's status: a customer in green, a prospect in blue, an inactive one plain.</summary>
+    public static Status Of(CompanyStatus status) => status switch
+    {
+        CompanyStatus.Customer => Status.Success,
+        CompanyStatus.Prospect => Status.Info,
+        _ => Status.Neutral,
+    };
+
     /// <summary>A deal's stage: a proposal out in blue, won in green, lost in red, the rest plain.</summary>
     public static Status Of(DealStage stage) => stage switch
     {

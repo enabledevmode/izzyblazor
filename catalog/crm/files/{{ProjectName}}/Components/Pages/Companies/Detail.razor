@@ -1,0 +1,318 @@
+@page "/companies/{Id:int}"
+@page "/companies/{Id:int}/{Section}"
+@attribute [Authorize(Policy = Policies.ViewRecords)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+@inject IAuthorizationService Authorization
+
+<PageTitle>@(_company?.Name ?? "Company")</PageTitle>
+
+@* A company: its people, its open deals, and what the team has done with them. Its sections are tabs with an
+   address each (/companies/3, /companies/3/deals, /activity), so each loads only its own data, can be linked to,
+   and Back works. Above them: who looks after the account, what's open in the pipeline and what's next on the
+   calendar. Beside every section: the company's details and background (Edit opens the Companies grid's dialog and
+   comes back here), and the team's notes about its people and deals. On a phone the header's buttons float in
+   the corner. People who can't edit records (Viewers) read everything and see no buttons. *@
+@if (_company is { } company)
+{
+    <Column Gap="6">
+        @* In the column, so on a phone the trail has the page's gap above the title. *@
+        <PageCrumbs Trail>
+            <BreadcrumbItem Href="companies">Companies</BreadcrumbItem>
+            <BreadcrumbItem>@company.Name</BreadcrumbItem>
+        </PageCrumbs>
+        <PageHeader Title="@company.Name" Description="@About("Company workspace", company.Industry is { } field ? Names.Of(field) : null)">
+            <PageHeaderMedia><Avatar Src="@company.LogoSrc" Icon="Lucide.BuildingComplex" Size="AvatarSize.Lg" Accent="Accent.Neutral" Square Decorative /></PageHeaderMedia>
+            @if (_canEdit)
+            {
+                <PageHeaderActions FloatLabel="Company actions">
+                    <Button Href="@AddContactHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.UserPlus" FloatBelow="Breakpoint.Sm">Add contact</Button>
+                    <Button Href="@($"deals/new?company={Id}")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
+                </PageHeaderActions>
+            }
+        </PageHeader>
+
+        <Card>
+            <DescriptionList Orientation="Orientation.Vertical" Columns="3">
+                <DescriptionItem Term="Relationship owner">@(company.Owner?.Name ?? "No one yet")</DescriptionItem>
+                <DescriptionItem Term="Open pipeline">@(_open.Count == 0 ? "No open deals" : $"{_workspace!.Money(_open.Sum(d => d.Value))} · {_open.Count:N0} {(_open.Count == 1 ? "deal" : "deals")}")</DescriptionItem>
+                <DescriptionItem Term="Next follow-up">@(_next is { } next ? $"{When.Day(DateOnly.FromDateTime(next.Start), _today)} · {next.Title}" : "Nothing scheduled")</DescriptionItem>
+            </DescriptionList>
+        </Card>
+
+        <TabNav Label="Company sections">
+            <TabLink Href="@($"companies/{Id}")" Label="People" Match="NavLinkMatch.All" />
+            <TabLink Href="@($"companies/{Id}/deals")" Label="Deals" />
+            <TabLink Href="@($"companies/{Id}/activity")" Label="Activity" />
+        </TabNav>
+
+        @* The section, and beside it from 1024px the details: under it on smaller screens. *@
+        <Grid Template="@(new() { Base = "minmax(0, 1fr)", Lg = "minmax(0, 1fr) 20rem" })" Gap="4" Align="Align.Start">
+            <Column Gap="4">
+                @switch (Section)
+                {
+                    case null:
+                        <Card Title="@($"People at {company.Name}")" TitleLevel="2">
+                            @if (_canEdit)
+                            {
+                                <CardActions><TextBlock As="span" Size="TextSize.Sm"><Anchor Href="@AddContactHref">Add contact</Anchor></TextBlock></CardActions>
+                            }
+                            <CardBody Flush>
+                                @if (_people.Count > 0)
+                                {
+                                    <ListView Items="_people" ItemKey="p => p.Id.ToString()" Label="@($"People at {company.Name}")"
+                                              ItemText="p => p.Name" ItemHref="@(p => $"contacts/{p.Id}")" ItemDescription="p => About(p.JobTitle, p.Email)" Context="person">
+                                        <ItemMedia><Avatar Name="@person.Name" Decorative /></ItemMedia>
+                                    </ListView>
+                                }
+                                else
+                                {
+                                    <EmptyState Icon="Lucide.Users" Size="ControlSize.Sm" Title="No people yet" Description="@($"The people you work with at {company.Name} show here.")" />
+                                }
+                            </CardBody>
+                        </Card>
+                        break;
+
+                    case "deals":
+                        <Card Title="Open opportunities" TitleLevel="2">
+                            <CardBody Flush>
+                                @if (_open.Count > 0)
+                                {
+                                    <ListView Items="_open" ItemKey="d => d.Id.ToString()" Label="Open opportunities"
+                                              ItemText="d => d.Name" ItemHref="@(d => $"deals/{d.Id}")"
+                                              ItemDescription="@(d => $"{d.Stage} · Close {When.Date(d.ExpectedClose, _today)}")" Context="deal">
+                                        <ItemActions><TextBlock As="span" Weight="FontWeight.Semibold" TabularNums>@_workspace!.Money(deal.Value)</TextBlock></ItemActions>
+                                    </ListView>
+                                }
+                                else
+                                {
+                                    <EmptyState Icon="Lucide.Handshake" Size="ControlSize.Sm" Title="No open deals" Description="@($"Deals with {company.Name} show here.")" />
+                                }
+                            </CardBody>
+                        </Card>
+                        break;
+
+                    case "activity":
+                        <Card Title="Recent activity" TitleLevel="2">
+                            <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
+                                @foreach (var item in _history)
+                                {
+                                    <TimelineItem Title="@item.Title" Time="@item.Time" DateTime="@item.When.ToString("yyyy-MM-ddTHH:mm")">
+                                        @if (!string.IsNullOrWhiteSpace(item.About))
+                                        {
+                                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@item.About</TextBlock>
+                                        }
+                                    </TimelineItem>
+                                }
+                            </Timeline>
+                        </Card>
+                        break;
+                }
+            </Column>
+
+            <Column Gap="4">
+                <Card Title="Company details" TitleLevel="2">
+                    @if (_canEdit)
+                    {
+                        <CardActions>
+                            <Button Href="@EditHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil">Edit</Button>
+                        </CardActions>
+                    }
+                    <DescriptionList Orientation="Orientation.Vertical">
+                        @if (Site(company.Website) is var (address, shown))
+                        {
+                            <DescriptionItem Term="Website"><Anchor Href="@address">@shown</Anchor></DescriptionItem>
+                        }
+                        @if (company.Industry is { } industry)
+                        {
+                            <DescriptionItem Term="Industry">@Names.Of(industry)</DescriptionItem>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(company.City))
+                        {
+                            <DescriptionItem Term="Location">@company.City</DescriptionItem>
+                        }
+                        @if (company.Size is { } size)
+                        {
+                            <DescriptionItem Term="Company size">@Names.Of(size)</DescriptionItem>
+                        }
+                        @if (company.Owner is { } owner)
+                        {
+                            <DescriptionItem Term="Account owner">@owner.Name</DescriptionItem>
+                        }
+                        <DescriptionItem Term="Status"><Badge Status="Tones.Of(company.Status)">@company.Status</Badge></DescriptionItem>
+                        <DescriptionItem Term="Added">@company.Added.ToString(_workspace!.DateFormat)</DescriptionItem>
+                    </DescriptionList>
+                </Card>
+
+                @* What's worth knowing about the account: the company's own Background field, edited with the rest. *@
+                @if (Paragraphs(company.Notes) is { Length: > 0 } background)
+                {
+                    <Card Title="Background" TitleLevel="2">
+                        @if (_canEdit)
+                        {
+                            <CardActions>
+                                <Button Href="@EditHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil" aria-label="Edit background">Edit</Button>
+                            </CardActions>
+                        }
+                        <CardBody Gap="3">
+                            @foreach (var paragraph in background)
+                            {
+                                <TextBlock Color="Color.Muted">@paragraph</TextBlock>
+                            }
+                        </CardBody>
+                    </Card>
+                }
+
+                @* A note is about a person or a deal, so a company's notes are those about its people and its deals. *@
+                <Card Title="Related notes" TitleLevel="2">
+                    @if (_notes.Count > 0)
+                    {
+                        <NoteList Notes="_notes" CanEdit="_canEdit" Href="@Here" Workspace="_workspace" Today="_today" About />
+                    }
+                    else
+                    {
+                        <TextBlock Color="Color.Muted">Notes about the people and deals at @company.Name show here.</TextBlock>
+                    }
+                </Card>
+            </Column>
+        </Grid>
+    </Column>
+}
+
+@code {
+    /// <summary>The company.</summary>
+    [Parameter] public int Id { get; set; }
+
+    /// <summary>The tab: none for People, or "deals", "activity".</summary>
+    [Parameter] public string? Section { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    // Activity lists this many, the newest first.
+    private const int Shown = 20;
+
+    private Workspace? _workspace;
+    private DateOnly _today;
+    private Company? _company;
+    private Activity? _next;
+    private List<Deal> _open = [];
+    private List<Contact> _people = [];
+    private List<Happened> _history = [];
+    private List<Note> _notes = [];
+    private bool _canEdit;
+
+    // This tab's address: where Edit, a new contact and a note's dialogs come back to.
+    private string Here => Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0];
+
+    // Edit opens the Companies grid's dialog; Add contact the Contacts grid's, with this company chosen.
+    private string EditHref => $"companies?edit={Id}&return=/{Here}";
+    private string AddContactHref => $"contacts?add=1&company={Id}&return=/companies/{Id}";
+
+    // Something in the company's history: what, more about it, "who · when" as written, and when (the workspace's time).
+    private sealed record Happened(string Title, string? About, string Time, DateTime When);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync() ?? new Workspace();
+        var now = Clock.Now(_workspace);
+        _today = DateOnly.FromDateTime(now);
+        _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, Policies.EditRecords)).Succeeded;
+
+        _company = await Db.Companies.AsNoTracking().Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
+        if (_company is null || Section is not (null or "deals" or "activity"))
+        {
+            _company = null;
+            Navigation.NotFound();
+            return;
+        }
+
+        // On every tab: the open deals (the pipeline's figure, and the Deals tab), what's next on the calendar with
+        // anyone here or about any of its deals, and the notes about them.
+        _open = await Db.Deals.AsNoTracking()
+            .Where(d => d.CompanyId == Id && d.Stage != DealStage.Won && d.Stage != DealStage.Lost).OrderBy(d => d.ExpectedClose).ToListAsync();
+        _next = await Theirs(Db.Activities.AsNoTracking())
+            .Where(a => a.Completed == null && a.Start >= now).OrderBy(a => a.Start).FirstOrDefaultAsync();
+        _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal)
+            .Where(n => (n.Contact != null && n.Contact.CompanyId == Id) || (n.Deal != null && n.Deal.CompanyId == Id))
+            .OrderByDescending(n => n.Created).ToListAsync();
+
+        switch (Section)
+        {
+            case null:
+                // As the Contacts page lists them: whoever the team was last in touch with first.
+                _people = await Db.Contacts.AsNoTracking().Where(c => c.CompanyId == Id).OrderByDescending(c => c.LastActivity).ToListAsync();
+                break;
+            case "activity":
+                await LoadHistoryAsync(_company);
+                break;
+        }
+    }
+
+    // The activities with the company's people, or about its deals.
+    private IQueryable<Activity> Theirs(IQueryable<Activity> activities) =>
+        activities.Where(a => (a.Contact != null && a.Contact.CompanyId == Id) || (a.Deal != null && a.Deal.CompanyId == Id));
+
+    // The timeline, newest first: what's been finished, the calls and meetings put on the calendar, the deals moved
+    // to another stage, then the day the company was added. Who scheduled, moved or added comes from the audit log.
+    private async Task LoadHistoryAsync(Company company)
+    {
+        var done = await Theirs(Db.Activities.AsNoTracking()).Include(a => a.AssignedTo)
+            .Where(a => a.Completed != null).OrderByDescending(a => a.Completed).Take(Shown).ToListAsync();
+        _history = done.Select(a =>
+        {
+            var at = When.Local(a.Completed!.Value, _workspace);
+            return new Happened(a.Type == ActivityType.Task ? a.Title : $"{a.Title} completed", a.Agenda, About(a.AssignedTo?.Name, When.Happened(at, _today)), at);
+        }).ToList();
+
+        var ahead = await Theirs(Db.Activities.AsNoTracking()).Include(a => a.Contact)
+            .Where(a => a.Completed == null && a.Type != ActivityType.Task).ToDictionaryAsync(a => a.Id.ToString());
+        var scheduled = await Db.AuditEvents.AsNoTracking()
+            .Where(e => e.Action == AuditActions.Created && e.EntityType == nameof(Activity) && ahead.Keys.Contains(e.EntityId!))
+            .OrderByDescending(e => e.Time).Take(Shown).ToListAsync();
+        _history.AddRange(scheduled.Select(e =>
+        {
+            var (a, at) = (ahead[e.EntityId!], When.Local(e.Time, _workspace));
+            return new Happened($"{a.Title} scheduled",
+                About(When.Day(DateOnly.FromDateTime(a.Start), _today), When.Hours(a.Start, a.End), a.Contact?.Name),
+                About(e.ActorName, When.Happened(at, _today)), at);
+        }));
+
+        var deals = (await Db.Deals.AsNoTracking().Where(d => d.CompanyId == Id).Select(d => d.Id).ToListAsync()).Select(id => id.ToString()).ToList();
+        var moved = await Db.AuditEvents.AsNoTracking()
+            .Where(e => e.Action == AuditActions.StageChanged && e.EntityType == nameof(Deal) && deals.Contains(e.EntityId!))
+            .OrderByDescending(e => e.Time).Take(Shown).ToListAsync();
+        _history.AddRange(moved.Select(e =>
+        {
+            var at = When.Local(e.Time, _workspace);
+            return new Happened($"Deal moved to {e.ReadChanges().FirstOrDefault(c => c.Field == "Stage")?.After?.ToLowerInvariant()}",
+                e.EntityName, About(e.ActorName, When.Happened(at, _today)), at);
+        }));
+        _history = _history.OrderByDescending(h => h.When).Take(Shown).ToList();
+
+        // Who added it, from the audit log; the day is the company's own.
+        if (_history.Count < Shown)
+        {
+            var id = Id.ToString();
+            var added = await Db.AuditEvents.AsNoTracking()
+                .Where(e => e.Action == AuditActions.Created && e.EntityType == nameof(Company) && e.EntityId == id).OrderBy(e => e.Time).FirstOrDefaultAsync();
+            _history.Add(new Happened("Company added", null, About(added?.ActorName, When.Day(company.Added, _today)), company.Added.ToDateTime(TimeOnly.MinValue)));
+        }
+    }
+
+    // A website as a link and as it reads: "acme.example" and "https://acme.example/" both go to https://acme.example
+    // and show "acme.example". Whatever was typed, the link is a web address. Null without one.
+    private static (string Href, string Shown)? Site(string? website)
+    {
+        var typed = website?.Trim();
+        if (string.IsNullOrEmpty(typed)) return null;
+        var web = typed.StartsWith("https://", StringComparison.OrdinalIgnoreCase) || typed.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+        var shown = (web ? typed[(typed.IndexOf("://", StringComparison.Ordinal) + 3)..] : typed).TrimEnd('/');
+        return (web ? typed : $"https://{typed}", shown.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? shown[4..] : shown);
+    }
+
+    private static string[] Paragraphs(string? text) =>
+        (text ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static string About(params string?[] parts) => string.Join(" · ", parts.Where(p => !string.IsNullOrEmpty(p)));
+}
