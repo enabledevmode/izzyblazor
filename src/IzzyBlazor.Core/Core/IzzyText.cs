@@ -867,6 +867,12 @@ public class IzzyText
     /// <summary>The button after a tree list's first children of a row, when it has more.</summary>
     public virtual string TreeShowMore { get; set; } = "Show more";
 
+    /// <summary>A ShowMore's button while its content is cut to its first lines.</summary>
+    public virtual string ShowMore { get; set; } = "Show more";
+
+    /// <summary>A ShowMore's button once all of its content shows.</summary>
+    public virtual string ShowLess { get; set; } = "Show less";
+
     /// <summary>The name of a DataGrid's column of detail buttons, when it has no button of its own.</summary>
     public virtual string DetailColumn { get; set; } = "Details";
 

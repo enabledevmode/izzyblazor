@@ -43,6 +43,12 @@ public abstract class TextBase : Box
     /// <summary>How lines break: normal, never, balanced or pretty.</summary>
     [Parameter] public TextWrap? Wrap { get; set; }
 
+    /// <summary>
+    /// Keeps the line breaks in the text, for text someone typed into a multi-line field: each new line starts a
+    /// line, and a blank line leaves one empty.
+    /// </summary>
+    [Parameter] public bool KeepLines { get; set; }
+
     /// <summary>Keep to one line and end with an ellipsis when it does not fit.</summary>
     [Parameter] public bool Truncate { get; set; }
 
@@ -89,6 +95,7 @@ public abstract class TextBase : Box
         if (Wrap is { } wrap) classes.Add($"ib-tw-{Kebab(wrap)}");
         classes.Add("ib-italic", Italic);
         classes.Add("ib-truncate", Truncate);
+        classes.Add("ib-keep-lines", KeepLines);
         classes.Add("ib-tabular", TabularNums);
 
         if (LineClamp is { } lines)

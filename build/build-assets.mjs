@@ -293,6 +293,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "tile-layout.css"),
   },
   {
+    // A sheet of its own, linked by ShowMore.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "show-more.css")],
+    outfile: join(lib, "wwwroot", "show-more.css"),
+  },
+  {
     // A sheet of its own, linked by Comment.
     ...common,
     sourcemap: false,

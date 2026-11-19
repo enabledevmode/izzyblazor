@@ -115,6 +115,8 @@
   .ib-italic { font-style: italic; }
   .ib-tabular { font-variant-numeric: tabular-nums; }
 
+  .ib-keep-lines { white-space: pre-line; }
+
   .ib-truncate {
     overflow: hidden;
     text-overflow: ellipsis;
