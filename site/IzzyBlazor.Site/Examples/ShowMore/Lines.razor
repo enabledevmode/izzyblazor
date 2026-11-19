@@ -1,0 +1,10 @@
+@* Notes a rep typed about a contact, line breaks and all: two lines, then the rest. *@
+<Card Title="Notes" TitleLevel="3" MaxWidth="22.Rem">
+    <ShowMore Lines="2">
+        <TextBlock Color="Color.Muted" KeepLines>@_notes</TextBlock>
+    </ShowMore>
+</Card>
+
+@code {
+    private readonly string _notes = "Prefers email for proposals.\nA short call works for scope changes.\n\nConfirm the final decision-maker before closing.";
+}

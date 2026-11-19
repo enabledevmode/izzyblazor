@@ -466,6 +466,18 @@
     },
 
     {
+      "id": "show-more", "icon": "UnfoldVertical", "name": "ShowMore", "category": "Typography", "summary": "Shows the first lines of long text, with a Show more button for the rest.", "keywords": ["read more", "truncate", "clamp", "expand", "spoiler"],
+      "features": [
+        { "feature": "The whole text, readable", "noscript": "full" },
+        { "feature": "The cut to the first lines, and the Show more button", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "show-more-usage", "title": "Long text in a card", "lead": "Wrap long text in a `ShowMore` to show its first four lines. The Show more button appears only when there is more than fits, and reads Show less once the text is open." },
+        { "id": "show-more-lines", "title": "Lines and typed line breaks", "lead": "`Lines` sets how many lines show. For text someone typed into a multi-line field, set `KeepLines` on the `TextBlock` so each line break starts a line; a blank line counts as one." }
+      ]
+    },
+
+    {
       "id": "highlight", "icon": "Highlighter", "name": "Highlight", "category": "Typography", "summary": "Marks the words of a search in a text.", "keywords": ["mark", "search results"],
       "examples": [
         { "id": "highlight-usage", "title": "Search results", "lead": "A highlight marks the words of a search in a text, such as a search result. Set `Text` to the text and `Query` to the search. Each word of the search is marked where a word of the text starts, inside PascalCase names too." },
@@ -3456,15 +3468,14 @@
     },
 
     {
-      "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Navigation", "summary": "Hides a section behind a label that opens it, or long text after its first lines.", "keywords": ["details", "disclosure", "read more", "truncate", "clamp"], "parts": ["ShowMore"],
+      "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Navigation", "summary": "Hides a section behind a label that opens it.", "keywords": ["details", "disclosure"],
       "features": [
         { "feature": "Opens and closes" },
         { "feature": "Open bound to C#", "member": "Open" }
       ],
       "examples": [
         { "id": "collapsible-usage", "title": "A section behind a label", "lead": "A collapsible hides advanced options or details most users can skip. `Label` sets the text beside the chevron." },
-        { "id": "collapsible-custom-trigger", "title": "Custom trigger", "lead": "To replace the label and chevron with inline content of your own, set `Trigger`." },
-        { "id": "collapsible-show-more", "title": "Show more", "lead": "`ShowMore` cuts long text to its first `Lines` and puts a Show more button under them. The button shows only when there is more than fits.", "notes": {"noscript": "Everything shows, with no button."} }
+        { "id": "collapsible-custom-trigger", "title": "Custom trigger", "lead": "To replace the label and chevron with inline content of your own, set `Trigger`." }
       ]
     }
   ]
