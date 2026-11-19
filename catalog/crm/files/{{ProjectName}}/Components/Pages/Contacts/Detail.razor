@@ -153,7 +153,7 @@
                 </Card>
 
                 @* What's worth knowing about them: the contact's own Background field, edited with the rest. *@
-                @if (Paragraphs(contact.Notes) is { Length: > 0 } background)
+                @if (contact.Notes?.Trim() is { Length: > 0 } background)
                 {
                     <Card Title="Background" TitleLevel="2">
                         @if (_canEdit)
@@ -162,12 +162,10 @@
                                 <Button Href="@EditHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil" aria-label="Edit background">Edit</Button>
                             </CardActions>
                         }
-                        <CardBody Gap="3">
-                            @foreach (var paragraph in background)
-                            {
-                                <TextBlock Color="Color.Muted">@paragraph</TextBlock>
-                            }
-                        </CardBody>
+                        @* Four lines, the rest behind Show more: a long one doesn't push the page down. *@
+                        <ShowMore Lines="4">
+                            <TextBlock Color="Color.Muted" KeepLines>@background</TextBlock>
+                        </ShowMore>
                     </Card>
                 }
             </Column>
@@ -328,9 +326,6 @@
     private static string Summary(Contact contact) => string.IsNullOrWhiteSpace(contact.JobTitle)
         ? About(contact.Company?.Name, contact.Status.ToString())
         : About(contact.JobTitle, contact.Company?.Name);
-
-    private static string[] Paragraphs(string? text) =>
-        (text ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private static string About(params string?[] parts) => string.Join(" · ", parts.Where(p => !string.IsNullOrEmpty(p)));
 }
