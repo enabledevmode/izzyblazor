@@ -36,7 +36,7 @@
                 @if (_canEdit)
                 {
                     <Button Href="@($"activities/new?contact={Id}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.CalendarPlus" FloatBelow="Breakpoint.Sm">Log activity</Button>
-                    <Button Href="@($"deals/new?contact={Id}")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
+                    <Button Href="@NewDealHref" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
                 }
             </PageHeaderActions>
         </PageHeader>
@@ -173,6 +173,7 @@
     </Column>
 
     <ContactDialog CanEdit="_canEdit" Contact="Id" />
+    <DealDialog CanEdit="_canEdit" Contact="Id" />
 }
 
 @code {
@@ -208,6 +209,9 @@
 
     // Edit opens the contact form over this tab.
     private string EditHref => $"{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}?dialog={ContactDialog.EditId}";
+
+    // New deal opens the deal form over this tab, with the contact and their company chosen.
+    private string NewDealHref => $"{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}?dialog={DealDialog.NewId}";
 
     // What's next on the calendar with them: beside the sections on a wide screen, above them on a small one.
     private RenderFragment NextFollowUp => __builder =>

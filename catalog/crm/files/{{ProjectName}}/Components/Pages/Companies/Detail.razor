@@ -30,7 +30,7 @@
             {
                 <PageHeaderActions FloatLabel="Company actions">
                     <Button Href="@AddContactHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.UserPlus" FloatBelow="Breakpoint.Sm">Add contact</Button>
-                    <Button Href="@($"deals/new?company={Id}")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
+                    <Button Href="@NewDealHref" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
                 </PageHeaderActions>
             }
         </PageHeader>
@@ -191,6 +191,7 @@
 
     <CompanyDialog CanEdit="_canEdit" Company="Id" />
     <ContactDialog CanEdit="_canEdit" Company="Id" />
+    <DealDialog CanEdit="_canEdit" Company="Id" />
 }
 
 @code {
@@ -230,6 +231,7 @@
     // Both open over this tab: the company form, and the contact form with this company chosen.
     private string EditHref => $"{Here}?dialog={CompanyDialog.EditId}";
     private string AddContactHref => $"{Here}?dialog={ContactDialog.NewId}";
+    private string NewDealHref => $"{Here}?dialog={DealDialog.NewId}";
 
     // Something in the company's history: what, more about it, "who · when" as written, and when (the workspace's time).
     private sealed record Happened(string Title, string? About, string Time, DateTime When);

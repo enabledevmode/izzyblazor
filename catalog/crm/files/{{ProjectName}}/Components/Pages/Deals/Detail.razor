@@ -222,6 +222,8 @@
             <AntiforgeryToken />
         </form>
     }
+
+    <DealDialog CanEdit="_canEdit" Deal="Id" />
 }
 
 @code {
@@ -263,7 +265,7 @@
     private string Here => Section is null ? $"deals/{Id}" : $"deals/{Id}/{Section}";
 
     // Edit opens the deal form over this tab.
-    private string EditHref => $"{Here}?dialog=edit-deal";
+    private string EditHref => $"{Here}?dialog={DealDialog.EditId}";
 
     // Something in the deal's history: what, more about it, "who · when" as written, and when (the workspace's time).
     private sealed record Happened(string Title, string? About, string Time, DateTime When);

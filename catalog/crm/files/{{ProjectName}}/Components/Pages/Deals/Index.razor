@@ -9,7 +9,8 @@
 
 @* Deal pipeline: every deal still open (not won, not lost), the one due to close soonest first. The grid searches,
    filters by stage, sorts and pages in the database. The Board view isn't built yet, so its switch is there but
-   off. People who can't edit records (Viewers) see the list alone. *@
+   off. New deal opens the deal form over the list (Components/Deals/DealDialog.razor, ?dialog=new-deal). People
+   who can't edit records (Viewers) see the list alone. *@
 <PageCrumbs><BreadcrumbItem>Deal pipeline</BreadcrumbItem></PageCrumbs>
 
 @* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
@@ -19,7 +20,7 @@
         @if (_canEdit)
         {
             <PageHeaderActions>
-                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", "new-deal")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
+                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", DealDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
             </PageHeaderActions>
         }
     </PageHeader>
@@ -73,6 +74,8 @@
         </Columns>
     </DataGrid>
 </Column>
+
+<DealDialog CanEdit="_canEdit" />
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
