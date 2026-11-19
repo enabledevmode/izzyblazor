@@ -48,12 +48,23 @@
                     </Stack>
                 </Row>
             </TemplateColumn>
-            @* In the dialog only: the Name column shows them. *@
-            <PropertyColumn Property="c => c.FirstName" Title="First name" Visible="false" />
-            <PropertyColumn Property="c => c.LastName" Title="Last name" Visible="false" />
-            <PropertyColumn Property="c => c.Email" Title="Email address" Visible="false" />
-            <PropertyColumn Property="c => c.Phone" Title="Phone number" Visible="false" />
-            <PropertyColumn Property="c => c.JobTitle" Title="Job title" Visible="false" />
+            @* In the dialog only: the Name column shows them. They're about someone else, so the browser is told not to
+               offer the user's own name, email and phone (autocomplete off). *@
+            <PropertyColumn Property="c => c.FirstName" Title="First name" Visible="false">
+                <EditTemplate Context="field"><TextField @bind-Value="field.Item.FirstName" autocomplete="off" @attributes="field.Attributes" /></EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c => c.LastName" Title="Last name" Visible="false">
+                <EditTemplate Context="field"><TextField @bind-Value="field.Item.LastName" autocomplete="off" @attributes="field.Attributes" /></EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c => c.Email" Title="Email address" Visible="false">
+                <EditTemplate Context="field"><TextField @bind-Value="field.Item.Email" autocomplete="off" @attributes="field.Attributes" /></EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c => c.Phone" Title="Phone number" Visible="false">
+                <EditTemplate Context="field"><TextField @bind-Value="field.Item.Phone" autocomplete="off" @attributes="field.Attributes" /></EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c => c.JobTitle" Title="Job title" Visible="false">
+                <EditTemplate Context="field"><TextField @bind-Value="field.Item.JobTitle" autocomplete="off" @attributes="field.Attributes" /></EditTemplate>
+            </PropertyColumn>
             <TemplateColumn Title="Company" SortKey="company" SortBy="c => c.Company!.Name" Sortable EditBy="c => c.CompanyId" Context="contact">
                 <ChildContent>@contact.Company?.Name</ChildContent>
                 <EditTemplate Context="field">
