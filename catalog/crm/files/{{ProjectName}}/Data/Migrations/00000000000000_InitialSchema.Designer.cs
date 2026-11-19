@@ -231,6 +231,9 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Property<int?>("Industry")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("LogoUpdated")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -258,6 +261,25 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Companies");
+                });
+
+            modelBuilder.Entity("{{RootNamespace}}.Data.CompanyLogo", b =>
+                {
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.HasKey("CompanyId");
+
+                    b.ToTable("CompanyLogos");
                 });
 
             modelBuilder.Entity("{{RootNamespace}}.Data.Contact", b =>
@@ -663,6 +685,15 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("{{RootNamespace}}.Data.CompanyLogo", b =>
+                {
+                    b.HasOne("{{RootNamespace}}.Data.Company", null)
+                        .WithOne("Logo")
+                        .HasForeignKey("{{RootNamespace}}.Data.CompanyLogo", "CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("{{RootNamespace}}.Data.Contact", b =>
                 {
                     b.HasOne("{{RootNamespace}}.Data.Company", "Company")
@@ -836,6 +867,8 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Navigation("Contacts");
 
                     b.Navigation("Deals");
+
+                    b.Navigation("Logo");
                 });
 #pragma warning restore 612, 618
         }

@@ -8,6 +8,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     : IdentityDbContext<ApplicationUser>(options), IDataProtectionKeyContext
 {
     public DbSet<Company> Companies => Set<Company>();
+    public DbSet<CompanyLogo> CompanyLogos => Set<CompanyLogo>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<Deal> Deals => Set<Deal>();
     public DbSet<Activity> Activities => Set<Activity>();
@@ -28,6 +29,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         base.OnModelCreating(builder);
         // A team member who leaves takes no records with them: theirs are left with no owner.
         builder.Entity<Company>().HasOne(c => c.Owner).WithMany().HasForeignKey(c => c.OwnerId).OnDelete(DeleteBehavior.SetNull);
+        // A logo goes with its company.
+        builder.Entity<Company>().HasOne(c => c.Logo).WithOne().HasForeignKey<CompanyLogo>(l => l.CompanyId).OnDelete(DeleteBehavior.Cascade);
         builder.Entity<Contact>().HasIndex(c => c.Email).IsUnique();
         builder.Entity<Contact>().HasOne(c => c.Owner).WithMany().HasForeignKey(c => c.OwnerId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Contact>().HasOne(c => c.Company).WithMany(c => c.Contacts).HasForeignKey(c => c.CompanyId).OnDelete(DeleteBehavior.SetNull);

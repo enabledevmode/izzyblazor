@@ -247,7 +247,8 @@ namespace {{RootNamespace}}.Data.Migrations
                     OwnerId = table.Column<string>(type: "TEXT", nullable: true),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     Notes = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    Added = table.Column<DateOnly>(type: "TEXT", nullable: false)
+                    Added = table.Column<DateOnly>(type: "TEXT", nullable: false),
+                    LogoUpdated = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -258,6 +259,25 @@ namespace {{RootNamespace}}.Data.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CompanyLogos",
+                columns: table => new
+                {
+                    CompanyId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ContentType = table.Column<string>(type: "TEXT", maxLength: 40, nullable: false),
+                    Data = table.Column<byte[]>(type: "BLOB", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CompanyLogos", x => x.CompanyId);
+                    table.ForeignKey(
+                        name: "FK_CompanyLogos_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -587,6 +607,9 @@ namespace {{RootNamespace}}.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AuditEvents");
+
+            migrationBuilder.DropTable(
+                name: "CompanyLogos");
 
             migrationBuilder.DropTable(
                 name: "DataProtectionKeys");

@@ -1,5 +1,6 @@
 @page "/companies"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
+@using Microsoft.AspNetCore.Http
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject IAuthorizationService Authorization
@@ -39,7 +40,8 @@
         <Columns>
             <TemplateColumn Title="Company" SortKey="name" SortBy="c => c.Name" Sortable Context="company">
                 <Row Gap="3" Align="Align.Center">
-                    <Avatar Icon="Lucide.BuildingComplex" Size="AvatarSize.Sm" Accent="Accent.Neutral" Square Decorative />
+                    @* The company's logo; a building until it has one. *@
+                    <Avatar Src="@company.LogoSrc" Icon="Lucide.BuildingComplex" Size="AvatarSize.Sm" Accent="Accent.Neutral" Square Decorative />
                     <TextBlock Weight="FontWeight.Medium" Truncate><Anchor Href="@($"companies/{company.Id}")" InheritColor Underline="AnchorUnderline.Hover">@company.Name</Anchor></TextBlock>
                 </Row>
             </TemplateColumn>
@@ -87,6 +89,16 @@
             {
                 <TextBlock Color="Color.Muted" ColSpan="GridSpan.Full">Create a shared account for related people and deals.</TextBlock>
             }
+            @* The logo isn't one of the grid's columns: the file posts with the dialog's form, and SaveAsync reads it. *@
+            <Stack ColSpan="GridSpan.Full" Gap="2">
+                <FileUpload Name="Logo" Label="Logo" Size="ControlSize.Sm" Accept=".png,.jpg,.jpeg" AcceptText="PNG or JPG · up to 2 MB" MaxFileSize="CompanyLogo.MaxBytes">
+                    <Preview><Avatar Src="@_editing?.LogoSrc" Icon="Lucide.BuildingComplex" Size="AvatarSize.Lg" Accent="Accent.Neutral" Square Decorative /></Preview>
+                </FileUpload>
+                @if (_editing?.LogoUpdated is not null)
+                {
+                    <Checkbox @bind-Value="_removeLogo" name="RemoveLogo" Label="Remove the logo" />
+                }
+            </Stack>
             <EditField Key="name" />
             <EditField Key="website" />
             <EditField Key="industry" />
@@ -104,7 +116,17 @@
     /// <summary>The add dialog is open (?add=1).</summary>
     [SupplyParameterFromQuery] private string? Add { get; set; }
 
+    /// <summary>The company the edit dialog is open on (?edit=3).</summary>
+    [SupplyParameterFromQuery] private string? Edit { get; set; }
+
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    // The request: the dialog's form posts the logo's file with it.
+    [CascadingParameter] private HttpContext? Http { get; set; }
+
+    // The company being edited, for the logo it has now.
+    private Company? _editing;
+    private bool _removeLogo;
 
     // Who may add and edit: the EditRecords policy.
     private bool _canEdit;
@@ -127,6 +149,8 @@
         _owners = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
         _ownerIds = _owners.OrderBy(o => o.Value).Select(o => (string?)o.Key).ToList();
     }
+
+    protected override async Task OnParametersSetAsync() => _editing = Edit is null ? null : await GetAsync(Edit);
 
     // A new company as the dialog first shows it: yours, a prospect, with the first of each list chosen.
     private Company New() => new()
@@ -157,20 +181,47 @@
     {
         if (!_canEdit) return;
         var company = save.Item;
+        // The logo, when a file came with the form: a PNG or JPG of 2 MB at most (Data/CompanyLogo.cs).
+        var form = Http?.Request.HasFormContentType == true ? Http.Request.Form : null;
+        CompanyLogo? logo = null;
+        if (form?.Files["Logo"] is { Length: > 0 } file)
+        {
+            (logo, var problem) = await CompanyLogo.ReadAsync(file);
+            if (problem is not null)
+            {
+                save.AddError(problem);
+                return;
+            }
+        }
+
         // The dialog has already checked the fields against Company's attributes, which hold the messages (Data/Company.cs).
+        var saved = company;
         if (save.IsNew)
         {
             company.Added = _today;
             Db.Companies.Add(company);
         }
-        else if (await Db.Companies.FirstOrDefaultAsync(c => c.Id == company.Id) is { } saved)
+        else if (await Db.Companies.Include(c => c.Logo).FirstOrDefaultAsync(c => c.Id == company.Id) is { } found)
         {
-            save.CopyTo(saved);
+            save.CopyTo(saved = found);
         }
         else
         {
             save.AddError("This company isn’t here any more.");
             return;
+        }
+
+        // A new file takes the old one's place; "Remove the logo" leaves the building.
+        if (logo is not null)
+        {
+            if (saved.Logo is { } old) (old.ContentType, old.Data) = (logo.ContentType, logo.Data);
+            else saved.Logo = logo;
+            saved.LogoUpdated = DateTime.UtcNow;
+        }
+        else if (!save.IsNew && form?["RemoveLogo"].Contains("true") == true)
+        {
+            saved.Logo = null;
+            saved.LogoUpdated = null;
         }
         // The audit log records it as it saves (Auditing/AuditInterceptor.cs).
         await Db.SaveChangesAsync();
