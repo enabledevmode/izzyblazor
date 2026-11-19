@@ -417,6 +417,9 @@ namespace {{RootNamespace}}.Data.Migrations
                         .HasMaxLength(20000)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("ContactId")
                         .HasColumnType("INTEGER");
 
@@ -432,6 +435,8 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("ContactId");
 
@@ -743,6 +748,11 @@ namespace {{RootNamespace}}.Data.Migrations
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("{{RootNamespace}}.Data.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("{{RootNamespace}}.Data.Contact", "Contact")
                         .WithMany()
                         .HasForeignKey("ContactId")
@@ -754,6 +764,8 @@ namespace {{RootNamespace}}.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Author");
+
+                    b.Navigation("Company");
 
                     b.Navigation("Contact");
 

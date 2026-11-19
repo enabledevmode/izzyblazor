@@ -414,6 +414,7 @@ namespace {{RootNamespace}}.Data.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     ContactId = table.Column<int>(type: "INTEGER", nullable: true),
                     DealId = table.Column<int>(type: "INTEGER", nullable: true),
+                    CompanyId = table.Column<int>(type: "INTEGER", nullable: true),
                     Body = table.Column<string>(type: "TEXT", maxLength: 20000, nullable: false),
                     AuthorId = table.Column<string>(type: "TEXT", nullable: true),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -426,6 +427,12 @@ namespace {{RootNamespace}}.Data.Migrations
                         name: "FK_Notes_AspNetUsers_AuthorId",
                         column: x => x.AuthorId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Notes_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
@@ -569,6 +576,11 @@ namespace {{RootNamespace}}.Data.Migrations
                 name: "IX_Notes_AuthorId",
                 table: "Notes",
                 column: "AuthorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notes_CompanyId",
+                table: "Notes",
+                column: "CompanyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notes_ContactId",
