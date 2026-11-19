@@ -307,14 +307,20 @@
     .ib-steps-horizontal > .ib-step:not(:last-child)::after {
       position: static;
       flex: 1 1 var(--ib-space-3);
-      min-width: var(--ib-space-3);
+      min-width: var(--ib-space-2);
       width: auto;
       height: 2px;
       margin-top: calc(var(--ib-step-size) / 2 - 1px);
     }
 
+    /* When the row is too narrow the lines give way first, down to their shortest; only then is the
+       current step's label cut. */
+    .ib-steps-horizontal > .ib-step-current:not(:last-child) {
+      flex-shrink: 0.001;
+    }
+
     .ib-steps-horizontal > .ib-step-current > .ib-step-text {
-      flex: 0 1 auto;
+      flex: 0 0.001 auto;
     }
 
     .ib-steps-horizontal > .ib-step-current .ib-step-label {
