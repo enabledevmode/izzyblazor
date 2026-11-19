@@ -1,0 +1,64 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, everything shows and there's no button.")]
+
+@*
+    Long content cut to its first lines, with a "Show more" button under them: a bio, a
+    description, background notes in a side column. The button shows only when there is more
+    than fits, and reads "Show less" once it's open. Where a whole section should hide behind
+    its trigger, use Collapsible.
+
+    <ShowMore Lines="4">
+        <TextBlock Color="Color.Muted" KeepLines>@company.Background</TextBlock>
+    </ShowMore>
+
+    Accessibility:
+    - The content is all in the page, only cut from sight, so screen readers and find-in-page
+      reach every word whether it's open or not.
+    - The button is a `button` with `aria-expanded`, named by `MoreText` or `LessText`.
+    See also: Collapsible, TextBlock.
+*@
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/show-more.css"]" />
+<ib-show-more @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <div class="ib-show-more-content" id="@_id">@ChildContent</div>
+    @* Hidden until the script finds more than fits. *@
+    <Button Variant="ButtonVariant.Link" Size="ControlSize.Sm" class="ib-show-more-button" hidden aria-expanded="false" aria-controls="@_id">
+        <span class="ib-show-more-more">@(MoreText ?? TextDefaults.ShowMore)</span>
+        <span class="ib-show-more-less">@(LessText ?? TextDefaults.ShowLess)</span>
+    </Button>
+</ib-show-more>
+
+@code {
+    /// <summary>
+    /// The content. Lines are counted by its line height, so text in one block cuts cleanly after a line
+    /// (a <c>TextBlock</c> with <c>KeepLines</c> for text with line breaks); blocks with gaps between them are
+    /// cut by the same height.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>How many lines show before the button (1 or more; defaults to 4). The last one fades toward its end when there's more.</summary>
+    [Parameter] public int Lines { get; set; } = 4;
+
+    /// <summary>The button's text while the content is cut. Defaults to "Show more" (<see cref="IzzyText.ShowMore"/>).</summary>
+    [Parameter] public string? MoreText { get; set; }
+
+    /// <summary>The button's text once everything shows. Defaults to "Show less" (<see cref="IzzyText.ShowLess"/>).</summary>
+    [Parameter] public string? LessText { get; set; }
+
+    private readonly string _id = IdGenerator.Next("ib-show-more");
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        if (Lines < 1) throw new ArgumentOutOfRangeException(nameof(Lines), Lines, "Lines must be at least 1.");
+        classes.Add("ib-show-more");
+        styles.AddVar("show-more-lines", Lines.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

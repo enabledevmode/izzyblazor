@@ -33,6 +33,7 @@ src/IzzyBlazor.Core/wwwroot/color-panel.css
 src/IzzyBlazor.Core/wwwroot/chat.css
 src/IzzyBlazor.Core/wwwroot/blockquote.css
 src/IzzyBlazor.Core/wwwroot/comment.css
+src/IzzyBlazor.Core/wwwroot/show-more.css
 src/IzzyBlazor.Core/wwwroot/mentions.css
 src/IzzyBlazor.Core/wwwroot/action-sheet.css
 src/IzzyBlazor.Core/wwwroot/tile-layout.css
