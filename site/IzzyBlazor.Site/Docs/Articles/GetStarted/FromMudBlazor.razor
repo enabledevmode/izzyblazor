@@ -348,7 +348,7 @@
         Map("`MudSlider`", "`Slider`, or `RangeSlider` for a range", "`Vertical` is `Orientation`, and `ValueLabel` is `ValueTooltip`."),
         Map("`MudRating`", "`Rating`", "`@bind-SelectedValue` is `@bind-Value`, and `MaxValue` is `Max`."),
         Map("`MudColorPicker`", "`ColorPicker`, or `ColorPanel` on the page", "The value is a hex string, not a `MudColor`."),
-        Map("`MudFileUpload`", "`FileUpload`", "`FilesChanged` is `OnChange`, and `MaximumFileCount` is `MaxFiles`. On static pages it posts with a `Form` set to `Multipart`."),
+        Map("`MudFileUpload`", "`FileUpload`", "`FilesChanged` is `OnChange`, and `MaximumFileCount` is `MaxFiles`. On static pages it posts with its `Form`, as an `IFormFile`."),
         Map("`MudForm`, `EditForm`", "`Form`", "See Fields and forms below."),
         Map("`ValidationSummary`", "`FormErrors`", "Moves focus to itself after a failed submit."),
         Map("`MudField`", "`FieldFrame`", "Renders the label, hint and errors for a control of your own."),

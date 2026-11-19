@@ -65,7 +65,7 @@
 <Code Block Language="razor">@Validation</Code>
 
 <Heading Level="2">Files</Heading>
-<TextBlock>A form with a <Anchor Href="docs/components/file-upload">FileUpload</Anchor> must send its fields as multipart data, or a form post on static pages sends only the files' names. Set <Code>Multipart</Code> on the form.</TextBlock>
+<TextBlock>A form with a <Anchor Href="docs/components/file-upload">FileUpload</Anchor> in it posts as multipart data, so on static pages its files arrive with the other fields. Set <Code>Multipart</Code> only for a file input of your own.</TextBlock>
 <Code Block Language="razor">@Files</Code>
 
 <Heading Level="2">Labels and localization</Heading>
@@ -115,7 +115,7 @@
         """;
 
     private const string Files = """
-        <Form Model="Profile" FormName="profile" Multipart OnValidSubmit="SaveAsync">
+        <Form Model="Profile" FormName="profile" OnValidSubmit="SaveAsync">
             <FileUpload Name="Avatar" Label="Profile photo" Accept=".png,.jpg" MaxFileSize="2_000_000" />
             <FormActions><Button Submit>Save</Button></FormActions>
         </Form>

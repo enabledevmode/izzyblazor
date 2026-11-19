@@ -2,7 +2,7 @@
    posted (previewed in each mode), several files, required and disabled, checking on the server,
    interactive pages and its own words. Accessibility and See also come from the doc comment. *@
 
-<TextBlock>A file upload is a drop zone where the user drops files or clicks to choose them, such as a photo or a document for a form. The zone is a real file input, so it works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off: the file posts with the form, and the page binds it by its <Code>Name</Code>. Set <Code>Multipart</Code> on the <Anchor Href="docs/components/form">Form</Anchor>, or only the file's name posts.</TextBlock>
+<TextBlock>A file upload is a drop zone where the user drops files or clicks to choose them, such as a photo or a document for a form. The zone is a real file input, so it works on <Anchor Href="docs/common/render-modes">static pages</Anchor> with JavaScript off: the file posts with the form, and the page binds it by its <Code>Name</Code>. The <Anchor Href="docs/components/form">Form</Anchor> around it posts as multipart data by itself.</TextBlock>
 
 <Heading Level="2">Types, size and posting</Heading>
 <TextBlock>The zone can limit the file types it offers and the largest file it accepts, and it shows both under the prompt ("PNG or JPEG · up to 2 MB"). Set <Code>Accept</Code> to the types, and <Code>MaxFileSize</Code> to the largest size in bytes. On static pages, bind the file to an <Code>IFormFile</Code> property with <Code>[SupplyParameterFromForm]</Code>, named like the field.</TextBlock>
@@ -17,6 +17,11 @@
     <ListItem>A file dropped on the zone, or chosen again, replaces the earlier choice rather than adding to it.</ListItem>
     <ListItem>The zone doesn't list the files, so show what arrived after the form post.</ListItem>
 </List>
+
+<Heading Level="2">A logo or photo</Heading>
+<TextBlock>A form that replaces a picture shows the one it has beside the zone. Put it in <Code>Preview</Code>, such as an <Anchor Href="docs/components/avatar">Avatar</Anchor> with the picture's address. For a zone that fits among other fields, set <Code>Size</Code> to <Code>ControlSize.Sm</Code>.</TextBlock>
+<ExampleViewer Example="file-upload-preview" />
+<TextBlock>The preview shows what's saved. It doesn't change when a file is chosen; the zone names the chosen file.</TextBlock>
 
 <Heading Level="2">Required and disabled</Heading>
 <TextBlock>A required zone stops the form from posting without a file. Set <Code>Required</Code> to turn it on. To turn the zone off, set <Code>Disabled</Code>.</TextBlock>

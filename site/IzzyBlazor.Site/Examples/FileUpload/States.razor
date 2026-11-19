@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Http
 
-<Form Model="Model" FormName="file-upload-states" Multipart OnValidSubmit="Apply" MaxWidth="26.Rem" Grow>
+<Form Model="Model" FormName="file-upload-states" OnValidSubmit="Apply" MaxWidth="26.Rem" Grow>
     <FileUpload Name="Resume" Label="Résumé" Required Accept=".pdf" MaxFileSize="5_000_000" OnChange="Chosen" />
     <FileUpload Name="Logo" Label="Company logo" Accept="image/svg+xml" Disabled
                 Hint="Disabled: only the workspace owner can change it." />

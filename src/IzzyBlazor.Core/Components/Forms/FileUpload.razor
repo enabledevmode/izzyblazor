@@ -9,13 +9,13 @@
     no script; the input itself is hidden while scripts run and shows only its file name without them.
       - Static page, no JavaScript: choose with the link; the browser names the chosen file, and it
         posts with the form. Bind it on the page with [SupplyParameterFromForm(FormName = "...")]
-        IFormFile? (or IFormFileCollection), named like the field, and set Multipart on the Form.
+        IFormFile? (or IFormFileCollection), named like the field. The Form posts as multipart by itself.
       - With JavaScript: files can also be dropped on the zone; dropped files that don't match
         Accept are refused, and files over MaxFileSize are flagged before posting. The chosen file's
         name and size replace the line of allowed types and size; the Hint stays.
       - Interactive page: OnChange gets the chosen files as IBrowserFile, to read as streams.
 
-    <Form Model="Model" FormName="profile" Multipart>
+    <Form Model="Model" FormName="profile">
         <FileUpload Name="Avatar" Label="Profile photo" Accept=".png,.jpg" MaxFileSize="2_000_000" />
     </Form>
     @code { [SupplyParameterFromForm(FormName = "profile")] public IFormFile? Avatar { get; set; } }
@@ -38,7 +38,12 @@
 
 <FieldFrame Class="@_class" Style="@_style" Id="@InputId" Label="@Label" LabelId="@LabelId" HideLabel="HideLabel"
             Required="Required" NoInput="IsDisabled" Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@(TooLargeText ?? TextDefaults.FileTooLarge)" data-ib-wrong-type="@(WrongTypeText ?? TextDefaults.FileWrongType)" data-ib-many="@TextDefaults.FilesChosen" data-ib-interactive="@(IsInteractive ? "" : null)">
+    <div class="ib-file-row">
+    @if (Preview is not null)
+    {
+        <div class="ib-file-preview">@Preview</div>
+    }
+    <ib-file-upload class="@(Size == ControlSize.Sm ? "ib-file-zone ib-file-sm" : "ib-file-zone")" data-ib-max-size="@MaxFileSize" data-ib-too-large="@(TooLargeText ?? TextDefaults.FileTooLarge)" data-ib-wrong-type="@(WrongTypeText ?? TextDefaults.FileWrongType)" data-ib-many="@TextDefaults.FilesChosen" data-ib-interactive="@(IsInteractive ? "" : null)">
         <span class="ib-file-badge"><Icon Name="Icon ?? IconSet.Current.Get(IconPurpose.Upload)" Class="ib-file-icon" /></span>
         <span class="ib-file-prompt"><label class="ib-file-choose" for="@InputId">@(ChooseText ?? (Multiple ? TextDefaults.ChooseFiles : TextDefaults.ChooseFile))</label> <span class="ib-file-drag">@(DragText ?? (Multiple ? TextDefaults.DragFilesHere : TextDefaults.DragFileHere))</span></span>
         @if (ShownAcceptText is { Length: > 0 } acceptText)
@@ -55,6 +60,7 @@
             <input @attributes="InputAttributes" type="file" />
         }
     </ib-file-upload>
+    </div>
 </FieldFrame>
 
 @code {
@@ -87,6 +93,12 @@
     [Parameter] public bool Disabled { get; set; }
 
     [CascadingParameter] internal FormOptions? FormOptions { get; set; }
+
+    // The form it's in, which posts as multipart once it knows it has files.
+    [CascadingParameter] internal FormOwner? FormOwner { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => FormOwner?.HasFiles?.Invoke();
 
     // A file can't be read-only, so a read-only form disables the picker.
     private bool IsDisabled => Disabled || FormOptions is { Disabled: true } or { ReadOnly: true };
@@ -135,6 +147,18 @@
     /// shows none. With JavaScript, the chosen file's name and size take its place.
     /// </summary>
     [Parameter] public string? AcceptText { get; set; }
+
+    /// <summary>
+    /// <see cref="ControlSize.Sm"/> draws a shorter zone, its icon without the circle: for a small file such as a
+    /// logo or a photo, in a form with other fields.
+    /// </summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>
+    /// What's there now, such as an <see cref="Avatar"/> of the current logo, drawn beside the zone under the label.
+    /// </summary>
+    /// <example><code>&lt;FileUpload Name="Logo" Label="Logo" Size="ControlSize.Sm"&gt;&lt;Preview&gt;&lt;Avatar Src="@logo" Square /&gt;&lt;/Preview&gt;&lt;/FileUpload&gt;</code></example>
+    [Parameter] public RenderFragment? Preview { get; set; }
 
     /// <summary>The zone's icon. Defaults to an arrow out of a tray.</summary>
     [Parameter] public IconData? Icon { get; set; }

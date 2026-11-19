@@ -477,6 +477,31 @@
     transition: border-color var(--ib-duration-fast) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
   }
 
+  /* Beside a Preview (what's there now), the zone takes the rest of the line. */
+  .ib-file-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--ib-space-4);
+  }
+
+  .ib-file-row > .ib-file-zone {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Size Sm: a shorter zone, its icon bare. */
+  .ib-file-sm {
+    gap: 0.125rem;
+    padding: var(--ib-space-3);
+  }
+
+  .ib-file-sm > .ib-file-badge {
+    width: auto;
+    height: auto;
+    border: 0;
+    background: none;
+  }
+
   .ib-file-zone[data-dragging] {
     border-style: solid;
     border-color: var(--ib-color-primary);
