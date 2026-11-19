@@ -45,6 +45,9 @@
     OnSave, a drag moves or resizes one. The form posts on a static page too, and OnSave saves it either way. An
     EditDialogForm puts a form of your own in the dialog instead, for what a use case needs.
 
+    With ItemHref, an appointment is a link to a page of its own instead: a meeting's page in a
+    CRM, a booking's in a clinic. Hovering still shows its card.
+
     Accessibility:
     - It's a region named by Label ("Schedule"); the toolbar's links say where they go
       ("Previous week"), and the view menu is a radio group of links.
@@ -53,7 +56,8 @@
     - Categories is named by how many are hidden too: "Categories, 2 of 4 hidden".
     - Each day's appointments come in time order, each with its category and whole time said:
       "Team meeting, Work, Monday, November 9, 2026, 9:30 AM to 10:30 AM". With a form each is a
-      link to it; read-only, a button that opens its card (a dialog, which takes focus).
+      link to it, or to its own page with ItemHref; read-only, a button that opens its card (a
+      dialog, which takes focus).
     - Today is marked with aria-current, not only by its color.
     - A hover's card is the mouse's alone: it stays while the pointer is on the appointment or the
       card, Escape closes it, and an editable one's card is hidden from screen readers (its link
@@ -334,7 +338,11 @@
     /// <summary>The hour the day and week views open scrolled to (with script). 8 by default.</summary>
     [Parameter] public int DayStart { get; set; } = 8;
 
-    /// <summary>The height of the day and week views' hours, which scroll inside it. 40rem by default.</summary>
+    /// <summary>
+    /// The height of the day and week views' hours, which scroll inside it. 40rem by default. With
+    /// <c>Grow</c> in a column that fills its page (and in a growing Card), the hours take the room
+    /// left instead, so the page doesn't scroll too.
+    /// </summary>
     [Parameter] public Length? Height { get; set; }
 
     /// <summary>Its name for screen readers. "Schedule" by default.</summary>
@@ -420,6 +428,13 @@
 
     /// <summary>Deletes an appointment: with it, the generated form has a Delete button. Not with an <see cref="EditDialogForm"/>, whose form deletes.</summary>
     [Parameter, ModeSupport] public EventCallback<SchedulerDelete<TItem>> OnDelete { get; set; }
+
+    /// <summary>
+    /// Makes each appointment a link to a page of its own, such as <c>b =&gt; $"bookings/{b.Id}"</c>,
+    /// in place of its card or its form: the page shows it, and is where it's changed. Hovering
+    /// still shows the card. An appointment it returns null for keeps its card or form.
+    /// </summary>
+    [Parameter] public Func<TItem, string?>? ItemHref { get; set; }
 
     private bool Editable => (OnSave.HasDelegate || EditDialogForm is not null) && ItemKey is not null;
 
@@ -1155,7 +1170,16 @@
     {
         var id = $"{_cardPrefix}-{_cards++}";
         var anchor = StyleValues.AnchorName(id);
-        if (Editable)
+        // A page of its own (ItemHref) comes before the form.
+        var own = ItemHref?.Invoke(_items[e.Index]);
+        var linked = own is not null || Editable;
+        if (own is not null)
+        {
+            @* Its key too when it can be dragged to new times. *@
+            var attributes = data ?? new Dictionary<string, object?>();
+            <a class="@cls" href="@own" style="@($"{style};anchor-name:{anchor}")" @attributes="attributes">@content</a>
+        }
+        else if (Editable)
         {
             @* Its key in every view, so focus can come back to it when its form closes. *@
             var attributes = data ?? new Dictionary<string, object?>();
@@ -1166,9 +1190,9 @@
         {
             <button type="button" class="@cls" style="@($"{style};anchor-name:{anchor}")" popovertarget="@id" aria-haspopup="dialog" aria-controls="@id">@content</button>
         }
-        @* Editable, the card is a mouse's peek: screen readers hear the link's name, and the form it
-           opens has the rest (the description too), so they aren't sent to it. *@
-        <div popover id="@id" role="@(Editable ? null : "dialog")" tabindex="-1" aria-labelledby="@(Editable ? null : $"{id}-t")" aria-hidden="@(Editable ? "true" : null)" class="ib-pop ib-popover ib-place-bottom-start ib-sched-card" style="@($"position-anchor:{anchor};{ColorStyle(e)}")">
+        @* A link's card is a mouse's peek: screen readers hear the link's name, and the form or page
+           it opens has the rest (the description too), so they aren't sent to it. *@
+        <div popover id="@id" role="@(linked ? null : "dialog")" tabindex="-1" aria-labelledby="@(linked ? null : $"{id}-t")" aria-hidden="@(linked ? "true" : null)" class="ib-pop ib-popover ib-place-bottom-start ib-sched-card" style="@($"position-anchor:{anchor};{ColorStyle(e)}")">
                 <div class="ib-sched-card-head">
                     <span class="ib-sched-swatch" aria-hidden="true"></span>
                     <span class="ib-popover-title" id="@($"{id}-t")">@TitleText(e)</span>

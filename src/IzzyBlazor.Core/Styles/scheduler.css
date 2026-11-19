@@ -315,6 +315,39 @@
     overscroll-behavior: contain;
   }
   .ib-sched-grid { height: calc(24 * var(--ib-sched-hour)); }
+
+  /* Flush in a card (CardBody Flush): the card's edge is the view's. */
+  .ib-card-flush > .ib-sched > :is(.ib-sched-cols, .ib-sched-month, .ib-sched-agenda) {
+    border-inline-width: 0;
+    border-block-end-width: 0;
+    border-radius: 0;
+  }
+
+  /* Grow, on a page that fills its main area (a growing Column, and a growing Card around it): the
+     hours take the room left, and no less than a few of them, so they alone scroll. Not on a
+     phone, where the page scrolls. */
+  @media (width >= 768px) {
+    .ib-sched.ib-grow,
+    .ib-sched.ib-grow > .ib-sched-cols,
+    .ib-card.ib-grow > .ib-card-body:has(> .ib-card-flush > .ib-sched.ib-grow),
+    .ib-card-flush:has(> .ib-sched.ib-grow) {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .ib-sched.ib-grow > .ib-sched-cols > .ib-sched-scroll {
+      flex: 1 1 0;
+      height: auto;
+      min-height: 20rem;
+    }
+    /* A month or an agenda longer than the room scrolls in it. */
+    .ib-sched.ib-grow > :is(.ib-sched-month, .ib-sched-agenda) {
+      flex: 0 1 auto;
+      min-height: 20rem;
+      overflow-y: auto;
+    }
+  }
   .ib-sched-hours { position: relative; }
   .ib-sched-hours > span {
     position: absolute;

@@ -29,6 +29,24 @@ public class SchedulerRenderTests : BunitContext
     }
 
     [Fact]
+    public void With_ItemHref_an_appointment_links_to_its_own_page()
+    {
+        var booking = new Booking { Id = 7, Room = "Room 2", Start = new DateTime(2026, 11, 9, 9, 0, 0), End = new DateTime(2026, 11, 9, 10, 0, 0) };
+        var cut = Render<Scheduler<Booking>>(p => p
+            .Add(c => c.Items, [booking])
+            .Add(c => c.Start, b => b.Start)
+            .Add(c => c.End, b => b.End)
+            .Add(c => c.Title, b => b.Room)
+            .Add(c => c.Date, new DateOnly(2026, 11, 9))
+            .Add(c => c.ItemHref, b => $"bookings/{b.Id}"));
+
+        // A link, not the read-only button; its card is the mouse's peek, kept from screen readers.
+        Assert.Equal("bookings/7", cut.Find("a.ib-sched-event").GetAttribute("href"));
+        Assert.Empty(cut.FindAll("button.ib-sched-event"));
+        Assert.Equal("true", cut.Find(".ib-sched-card").GetAttribute("aria-hidden"));
+    }
+
+    [Fact]
     public void An_appointment_opens_in_the_form_and_a_save_copies_its_new_times_to_it()
     {
         var booking = new Booking { Id = 7, Room = "Room 2", Start = new DateTime(2026, 11, 9, 9, 0, 0), End = new DateTime(2026, 11, 9, 10, 0, 0) };
