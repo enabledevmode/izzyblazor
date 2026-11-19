@@ -39,6 +39,12 @@
     mask-image: linear-gradient(#000 0 0), linear-gradient(to left, #000 50%, transparent);
   }
 
+  /* A button's 1px border, which a link button doesn't draw, would set its text 1px in from the
+     text above. */
+  .ib-show-more-button {
+    margin-inline-start: -1px;
+  }
+
   .ib-show-more[data-open] .ib-show-more-more,
   .ib-show-more:not([data-open]) .ib-show-more-less {
     display: none;
