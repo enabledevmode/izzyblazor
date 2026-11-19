@@ -121,6 +121,9 @@ internal sealed class DialogFooterPart : ComponentPart
 /// <param name="Detached">Whether the content is drawn outside the form element.</param>
 internal sealed record FormOwner(string? Id, bool Detached = false)
 {
+    /// <summary>Tells the form it holds a file field, so it posts as multipart.</summary>
+    public Action? HasFiles { get; init; }
+
     /// <summary>The <c>form</c> attribute for a button that submits or resets: its own, else the form it was detached from.</summary>
     public static string? For(FormOwner? owner, string? form, bool acts) =>
         form ?? (acts && owner is { Detached: true } ? owner.Id : null);

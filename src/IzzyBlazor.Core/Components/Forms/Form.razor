@@ -42,7 +42,7 @@
               Enhance="Enhance"
               OnSubmit="Dispatch"
               novalidate="@(NativeValidation ? null : "novalidate")"
-              enctype="@(Multipart ? "multipart/form-data" : null)"
+              enctype="@Enctype"
               @attributes="AdditionalAttributes"
               id="@FormId"
               class="@_class"
@@ -61,7 +61,7 @@ else
               Enhance="Enhance"
               OnSubmit="Dispatch"
               novalidate="@(NativeValidation ? null : "novalidate")"
-              enctype="@(Multipart ? "multipart/form-data" : null)"
+              enctype="@Enctype"
               @attributes="AdditionalAttributes"
               id="@FormId"
               class="@_class"
@@ -88,8 +88,8 @@ else
     [Parameter] public string? FormName { get; set; }
 
     /// <summary>
-    /// Posts as <c>multipart/form-data</c>, which a <see cref="FileUpload"/> needs to send its files on
-    /// static pages. Without it, a post sends only the file names.
+    /// Posts as <c>multipart/form-data</c>, which sends files on static pages. A form with a
+    /// <see cref="FileUpload"/> in it does so by itself; set it for a file input of your own.
     /// </summary>
     [Parameter] public bool Multipart { get; set; }
 
@@ -197,7 +197,28 @@ else
     // footer's submit button names its form by it.
     [CascadingParameter] private DialogContext? InDialog { get; set; }
 
-    private FormOwner _owner = new(null);
+    private FormOwner? _ownerValue;
+
+    private FormOwner _owner
+    {
+        get => _ownerValue ??= new FormOwner(null) { HasFiles = HasFiles };
+        set => _ownerValue = value;
+    }
+
+    // A FileUpload inside says so as it starts, and the form posts multipart from then on.
+    private bool _hasFiles;
+
+    // Always written, the default included: a FileUpload turns it to multipart after the form's first render, and
+    // an attribute that only changes its value leaves the form's named submit event where it is (one that
+    // appears moves it, and a static page then finds the form's name twice).
+    private string Enctype => Multipart || _hasFiles ? "multipart/form-data" : "application/x-www-form-urlencoded";
+
+    private void HasFiles()
+    {
+        if (_hasFiles) return;
+        _hasFiles = true;
+        StateHasChanged();
+    }
 
     private string? FormId => AdditionalAttributes?.TryGetValue("id", out var id) == true ? id as string : _owner.Id;
 
@@ -360,7 +381,7 @@ else
 
         if (_owner.Id is null && InDialog is not null)
         {
-            _owner = new FormOwner(AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string given ? given : IdGenerator.Next("ib-form"));
+            _owner = new FormOwner(AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string given ? given : IdGenerator.Next("ib-form")) { HasFiles = HasFiles };
         }
 
         // Keep the same instance while nothing changed (fields read it on their own renders).

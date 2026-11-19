@@ -22,9 +22,9 @@
         <Code Block Language="razor" HighlightLines="1,9-10">@Basic</Code>
         <TextBlock>
             <Code>OnValidSubmit</Code> runs on the server once the model is valid, in every render mode. On interactive
-            pages the form checks each field as it changes, and submits without a full reload. If the form contains a
-            <Anchor Href="docs/components/file-upload">FileUpload</Anchor>, set <Code>Multipart</Code>. Otherwise the form
-            post sends only the file names.
+            pages the form checks each field as it changes, and submits without a full reload. A form with a
+            <Anchor Href="docs/components/file-upload">FileUpload</Anchor> in it posts as multipart data, so its files
+            arrive with the other fields.
         </TextBlock>
         <TextBlock>
             On static pages the errors come from the last form post. A field's errors clear once its value changes, and the

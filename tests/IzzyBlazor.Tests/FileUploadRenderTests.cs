@@ -74,9 +74,10 @@ public class FileUploadRenderTests : BunitContext
     }
 
     [Fact]
-    public void Multipart_form_sets_the_enctype()
+    public void A_form_with_a_file_upload_posts_as_multipart()
     {
-        var form = Render<Form>(p => p.Add(f => f.Model, new object()).Add(f => f.Multipart, true)).Find("form");
+        var form = Render<Form>(p => p.Add(f => f.Model, new object())
+            .AddChildContent<FileUpload>(u => u.Add(x => x.Name, "Logo"))).Find("form");
 
         Assert.Equal("multipart/form-data", form.GetAttribute("enctype"));
     }

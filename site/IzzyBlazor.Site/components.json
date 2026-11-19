@@ -1486,7 +1486,7 @@
         { "feature": "OnChange gets the files", "member": "OnChange" }
       ],
       "examples": [
-        { "id": "file-upload-usage", "title": "Types, size and posting", "lead": "The field accepts files of the types and size you allow, and lists them as its hint. Set `Accept` and `MaxFileSize`. Set `Multipart` on the Form so the file posts.",
+        { "id": "file-upload-usage", "title": "Types, size and posting", "lead": "The field accepts files of the types and size you allow, and lists them as its hint. Set `Accept` and `MaxFileSize`.",
           "notes": {
             "noscript": "Choose a file opens the picker, the browser names the chosen file under the prompt, and Upload posts the photo. Dropping a file and the size check need IzzyBlazor's script.",
             "static": "The user can also drop a photo on the zone. A photo over 2 MB is flagged before posting, and the chosen file's name and size replace the line of types and size.",
@@ -1497,6 +1497,11 @@
             "noscript": "Choose files opens the picker, and Attach posts every file chosen. Dropping files needs IzzyBlazor's script.",
             "static": "The user can also drop files on the zone, and other types are refused. \"2 files\" replaces the line of types and size.",
             "interactive": "OnChange gets the files as they're chosen, and Attach lists them without a full reload."
+          } },
+        { "id": "file-upload-preview", "title": "A logo or photo", "lead": "A form that replaces a picture shows the one it has beside the zone. Put it in `Preview`, and set `Size` to `ControlSize.Sm` for a zone that fits among other fields.",
+          "notes": {
+            "noscript": "Choose a file opens the picker, and Save company posts the logo with the name.",
+            "interactive": "OnChange gets the logo when it's chosen."
           } },
         { "id": "file-upload-states", "title": "Required and disabled",
           "notes": {
