@@ -1,8 +1,8 @@
-@* Collapsible's Overview, written by hand after Accordion's: a label, your own trigger, Show more for long text, and open
+@* Collapsible's Overview, written by hand after Accordion's: a label, your own trigger, and open
    from the server or C# (code). Accessibility and See also come from the doc comment. *@
 
 <TextBlock>A collapsible is one section that the user opens and closes, without an accordion's frame. It suits a single section most users can skip. It's a native <Code>details</Code> element, so it opens and closes <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too.</TextBlock>
-<TextBlock>For several sections, see <Anchor Href="docs/components/accordion">Accordion</Anchor>. For a panel over the page, see <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
+<TextBlock>For several sections, see <Anchor Href="docs/components/accordion">Accordion</Anchor>. For a panel over the page, see <Anchor Href="docs/components/popover">Popover</Anchor>. For long text that shows its first lines, see <Anchor Href="docs/components/show-more">ShowMore</Anchor>.</TextBlock>
 
 <Heading Level="2">A section behind a label</Heading>
 <TextBlock>The trigger is a line of text with a chevron, and it opens the section below it. It suits advanced options, or details most users can skip. Set <Code>Label</Code> to the text beside the chevron.</TextBlock>
@@ -11,11 +11,6 @@
 <Heading Level="2">A custom trigger</Heading>
 <TextBlock>The trigger is what the user clicks to open the section. To replace the label and chevron with inline content of your own, set <Code>Trigger</Code>.</TextBlock>
 <ExampleViewer Example="collapsible-custom-trigger" />
-
-<Heading Level="2">Show more</Heading>
-<TextBlock>Long text, such as a bio or an account's background, can show its first lines and keep the rest behind a Show more button. Wrap it in <Code>ShowMore</Code> and set <Code>Lines</Code>, which defaults to 4. The button shows only when there is more than fits, and reads Show less once it's open. For text with line breaks typed into it, set <Code>KeepLines</Code> on the <Code>TextBlock</Code>.</TextBlock>
-<ExampleViewer Example="collapsible-show-more" />
-<TextBlock>With JavaScript off, the whole text shows and there's no button.</TextBlock>
 
 <Heading Level="2">Opening from the server or C#</Heading>
 <TextBlock>A collapsible can start open, such as when a form post left an error inside it. Set <Code>Open</Code> to start it open. On interactive pages, to read and set whether it's open from C#, set <Code>@@bind-Open</Code>.</TextBlock>
