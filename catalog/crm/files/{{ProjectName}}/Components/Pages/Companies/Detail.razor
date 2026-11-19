@@ -160,7 +160,7 @@
                 </Card>
 
                 @* What's worth knowing about the account: the company's own Background field, edited with the rest. *@
-                @if (Paragraphs(company.Notes) is { Length: > 0 } background)
+                @if (company.Notes?.Trim() is { Length: > 0 } background)
                 {
                     <Card Title="Background" TitleLevel="2">
                         @if (_canEdit)
@@ -169,12 +169,10 @@
                                 <Button Href="@EditHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil" aria-label="Edit background">Edit</Button>
                             </CardActions>
                         }
-                        <CardBody Gap="3">
-                            @foreach (var paragraph in background)
-                            {
-                                <TextBlock Color="Color.Muted">@paragraph</TextBlock>
-                            }
-                        </CardBody>
+                        @* Four lines, the rest behind Show more: a long one doesn't push the page down. *@
+                        <ShowMore Lines="4">
+                            <TextBlock Color="Color.Muted" KeepLines>@background</TextBlock>
+                        </ShowMore>
                     </Card>
                 }
             </Column>
@@ -314,9 +312,6 @@
         var shown = (web ? typed[(typed.IndexOf("://", StringComparison.Ordinal) + 3)..] : typed).TrimEnd('/');
         return (web ? typed : $"https://{typed}", shown.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? shown[4..] : shown);
     }
-
-    private static string[] Paragraphs(string? text) =>
-        (text ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private static string About(params string?[] parts) => string.Join(" · ", parts.Where(p => !string.IsNullOrEmpty(p)));
 }
