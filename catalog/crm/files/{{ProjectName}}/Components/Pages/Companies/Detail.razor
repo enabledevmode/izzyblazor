@@ -13,8 +13,8 @@
 @* A company: its people, its open deals, and what the team has done with them. Its sections are tabs with an
    address each (/companies/3, /companies/3/deals, /activity, /notes), so each loads only its own data, can be linked to,
    and Back works. Above them: who looks after the account, what's open in the pipeline and what's next on the
-   calendar. Beside every section: the company's details and background (Edit opens the Companies grid's dialog and
-   comes back here). Notes are the team's own about its people and deals (Components/Notes/NoteList.razor). On a phone the header's buttons float in
+   calendar. Beside every section: the company's details and background (Edit opens the company form over the
+   page, and Add contact the contact form with this company chosen). Notes are the team's own about its people and deals (Components/Notes/NoteList.razor). On a phone the header's buttons float in
    the corner. People who can't edit records (Viewers) read everything and see no buttons. *@
 @if (_company is { } company)
 {
@@ -188,6 +188,9 @@
             </Column>
         </Grid>
     </Column>
+
+    <CompanyDialog CanEdit="_canEdit" Company="Id" />
+    <ContactDialog CanEdit="_canEdit" Company="Id" />
 }
 
 @code {
@@ -224,9 +227,9 @@
     // This tab's address: where Edit and a note's dialogs come back to.
     private string Here => Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0];
 
-    // Edit opens the Companies grid's dialog; Add contact the Contacts grid's, with this company chosen.
-    private string EditHref => $"companies?edit={Id}&return=/{Here}";
-    private string AddContactHref => $"contacts?add=1&company={Id}&return=/companies/{Id}";
+    // Both open over this tab: the company form, and the contact form with this company chosen.
+    private string EditHref => $"{Here}?dialog={CompanyDialog.EditId}";
+    private string AddContactHref => $"{Here}?dialog={ContactDialog.NewId}";
 
     // Something in the company's history: what, more about it, "who · when" as written, and when (the workspace's time).
     private sealed record Happened(string Title, string? About, string Time, DateTime When);

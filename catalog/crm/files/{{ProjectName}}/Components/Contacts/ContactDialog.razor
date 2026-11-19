@@ -1,0 +1,144 @@
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+@inject ToastService Toasts
+
+@* The contact form, in a dialog over the page that asked for it: a link to that page's own address with
+   ?dialog=new-contact adds one, and with ?dialog=edit-contact edits the page's contact. Put one on a page that
+   has such a link:
+
+   <ContactDialog CanEdit="_canEdit" />                     Contacts, My day: add
+   <ContactDialog CanEdit="_canEdit" Company="Id" />        a company: add, with it chosen
+   <ContactDialog CanEdit="_canEdit" Contact="Id" />        a contact: edit
+
+   It saves and comes back to the page, without the ?dialog. The fields are checked against Contact's attributes,
+   which hold the messages (Data/Contact.cs). They're about someone else, so the browser is told not to offer the
+   user's own name, email and phone (autocomplete off). *@
+@if (CanEdit && Input is not null && Opened is not null)
+{
+    var adding = Opened == NewId;
+    <Dialog Id="@Opened" Title="@(adding ? "New contact" : "Edit contact")" Size="DialogSize.Lg" CloseOnBackdrop="false">
+        <Form Model="Input" FormName="contact" Columns="2" OnValidSubmit="SaveAsync">
+            @if (adding)
+            {
+                <TextBlock Color="Color.Muted">Add a person and connect them to the right company.</TextBlock>
+            }
+            <TextField @bind-Value="Input.FirstName" Label="First name" autocomplete="off" />
+            <TextField @bind-Value="Input.LastName" Label="Last name" autocomplete="off" />
+            <TextField @bind-Value="Input.Email" Label="Email address" autocomplete="off" />
+            <TextField @bind-Value="Input.Phone" Label="Phone number" autocomplete="off" />
+            <TextField @bind-Value="Input.JobTitle" Label="Job title" autocomplete="off" />
+            <Select @bind-Value="Input.CompanyId" Label="Company" Items="_companyIds" ItemText="id => _companies[id!.Value]" Placeholder="Choose a company" />
+            <Select @bind-Value="Input.OwnerId" Label="Owner" Items="_ownerIds" ItemText="id => _owners[id!]" />
+            <Select @bind-Value="Input.Status" Label="Status" />
+            <Select @bind-Value="Input.Source" Label="Lead source" />
+            <DateField @bind-Value="Input.NextFollowUp" Label="Next follow-up" />
+            <TextArea @bind-Value="Input.Notes" Label="Background" Placeholder="Helpful context about this person…" ColSpan="GridSpan.Full" />
+            <DialogFooter>
+                <DialogClose>Cancel</DialogClose>
+                <Button Submit>@(adding ? "Create contact" : "Save changes")</Button>
+            </DialogFooter>
+        </Form>
+    </Dialog>
+}
+
+@code {
+    /// <summary>The dialogs' ids, for links: <c>?dialog=new-contact</c>, <c>?dialog=edit-contact</c>.</summary>
+    public const string NewId = "new-contact", EditId = "edit-contact";
+
+    /// <summary>Whether the reader can add and edit (Policies.EditRecords). Without it there's no dialog.</summary>
+    [Parameter] public bool CanEdit { get; set; }
+
+    /// <summary>The contact <c>?dialog=edit-contact</c> edits: the page's own.</summary>
+    [Parameter] public int? Contact { get; set; }
+
+    /// <summary>The company a new contact starts with: the page's own.</summary>
+    [Parameter] public int? Company { get; set; }
+
+    [SupplyParameterFromQuery(Name = "dialog")] private string? Dialog { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    // The contact as the form shows it, and as it posts.
+    [SupplyParameterFromForm(FormName = "contact")] private Contact? Input { get; set; }
+
+    // The dialog's choices: every company and every team member, by name.
+    private Dictionary<int, string> _companies = [];
+    private List<int?> _companyIds = [];
+    private Dictionary<string, string> _owners = [];
+    private List<string?> _ownerIds = [];
+
+    // Which of the two the address opens, if either: edit only on a page with a contact.
+    private string? Opened => Dialog == NewId ? NewId : Dialog == EditId && Contact is not null ? EditId : null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!CanEdit || Opened is null) return;
+        _companies = await Db.Companies.AsNoTracking().ToDictionaryAsync(c => c.Id, c => c.Name);
+        _companyIds = _companies.OrderBy(c => c.Value).Select(c => (int?)c.Key).ToList();
+        _owners = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
+        _ownerIds = _owners.OrderBy(o => o.Value).Select(o => (string?)o.Key).ToList();
+
+        // A post brings the form's own values; otherwise the contact as it is, or a new one: yours, a lead, at the
+        // page's company.
+        if (Input is not null) return;
+        if (Opened == EditId)
+        {
+            Input = await Db.Contacts.AsNoTracking().FirstOrDefaultAsync(c => c.Id == Contact);
+        }
+        else
+        {
+            var me = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            Input = new Contact
+            {
+                OwnerId = me, Status = ContactStatus.Lead, Source = LeadSource.Referral,
+                CompanyId = Company is { } id && _companies.ContainsKey(id) ? id : null,
+            };
+        }
+    }
+
+    private async Task SaveAsync(EditContext form)
+    {
+        if (!CanEdit || Input is null) return;
+        var adding = Opened == NewId;
+        var saved = adding ? new Contact() : await Db.Contacts.FirstOrDefaultAsync(c => c.Id == Contact);
+        if (saved is null)
+        {
+            Fail(form, nameof(Input.FirstName), "This contact isn’t here any more.");
+            return;
+        }
+
+        // One contact per email address.
+        var email = Input.Email.Trim();
+        if (await Db.Contacts.AnyAsync(c => c.Email == email && c.Id != saved.Id))
+        {
+            Fail(form, nameof(Input.Email), "Another contact has this email address.");
+            return;
+        }
+
+        // The form's fields and nothing else: when it was added and last heard from aren't the form's to set.
+        (saved.FirstName, saved.LastName, saved.Email) = (Input.FirstName.Trim(), Input.LastName.Trim(), email);
+        (saved.Phone, saved.JobTitle, saved.Notes) = (Blank(Input.Phone), Blank(Input.JobTitle), Blank(Input.Notes));
+        (saved.CompanyId, saved.OwnerId) = (Input.CompanyId, Blank(Input.OwnerId));
+        (saved.Status, saved.Source, saved.NextFollowUp) = (Input.Status, Input.Source, Input.NextFollowUp);
+        if (adding)
+        {
+            saved.Added = DateOnly.FromDateTime(Clock.Now(await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync()));
+            Db.Contacts.Add(saved);
+        }
+
+        // The audit log records it as it saves (Auditing/AuditInterceptor.cs).
+        await Db.SaveChangesAsync();
+        if (adding) Toasts.Success($"{saved.Name} is in your contacts.", "Contact created");
+        else Toasts.Success($"{saved.Name} is up to date.", "Contact saved");
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("dialog", (string?)null));
+    }
+
+    private static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+
+    private static void Fail(EditContext form, string field, string message)
+    {
+        new ValidationMessageStore(form).Add(form.Field(field), message);
+        form.NotifyValidationStateChanged();
+    }
+}
