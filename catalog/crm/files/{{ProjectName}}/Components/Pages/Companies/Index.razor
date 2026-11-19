@@ -1,17 +1,16 @@
 @page "/companies"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
-@using Microsoft.AspNetCore.Http
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
 @inject IAuthorizationService Authorization
-@inject ToastService Toasts
+@inject NavigationManager Navigation
 
 <PageTitle>Companies</PageTitle>
 
 @* Companies: every account, with how many people the team knows there and what its open deals are worth. The grid
-   searches, sorts and pages in the database, and adds and edits in a dialog made from its columns: /companies?add=1
-   opens it, /companies?edit=3 edits one, and &return=/companies/3 goes back to the page that asked. Rows have no
-   Edit of their own (RowActions): a company's page has it. People who can't edit records (Viewers) see the list alone. *@
+   searches, sorts and pages in the database. Add company opens the company form over the list
+   (Components/Companies/CompanyDialog.razor, ?dialog=new-company); a company's own page has Edit. People who can't
+   edit records (Viewers) see the list alone. *@
 <PageCrumbs><BreadcrumbItem>Companies</BreadcrumbItem></PageCrumbs>
 
 @* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
@@ -21,16 +20,13 @@
         @if (_canEdit)
         {
             <PageHeaderActions>
-                <DataGridAdd For="companies" ShowLabel FloatBelow="Breakpoint.Sm" />
+                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", CompanyDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Add company</Button>
             </PageHeaderActions>
         }
     </PageHeader>
 
-    <DataGrid id="companies" TItem="Company" ItemsProvider="FindAsync" FindItem="GetAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Companies"
-              PageSize="25" InitialSort="name" Searchable SmallScreen="DataGridSmallScreen.HideColumns"
-              EditMode="DataGridEditMode.Dialog" EditColumns="2" EditDialogTitle="@(c => c is null ? "New company" : "Edit company")"
-              EditSaveText="@(c => c is null ? "Create company" : "Save changes")" AddText="Add company"
-              NewItem="@(_canEdit ? New : null)" ItemEditable="_ => _canEdit" RowActions="false" OnSave="SaveAsync" Grow>
+    <DataGrid id="companies" TItem="Company" ItemsProvider="FindAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Companies"
+              PageSize="25" InitialSort="name" Searchable SmallScreen="DataGridSmallScreen.HideColumns" Grow>
         <ToolbarContent>
             <DataGridSearch />
         </ToolbarContent>
@@ -45,26 +41,6 @@
                     <TextBlock Weight="FontWeight.Medium" Truncate><Anchor Href="@($"companies/{company.Id}")" InheritColor Underline="AnchorUnderline.Hover">@company.Name</Anchor></TextBlock>
                 </Row>
             </TemplateColumn>
-            @* In the dialog only: the Company column shows the name. *@
-            @* autocomplete: a company's name, so the browser doesn't offer the user's own contact details. *@
-            <PropertyColumn Property="c => c.Name" Title="Company name" Visible="false">
-                <EditTemplate Context="field">
-                    <TextField @bind-Value="field.Item.Name" autocomplete="organization" @attributes="field.Attributes" />
-                </EditTemplate>
-            </PropertyColumn>
-            <PropertyColumn Property="c => c.Website" Visible="false">
-                <EditTemplate Context="field">
-                    <TextField @bind-Value="field.Item.Website" Placeholder="https://" @attributes="field.Attributes" />
-                </EditTemplate>
-            </PropertyColumn>
-            <PropertyColumn Property="c => c.Industry" Visible="false" />
-            <PropertyColumn Property="c => c.Size" Title="Company size" Visible="false" />
-            <PropertyColumn Property="c => c.City" Visible="false" />
-            <PropertyColumn Property="c => c.Country" Visible="false">
-                <EditTemplate Context="field">
-                    <Select @bind-Value="field.Item.Country" Items="Company.Countries" @attributes="field.Attributes" />
-                </EditTemplate>
-            </PropertyColumn>
             @* Counted and added up in the database when sorted by; shown from the people and open deals each row loads. *@
             <TemplateColumn Title="Contacts" SortKey="contacts" SortBy="c => c.Contacts.Count" Sortable Align="CellAlign.End" Width="Length.Rem(8)" Context="company">
                 @company.Contacts.Count
@@ -76,93 +52,27 @@
                             Align="CellAlign.End" Width="Length.Rem(9.5)" Priority="1" Context="company">
                 @_workspace?.Money(company.Deals.Sum(d => d.Value))
             </TemplateColumn>
-            <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" Sortable EditBy="c => c.OwnerId" Context="company">
-                <ChildContent>@company.Owner?.Name</ChildContent>
-                <EditTemplate Context="field">
-                    <Select @bind-Value="field.Item.OwnerId" Items="_ownerIds" ItemText="id => _owners[id!]" @attributes="field.Attributes" />
-                </EditTemplate>
+            <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" Sortable Context="company">
+                @company.Owner?.Name
             </TemplateColumn>
-            <PropertyColumn Property="c => c.Status" Visible="false" />
-            <PropertyColumn Property="c => c.Notes" Title="Background" Visible="false">
-                <EditTemplate Context="field">
-                    <TextArea @bind-Value="field.Item.Notes" Placeholder="Goals, preferences, or background…" @attributes="field.Attributes" />
-                </EditTemplate>
-            </PropertyColumn>
         </Columns>
-        <EditDialog>
-            @if (Add is not null)
-            {
-                <TextBlock Color="Color.Muted" ColSpan="GridSpan.Full">Create a shared account for related people and deals.</TextBlock>
-            }
-            @* The logo isn't one of the grid's columns: the file posts with the dialog's form, and SaveAsync reads it. *@
-            <Stack ColSpan="GridSpan.Full" Gap="2">
-                <FileUpload Name="Logo" Label="Logo" Size="ControlSize.Sm" Accept=".png,.jpg,.jpeg" AcceptText="PNG or JPG · up to 2 MB" MaxFileSize="CompanyLogo.MaxBytes">
-                    <Preview><Avatar Src="@_editing?.LogoSrc" Icon="Lucide.BuildingComplex" Size="AvatarSize.Lg" Accent="Accent.Neutral" Square Decorative /></Preview>
-                </FileUpload>
-                @if (_editing?.LogoUpdated is not null)
-                {
-                    <Checkbox @bind-Value="_removeLogo" name="RemoveLogo" Label="Remove the logo" />
-                }
-            </Stack>
-            <EditField Key="name" />
-            <EditField Key="website" />
-            <EditField Key="industry" />
-            <EditField Key="size" />
-            <EditField Key="city" />
-            <EditField Key="country" />
-            <EditField Key="owner" Label="Account owner" />
-            <EditField Key="status" />
-            <EditField Key="notes" ColSpan="GridSpan.Full" />
-        </EditDialog>
     </DataGrid>
 </Column>
 
+<CompanyDialog CanEdit="_canEdit" />
+
 @code {
-    /// <summary>The add dialog is open (?add=1).</summary>
-    [SupplyParameterFromQuery] private string? Add { get; set; }
-
-    /// <summary>The company the edit dialog is open on (?edit=3).</summary>
-    [SupplyParameterFromQuery] private string? Edit { get; set; }
-
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    // The request: the dialog's form posts the logo's file with it.
-    [CascadingParameter] private HttpContext? Http { get; set; }
-
-    // The company being edited, for the logo it has now.
-    private Company? _editing;
-    private bool _removeLogo;
-
-    // Who may add and edit: the EditRecords policy.
+    // Who may add: the EditRecords policy.
     private bool _canEdit;
-    private string? _me;
     private Workspace? _workspace;
-    private DateOnly _today;
-
-    // The dialog's choice of owner: every team member, by name.
-    private Dictionary<string, string> _owners = [];
-    private List<string?> _ownerIds = [];
 
     protected override async Task OnInitializedAsync()
     {
-        var user = (await AuthState).User;
-        _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
-        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, Policies.EditRecords)).Succeeded;
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
-        _today = DateOnly.FromDateTime(Clock.Now(_workspace));
-
-        _owners = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
-        _ownerIds = _owners.OrderBy(o => o.Value).Select(o => (string?)o.Key).ToList();
     }
-
-    protected override async Task OnParametersSetAsync() => _editing = Edit is null ? null : await GetAsync(Edit);
-
-    // A new company as the dialog first shows it: yours, a prospect, with the first of each list chosen.
-    private Company New() => new()
-    {
-        OwnerId = _me, Status = CompanyStatus.Prospect, Industry = Industry.DesignTechnology, Size = CompanySize.UpTo10,
-        Country = Company.Countries[0],
-    };
 
     // The grid's page of companies, from the database, each with its people and its open deals (the row's counts
     // and value). Its search looks in names, cities and owners' names.
@@ -176,61 +86,5 @@
             query = query.Where(c => c.Name.ToLower().Contains(search) || c.City!.ToLower().Contains(search) || c.Owner!.Name!.ToLower().Contains(search));
         }
         return await (request with { Search = null }).ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
-    }
-
-    // The company an edit address (?edit=3) names, which may be on another page of the grid.
-    private async Task<Company?> GetAsync(string key) =>
-        int.TryParse(key, out var id) ? await Db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id) : null;
-
-    private async Task SaveAsync(DataGridSave<Company> save)
-    {
-        if (!_canEdit) return;
-        var company = save.Item;
-        // The logo, when a file came with the form: a PNG or JPG of 2 MB at most (Data/CompanyLogo.cs).
-        var form = Http?.Request.HasFormContentType == true ? Http.Request.Form : null;
-        CompanyLogo? logo = null;
-        if (form?.Files["Logo"] is { Length: > 0 } file)
-        {
-            (logo, var problem) = await CompanyLogo.ReadAsync(file);
-            if (problem is not null)
-            {
-                save.AddError(problem);
-                return;
-            }
-        }
-
-        // The dialog has already checked the fields against Company's attributes, which hold the messages (Data/Company.cs).
-        var saved = company;
-        if (save.IsNew)
-        {
-            company.Added = _today;
-            Db.Companies.Add(company);
-        }
-        else if (await Db.Companies.Include(c => c.Logo).FirstOrDefaultAsync(c => c.Id == company.Id) is { } found)
-        {
-            save.CopyTo(saved = found);
-        }
-        else
-        {
-            save.AddError("This company isn’t here any more.");
-            return;
-        }
-
-        // A new file takes the old one's place; "Remove the logo" leaves the building.
-        if (logo is not null)
-        {
-            if (saved.Logo is { } old) (old.ContentType, old.Data) = (logo.ContentType, logo.Data);
-            else saved.Logo = logo;
-            saved.LogoUpdated = DateTime.UtcNow;
-        }
-        else if (!save.IsNew && form?["RemoveLogo"].Contains("true") == true)
-        {
-            saved.Logo = null;
-            saved.LogoUpdated = null;
-        }
-        // The audit log records it as it saves (Auditing/AuditInterceptor.cs).
-        await Db.SaveChangesAsync();
-        if (save.IsNew) Toasts.Success($"{company.Name} is in your companies.", "Company created");
-        else Toasts.Success($"{company.Name} is up to date.", "Company saved");
     }
 }

@@ -13,7 +13,7 @@
 @* A contact: who they are, and everything the team has done with them. Its sections are tabs with an address
    each (/contacts/7, /contacts/7/deals, /tasks, /notes), so each loads only its own data, can be linked to, and
    Back works. Beside every section: what's next on the calendar, the contact's details and their background
-   (Edit opens the Contacts grid's dialog and comes back here). On a phone the header's buttons float in the
+   (Edit opens the contact form over the page: Components/Contacts/ContactDialog.razor). On a phone the header's buttons float in the
    corner, and what's next comes before the sections. Notes are the team's own (Components/Notes/NoteList.razor). People who can't edit records (Viewers)
    read everything and can email or call, and see no other buttons. *@
 @if (_contact is { } contact)
@@ -171,6 +171,8 @@
             </Column>
         </Grid>
     </Column>
+
+    <ContactDialog CanEdit="_canEdit" Contact="Id" />
 }
 
 @code {
@@ -204,8 +206,8 @@
     private bool _canEdit;
     private string? _me;
 
-    // Edit opens the Contacts grid's dialog, which comes back to this tab.
-    private string EditHref => $"contacts?edit={Id}&return=/{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}";
+    // Edit opens the contact form over this tab.
+    private string EditHref => $"{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}?dialog={ContactDialog.EditId}";
 
     // What's next on the calendar with them: beside the sections on a wide screen, above them on a small one.
     private RenderFragment NextFollowUp => __builder =>

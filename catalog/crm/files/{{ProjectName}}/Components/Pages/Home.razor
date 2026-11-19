@@ -14,7 +14,7 @@
     <PageHeader Title="@($"{Greeting}, {_firstName}")" Description="@($"{_now:dddd, MMMM d} · Here’s where to focus today.")">
         <PageHeaderActions>
             <AuthorizeView Policy="@Policies.EditRecords">
-                <Button Href="contacts?add=1" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New contact</Button>
+                <Button Href="@($"?dialog={ContactDialog.NewId}")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New contact</Button>
             </AuthorizeView>
         </PageHeaderActions>
     </PageHeader>
@@ -71,6 +71,11 @@
         </Card>
     </Grid>
 </Column>
+
+@* New contact opens here, over the page. *@
+<AuthorizeView Policy="@Policies.EditRecords">
+    <ContactDialog CanEdit />
+</AuthorizeView>
 
 @code {
     /// <summary>The tasks just ticked here, which stay in the list: "4,7".</summary>
