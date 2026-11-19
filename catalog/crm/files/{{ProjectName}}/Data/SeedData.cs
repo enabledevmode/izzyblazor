@@ -143,6 +143,7 @@ public static class SeedData
             """);
         followUp.Location = "Video call · Link to be added";
         var walkthrough = Do(ActivityType.Meeting, "Acme website walkthrough", olivia, website, Local(0, 14), 45, jamie);
+        walkthrough.Location = "https://meet.example/acme-walkthrough";
         var discovery = Do(ActivityType.Call, "Discovery call", sofia, portal, Local(-1, 9, 30), 30, alex, Utc(-1, 10));
         db.Activities.AddRange(
             Do(ActivityType.Task, "Follow up on website proposal", olivia, website, Local(-1, 9), 30, jamie),

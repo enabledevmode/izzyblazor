@@ -4,7 +4,8 @@ using {{RootNamespace}}.Auditing;
 namespace {{RootNamespace}}.Data;
 
 /// <summary>
-/// A note the whole team can find, about a contact, a deal (or both) or a company, written on that record's page.
+/// A note the whole team can find, about a contact, a deal (or both) or a company, written on that record's page,
+/// or on an activity's: what a meeting decided, which is also about the meeting's contact and deal.
 /// It has no title: it is its text, which is Markdown.
 /// </summary>
 public class Note : IAudited
@@ -20,6 +21,10 @@ public class Note : IAudited
     /// <summary>The company it's about, for a note written on a company's page. A company's page also shows the notes about its people and deals.</summary>
     public int? CompanyId { get; set; }
     public Company? Company { get; set; }
+
+    /// <summary>The meeting, call or task it was written on, whose page lists it.</summary>
+    public int? ActivityId { get; set; }
+    public Activity? Activity { get; set; }
 
     [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string Body { get; set; } = "";
 

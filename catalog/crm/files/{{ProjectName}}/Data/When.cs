@@ -54,6 +54,22 @@ public static class When
         return $"{from}–{to}";
     }
 
+    /// <summary>
+    /// The workspace's time zone at a time on its clock, as people write it: "EST", "CDT". Where the zone has no
+    /// such name, how far it is from UTC: "UTC+1".
+    /// </summary>
+    public static string Zone(DateTime local, Workspace? workspace)
+    {
+        if (workspace is null) return "UTC";
+        var zone = TimeZoneInfo.FindSystemTimeZoneById(workspace.TimeZone);
+        // "Eastern Standard Time" is EST; names that don't shorten that way (most outside North America) don't.
+        var words = (zone.IsDaylightSavingTime(local) ? zone.DaylightName : zone.StandardName).Split(' ');
+        if (workspace.TimeZone.StartsWith("America/", StringComparison.Ordinal) && words is [{ Length: > 0 }, "Standard" or "Daylight", "Time"])
+            return string.Concat(words.Select(word => word[0]));
+        var offset = zone.GetUtcOffset(local);
+        return offset == TimeSpan.Zero ? "UTC" : $"UTC{(offset < TimeSpan.Zero ? "−" : "+")}{offset:h\\:mm}".Replace(":00", "");
+    }
+
     /// <summary>A time the database keeps in UTC, as a time in the workspace's zone: for components that take one, such as Comment.</summary>
     public static DateTimeOffset Zoned(DateTime utc, Workspace? workspace)
     {

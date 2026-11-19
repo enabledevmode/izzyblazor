@@ -446,6 +446,7 @@ namespace {{RootNamespace}}.Data.Migrations
                     ContactId = table.Column<int>(type: "INTEGER", nullable: true),
                     DealId = table.Column<int>(type: "INTEGER", nullable: true),
                     CompanyId = table.Column<int>(type: "INTEGER", nullable: true),
+                    ActivityId = table.Column<int>(type: "INTEGER", nullable: true),
                     Body = table.Column<string>(type: "TEXT", maxLength: 20000, nullable: false),
                     AuthorId = table.Column<string>(type: "TEXT", nullable: true),
                     Created = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -454,6 +455,12 @@ namespace {{RootNamespace}}.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Notes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Notes_Activities_ActivityId",
+                        column: x => x.ActivityId,
+                        principalTable: "Activities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Notes_AspNetUsers_AuthorId",
                         column: x => x.AuthorId,
@@ -614,6 +621,11 @@ namespace {{RootNamespace}}.Data.Migrations
                 column: "Stage");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Notes_ActivityId",
+                table: "Notes",
+                column: "ActivityId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notes_AuthorId",
                 table: "Notes",
                 column: "AuthorId");
@@ -637,9 +649,6 @@ namespace {{RootNamespace}}.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Activities");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -678,6 +687,9 @@ namespace {{RootNamespace}}.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Activities");
 
             migrationBuilder.DropTable(
                 name: "Deals");

@@ -11,7 +11,7 @@
    <ActivityDialog CanEdit="_canEdit" />                  the calendar or the task list: schedule
    <ActivityDialog CanEdit="_canEdit" Contact="Id" />     a contact: schedule, with them chosen
    <ActivityDialog CanEdit="_canEdit" Deal="Id" />        a deal: schedule, with it and its primary contact chosen
-   <ActivityDialog CanEdit="_canEdit" Activity="Id" />    an activity: edit (the calendar passes ?activity=)
+   <ActivityDialog CanEdit="_canEdit" Activity="Id" />    an activity: edit
 
    It saves and comes back to the page, without the ?dialog. A meeting, a call or a task: a task's date and time
    are when it's due. Times are the workspace's own (Workspace.TimeZone), as the calendar shows them. *@
@@ -198,8 +198,7 @@
 
         if (adding) Toasts.Success($"{saved.Title} is on the calendar.", "Activity scheduled");
         else Toasts.Success($"{saved.Title} is up to date.", "Activity saved");
-        // Back to the page as it was: without the dialog, or the calendar's ?activity.
-        Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = null, ["activity"] = null }));
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("dialog", (string?)null));
     }
 
     private static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
