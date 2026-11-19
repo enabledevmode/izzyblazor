@@ -12,7 +12,7 @@
     template per item instead of columns.
 
     With no template, ItemText, ItemDescription and ItemIcon draw a row of an icon, the text and
-    a muted second line. ItemHref makes each item a link (the whole item is clickable; links and
+    a muted second line; ItemMedia puts an avatar or a picture in the icon's place. ItemHref makes each item a link (the whole item is clickable; links and
     buttons inside it still work on their own), and ItemCurrent marks the one the page is
     showing. OnItemClick does the same with a button, on interactive pages.
 
@@ -195,6 +195,12 @@
 
     /// <summary>The default row's icon, at its start.</summary>
     [Parameter] public Func<TItem, IconData?>? ItemIcon { get; set; }
+
+    /// <summary>
+    /// What starts the default row in place of an icon: a person's <c>Avatar</c>, a logo, a thumbnail. The
+    /// text beside it still comes from <see cref="ItemText"/> and <see cref="ItemDescription"/>.
+    /// </summary>
+    [Parameter] public RenderFragment<TItem>? ItemMedia { get; set; }
 
     /// <summary>
     /// Names an item for screen readers, in its link or button. Defaults to <see cref="ItemText"/>,
@@ -853,7 +859,11 @@
     {
         var description = ItemDescription?.Invoke(item);
         <span class="ib-listview-row">
-            @if (ItemIcon?.Invoke(item) is { } icon)
+            @if (ItemMedia is not null)
+            {
+                @ItemMedia(item)
+            }
+            else if (ItemIcon?.Invoke(item) is { } icon)
             {
                 <Icon Name="icon" Class="ib-listview-icon" />
             }

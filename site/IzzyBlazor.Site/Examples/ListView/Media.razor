@@ -1,0 +1,17 @@
+@* The people at a company: each one's avatar, name and role, and a link to their page. *@
+<ListView Items="_people" ItemKey="p => p.Id" ItemText="p => p.Name" ItemDescription="@(p => $"{p.Role} · {p.Email}")"
+          ItemHref="@(_ => "#")" Label="People at Acme Co." Bordered MaxWidth="28.Rem" Grow Context="person">
+    <ItemMedia><Avatar Name="@person.Name" Decorative /></ItemMedia>
+</ListView>
+
+@code {
+    private readonly Person[] _people =
+    [
+        new("olivia", "Olivia Chen", "Marketing director", "olivia@acme.example"),
+        new("ethan", "Ethan Brooks", "Operations lead", "ethan@acme.example"),
+        new("priya", "Priya Nair", "Finance manager", "priya@acme.example"),
+    ];
+    @* hide *@
+    private sealed record Person(string Id, string Name, string Role, string Email);
+    @* /hide *@
+}

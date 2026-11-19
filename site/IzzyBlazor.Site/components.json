@@ -3261,6 +3261,7 @@
       "examples": [
         {"id": "list-view-usage", "title": "Links and the current item", "lead": "Set `Items` and an `ItemKey`; without a template, `ItemText`, `ItemDescription` and `ItemIcon` draw each item. To make each item a link, set `ItemHref`; to mark the item the page is showing, set `ItemCurrent`."},
         {"id": "list-view-actions", "title": "Actions on items", "lead": "For content at the end of each item, such as a badge or an icon button, set `ItemActions`. For a ⋯ menu of `MenuItem`s, set `ItemMenu`.", "after": ["Keep one or two actions visible and put the rest in the menu. An item whose menu renders nothing has no ⋯ button."], "notes": {"noscript": "Star and each menu item post the form with their Name and Value. The menu opens and closes, but has no arrow keys.", "static": "Star and each menu item post the form with their Name and Value. The menu has arrow keys and type-ahead.", "interactive": "Each button's OnClick runs C#, and nothing is posted."}},
+        {"id": "list-view-media", "title": "Avatars and pictures", "lead": "To start each item with an avatar, a logo or a thumbnail in place of an icon, set `ItemMedia`. `ItemText` and `ItemDescription` still write the text beside it."},
         {"id": "list-view-cards", "title": "Cards in columns", "lead": "To show the items as cards, such as a product gallery, set `Columns`. That many cards fit across from 640px up, and one on phones. With `ItemHref`, each card is a link, and the controls inside it still work."}
       ],
       "topics": [
