@@ -1,0 +1,166 @@
+@using Microsoft.AspNetCore.Http
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject Audit Audit
+@inject NavigationManager Navigation
+@inject ToastService Toasts
+
+@* A deal's files, newest first: each name downloads the file (Program.cs, /deal-attachments/{id}). People who can
+   edit records add some in a dialog (Add file: ?dialog=attach on the page's address) and remove one after a
+   question (?dialog=remove-file&file=5). Both post here and go back to the page, so a deal's page
+   shows them by writing:
+
+   <DealAttachments Deal="Id" CanEdit="_canEdit" Href="@($"deals/{Id}")" Today="_today" /> *@
+<Card Title="Attachments" TitleLevel="2">
+    @if (CanEdit)
+    {
+        <CardActions>
+            <Button Href="@($"{Href}?dialog=attach")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Plus">Add file</Button>
+        </CardActions>
+    }
+    @if (_files.Count > 0)
+    {
+        <CardBody Flush>
+            <ListView Items="_files" ItemKey="f => f.Id.ToString()" Label="Attachments" ItemIcon="_ => Lucide.Paperclip"
+                      ItemText="f => f.FileName" ItemHref="@(f => $"deal-attachments/{f.Id}")"
+                      ItemDescription="@(f => $"Added {When.Date(DateOnly.FromDateTime(When.Local(f.Added, Workspace)), Today)} · {DealAttachment.SizeText(f.Size)}")" Context="file">
+                <ItemActions>
+                    @if (CanEdit)
+                    {
+                        <IconButton Href="@($"{Href}?dialog=remove-file&file={file.Id}")" Label="@($"Remove {file.FileName}")" Icon="Lucide.Trash"
+                                    Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                    }
+                </ItemActions>
+            </ListView>
+        </CardBody>
+    }
+    else
+    {
+        <EmptyState Icon="Lucide.Paperclip" Size="ControlSize.Sm" Title="No attachments" Description="Proposals and other files for the deal show here." />
+    }
+</Card>
+
+@if (CanEdit)
+{
+    <Dialog Id="attach" Title="Add file" CloseOnBackdrop="false">
+        <Form Model="Upload" FormName="attach-file" OnSubmit="AttachAsync" Multipart>
+            <FileUpload Name="Files" Label="Files" HideLabel Multiple MaxFileSize="DealAttachment.MaxBytes" AcceptText="Any file · up to 10 MB each" Errors="_problems" />
+            <DialogFooter>
+                <DialogClose>Cancel</DialogClose>
+                <Button Submit StartIcon="Lucide.Upload">Upload</Button>
+            </DialogFooter>
+        </Form>
+    </Dialog>
+}
+
+@if (CanEdit && _files.FirstOrDefault(f => f.Id == FileId) is { } doomed)
+{
+    <Dialog Id="remove-file" Title="Remove this file?" Size="DialogSize.Sm">
+        <Form Model="Remove" FormName="remove-file" OnValidSubmit="RemoveAsync">
+            <input type="hidden" name="Remove.Id" value="@doomed.Id" />
+            <TextBlock Color="Color.Muted">@doomed.FileName</TextBlock>
+            <DialogFooter>
+                <DialogClose>Cancel</DialogClose>
+                <Button Submit Accent="Accent.Danger">Remove</Button>
+            </DialogFooter>
+        </Form>
+    </Dialog>
+}
+
+@code {
+    /// <summary>The deal's id.</summary>
+    [Parameter, EditorRequired] public int Deal { get; set; }
+
+    /// <summary>Whether the reader can attach and remove files (Policies.EditRecords).</summary>
+    [Parameter] public bool CanEdit { get; set; }
+
+    /// <summary>The address of the page it's on, such as "deals/3": where the dialog opens and where a post goes back to.</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    [Parameter] public Workspace? Workspace { get; set; }
+
+    /// <summary>The workspace's today (Clock).</summary>
+    [Parameter] public DateOnly Today { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    /// <summary>The file the remove dialog is about (?file=5).</summary>
+    [SupplyParameterFromQuery(Name = "file")] private int? FileId { get; set; }
+
+    // The upload form's model; the files themselves are read from the request.
+    [SupplyParameterFromForm(FormName = "attach-file")] private Attach? Upload { get; set; }
+
+    [CascadingParameter] private HttpContext? Http { get; set; }
+
+    // The file the remove dialog posted.
+    [SupplyParameterFromForm(FormName = "remove-file")] private FileRef? Remove { get; set; }
+
+    private sealed class Attach;
+
+    private sealed class FileRef
+    {
+        public int Id { get; set; }
+    }
+
+    // A file as the list shows it: never its contents.
+    private sealed record Listed(int Id, string FileName, long Size, DateTime Added);
+
+    private List<Listed> _files = [];
+    private IReadOnlyList<string>? _problems;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Upload ??= new();
+        Remove ??= new();
+        _files = await Db.DealAttachments.AsNoTracking().Where(f => f.DealId == Deal).OrderByDescending(f => f.Added)
+            .Select(f => new Listed(f.Id, f.FileName, f.Size, f.Added)).ToListAsync();
+    }
+
+    // Sizes are checked here too: the browser's own check needs script, and can be skipped. All of them are
+    // attached, or none.
+    private async Task AttachAsync()
+    {
+        if (!CanEdit) return;
+        var posted = Http?.Request.HasFormContentType == true ? Http.Request.Form.Files.GetFiles("Files") : [];
+        var chosen = posted.Where(f => f.Length > 0).Take(10).ToList();
+        if (chosen.Count == 0)
+        {
+            _problems = ["Choose a file."];
+            return;
+        }
+
+        var files = new List<DealAttachment>();
+        foreach (var one in chosen)
+        {
+            var (file, problem) = await DealAttachment.ReadAsync(one);
+            if (file is null)
+            {
+                _problems = [$"{one.FileName}: {problem}"];
+                return;
+            }
+
+            (file.DealId, file.Added) = (Deal, DateTime.UtcNow);
+            file.AddedById = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            files.Add(file);
+        }
+
+        Db.DealAttachments.AddRange(files);
+        await Db.SaveChangesAsync();
+        foreach (var file in files) await Audit.RecordAsync(AuditActions.Created, "Attachment", file.Id.ToString(), file.FileName);
+        Toasts.Success(files.Count == 1 ? files[0].FileName : $"{files.Count} files", files.Count == 1 ? "File attached" : "Files attached");
+        Navigation.NavigateTo(Href);
+    }
+
+    // Only a file of this deal.
+    private async Task RemoveAsync()
+    {
+        if (CanEdit && _files.FirstOrDefault(f => f.Id == Remove!.Id) is { } file)
+        {
+            await Db.DealAttachments.Where(f => f.Id == file.Id).ExecuteDeleteAsync();
+            await Audit.RecordAsync(AuditActions.Deleted, "Attachment", file.Id.ToString(), file.FileName);
+            Toasts.Success(file.FileName, "File removed");
+        }
+
+        Navigation.NavigateTo(Href);
+    }
+}

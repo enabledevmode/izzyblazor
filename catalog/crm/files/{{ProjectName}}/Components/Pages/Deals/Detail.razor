@@ -1,4 +1,5 @@
 @page "/deals/{Id:int}"
+@page "/deals/{Id:int}/{Section}"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
 @using System.ComponentModel.DataAnnotations
@@ -11,11 +12,12 @@
 <PageTitle>@(_deal?.Name ?? "Deal")</PageTitle>
 
 @* A deal: where it is in the pipeline, what it's worth, what's next and what's been done. The stage strip follows
-   the deal's stage, which changes two ways: Mark as won in the header, or the Stage select in Deal details (any
-   stage, Lost too; it has a Save button, since a select doesn't post as it changes). Both post here, write
-   "Changed stage" in the audit log and come back with a toast. Notes are the team's own about the deal
-   (Components/Notes/NoteList.razor). On a phone the header's buttons float in the corner. People who can't edit
-   records (Viewers) read everything and see no buttons. *@
+   the deal's stage, which changes from the header: Mark as won, or the arrow beside it for another stage (or
+   lost). Each posts here, writes "Changed stage" in the audit log and comes back with a toast. On a phone the
+   same actions float in the corner, with the next stage in place of the menu. Activity and Notes are tabs with
+   an address each (/deals/3, /deals/3/notes). Notes are the team's own about the deal
+   (Components/Notes/NoteList.razor), and its files are in the database (Components/Deals/DealAttachments.razor).
+   People who can't edit records (Viewers) read everything and see no buttons. *@
 @if (_deal is { } deal)
 {
     <Column Gap="6">
@@ -24,14 +26,32 @@
             <BreadcrumbItem Href="deals">Deal pipeline</BreadcrumbItem>
             <BreadcrumbItem>@deal.Name</BreadcrumbItem>
         </PageCrumbs>
-        <PageHeader Title="@deal.Name" Description="@About(deal.Company?.Name, deal.Owner is { } owner ? $"Owned by {owner.Name}" : null)">
+        @* The day it was created follows the owner where there's room; on a phone it's with the facts below. *@
+        <PageHeader Title="@deal.Name">
+            <TextBlock Color="Color.Muted">
+                @About(deal.Company?.Name, deal.Owner is { } owner ? $"Owned by {owner.Name}" : null)<TextBlock As="span" VisibleFrom="Breakpoint.Sm"> · Created @When.Date(deal.Created, _today)</TextBlock>
+            </TextBlock>
             @if (_canEdit)
             {
-                <PageHeaderActions FloatLabel="Deal actions">
-                    <Button Href="@($"deals/{Id}?dialog=edit-deal")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil" FloatBelow="Breakpoint.Sm">Edit deal</Button>
+                <PageHeaderActions>
                     @if (deal.IsOpen)
                     {
-                        <Button Submit Form="deal-action" Name="won" Value="won" StartIcon="Lucide.Trophy" FloatBelow="Breakpoint.Sm">Mark as won</Button>
+                        <Button Href="@EditHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil" VisibleFrom="Breakpoint.Sm">Edit deal</Button>
+                        <SplitButton Label="Mark as won" StartIcon="Lucide.Trophy" Submit Form="deal-action" Name="stage" Value="@nameof(DealStage.Won)"
+                                     MenuLabel="More stages" VisibleFrom="Breakpoint.Sm">
+                            <MenuGroup Label="Move to stage">
+                                @foreach (var stage in Pipeline)
+                                {
+                                    <MenuItem Submit Form="deal-action" Name="stage" Value="@stage.ToString()" Checked="@(stage == deal.Stage)">@stage</MenuItem>
+                                }
+                            </MenuGroup>
+                            <MenuDivider />
+                            <MenuItem Submit Form="deal-action" Name="stage" Value="@nameof(DealStage.Lost)" Icon="Lucide.CircleX" Accent="Accent.Danger">Mark as lost</MenuItem>
+                        </SplitButton>
+                    }
+                    else
+                    {
+                        <Button Href="@EditHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil" FloatBelow="Breakpoint.Sm">Edit deal</Button>
                     }
                 </PageHeaderActions>
             }
@@ -58,7 +78,7 @@
             }
 
             <Card>
-                <DescriptionList Orientation="Orientation.Vertical" Columns="3">
+                <DescriptionList Orientation="Orientation.Vertical" Columns="4">
                     <DescriptionItem Term="Deal value">@($"{_workspace!.Money(deal.Value)} {_workspace.Currency}")</DescriptionItem>
                     @if (deal.Closed is { } closed)
                     {
@@ -78,10 +98,12 @@
                             <text>No one yet</text>
                         }
                     </DescriptionItem>
+                    <DescriptionItem Term="Source">@(deal.Source is { } source ? Names.Of(source) : "Not set")</DescriptionItem>
+                    <DescriptionItem Term="Created" HiddenFrom="Breakpoint.Sm">@deal.Created.ToString(_workspace.DateFormat)</DescriptionItem>
                 </DescriptionList>
             </Card>
 
-            @* What's happening, and beside it from 1024px the details: under it on smaller screens. *@
+            @* What's happening, and beside it from 1024px the scope and files: under it on smaller screens. *@
             <Grid Template="@(new() { Base = "minmax(0, 1fr)", Lg = "minmax(0, 1fr) 20rem" })" Gap="4" Align="Align.Start">
                 <Column Gap="4">
                     <Card Title="Next step" TitleLevel="2">
@@ -104,98 +126,99 @@
                         </CardBody>
                     </Card>
 
-                    <Card Title="Deal activity" TitleLevel="2">
-                        @if (_canEdit)
-                        {
-                            <CardActions>
-                                <Button Href="@($"activities/new?deal={Id}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Plus">Log activity</Button>
-                            </CardActions>
-                        }
-                        <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
-                            @foreach (var item in _history)
-                            {
-                                <TimelineItem Title="@item.Title" Time="@item.Time" DateTime="@item.When.ToString("yyyy-MM-ddTHH:mm")">
-                                    @if (!string.IsNullOrWhiteSpace(item.About))
-                                    {
-                                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@item.About</TextBlock>
-                                    }
-                                </TimelineItem>
-                            }
-                        </Timeline>
-                    </Card>
+                    <TabNav Label="Deal sections">
+                        <TabLink Href="@($"deals/{Id}")" Label="Activity" Match="NavLinkMatch.All" />
+                        <TabLink Href="@($"deals/{Id}/notes")" Label="Notes" />
+                    </TabNav>
 
+                    @switch (Section)
+                    {
+                        case null:
+                            <Card Title="Deal activity" TitleLevel="2">
+                                @if (_canEdit)
+                                {
+                                    <CardActions>
+                                        <Button Href="@($"activities/new?deal={Id}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Plus">Log activity</Button>
+                                    </CardActions>
+                                }
+                                <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
+                                    @foreach (var item in _history)
+                                    {
+                                        <TimelineItem Title="@item.Title" Time="@item.Time" DateTime="@item.When.ToString("yyyy-MM-ddTHH:mm")">
+                                            @if (!string.IsNullOrWhiteSpace(item.About))
+                                            {
+                                                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@item.About</TextBlock>
+                                            }
+                                        </TimelineItem>
+                                    }
+                                </Timeline>
+                            </Card>
+                            break;
+
+                        @* As a contact's Notes: a box to write one about the deal, then the notes, newest first. *@
+                        case "notes":
+                            @if (_canEdit)
+                            {
+                                <Card>
+                                    <Form Model="Draft" FormName="add-note" OnValidSubmit="AddNoteAsync" RequiredMark="RequiredMark.None">
+                                        <TextArea @bind-Value="Draft!.Body" Label="Note" Rows="3" AutoGrow Placeholder="Goals, decisions, and next steps…" />
+                                        <FormActions>
+                                            <Button Submit>Add note</Button>
+                                        </FormActions>
+                                    </Form>
+                                </Card>
+                            }
+                            <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"deals/{Id}/notes")" Workspace="_workspace" Today="_today" Cards />
+                            @if (_notes.Count == 0 && !_canEdit)
+                            {
+                                <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about {deal.Name} show here.")" /></Card>
+                            }
+                            break;
+                    }
+                </Column>
+
+                <Column Gap="4">
+                    @* What's included: the deal's own Scope field, edited with the rest. *@
                     @if (deal.Scope?.Trim() is { Length: > 0 } scope)
                     {
                         <Card Title="Scope" TitleLevel="2">
-                            <TextBlock KeepLines>@scope</TextBlock>
+                            @if (_canEdit)
+                            {
+                                <CardActions>
+                                    <Button Href="@EditHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil" aria-label="Edit scope">Edit</Button>
+                                </CardActions>
+                            }
+                            @* Three lines, the rest behind Show more: a long one doesn't push the files down. *@
+                            <ShowMore Lines="3">
+                                <TextBlock Color="Color.Muted" KeepLines>@scope</TextBlock>
+                            </ShowMore>
                         </Card>
                     }
 
-                    @* As a contact's Notes: a box to write one about the deal, then the notes, newest first. *@
-                    <Card Title="Notes" TitleLevel="2">
-                        <Column Gap="4">
-                            @if (_canEdit)
-                            {
-                                <Form Model="Draft" FormName="add-note" OnValidSubmit="AddNoteAsync" RequiredMark="RequiredMark.None">
-                                    <TextArea @bind-Value="Draft!.Body" Label="Note" Rows="3" AutoGrow Placeholder="Goals, decisions, and next steps…" />
-                                    <FormActions>
-                                        <Button Submit>Add note</Button>
-                                    </FormActions>
-                                </Form>
-                                @if (_notes.Count > 0)
-                                {
-                                    <Divider />
-                                }
-                            }
-                            <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"deals/{Id}")" Workspace="_workspace" Today="_today" />
-                            @if (_notes.Count == 0 && !_canEdit)
-                            {
-                                <EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about {deal.Name} show here.")" />
-                            }
-                        </Column>
-                    </Card>
+                    <DealAttachments Deal="Id" CanEdit="_canEdit" Href="@Here" Workspace="_workspace" Today="_today" />
                 </Column>
-
-                <Card Title="Deal details" TitleLevel="2">
-                    <DescriptionList Orientation="Orientation.Vertical">
-                        @if (deal.Company is { } company)
-                        {
-                            <DescriptionItem Term="Company"><Anchor Href="@($"companies/{company.Id}")">@company.Name</Anchor></DescriptionItem>
-                        }
-                        <DescriptionItem Term="Stage">
-                            @if (_canEdit)
-                            {
-                                <Form Model="Move" FormName="deal-stage" OnValidSubmit="MoveAsync" RequiredMark="RequiredMark.None">
-                                    <Row Gap="2">
-                                        <Select @bind-Value="Move!.Stage" Label="Stage" HideLabel Grow />
-                                        <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Save</Button>
-                                    </Row>
-                                </Form>
-                            }
-                            else
-                            {
-                                <Badge Status="Tones.Of(deal.Stage)">@deal.Stage</Badge>
-                            }
-                        </DescriptionItem>
-                        @if (deal.Owner is { } by)
-                        {
-                            <DescriptionItem Term="Owner">@by.Name</DescriptionItem>
-                        }
-                        @if (deal.Source is { } source)
-                        {
-                            <DescriptionItem Term="Source">@Names.Of(source)</DescriptionItem>
-                        }
-                        <DescriptionItem Term="Created">@deal.Created.ToString(_workspace.DateFormat)</DescriptionItem>
-                    </DescriptionList>
-                </Card>
             </Grid>
         </Column>
     </Column>
 
-    @* Mark as won posts this: the header's button, or its floating one on a phone. *@
     @if (_canEdit)
     {
-        <form id="deal-action" method="post" @formname="deal-action" @onsubmit="WinAsync">
+        @* On a phone the open deal's actions float in the corner, the main one nearest the thumb: the next stage
+           stands in for the menu. *@
+        @if (deal.IsOpen)
+        {
+            <SpeedDial Label="Deal actions" HiddenFrom="Breakpoint.Sm">
+                <SpeedDialAction Icon="Lucide.Trophy" Label="Mark as won" Submit Form="deal-action" Name="stage" Value="@nameof(DealStage.Won)" />
+                @if (deal.Stage < DealStage.Negotiation)
+                {
+                    <SpeedDialAction Icon="Lucide.ArrowRight" Label="@($"Move to {deal.Stage + 1}")" Submit Form="deal-action" Name="stage" Value="@((deal.Stage + 1).ToString())" />
+                }
+                <SpeedDialAction Icon="Lucide.Pencil" Label="Edit deal" Href="@EditHref" />
+            </SpeedDial>
+        }
+
+        @* The stage buttons post this: each names the stage it moves the deal to. *@
+        <form id="deal-action" method="post" @formname="deal-action" @onsubmit="MoveAsync">
             <AntiforgeryToken />
         </form>
     }
@@ -205,23 +228,24 @@
     /// <summary>The deal.</summary>
     [Parameter] public int Id { get; set; }
 
+    /// <summary>The tab: none for Activity, or "notes".</summary>
+    [Parameter] public string? Section { get; set; }
+
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    // The stage chosen in Deal details.
-    [SupplyParameterFromForm(FormName = "deal-stage")] private StageMove? Move { get; set; }
+    // The stage a button posted: a DealStage's name.
+    [SupplyParameterFromForm(FormName = "deal-action", Name = "stage")] private string? StagePost { get; set; }
 
-    // The note being written.
+    // The note being written on the Notes tab.
     [SupplyParameterFromForm(FormName = "add-note")] private NoteDraft? Draft { get; set; }
-
-    private sealed class StageMove
-    {
-        public DealStage Stage { get; set; }
-    }
 
     private sealed class NoteDraft
     {
         [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string? Body { get; set; }
     }
+
+    // The stages a deal moves through while it's open, in order.
+    private static readonly DealStage[] Pipeline = [DealStage.Discovery, DealStage.Qualified, DealStage.Proposal, DealStage.Negotiation];
 
     // Deal activity lists this many, the newest first.
     private const int Shown = 20;
@@ -234,6 +258,12 @@
     private List<Note> _notes = [];
     private bool _canEdit;
     private string? _me;
+
+    // This tab's address: where the file dialogs open and come back to.
+    private string Here => Section is null ? $"deals/{Id}" : $"deals/{Id}/{Section}";
+
+    // Edit opens the deal form over this tab.
+    private string EditHref => $"{Here}?dialog=edit-deal";
 
     // Something in the deal's history: what, more about it, "who · when" as written, and when (the workspace's time).
     private sealed record Happened(string Title, string? About, string Time, DateTime When);
@@ -249,30 +279,28 @@
         Draft ??= new();
 
         _deal = await Db.Deals.AsNoTracking().Include(d => d.Company).Include(d => d.Contact).Include(d => d.Owner).FirstOrDefaultAsync(d => d.Id == Id);
-        if (_deal is null)
+        if (_deal is null || Section is not (null or "notes"))
         {
+            _deal = null;
             Navigation.NotFound();
             return;
         }
 
-        Move ??= new StageMove { Stage = _deal.Stage };
-
         // What's next on the calendar about it: the first open activity that hasn't started.
         _next = await Db.Activities.AsNoTracking().Include(a => a.Contact)
             .Where(a => a.DealId == Id && a.Completed == null && a.Start >= now).OrderBy(a => a.Start).FirstOrDefaultAsync();
-        _notes = await Db.Notes.AsNoTracking().Include(n => n.Author)
-            .Where(n => n.DealId == Id).OrderByDescending(n => n.Created).ToListAsync();
-        await LoadHistoryAsync(_deal);
+
+        if (Section is null) await LoadHistoryAsync(_deal);
+        else
+            _notes = await Db.Notes.AsNoTracking().Include(n => n.Author)
+                .Where(n => n.DealId == Id).OrderByDescending(n => n.Created).ToListAsync();
     }
 
-    private Task WinAsync() => SetStageAsync(DealStage.Won);
-
-    private Task MoveAsync() => SetStageAsync(Move!.Stage);
-
-    // Moves the deal to a stage. Won or Lost closes it today; back in the pipeline, it's open again.
-    private async Task SetStageAsync(DealStage to)
+    // Moves the deal to the stage a button named. Won or Lost closes it today; back in the pipeline, it's open again.
+    private async Task MoveAsync()
     {
-        if (_canEdit && await Db.Deals.FirstOrDefaultAsync(d => d.Id == Id) is { } deal && deal.Stage != to)
+        if (_canEdit && Enum.TryParse<DealStage>(StagePost, out var to) && Enum.IsDefined(to)
+            && await Db.Deals.FirstOrDefaultAsync(d => d.Id == Id) is { } deal && deal.Stage != to)
         {
             var from = deal.Stage;
             deal.Stage = to;
@@ -290,7 +318,7 @@
             }
         }
 
-        Navigation.NavigateTo($"deals/{Id}");
+        Navigation.NavigateTo(Here);
     }
 
     // A note written on the page: about the deal, yours.
@@ -301,7 +329,7 @@
         Db.Notes.Add(new Note { DealId = Id, Body = Draft!.Body!.Trim(), AuthorId = _me, Created = now, Edited = now });
         await Db.SaveChangesAsync();
         Toasts.Success($"It’s on {_deal!.Name}’s page for the whole team.", "Note added");
-        Navigation.NavigateTo($"deals/{Id}");
+        Navigation.NavigateTo($"deals/{Id}/notes");
     }
 
     // The timeline, newest first: what's been finished, the calls and meetings put on the calendar, each move to
