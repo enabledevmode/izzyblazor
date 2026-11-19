@@ -9,8 +9,8 @@
 <PageTitle>Activities</PageTitle>
 
 @* Activities: your calendar. The meetings, calls and tasks assigned to you, on the working week; the Scheduler's
-   toolbar goes to other weeks and views (a day, a month, a list), and keeps both in the address. A press on one opens it
-   in the activity form, over the calendar as it is (?dialog=edit-activity&activity=14); a Viewer gets its card. The database is asked only for the days shown. Tasks is the same activities as a list
+   toolbar goes to other weeks and views (a day, a month, a list), and keeps both in the address. Each one links
+   to its own page (Detail.razor). The database is asked only for the days shown. Tasks is the same activities as a list
    (Tasks.razor). Schedule activity opens the activity form over the page
    (Components/Activities/ActivityDialog.razor, ?dialog=new-activity). People who can't edit records (Viewers)
    don't get it. *@
@@ -37,12 +37,12 @@
         <CardActions><Badge Accent="Accent.Primary">Your calendar</Badge></CardActions>
         <CardBody Flush>
             <Scheduler TItem="Activity" Items="Mine" Start="a => a.Start" End="a => a.Start.AddMinutes(a.Duration)" Title="a => a.Title" Detail="With"
-                       ItemHref="EditHref" View="SchedulerView.WorkWeek" Date="_today" Label="Your calendar" Grow />
+                       ItemHref="@(a => $"activities/{a.Id}")" View="SchedulerView.WorkWeek" Date="_today" Label="Your calendar" Grow />
         </CardBody>
     </Card>
 </Column>
 
-<ActivityDialog CanEdit="_canEdit" Activity="Activity" />
+<ActivityDialog CanEdit="_canEdit" />
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
@@ -52,16 +52,6 @@
 
     /// <summary>The day the Scheduler is on, which it keeps in the address: "2026-11-23" (today when there's none).</summary>
     [SupplyParameterFromQuery] private string? Date { get; set; }
-
-    /// <summary>The activity the form edits: the appointment pressed.</summary>
-    [SupplyParameterFromQuery] private int? Activity { get; set; }
-
-    // An appointment's link: this view and week, with the form open on it. None for someone who can't edit.
-    private string? EditHref(Activity activity) => !_canEdit ? null : Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
-    {
-        ["dialog"] = ActivityDialog.EditId,
-        ["activity"] = activity.Id,
-    });
 
     // Who may schedule: the EditRecords policy.
     private bool _canEdit;

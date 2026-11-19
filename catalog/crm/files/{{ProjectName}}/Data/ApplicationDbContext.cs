@@ -51,6 +51,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Note>().HasOne(n => n.Contact).WithMany().HasForeignKey(n => n.ContactId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Note>().HasOne(n => n.Deal).WithMany().HasForeignKey(n => n.DealId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Note>().HasOne(n => n.Company).WithMany().HasForeignKey(n => n.CompanyId).OnDelete(DeleteBehavior.SetNull);
+        builder.Entity<Note>().HasOne(n => n.Activity).WithMany().HasForeignKey(n => n.ActivityId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Note>().HasOne(n => n.Author).WithMany().HasForeignKey(n => n.AuthorId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<AuditEvent>().HasIndex(e => e.Time);
         builder.Entity<AuditEvent>().HasIndex(e => new { e.EntityType, e.EntityId });

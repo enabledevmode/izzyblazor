@@ -447,6 +447,9 @@ namespace {{RootNamespace}}.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("ActivityId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("AuthorId")
                         .HasColumnType("TEXT");
 
@@ -471,6 +474,8 @@ namespace {{RootNamespace}}.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActivityId");
 
                     b.HasIndex("AuthorId");
 
@@ -799,6 +804,11 @@ namespace {{RootNamespace}}.Data.Migrations
 
             modelBuilder.Entity("{{RootNamespace}}.Data.Note", b =>
                 {
+                    b.HasOne("{{RootNamespace}}.Data.Activity", "Activity")
+                        .WithMany()
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("{{RootNamespace}}.Data.ApplicationUser", "Author")
                         .WithMany()
                         .HasForeignKey("AuthorId")
@@ -818,6 +828,8 @@ namespace {{RootNamespace}}.Data.Migrations
                         .WithMany()
                         .HasForeignKey("DealId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Activity");
 
                     b.Navigation("Author");
 
