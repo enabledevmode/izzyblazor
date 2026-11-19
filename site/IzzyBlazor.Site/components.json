@@ -3456,15 +3456,15 @@
     },
 
     {
-      "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Navigation", "summary": "Hides a section behind a \"show more\" toggle.", "keywords": ["details", "disclosure", "read more", "truncate", "clamp"], "parts": ["ShowMore"],
+      "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Navigation", "summary": "Hides a section behind a label that opens it, or long text after its first lines.", "keywords": ["details", "disclosure", "read more", "truncate", "clamp"], "parts": ["ShowMore"],
       "features": [
         { "feature": "Opens and closes" },
         { "feature": "Open bound to C#", "member": "Open" }
       ],
       "examples": [
-        { "id": "collapsible-usage", "title": "Show more", "lead": "A collapsible hides advanced options or details most users can skip. `Label` sets the text beside the chevron." },
+        { "id": "collapsible-usage", "title": "A section behind a label", "lead": "A collapsible hides advanced options or details most users can skip. `Label` sets the text beside the chevron." },
         { "id": "collapsible-custom-trigger", "title": "Custom trigger", "lead": "To replace the label and chevron with inline content of your own, set `Trigger`." },
-        { "id": "collapsible-show-more", "title": "Long text", "lead": "`ShowMore` cuts long content to its first `Lines` and puts a Show more button under them. The button shows only when there is more than fits.", "notes": {"noscript": "Everything shows, with no button."} }
+        { "id": "collapsible-show-more", "title": "Show more", "lead": "`ShowMore` cuts long text to its first `Lines` and puts a Show more button under them. The button shows only when there is more than fits.", "notes": {"noscript": "Everything shows, with no button."} }
       ]
     }
   ]
