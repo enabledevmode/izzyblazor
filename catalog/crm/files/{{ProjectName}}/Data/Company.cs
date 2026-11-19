@@ -31,6 +31,18 @@ public class Company : IAudited
 
     public DateOnly Added { get; set; }
 
+    /// <summary>The logo (Data/CompanyLogo.cs), loaded only where it's asked for.</summary>
+    public CompanyLogo? Logo { get; set; }
+
+    /// <summary>When the logo last changed; null with no logo.</summary>
+    public DateTime? LogoUpdated { get; set; }
+
+    /// <summary>
+    /// The logo's address, null with none: pages show a building in its place. The address changes with the logo,
+    /// so a browser keeps the picture until then.
+    /// </summary>
+    public string? LogoSrc => LogoUpdated is { } at ? $"company-logos/{Id}?v={at.Ticks}" : null;
+
     public List<Contact> Contacts { get; set; } = [];
     public List<Deal> Deals { get; set; } = [];
 

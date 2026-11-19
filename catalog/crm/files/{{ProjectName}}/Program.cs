@@ -82,6 +82,16 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>();
 
+// A company's logo, from the database, for people who may see records. Its address changes with the logo
+// (Company.LogoSrc), so the browser may keep the picture for a year.
+app.MapGet("/company-logos/{id:int}", async (int id, ApplicationDbContext db, HttpContext http) =>
+{
+    if (await db.CompanyLogos.AsNoTracking().FirstOrDefaultAsync(l => l.CompanyId == id) is not { } logo) return Results.NotFound();
+    http.Response.Headers.CacheControl = "private, max-age=31536000, immutable";
+    http.Response.Headers.XContentTypeOptions = "nosniff";
+    return Results.File(logo.Data, logo.ContentType);
+}).RequireAuthorization(Policies.ViewRecords);
+
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
