@@ -1,0 +1,124 @@
+@page "/deals"
+@attribute [Authorize(Policy = Policies.ViewRecords)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject IAuthorizationService Authorization
+@inject NavigationManager Navigation
+
+<PageTitle>Deal pipeline</PageTitle>
+
+@* Deal pipeline: every deal still open (not won, not lost), the one due to close soonest first. The grid searches,
+   filters by stage, sorts and pages in the database. The Board view isn't built yet, so its switch is there but
+   off. People who can't edit records (Viewers) see the list alone. *@
+<PageCrumbs><BreadcrumbItem>Deal pipeline</BreadcrumbItem></PageCrumbs>
+
+@* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
+<Column Gap="6" Grow>
+    <PageHeader Title="Deal pipeline" Description="@_summary">
+        @* On a phone it floats in the corner. *@
+        @if (_canEdit)
+        {
+            <PageHeaderActions>
+                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", "new-deal")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
+            </PageHeaderActions>
+        }
+    </PageHeader>
+
+    @* The view strip: the switch (a phone has the list only), then what the list covers. *@
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <TabNav Label="Pipeline view" Variant="TabsVariant.Segmented" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Sm">
+            <TabLink Label="Board" Icon="Lucide.Kanban" Disabled />
+            <TabLink Href="deals" Label="List" Icon="Lucide.List" Current />
+        </TabNav>
+        <Tag>Sales pipeline · All owners</Tag>
+    </Row>
+
+    <DataGrid id="deals" TItem="Deal" ItemsProvider="FindAsync" ItemKey="d => d.Id.ToString()" RowLabel="d => d.Name" Caption="Open deals"
+              PageSize="25" InitialSort="close" Searchable SearchLabel="Search deals…" SmallScreen="DataGridSmallScreen.HideColumns" Grow>
+        <ToolbarContent>
+            <DataGridSearch />
+            <DataGridFilter Column="stage" />
+        </ToolbarContent>
+        <NoMatchesContent>
+            <EmptyState Icon="Lucide.SearchX" Title="No matching deals" Description="Try a different deal, company, or stage. Your other deals are still here." />
+        </NoMatchesContent>
+        <Columns>
+            <TemplateColumn Title="Deal" SortKey="name" SortBy="d => d.Name" Sortable Context="deal">
+                <Stack Gap="0">
+                    <TextBlock Weight="FontWeight.Medium" Truncate><Anchor Href="@($"deals/{deal.Id}")" InheritColor Underline="AnchorUnderline.Hover">@deal.Name</Anchor></TextBlock>
+                    @* A phone has room for the deal and its stage; the rest is in the row's detail, and the company is here too. *@
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate HiddenFrom="Breakpoint.Sm">@deal.Company?.Name</TextBlock>
+                </Stack>
+            </TemplateColumn>
+            <TemplateColumn Title="Company" SortKey="company" SortBy="d => d.Company!.Name" Sortable Context="deal">
+                @deal.Company?.Name
+            </TemplateColumn>
+            @* Sorted in the pipeline's order; the filter lists the four open stages. *@
+            <PropertyColumn Property="d => d.Stage" SortKey="stage" Width="Length.Rem(8.5)" Priority="2" Sortable Filterable Context="deal">
+                <FilterTemplate Context="filter">
+                    <Select TValue="string" Label="Stage" HideLabel Items="OpenStages" Placeholder="Any stage"
+                            Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
+                </FilterTemplate>
+                <ChildContent>
+                    <Badge Status="Tones.Of(deal.Stage)">@deal.Stage</Badge>
+                </ChildContent>
+            </PropertyColumn>
+            @* SQLite keeps decimals as text, so it sorts them as numbers. *@
+            <TemplateColumn Title="Value" SortKey="value" SortBy="d => (double)d.Value" Sortable Align="CellAlign.End" Width="Length.Rem(8)" Priority="1" Context="deal">
+                @_workspace?.Money(deal.Value)
+            </TemplateColumn>
+            <PropertyColumn Property="d => d.ExpectedClose" Title="Expected close" SortKey="close" Width="Length.Rem(10.5)" Sortable Context="deal">
+                @When.Date(deal.ExpectedClose, _today)
+            </PropertyColumn>
+        </Columns>
+    </DataGrid>
+</Column>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    // The stages a deal in the pipeline can be at.
+    private static readonly string[] OpenStages = [nameof(DealStage.Discovery), nameof(DealStage.Qualified), nameof(DealStage.Proposal), nameof(DealStage.Negotiation)];
+
+    // Who may add: the EditRecords policy.
+    private bool _canEdit;
+    private Workspace? _workspace;
+    private DateOnly _today;
+
+    // "6 open opportunities · $73,000 total value", under the title.
+    private string _summary = "";
+
+    // Still in the pipeline: not won, not lost.
+    private IQueryable<Deal> Open => Db.Deals.AsNoTracking().Where(d => d.Stage < DealStage.Won);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, Policies.EditRecords)).Succeeded;
+        _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
+        _today = DateOnly.FromDateTime(Clock.Now(_workspace));
+
+        // Added up here, not in the database: SQLite can't sum decimals.
+        var values = await Open.Select(d => d.Value).ToListAsync();
+        _summary = values.Count switch
+        {
+            0 => "No open opportunities",
+            1 => $"1 open opportunity · {_workspace?.Money(values[0])} total value",
+            _ => $"{values.Count:N0} open opportunities · {_workspace?.Money(values.Sum())} total value",
+        };
+    }
+
+    // The grid's page of open deals, from the database. Its search looks in deal and company names.
+    private async ValueTask<DataResult<Deal>> FindAsync(DataRequest<Deal> request)
+    {
+        var query = Open.Include(d => d.Company);
+        // Lower case on both sides, so "acme" finds Acme Co.'s deals in any database.
+        if (request.Search?.Trim().ToLower() is { Length: > 0 } search)
+        {
+            return await (request with { Search = null }).ToResultAsync(
+                query.Where(d => d.Name.ToLower().Contains(search) || d.Company!.Name.ToLower().Contains(search)),
+                (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+        }
+        return await (request with { Search = null }).ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+    }
+
+}
