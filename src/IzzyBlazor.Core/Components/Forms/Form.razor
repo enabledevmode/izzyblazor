@@ -252,6 +252,12 @@ else
             return;
         }
 
+        // A static post: an optional text field left empty is no value, so [Phone] or [Url] accepts a blank.
+        if (!RendererInfo.IsInteractive)
+        {
+            PostedText.EmptyIsNoValue(context.Model);
+        }
+
         if (OnSubmit.HasDelegate)
         {
             await Submit.InvokeAsync(context);
