@@ -121,7 +121,7 @@
                             }
                             @if (_canEdit)
                             {
-                                <Button Href="@($"activities/new?deal={Id}")">Schedule follow-up</Button>
+                                <Button Href="@NewActivityHref">Schedule follow-up</Button>
                             }
                         </CardBody>
                     </Card>
@@ -138,7 +138,7 @@
                                 @if (_canEdit)
                                 {
                                     <CardActions>
-                                        <Button Href="@($"activities/new?deal={Id}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Plus">Log activity</Button>
+                                        <Button Href="@NewActivityHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Plus">Log activity</Button>
                                     </CardActions>
                                 }
                                 <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
@@ -224,6 +224,7 @@
     }
 
     <DealDialog CanEdit="_canEdit" Deal="Id" />
+    <ActivityDialog CanEdit="_canEdit" Deal="Id" />
 }
 
 @code {
@@ -266,6 +267,9 @@
 
     // Edit opens the deal form over this tab.
     private string EditHref => $"{Here}?dialog={DealDialog.EditId}";
+
+    // Schedule follow-up opens the activity form over this tab, with the deal and its primary contact chosen.
+    private string NewActivityHref => $"{Here}?dialog={ActivityDialog.NewId}";
 
     // Something in the deal's history: what, more about it, "who · when" as written, and when (the workspace's time).
     private sealed record Happened(string Title, string? About, string Time, DateTime When);

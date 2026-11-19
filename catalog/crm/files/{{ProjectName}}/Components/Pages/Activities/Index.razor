@@ -11,7 +11,9 @@
 @* Activities: your calendar. The meetings, calls and tasks assigned to you, on the working week; the Scheduler's
    toolbar goes to other weeks and views (a day, a month, a list), and keeps both in the address. Each one links
    to its own page. The database is asked only for the days shown. Tasks is the same activities as a list
-   (Tasks.razor). People who can't edit records (Viewers) get no Schedule activity. *@
+   (Tasks.razor). Schedule activity opens the activity form over the page
+   (Components/Activities/ActivityDialog.razor, ?dialog=new-activity). People who can't edit records (Viewers)
+   don't get it. *@
 <PageCrumbs><BreadcrumbItem>Activities</BreadcrumbItem></PageCrumbs>
 
 @* It fills the main area: the calendar's hours scroll, the page doesn't. *@
@@ -21,7 +23,7 @@
         @if (_canEdit)
         {
             <PageHeaderActions>
-                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", "new-activity")" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Schedule activity</Button>
+                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ActivityDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Schedule activity</Button>
             </PageHeaderActions>
         }
     </PageHeader>
@@ -39,6 +41,8 @@
         </CardBody>
     </Card>
 </Column>
+
+<ActivityDialog CanEdit="_canEdit" />
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
