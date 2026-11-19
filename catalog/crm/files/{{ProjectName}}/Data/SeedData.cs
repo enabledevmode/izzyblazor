@@ -142,6 +142,7 @@ public static class SeedData
             - Identify the remaining approval steps.
             """);
         followUp.Location = "Video call · Link to be added";
+        var walkthrough = Do(ActivityType.Meeting, "Acme website walkthrough", olivia, website, Local(0, 14), 45, jamie);
         var discovery = Do(ActivityType.Call, "Discovery call", sofia, portal, Local(-1, 9, 30), 30, alex, Utc(-1, 10));
         db.Activities.AddRange(
             Do(ActivityType.Task, "Follow up on website proposal", olivia, website, Local(-1, 9), 30, jamie),
@@ -150,7 +151,7 @@ public static class SeedData
             Do(ActivityType.Task, "Send brand questionnaire", marcus, identity, Local(0, 16), 30, jamie),
             Do(ActivityType.Task, "Share landing page estimate", leo, landing, Local(0, 16, 30), 30, jamie),
             Do(ActivityType.Task, "Book product shoot dates", ethan, photography, Local(0, 17), 30, jamie),
-            Do(ActivityType.Meeting, "Acme website walkthrough", olivia, website, Local(0, 14), 45, jamie),
+            walkthrough,
             followUp,
             Do(ActivityType.Task, "Review proposal with Olivia", null, website, Local(2, 9), 30, jamie),
             Do(ActivityType.Task, "Prepare discovery agenda", null, portal, Local(3, 9), 30, jamie),
@@ -191,6 +192,9 @@ public static class SeedData
         foreach (var contact in new[] { olivia, marcus, ethan, amara, leo })
             Record(contact.Added.ToDateTime(new TimeOnly(15, 0), DateTimeKind.Utc), contact.OwnerId == alex.Id ? alex : jamie,
                 AuditActions.Created, nameof(Contact), contact.Id, contact.Name, new AuditChange("Company", null, contact.Company!.Name));
+        // When the meetings ahead were put on the calendar: a company's Activity tab says who scheduled each, and when.
+        Record(Utc(-1, 16, 20), jamie, AuditActions.Created, nameof(Activity), walkthrough.Id, walkthrough.Title, new AuditChange("Title", null, walkthrough.Title));
+        Record(Utc(-3, 11, 40), jamie, AuditActions.Created, nameof(Activity), followUp.Id, followUp.Title, new AuditChange("Title", null, followUp.Title));
         Record(Utc(-3, 10), jamie, AuditActions.Invited, "User", taylor.Id, taylor.Name!, new AuditChange("Role", null, Roles.Viewer));
         Record(Utc(-4, 11, 45), alex, AuditActions.Completed, nameof(Activity), discovery.Id, discovery.Title, new AuditChange("Status", null, "Completed"));
         Record(Utc(-3, 16, 15), jamie, AuditActions.StageChanged, nameof(Deal), retainer.Id, retainer.Name, new AuditChange("Stage", "Proposal", "Negotiation"));

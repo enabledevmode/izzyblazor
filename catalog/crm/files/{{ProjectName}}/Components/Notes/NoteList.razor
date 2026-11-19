@@ -1,0 +1,196 @@
+@using Microsoft.EntityFrameworkCore
+@using System.ComponentModel.DataAnnotations
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+@inject ToastService Toasts
+
+@* The team's notes, newest first, each shown whole: a note has no title, it is its text. People who can edit
+   records get a menu on each: Edit changes its text in a dialog (?dialog=edit-note&note=5 on the page's address)
+   and Delete asks first (?dialog=delete-note&note=5). Both post here and go back to the page, so a page shows
+   notes by loading them and writing:
+
+   <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"contacts/{Id}/notes")" Workspace="_workspace" Today="_today" Cards />
+
+   About says who or what each note is about, for a page that gathers them: a company's notes are its people's
+   and its deals'. *@
+@if (Notes.Count > 0)
+{
+    <Column Gap="4">
+        @foreach (var (note, index) in Notes.Select((n, i) => (n, i)))
+        {
+            @if (Cards)
+            {
+                <Card @key="note.Id">@One(note)</Card>
+            }
+            else
+            {
+                @if (index > 0)
+                {
+                    <Divider />
+                }
+                @One(note)
+            }
+        }
+    </Column>
+}
+
+@if (CanEdit && Edit is not null && Notes.Any(n => n.Id == NoteId))
+{
+    <Dialog Id="edit-note" Title="Edit note" CloseOnBackdrop="false">
+        <Form Model="Edit" FormName="edit-note" OnValidSubmit="SaveAsync" RequiredMark="RequiredMark.None">
+            <input type="hidden" name="Edit.Id" value="@NoteId" />
+            <TextArea @bind-Value="Edit.Body" Label="Note" Rows="6" AutoGrow autofocus />
+            <DialogFooter>
+                <DialogClose>Cancel</DialogClose>
+                <Button Submit>Save note</Button>
+            </DialogFooter>
+        </Form>
+    </Dialog>
+}
+
+@if (CanEdit && Notes.FirstOrDefault(n => n.Id == NoteId) is { } doomed)
+{
+    <Dialog Id="delete-note" Title="Delete this note?" Size="DialogSize.Sm">
+        <Form Model="Delete" FormName="delete-note" OnValidSubmit="DeleteAsync">
+            <input type="hidden" name="Delete.Id" value="@doomed.Id" />
+            <TextBlock Color="Color.Muted">@doomed.Opening</TextBlock>
+            <DialogFooter>
+                <DialogClose>Cancel</DialogClose>
+                <Button Submit Accent="Accent.Danger">Delete</Button>
+            </DialogFooter>
+        </Form>
+    </Dialog>
+}
+
+@code {
+    /// <summary>The notes, newest first, each with its Author; with <see cref="About"/>, its Contact and Deal too.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<Note> Notes { get; set; } = [];
+
+    /// <summary>Whether the reader can change them (Policies.EditRecords).</summary>
+    [Parameter] public bool CanEdit { get; set; }
+
+    /// <summary>The address of the page they're on, such as "contacts/7/notes": where the dialogs open and where a save goes back to.</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    [Parameter] public Workspace? Workspace { get; set; }
+
+    /// <summary>The workspace's today (Clock).</summary>
+    [Parameter] public DateOnly Today { get; set; }
+
+    /// <summary>Each note in a card of its own. Without it they share whatever they're in, with a line between.</summary>
+    [Parameter] public bool Cards { get; set; }
+
+    /// <summary>Says who or what each note is about, with links: for a page that gathers notes about several.</summary>
+    [Parameter] public bool About { get; set; }
+
+    /// <summary>The note the edit or delete dialog is about (?note=5).</summary>
+    [SupplyParameterFromQuery(Name = "note")] private int? NoteId { get; set; }
+
+    // The note being changed in the edit dialog.
+    [SupplyParameterFromForm(FormName = "edit-note")] private NoteEdit? Edit { get; set; }
+
+    // The note the delete dialog posted.
+    [SupplyParameterFromForm(FormName = "delete-note")] private NoteRef? Delete { get; set; }
+
+    private sealed class NoteEdit
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string? Body { get; set; }
+    }
+
+    private sealed class NoteRef
+    {
+        public int Id { get; set; }
+    }
+
+    protected override void OnParametersSet()
+    {
+        Delete ??= new();
+        // The edit dialog starts with the note's text; a post that came back keeps what was typed.
+        if (Edit is null && Notes.FirstOrDefault(n => n.Id == NoteId) is { } editing) Edit = new NoteEdit { Id = editing.Id, Body = editing.Body };
+    }
+
+    private RenderFragment One(Note note) => __builder =>
+    {
+        <Comment Author="@(note.Author?.Name ?? "Someone")" Time="When.Zoned(note.Created, Workspace)" TimeText="@Written(note.Created)" HeadingLevel="3">
+            <Extra>
+                @if (note.Edited > note.Created)
+                {
+                    <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">Edited</TextBlock>
+                }
+                @if (CanEdit)
+                {
+                    <Menu Placement="Placement.BottomEnd">
+                        <Trigger>
+                            <IconButton Label="Note options" Icon="Lucide.Ellipsis" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @attributes="context" />
+                        </Trigger>
+                        <ChildContent>
+                            <MenuItem Href="@($"{Href}?dialog=edit-note&note={note.Id}")" Icon="Lucide.Pencil">Edit</MenuItem>
+                            <MenuItem Href="@($"{Href}?dialog=delete-note&note={note.Id}")" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                        </ChildContent>
+                    </Menu>
+                }
+            </Extra>
+            <ChildContent>
+                @if (About && (note.Contact is not null || note.Deal is not null))
+                {
+                    <TextBlock Size="TextSize.Xs" Color="Color.Muted">
+                        About
+                        @if (note.Contact is { } contact)
+                        {
+                            <Anchor Href="@($"contacts/{contact.Id}")">@contact.Name</Anchor>
+                        }
+                        @if (note.Contact is not null && note.Deal is not null)
+                        {
+                            <text> · </text>
+                        }
+                        @if (note.Deal is { } deal)
+                        {
+                            <Anchor Href="@($"deals/{deal.Id}")">@deal.Name</Anchor>
+                        }
+                    </TextBlock>
+                }
+                @* The note, whole: its text is Markdown, so a list or a link in it shows as one. *@
+                <Markdown Text="@note.Body" TopHeading="4" Size="ProseSize.Sm" />
+            </ChildContent>
+        </Comment>
+    };
+
+    // Only a note this page shows can be changed from it.
+    private async Task SaveAsync()
+    {
+        if (!CanEdit) return;
+        if (Notes.Any(n => n.Id == Edit!.Id) && await Db.Notes.FirstOrDefaultAsync(n => n.Id == Edit!.Id) is { } note && note.Body != Edit!.Body!.Trim())
+        {
+            note.Body = Edit.Body.Trim();
+            note.Edited = DateTime.UtcNow;
+            await Db.SaveChangesAsync();
+            Toasts.Success("Everyone sees the new text.", "Note saved");
+        }
+
+        Navigation.NavigateTo(Href);
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (!CanEdit) return;
+        if (Notes.Any(n => n.Id == Delete!.Id) && await Db.Notes.FirstOrDefaultAsync(n => n.Id == Delete!.Id) is { } note)
+        {
+            Db.Notes.Remove(note);
+            await Db.SaveChangesAsync();
+            Toasts.Success("The note is gone for everyone.", "Note deleted");
+        }
+
+        Navigation.NavigateTo(Href);
+    }
+
+    // When a note was written, as the app writes it: "Nov 14 · 12:10 PM". Sharing a card, which is a side column's,
+    // the day alone, so the name, the day and the menu stay on one line.
+    private string Written(DateTime utc)
+    {
+        var at = When.Local(utc, Workspace);
+        var day = When.Date(DateOnly.FromDateTime(at), Today);
+        return Cards ? $"{day} · {When.Time(at)}" : day;
+    }
+}
