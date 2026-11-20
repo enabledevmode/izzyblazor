@@ -45,8 +45,9 @@
             <Card Title="Won and expected revenue" TitleLevel="2" TitleId="report-revenue">
                 <Chart Items="_months" Argument="m => m.Month" TitledBy="report-revenue" Stacking="ChartStacking.Normal" Legend="ChartLegend.Top" Height="Length.Rem(14)">
                     <ChartValueAxis Format="@_axis" />
-                    <ChartBarSeries Value="m => m.Won" Name="Won" Labels="ChartLabels.Auto" LabelFormat="@_format" />
-                    <ChartBarSeries Value="m => m.Expected" Name="Expected to close" Labels="ChartLabels.Auto" LabelFormat="@_format" />
+                    <ChartBarSeries Value="m => m.Won" Name="Won" />
+                    @* The top series labels each column with the month's total, past the stack's end. *@
+                    <ChartBarSeries Value="m => m.Expected" Name="Expected to close" Labels="ChartLabels.Outside" LabelText="m => m.Total" />
                     @if (_target > 0)
                     {
                         <ChartReferenceLine Value="(double)_target" Label="@($"Target {Money(_target)}")" LabelAlign="ChartAlign.End" />
@@ -190,7 +191,7 @@
     private List<SourceValue> _sources = [];
 
     // A month of the revenue chart: what was won in it, and what open deals are due to close in it.
-    private sealed record MonthRevenue(string Month, decimal? Won, decimal? Expected);
+    private sealed record MonthRevenue(string Month, decimal? Won, decimal? Expected, string? Total);
 
     // A stage's open deals, with the bar's label: "$24,000 · 2 deals".
     private sealed record StageValue(string Stage, decimal Value, string Label);
@@ -245,11 +246,12 @@
         // Revenue by month: this month with two each side, or the quarter's or year's months. An open deal past its
         // close date is expected this month.
         var (first, count) = _period == "month" ? (month.AddMonths(-2), 5) : (start, length);
-        decimal? Some(decimal sum) => sum == 0 ? null : sum;
-        _months = Enumerable.Range(0, count).Select(i => first.AddMonths(i)).Select(m => new MonthRevenue(
-            m.ToString("MMM"),
-            Some(WonIn(m, m.AddMonths(1)).Sum(d => d.Value)),
-            Some(_open.Where(d => (d.ExpectedClose < month ? month : d.ExpectedClose) is var due && due >= m && due < m.AddMonths(1)).Sum(d => d.Value)))).ToList();
+        _months = Enumerable.Range(0, count).Select(i => first.AddMonths(i)).Select(m =>
+        {
+            var won = WonIn(m, m.AddMonths(1)).Sum(d => d.Value);
+            var expected = _open.Where(d => (d.ExpectedClose < month ? month : d.ExpectedClose) is var due && due >= m && due < m.AddMonths(1)).Sum(d => d.Value);
+            return new MonthRevenue(m.ToString("MMM"), won, expected, won + expected == 0 ? null : Money(won + expected));
+        }).ToList();
 
         // Open value by stage, in the pipeline's order.
         _stages = _open.GroupBy(d => d.Stage).OrderBy(g => g.Key)
