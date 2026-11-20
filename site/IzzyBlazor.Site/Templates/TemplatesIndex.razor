@@ -1,0 +1,65 @@
+@page "/templates"
+@inject TemplateCatalog Templates
+
+@* Every starter and app kit, under its group's heading: a card with a picture of it, its name, its
+   summary and, for a free one, a "Free" chip. *@
+
+<PageMeta Title="Templates · IzzyBlazor" Description="Whole apps you create with one command and then own: starters, an empty app in the layout you want, and app kits, a working app to build on." />
+
+<article class="site-article site-article-wide">
+    <Stack Gap="3" Class="site-pagehead">
+        <Heading Level="1" Size="TextSize.Xl3">Templates</Heading>
+        <div class="site-lead">Whole apps you create with one command and then own.</div>
+    </Stack>
+
+    <section class="site-blocks-how" aria-labelledby="how-templates-work">
+        <Heading Level="2" Size="TextSize.Md" id="how-templates-work">How templates work</Heading>
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5">
+            <div class="site-blocks-point">
+                <span class="site-blocks-point-icon"><Icon Name="Lucide.Terminal" /></span>
+                <div>
+                    <Heading Level="3" Size="TextSize.Sm" OnThisPage="false">Create it with one command</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted"><code>izzy new</code> or <code>dotnet new</code>.</TextBlock>
+                </div>
+            </div>
+            <div class="site-blocks-point">
+                <span class="site-blocks-point-icon"><Icon Name="Lucide.PanelsTopLeft" /></span>
+                <div>
+                    <Heading Level="3" Size="TextSize.Sm" OnThisPage="false">A starter is an empty app</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">The layout, the theme and sign-in.</TextBlock>
+                </div>
+            </div>
+            <div class="site-blocks-point">
+                <span class="site-blocks-point-icon"><Icon Name="Lucide.AppWindow" /></span>
+                <div>
+                    <Heading Level="3" Size="TextSize.Sm" OnThisPage="false">A kit is a working app</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Pages, data and roles to build on.</TextBlock>
+                </div>
+            </div>
+        </Grid>
+    </section>
+
+    @foreach (var group in Templates.Groups)
+    {
+        var anchor = TemplateCatalog.GroupAnchor(group);
+        <section class="site-blocks-group" aria-labelledby="@anchor">
+            <div class="site-blocks-group-head">
+                <Heading Level="2" Size="TextSize.Xl" id="@anchor">@group</Heading>
+                <span class="site-blocks-count">@Templates.InGroup(group).Count()</span>
+            </div>
+            <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5" Class="site-block-cards">
+                @foreach (var template in Templates.InGroup(group))
+                {
+                    <Card Title="@template.Name" TitleLevel="3" Description="@template.Manifest.Summary" Href="@template.Href" Class="site-block-card"
+                          Orientation="new() { Base = Orientation.Horizontal, Md = Orientation.Vertical }">
+                        <CardMedia Width="Length.Px(120)"><TemplatePicture Template="template" /></CardMedia>
+                        @if (template.Free)
+                        {
+                            <CardActions><Badge Status="Status.Success">Free</Badge></CardActions>
+                        }
+                    </Card>
+                }
+            </Grid>
+        </section>
+    }
+</article>

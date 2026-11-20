@@ -1,0 +1,10 @@
+@* A template's card picture in the scheme the site is in: both are on the page, and CSS shows the
+   one that matches, as for a block's. *@
+<Image Src="@Template.Picture" Alt="@Alt" Ratio="16 / 10.0" Fit="ImageFit.Cover" Class="site-block-picture site-pic-light" />
+<Image Src="@Template.PictureDark" Alt="@Alt" Ratio="16 / 10.0" Fit="ImageFit.Cover" Class="site-block-picture site-pic-dark" />
+
+@code {
+    [Parameter, EditorRequired] public Template Template { get; set; } = null!;
+
+    [Parameter] public string Alt { get; set; } = "";
+}

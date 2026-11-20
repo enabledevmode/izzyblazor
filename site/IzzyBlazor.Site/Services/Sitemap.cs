@@ -13,7 +13,7 @@ public static class Sitemap
     public static string Origin => $"https://{CanonicalHost.Host}/";
 
     /// <summary>The pages, as paths relative to the site's root (<c>""</c> is home).</summary>
-    public static IEnumerable<string> Paths(Registry registry, BlockCatalog? blocks = null)
+    public static IEnumerable<string> Paths(Registry registry, BlockCatalog? blocks = null, TemplateCatalog? templates = null)
     {
         yield return "";
         yield return "docs";
@@ -49,13 +49,22 @@ public static class Sitemap
                 yield return block.Href;
             }
         }
+
+        if (templates is not null)
+        {
+            yield return "templates";
+            foreach (var template in templates.All)
+            {
+                yield return template.Href;
+            }
+        }
     }
 
-    public static string Xml(Registry registry, BlockCatalog? blocks = null)
+    public static string Xml(Registry registry, BlockCatalog? blocks = null, TemplateCatalog? templates = null)
     {
         var xml = new StringBuilder("""<?xml version="1.0" encoding="UTF-8"?>""").Append('\n')
             .Append("""<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""").Append('\n');
-        foreach (var path in Paths(registry, blocks))
+        foreach (var path in Paths(registry, blocks, templates))
         {
             xml.Append("<url><loc>").Append(SecurityElement.Escape(Origin + path)).Append("</loc></url>\n");
         }

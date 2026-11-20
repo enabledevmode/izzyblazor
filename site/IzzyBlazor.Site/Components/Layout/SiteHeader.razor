@@ -1,7 +1,7 @@
 @inject ApiMetadata Api
 @inject NavigationManager Navigation
 
-@* The header every page shares: the brand, the three areas after it, then search, GitHub and the
+@* The header every page shares: the brand, the four areas after it, then search, GitHub and the
    scheme switch. The version is in the docs sidebar (VersionMenu) and on home's hero.
    Below Md, GitHub moves to the top of the menu (SiteNavHeader: the sidebar's drawer on docs pages,
    SiteNav's panel on the others) and search becomes an icon button. *@
@@ -22,6 +22,7 @@
         <NavItem Href="docs" Current="@(Area == DocsArea.Articles)">Docs</NavItem>
         <NavItem Href="docs/components" Current="@(Area == DocsArea.Components)">Components</NavItem>
         <NavItem Href="blocks" Current="@(Area == DocsArea.Blocks)">Blocks</NavItem>
+        <NavItem Href="templates" Current="@(Area == DocsArea.Templates)">Templates</NavItem>
         <SiteNavHeader>
             <Box Grow />
             <GitHubLink />
