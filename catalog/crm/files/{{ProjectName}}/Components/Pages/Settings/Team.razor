@@ -1,0 +1,160 @@
+@page "/settings"
+@attribute [Authorize(Policy = Policies.ManageUsers)]
+@inject UserAdmin Admin
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager Navigation
+@inject ToastService Toasts
+@inject IWebHostEnvironment Environment
+
+<PageTitle>Settings &amp; team</PageTitle>
+
+@* Settings & team, Team members: everyone who can sign in, with their role. Invite member and a member's Edit open
+   the member form over the list (Components/Settings/MemberDialog.razor); the rest of a row's menu acts on the
+   account. Every action is a form post that comes back with a toast; Admin/UserAdmin.cs does the work and
+   writes the audit log. For admins only (Policies.ManageUsers). *@
+@* A list page: it fills the main area, so the grid scrolls its rows under its header. *@
+<Column Gap="6" Grow>
+    <SettingsHeader />
+
+    <DataGrid id="members" TItem="UserRow" Items="_users" ItemKey="u => u.Id" RowLabel="u => u.Shown" Caption="Team members" PageSize="25"
+              Searchable SmallScreen="DataGridSmallScreen.HideColumns" OnDelete="DeleteAsync" ItemDeletable="u => u.Id != _me" Grow>
+        <ToolbarContent>
+            <DataGridSearch />
+            <DataGridFilter Column="role" />
+            @* On a phone it floats in the corner. *@
+            <ToolbarButton Href="@Navigation.GetUriWithQueryParameter("dialog", MemberDialog.InviteId)" StartIcon="Lucide.Plus" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End" FloatBelow="Breakpoint.Sm">Invite member</ToolbarButton>
+        </ToolbarContent>
+        <NoMatchesContent>
+            <EmptyState Icon="Lucide.SearchX" Title="No matching members" Description="Try a different name, email address, or role. Your other members are still here." />
+        </NoMatchesContent>
+        <Columns>
+            <PropertyColumn Property="u => u.Name" Title="Name" Sortable Context="member">
+                <Row Gap="3" Align="Align.Center">
+                    <Avatar Name="@member.Shown" Size="AvatarSize.Sm" Decorative />
+                    <Stack Gap="0" Grow>
+                        <TextBlock Weight="FontWeight.Medium" Truncate><Anchor Href="@EditHref(member)" InheritColor Underline="AnchorUnderline.Hover">@member.Shown</Anchor></TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@Line(member)</TextBlock>
+                    </Stack>
+                </Row>
+            </PropertyColumn>
+            @* Not shown: there for the search, which looks in every column. *@
+            <PropertyColumn Property="u => u.Email" Visible="false" />
+            <PropertyColumn Property="u => u.Role" Width="Length.Rem(6.5)" Priority="1" Sortable Filterable Context="member">
+                <Badge>@member.Role</Badge>
+            </PropertyColumn>
+            <ActionColumn Context="member" Overflow="RowActionOverflow.Always">
+                <RowAction Icon="Lucide.Pencil" Label="Edit" Href="@EditHref(member)" />
+                <RowAction Icon="@(member.Status == UserStatus.Invited ? Lucide.Send : Lucide.KeyRound)" Label="@(member.Status == UserStatus.Invited ? "Resend invitation" : "Send password reset")"
+                           Form="member-action" Name="reset" Value="@member.Id" Visible="member.Status != UserStatus.Deactivated" />
+                <RowAction Icon="Lucide.LockOpen" Label="Unlock" Form="member-action" Name="unlock" Value="@member.Id" Visible="member.Status == UserStatus.Locked" />
+                <RowAction Icon="Lucide.ShieldOff" Label="Reset two-factor" Form="member-action" Name="twofactor" Value="@member.Id" Visible="member.TwoFactor" />
+                <RowAction Icon="Lucide.UserCheck" Label="Reactivate" Form="member-action" Name="reactivate" Value="@member.Id" Visible="member.Status == UserStatus.Deactivated" />
+                <RowAction Icon="Lucide.UserX" Label="Deactivate" Href="@Navigation.GetUriWithQueryParameter("deactivate", member.Id)" Visible="member.Status != UserStatus.Deactivated && member.Id != _me" />
+                <DeleteAction />
+            </ActionColumn>
+        </Columns>
+    </DataGrid>
+</Column>
+
+<MemberDialog />
+
+@* The row menu's posts: they name the action and the member. *@
+<form id="member-action" method="post" @formname="member-action" @onsubmit="ActAsync">
+    <AntiforgeryToken />
+</form>
+
+@if (_deactivating is { } leaving)
+{
+    <Dialog Open QueryKey="deactivate" Title="@($"Deactivate {leaving.Shown}?")" Size="DialogSize.Sm" CloseOnBackdrop="false" ShowCloseButton="false">
+        <TextBlock>They can’t sign in until they’re reactivated. Nothing they did is lost.</TextBlock>
+        <DialogFooter>
+            <Button Href="settings" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+            <Button Submit Form="member-action" Name="deactivate" Value="@leaving.Id" Accent="Accent.Danger">Deactivate</Button>
+        </DialogFooter>
+    </Dialog>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "deactivate")] private string? DeactivateId { get; set; }
+    [SupplyParameterFromForm(FormName = "member-action", Name = "reset")] private string? ResetId { get; set; }
+    [SupplyParameterFromForm(FormName = "member-action", Name = "unlock")] private string? UnlockId { get; set; }
+    [SupplyParameterFromForm(FormName = "member-action", Name = "twofactor")] private string? TwoFactorId { get; set; }
+    [SupplyParameterFromForm(FormName = "member-action", Name = "deactivate")] private string? DeactivatePostId { get; set; }
+    [SupplyParameterFromForm(FormName = "member-action", Name = "reactivate")] private string? ReactivateId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private List<UserRow> _users = [];
+    private UserRow? _deactivating;
+    private string? _me;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _me = UserManager.GetUserId((await AuthState).User);
+        _users = await Admin.ListAsync();
+        _deactivating = _users.FirstOrDefault(u => u.Id == DeactivateId && u.Id != _me && u.Status != UserStatus.Deactivated);
+    }
+
+    // Under a member's name: their email, or where their account stands when they can't sign in.
+    private static string Line(UserRow member) => member.Status switch
+    {
+        UserStatus.Invited => "Invitation pending",
+        UserStatus.Deactivated => "Deactivated",
+        UserStatus.Locked => "Locked out",
+        _ => member.Email,
+    };
+
+    private string EditHref(UserRow member) =>
+        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = MemberDialog.EditId, ["member"] = member.Id });
+
+    private async Task ActAsync()
+    {
+        var id = ResetId ?? UnlockId ?? TwoFactorId ?? DeactivatePostId ?? ReactivateId;
+        if (await UserManager.FindByIdAsync(id ?? "") is not { } user)
+        {
+            Toasts.Error("That member isn’t here any more.");
+        }
+        else
+        {
+            var name = user.Name ?? user.Email;
+            if (ResetId is not null)
+            {
+                var invited = UserAdmin.StatusOf(user) == UserStatus.Invited;
+                var link = await Admin.SendPasswordResetAsync(user);
+                Toasts.Success(invited ? $"{name} will get the invitation again." : $"{name} will get an email with a link to set a new password.",
+                    invited ? "Invitation sent" : "Password reset sent", DevLink(link));
+            }
+            else if (UnlockId is not null)
+            {
+                await Admin.UnlockAsync(user);
+                Toasts.Success($"{name} can sign in again.", "Member unlocked");
+            }
+            else if (TwoFactorId is not null)
+            {
+                await Admin.ResetTwoFactorAsync(user);
+                Toasts.Success($"{name} will set up two-factor again at their next sign-in.", "Two-factor reset");
+            }
+            else if (DeactivatePostId is not null)
+            {
+                if (await Admin.DeactivateAsync(user, _me) is { } why) Toasts.Error(why);
+                else Toasts.Success($"{name} can’t sign in until they’re reactivated.", "Member deactivated");
+            }
+            else
+            {
+                await Admin.ReactivateAsync(user);
+                Toasts.Success($"{name} can sign in again.", "Member reactivated");
+            }
+        }
+        // Back to the list as it was, with no post to repeat on a reload.
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("deactivate", (string?)null));
+    }
+
+    private async Task DeleteAsync(DataGridDelete<UserRow> delete)
+    {
+        if (await UserManager.FindByIdAsync(delete.Item.Id) is not { } user) return;
+        if (await Admin.DeleteAsync(user, _me) is { } why) delete.AddError(why);
+        else Toasts.Success($"{delete.Item.Shown} no longer has access.", "Member deleted");
+    }
+
+    // In development no mail is sent (IdentityNoOpEmailSender), so the toast offers the link itself.
+    private ToastAction? DevLink(string? link) => Environment.IsDevelopment() && link is not null ? new("Open the link", link) : null;
+}

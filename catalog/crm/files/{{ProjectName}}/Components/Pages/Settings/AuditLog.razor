@@ -1,0 +1,165 @@
+@page "/settings/audit"
+@attribute [Authorize(Policy = Policies.ViewAudit)]
+@using System.Globalization
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+
+<PageTitle>Audit log</PageTitle>
+
+@* Settings & team, Audit log: who changed what, and when, newest first, read a page at a time from the database.
+   Every change to a record is written as it's saved (Auditing/AuditInterceptor.cs), and account actions by
+   Auditing/Audit.cs. The filters are in the address, so "what did Alex do in November" is a link; on a phone the
+   search stays and the rest are behind Filters. A table from 640px up, a list on a phone: both read the same
+   page of entries. For admins only (Policies.ViewAudit). *@
+@* A list page: it fills the main area, so the table scrolls its rows under its header and its pages stay in view. *@
+<Column Gap="6" Grow>
+    <SettingsHeader Section="Audit log" />
+    <PageHeader Title="Audit log" Description="A record of changes made in your workspace." TitleLevel="2" Size="ControlSize.Sm" />
+
+    <FilterForm CollapseBelow="Breakpoint.Sm">
+        <FilterSearch Name="q" Label="Search records" Placeholder="Search records" />
+        <FilterSelect Name="who" Label="Person" Items="_people.Keys" ItemText="id => _people[id]" AllText="All team members" />
+        <FilterSelect Name="action" Label="Action" Items="AuditText.Actions" ItemText="AuditText.Label" />
+        <FilterSelect Name="month" Label="Date range" Items="_months" ItemText="MonthText" AllText="Any time" />
+    </FilterForm>
+
+    <DataGrid TItem="AuditEvent" ItemsProvider="LoadAsync" ItemKey="e => e.Id.ToString()" RowLabel="Title" Caption="Audit log" PageSize="25"
+              EmptyText="No changes match these filters." VisibleFrom="Breakpoint.Sm" Grow>
+        <Columns>
+            <TemplateColumn Title="Time" Width="Length.Rem(11)" Context="e">@At(e)</TemplateColumn>
+            <TemplateColumn Title="Person" Context="e">
+                <Row Gap="2" Align="Align.Center">
+                    <Avatar Name="@Who(e)" Size="AvatarSize.Xs" Decorative />
+                    <TextBlock Truncate>@Who(e)</TextBlock>
+                </Row>
+            </TemplateColumn>
+            <TemplateColumn Title="Action" Context="e">
+                <Badge Status="AuditText.Tone(e.Action)">@AuditText.Label(e)</Badge>
+            </TemplateColumn>
+            <TemplateColumn Title="Record" Context="e">@Record(e)</TemplateColumn>
+            <TemplateColumn Title="Change" Context="e">
+                <TextBlock Color="Color.Muted" Truncate>@AuditText.Change(e, _workspace)</TextBlock>
+            </TemplateColumn>
+        </Columns>
+    </DataGrid>
+
+    <ListView TItem="AuditEvent" ItemsProvider="LoadAsync" ItemKey="e => e.Id.ToString()" Label="Audit log" PageSize="25" Bordered
+              EmptyText="No changes match these filters." HiddenFrom="Breakpoint.Sm" Context="e">
+        <Stack Gap="1" Grow>
+            <Row Gap="2" Align="Align.Center" Wrap>
+                <TextBlock As="span" Weight="FontWeight.Medium">@Who(e)</TextBlock>
+                <Badge Status="AuditText.Tone(e.Action)">@AuditText.Label(e)</Badge>
+            </Row>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Record(e) · @At(e)</TextBlock>
+        </Stack>
+    </ListView>
+</Column>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")] private string? Search { get; set; }
+    [SupplyParameterFromQuery(Name = "who")] private string? Person { get; set; }
+    [SupplyParameterFromQuery(Name = "action")] private string? Action { get; set; }
+    [SupplyParameterFromQuery(Name = "month")] private string? Month { get; set; }
+
+    private Workspace? _workspace;
+    private DateOnly _today;
+
+    // Everyone who has done something, by id, for the Person filter; and the months the log covers, newest first ("2026-11").
+    private Dictionary<string, string> _people = [];
+    private List<string> _months = [];
+
+    // The page of entries the table and the list both show: read once.
+    private (int Skip, int? Take, Task<DataResult<AuditEvent>> Result)? _page;
+
+    // The records on that page that still exist, so only those are linked.
+    private HashSet<string> _live = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
+        _today = Clock.Today(_workspace);
+
+        // Each by their name now (or email); someone whose account is gone, by the name the log last recorded.
+        var actors = await Db.AuditEvents.AsNoTracking().Where(e => e.ActorId != null).GroupBy(e => e.ActorId!)
+            .Select(g => new { Id = g.Key, Last = g.OrderByDescending(e => e.Time).Select(e => e.ActorName).FirstOrDefault() }).ToListAsync();
+        var ids = actors.Select(a => a.Id).ToList();
+        var now = await Db.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Name ?? u.Email);
+        _people = actors.Select(a => (a.Id, Name: now.GetValueOrDefault(a.Id) ?? a.Last ?? a.Id)).OrderBy(p => p.Name).ToDictionary(p => p.Id, p => p.Name);
+
+        if (await Db.AuditEvents.AnyAsync())
+        {
+            var first = When.Local(await Db.AuditEvents.MinAsync(e => e.Time), _workspace);
+            for (var month = new DateOnly(_today.Year, _today.Month, 1); month >= new DateOnly(first.Year, first.Month, 1); month = month.AddMonths(-1))
+                _months.Add(month.ToString("yyyy-MM", CultureInfo.InvariantCulture));
+        }
+    }
+
+    private ValueTask<DataResult<AuditEvent>> LoadAsync(DataRequest<AuditEvent> request)
+    {
+        if (_page is not { } page || page.Skip != request.Skip || page.Take != request.Take)
+            _page = page = (request.Skip, request.Take, ReadAsync(request));
+        return new(page.Result);
+    }
+
+    private async Task<DataResult<AuditEvent>> ReadAsync(DataRequest<AuditEvent> request)
+    {
+        var query = Db.AuditEvents.AsNoTracking();
+        // Lower case on both sides, so "acme" finds Acme Co. in any database.
+        if (Search?.Trim().ToLower() is { Length: > 0 } search) query = query.Where(e => e.EntityName!.ToLower().Contains(search));
+        if (!string.IsNullOrEmpty(Person)) query = query.Where(e => e.ActorId == Person);
+        if (!string.IsNullOrEmpty(Action)) query = query.Where(e => e.Action == Action);
+        // A month on the workspace's calendar; the log keeps UTC.
+        if (DateOnly.TryParseExact(Month + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var month))
+        {
+            var zone = _workspace is null ? TimeZoneInfo.Utc : TimeZoneInfo.FindSystemTimeZoneById(_workspace.TimeZone);
+            var (from, to) = (TimeZoneInfo.ConvertTimeToUtc(month.ToDateTime(TimeOnly.MinValue), zone), TimeZoneInfo.ConvertTimeToUtc(month.AddMonths(1).ToDateTime(TimeOnly.MinValue), zone));
+            query = query.Where(e => e.Time >= from && e.Time < to);
+        }
+        var result = await request.ToResultAsync(query.OrderByDescending(e => e.Time).ThenByDescending(e => e.Id), (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+
+        var ids = result.Items.Where(e => e.EntityId is not null).Select(e => e.EntityId!).Distinct().ToList();
+        var numbers = ids.Select(id => int.TryParse(id, out var n) ? n : 0).Where(n => n > 0).ToList();
+        _live = [
+            .. (await Db.Contacts.Where(c => numbers.Contains(c.Id)).Select(c => c.Id).ToListAsync()).Select(id => $"{nameof(Contact)}:{id}"),
+            .. (await Db.Companies.Where(c => numbers.Contains(c.Id)).Select(c => c.Id).ToListAsync()).Select(id => $"{nameof(Company)}:{id}"),
+            .. (await Db.Deals.Where(d => numbers.Contains(d.Id)).Select(d => d.Id).ToListAsync()).Select(id => $"{nameof(Deal)}:{id}"),
+            .. (await Db.Activities.Where(a => numbers.Contains(a.Id)).Select(a => a.Id).ToListAsync()).Select(id => $"{nameof(Activity)}:{id}"),
+            .. (await Db.Notes.Where(n => numbers.Contains(n.Id)).Select(n => n.Id).ToListAsync()).Select(id => $"{nameof(Note)}:{id}"),
+            .. (await Db.Users.Where(u => ids.Contains(u.Id)).Select(u => u.Id).ToListAsync()).Select(id => $"User:{id}"),
+        ];
+        return result;
+    }
+
+    // The record, linked while it still exists; one deleted since, or a sign-in, is only named.
+    private RenderFragment Record(AuditEvent e) => @<text>
+        @if (LinkTo(e) is { } href)
+        {
+            <Anchor Href="@href" Underline="AnchorUnderline.Hover">@e.EntityName</Anchor>
+        }
+        else
+        {
+            @(e.EntityName ?? "—")
+        }
+    </text>;
+
+    private string? LinkTo(AuditEvent e) => !_live.Contains($"{e.EntityType}:{e.EntityId}") ? null : e.EntityType switch
+    {
+        nameof(Contact) => $"contacts/{e.EntityId}",
+        nameof(Company) => $"companies/{e.EntityId}",
+        nameof(Deal) => $"deals/{e.EntityId}",
+        nameof(Activity) => $"activities/{e.EntityId}",
+        nameof(Note) => $"notes/{e.EntityId}",
+        "User" => $"settings?dialog={MemberDialog.EditId}&member={Uri.EscapeDataString(e.EntityId!)}",
+        _ => null,
+    };
+
+    private static string Who(AuditEvent e) => e.ActorName ?? "System";
+
+    // "Today, 9:15 AM", "Nov 14, 4:15 PM": on the workspace's clock.
+    private string At(AuditEvent e) => When.At(When.Local(e.Time, _workspace), _today);
+
+    private static string Title(AuditEvent e) => $"{Who(e)}: {AuditText.Label(e)} {e.EntityName}".TrimEnd();
+
+    private static string MonthText(string month) =>
+        DateOnly.TryParseExact(month + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var first) ? first.ToString("MMMM yyyy") : month;
+}

@@ -28,7 +28,13 @@ public class Workspace : IAudited
         [("USD", "US dollar"), ("GBP", "British pound"), ("EUR", "Euro")];
 
     /// <summary>The time zones the settings offer.</summary>
-    public static IReadOnlyList<string> TimeZones { get; } = ["America/New_York", "America/Chicago"];
+    public static IReadOnlyList<string> TimeZones { get; } = ["America/New_York", "America/Chicago", "Europe/London"];
+
+    /// <summary>The days the settings offer for a week's first.</summary>
+    public static IReadOnlyList<DayOfWeek> WeekStarts { get; } = [DayOfWeek.Monday, DayOfWeek.Sunday];
+
+    /// <summary>The date formats the settings offer.</summary>
+    public static IReadOnlyList<string> DateFormats { get; } = ["MMM d, yyyy", "d MMM yyyy", "yyyy-MM-dd"];
 
     /// <summary>An amount in the workspace's currency, in whole units: "$18,000".</summary>
     public string Money(decimal amount) => CurrencySymbol + amount.ToString("N0");
