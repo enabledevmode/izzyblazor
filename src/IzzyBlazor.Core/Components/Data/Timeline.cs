@@ -43,8 +43,11 @@ public class Timeline : Box
     /// Where each item's time goes: <see cref="TimelinePlacement.Above"/> the title (the default),
     /// <see cref="TimelinePlacement.Below"/> the content, in a column at the
     /// <see cref="TimelinePlacement.Start"/>, or at the <see cref="TimelinePlacement.End"/> of the title's line.
+    /// It can change once by width, for a placement that needs room: Above or Below on a narrow
+    /// screen and another from a breakpoint up,
+    /// <c>new() { Base = TimelinePlacement.Below, Sm = TimelinePlacement.End }</c>.
     /// </summary>
-    [Parameter] public TimelinePlacement TimePlacement { get; set; }
+    [Parameter] public Responsive<TimelinePlacement> TimePlacement { get; set; }
 
     /// <summary>
     /// The plain markers: a small <see cref="TimelineMarker.Dot"/> (the default) or a larger
@@ -67,16 +70,40 @@ public class Timeline : Box
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        classes.Add(TimePlacement switch
+        // One placement at every width, or a narrow one (Above or Below) under a breakpoint and
+        // another from it: the sheet has each placement's rules once for every width and once
+        // from each breakpoint, and Below's once under each.
+        var entries = TimePlacement.Entries.ToList();
+        var narrow = entries.Count > 0 && entries[0].Breakpoint is null ? entries[0].Value : TimelinePlacement.Above;
+        var change = entries.FirstOrDefault(e => e.Breakpoint is not null && e.Value != narrow);
+        if (change.Breakpoint is not { } from)
         {
-            TimelinePlacement.Below => "ib-timeline-time-below",
-            TimelinePlacement.Start => "ib-timeline-time-start",
-            TimelinePlacement.End => "ib-timeline-time-end",
-            _ => null,
-        });
+            classes.Add(Name(narrow) is { } all ? $"ib-timeline-time-{all}" : null);
+        }
+        else
+        {
+            if (narrow is not (TimelinePlacement.Above or TimelinePlacement.Below) || entries.Any(e => e.Breakpoint > from && e.Value != change.Value))
+            {
+                throw new InvalidOperationException("Timeline's TimePlacement changes once by width: Above or Below as the Base, and one other placement from a breakpoint up.");
+            }
+
+            var at = from.ToString().ToLowerInvariant();
+            classes.Add(narrow == TimelinePlacement.Below ? $"ib-timeline-time-below-to-{at}" : null);
+            classes.Add(Name(change.Value) is { } wide ? $"ib-timeline-time-{wide}-{at}" : null);
+        }
+
         classes.Add("ib-timeline-ring", Marker == TimelineMarker.Ring);
         classes.Add("ib-timeline-sm", Size == ControlSize.Sm);
     }
+
+    // A placement's name in its classes; none for Above, the sheet's default.
+    private static string? Name(TimelinePlacement placement) => placement switch
+    {
+        TimelinePlacement.Below => "below",
+        TimelinePlacement.Start => "start",
+        TimelinePlacement.End => "end",
+        _ => null,
+    };
 
     /// <inheritdoc />
     protected override void OnParametersSet()
