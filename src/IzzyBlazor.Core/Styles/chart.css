@@ -876,8 +876,10 @@
     margin-block-start: var(--ib-space-2);
   }
 
+  /* The tooltip's size: it's the same values, and the chart's own text is no larger. */
   .ib-chart-table {
     border-collapse: collapse;
+    font-size: var(--ib-text-sm);
     font-variant-numeric: tabular-nums;
   }
 
