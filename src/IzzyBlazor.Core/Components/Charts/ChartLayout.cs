@@ -121,6 +121,16 @@ internal sealed record ChartInput(IReadOnlyList<object?> Arguments, IReadOnlyLis
 
     public ChartStacking Stacked { get; init; }
     public bool Horizontal { get; init; }
+
+    /// <summary>How much of its band a bar, a stack or a group of bars side by side takes (Chart.BarWidth); null for the default.</summary>
+    public double? BarWidth { get; init; }
+
+    /// <summary>
+    /// The bars' proportions: the share of its band a group takes, and the share of its slot in the group a bar
+    /// takes. Chart.js's by default, the group 80% and each bar 90% of its share; a BarWidth is the two together.
+    /// </summary>
+    public (double Group, double Bar) BarShares => BarWidth is { } share ? (Math.Min(1, share / 0.9), share / Math.Min(1, share / 0.9)) : (0.8, 0.9);
+
     public double HeightPx { get; init; } = 288;
     public string? ValueFormat { get; init; }
     public string? ArgumentFormat { get; init; }
@@ -842,12 +852,15 @@ internal static class ChartLayout
 
             if (data.Type == ChartType.Bar)
             {
-                // Chart.js's proportions: the group takes 80% of its band, each bar 90% of its share.
-                // A histogram's bars fill their bins, touching; its series overlap, or stack.
+                // Chart.js's proportions: the group takes 80% of its band, each bar 90% of its share
+                // (or Chart.BarWidth's). A histogram's bars fill their bins, touching; its series
+                // overlap, or stack.
                 var j = bars.IndexOf(data);
                 var edges = input.Histogram is not null;
-                var slot = edges ? band : stacked ? band * 0.8 : band * 0.8 / bars.Count;
-                var width = edges ? band : slot * 0.9;
+                var (group, share) = input.BarShares;
+                var (lead, inset) = (band * (1 - group) / 2, (1 - share) / 2);
+                var slot = edges ? band : stacked ? band * group : band * group / bars.Count;
+                var width = edges ? band : slot * share;
                 var steps = new List<(double A0, double A1, double V)>();
 
                 // A price's close before it, for high-low-close's up or down: worked out once, not per item.
@@ -872,7 +885,7 @@ internal static class ChartLayout
                         continue;
                     }
 
-                    var a0 = edges ? (i - firstBand) * band : (i - firstBand) * band + band * 0.1 + (stacked ? 0 : j * slot) + slot * 0.05;
+                    var a0 = edges ? (i - firstBand) * band : (i - firstBand) * band + lead + (stacked ? 0 : j * slot) + slot * inset;
 
                     // Zoomed, a bar wholly out of view isn't drawn; one across an end is cut there.
                     if (a0 + width <= 0 || a0 >= 1) continue;
@@ -922,7 +935,7 @@ internal static class ChartLayout
                 // open, at or above the close before.
                 BarRect? Candle(int i, (double? Open, double High, double Low, double Close) p)
                 {
-                    var a0 = (i - firstBand) * band + band * 0.1 + j * slot + slot * 0.05;
+                    var a0 = (i - firstBand) * band + lead + j * slot + slot * inset;
                     if (a0 + width <= 0 || a0 >= 1) return null;
                     if (reverse) a0 = 1 - a0 - width;
                     var y = (double v) => (1 - sc(v)) * 100;
@@ -943,9 +956,9 @@ internal static class ChartLayout
                 {
                     // Narrower than a bar: at most 40% of the band, in the middle of its slot. A
                     // violin takes a bar's width, its box a slim 15% of it.
-                    var outer = slot * 0.9;
+                    var outer = slot * share;
                     var width = data.Violin ? outer * 0.15 : Math.Min(outer, band * 0.4);
-                    var a0 = (i - firstBand) * band + band * 0.1 + j * slot + (slot - width) / 2;
+                    var a0 = (i - firstBand) * band + lead + j * slot + (slot - width) / 2;
                     if (a0 + width <= 0 || a0 >= 1) return null;
                     if (reverse) a0 = 1 - a0 - width;
                     // A value's place along its axis, and a point at a place across, in percent.
@@ -1194,7 +1207,7 @@ internal static class ChartLayout
                     var value = ValueText(v);
                     var name = m.Statistic is { } st ? st == ChartStatistic.Average ? input.Text.ChartAverage : input.Text.ChartMedian : null;
                     var text = m.Label ?? (name is not null ? $"{name}: {value}" : value);
-                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, scale(v), 0, 0, text) { V = v, Series = series, Align = m.Align });
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, scale(v), 0, 0, text) { V = v, Series = series, Align = m.Align, InLegend = m.InLegend });
                     model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {value}" : text);
                     break;
                 }
@@ -1202,7 +1215,7 @@ internal static class ChartLayout
                 case (ChartMarkKind.Line, MarkAxis.Argument) when At(m.At) is { } p:
                 {
                     var at = ArgText(m.At);
-                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, Math.Clamp(p, 0, 1), 0, 0, m.Label ?? at) { Align = m.Align, Zoom = Shares(Share(m.At), Share(m.At)), Out = !InView(p) });
+                    model.Marks.Add(new MarkShape(m.Kind, m.Axis, Math.Clamp(p, 0, 1), 0, 0, m.Label ?? at) { Align = m.Align, InLegend = m.InLegend, Zoom = Shares(Share(m.At), Share(m.At)), Out = !InView(p) });
                     model.MarkTexts.Add(m.Label is not null ? $"{m.Label}: {at}" : at);
                     break;
                 }

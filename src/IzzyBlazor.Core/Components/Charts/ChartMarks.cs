@@ -99,8 +99,20 @@ public sealed class ChartReferenceLine : ChartMark
     /// </summary>
     [Parameter] public ChartAlign? LabelAlign { get; set; }
 
+    /// <summary>
+    /// Names the line in the chart's legend, beside a dashed key, in place of the label on it: for
+    /// a line whose value the axis already shows, such as a target. It needs a <see cref="Label"/>,
+    /// and brings the legend up on a chart of one series.
+    /// </summary>
+    [Parameter] public bool InLegend { get; set; }
+
     private protected override void Check()
     {
+        if (InLegend && string.IsNullOrEmpty(Label))
+        {
+            throw new InvalidOperationException("ChartReferenceLine's InLegend needs a Label: the legend names the line with it.");
+        }
+
         var count = (Value is not null ? 1 : 0) + (Argument is not null ? 1 : 0) + (Statistic is not null ? 1 : 0);
         if (count != 1)
         {
@@ -126,6 +138,7 @@ public sealed class ChartReferenceLine : ChartMark
         Series = Series,
         ValueAxis = ValueAxis,
         Align = LabelAlign,
+        InLegend = InLegend,
     };
 }
 
@@ -230,6 +243,7 @@ internal sealed record ChartMarkInput(ChartMarkKind Kind, MarkAxis Axis, string?
     public string? Series { get; init; }
     public string? ValueAxis { get; init; }
     public ChartAlign? Align { get; init; }
+    public bool InLegend { get; init; }
 }
 
 /// <summary>
@@ -244,6 +258,9 @@ internal sealed record MarkShape(ChartMarkKind Kind, MarkAxis Axis, double P, do
     public double? VTo { get; init; }
     public int Series { get; init; } = -1;
     public ChartAlign? Align { get; init; }
+
+    /// <summary>Named in the legend, with no label of its own.</summary>
+    public bool InLegend { get; init; }
 
     /// <summary>
     /// With zoom on, an argument mark's place (a band's two ends; a note's argument) as shares of

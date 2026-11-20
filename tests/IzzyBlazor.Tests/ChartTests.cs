@@ -210,6 +210,22 @@ public class ChartLayoutTests
     }
 
     [Fact]
+    public void BarWidth_is_the_share_of_its_band_a_bar_takes_centered_in_it()
+    {
+        ChartModel Build(double? width, params ChartSeriesData[] series) =>
+            ChartLayout.Build(new ChartInput(["Q1", "Q2", "Q3", "Q4"], series) { Culture = CultureInfo.InvariantCulture, BarWidth = width });
+
+        // Four bands of 25% each. By default a bar is 72% of its band; at 0.5 it's half, in the band's middle.
+        Assert.Equal(18, Build(null, new ChartSeriesData("Sales", ChartType.Bar, [1, 2, 3, 4])).Series[0].Bars[0].Width, 6);
+        var slim = Build(0.5, new ChartSeriesData("Sales", ChartType.Bar, [1, 2, 3, 4])).Series[0].Bars[1];
+        Assert.Equal((12.5, 31.25), (Math.Round(slim.Width, 6), Math.Round(slim.X, 6)));
+
+        // Two side by side share it: half each.
+        var pair = Build(0.5, new ChartSeriesData("A", ChartType.Bar, [1, 2, 3, 4]), new ChartSeriesData("B", ChartType.Bar, [1, 2, 3, 4]));
+        Assert.Equal(6.25, pair.Series[1].Bars[0].Width, 6);
+    }
+
+    [Fact]
     public void A_candle_runs_from_open_to_close_on_a_wick_from_low_to_high_and_is_up_when_it_closed_higher()
     {
         // Two days: 10 to 14 (up), then 14 to 11 (down); highs and lows past both.
@@ -978,6 +994,22 @@ public class ChartRenderTests : BunitContext
         Assert.Contains("Price change: Feb, $120", description.TextContent);
         Assert.Equal("Target", cut.Find(".ib-chart-over .ib-chart-rule > span").TextContent);
         Assert.NotNull(cut.Find(".ib-chart-over .ib-chart-rule.ib-chart-at-start[data-ib-v='150']"));
+    }
+
+    [Fact]
+    public void A_reference_line_in_the_legend_is_named_there_and_not_on_the_line()
+    {
+        var cut = Render<Chart<Month>>(p => p
+            .Add(c => c.Items, Data)
+            .Add(c => c.Argument, m => m.Name)
+            .Add(c => c.Title, "Revenue")
+            .AddChildContent<ChartBarSeries<Month>>(s => s.Add(x => x.Value, m => m.Revenue))
+            .AddChildContent<ChartReferenceLine>(r => r.Add(x => x.Value, 150).Add(x => x.Label, "Target").Add(x => x.InLegend, true)));
+
+        // One series has no legend of its own: the line brings it up.
+        Assert.Equal("Target", cut.Find(".ib-chart-legend .ib-chart-key-rule").ParentElement!.TextContent.Trim());
+        Assert.Empty(cut.FindAll(".ib-chart-over .ib-chart-rule > span"));
+        Assert.Contains("Target: 150", cut.Find("#" + cut.Find("[role=img]").GetAttribute("aria-describedby")).TextContent);
     }
 
     [Fact]
