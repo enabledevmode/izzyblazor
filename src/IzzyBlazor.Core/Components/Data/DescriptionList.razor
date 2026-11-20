@@ -5,7 +5,8 @@
 @*
     Terms and their details, such as an order's fields: a <dl>, each pair wrapped in a <div>.
     Horizontal puts each term beside its detail from 640px up (the term column fits the longest
-    term), stacking them on phones; Vertical puts the term above, optionally in Columns. No script.
+    term), stacking them on phones; Vertical puts the term above, optionally in Columns (one
+    number, or a count per breakpoint). No script.
 
     Accessibility:
     - It renders a native `dl`; each DescriptionItem is a `dt` and a `dd` in a `div`, which HTML
@@ -35,10 +36,11 @@
     [Parameter] public bool Dividers { get; set; }
 
     /// <summary>
-    /// For a vertical list, how many columns the items flow into on screens 640px and wider
-    /// (1 to 4; defaults to 1). Phones always get one.
+    /// For a vertical list, how many columns the items flow into (1 to 4; defaults to 1). A single
+    /// number applies on screens 640px and wider, and phones get one column. To choose the count
+    /// at each width, phones included, pass a map: <c>new() { Base = 2, Md = 3 }</c>.
     /// </summary>
-    [Parameter] public int Columns { get; set; } = 1;
+    [Parameter] public Responsive<int> Columns { get; set; }
 
     /// <summary>Text size and spacing. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
@@ -54,11 +56,12 @@
         classes.Add("ib-dl-divided", Dividers);
         classes.Add("ib-dl-sm", Size == ControlSize.Sm);
         classes.Add("ib-dl-lg", Size == ControlSize.Lg);
-        var columns = Math.Clamp(Columns, 1, 4);
-        if (Orientation == Orientation.Vertical && columns > 1)
+        if (Orientation == Orientation.Vertical && !Columns.IsEmpty)
         {
-            classes.Add("ib-dl-columns");
-            styles.AddVar("dl-columns", columns.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            // A single number is the count from 640px up; a map is taken as written.
+            var entries = Columns.Entries.ToList();
+            var columns = entries is [(null, var count)] ? new Responsive<int> { Sm = count } : Columns;
+            ApplyResponsive(classes, styles, columns, "ib-cols", "cols", count => StyleValues.GridColumns(Math.Clamp(count, 1, 4)));
         }
 
         base.BuildAttributes(classes, styles);

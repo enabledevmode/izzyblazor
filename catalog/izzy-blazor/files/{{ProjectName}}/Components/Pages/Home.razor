@@ -22,14 +22,13 @@
         <CardBody Flush Class="welcome-opening" Gap="3" Align="Align.Start" Justify="Justify.Center"
                   PaddingX="new() { Base = 5, Md = 10 }" PaddingY="new() { Base = 6, Md = 10 }" MinHeight="new() { Md = Length.Px(240) }">
             <Image Src="img/izzyblazor-knob.svg" Alt="" Class="welcome-knob" Lazy="false" />
-            <Image Src="img/izzyblazor-wordmark-light.svg" Alt="IzzyBlazor" Class="welcome-wordmark welcome-on-light" Lazy="false" />
-            <Image Src="img/izzyblazor-wordmark-dark.svg" Alt="IzzyBlazor" Class="welcome-wordmark welcome-on-dark" Lazy="false" />
+            <Image Src="img/izzyblazor-wordmark-light.svg" DarkSrc="img/izzyblazor-wordmark-dark.svg" Alt="IzzyBlazor" Class="welcome-wordmark" Lazy="false" />
             <Heading Level="1" id="welcome-title" Size="new() { Base = TextSize.Xl2, Md = TextSize.Xl4 }" Wrap="TextWrap.NoWrap">Your app is running.</Heading>
             <TextBlock Size="new() { Base = TextSize.Lg, Md = TextSize.Xl }" Weight="FontWeight.Medium" Color="Color.Muted" Wrap="TextWrap.NoWrap">No circuit required.</TextBlock>
         </CardBody>
         <CardFooter Bg="Color.FillSubtle" BorderTop="1" PaddingX="new() { Base = 5, Md = 10 }" PaddingY="new() { Base = 4, Md = 5 }">
             <VisuallyHidden As="h2">What you generated</VisuallyHidden>
-            <DescriptionList Orientation="Orientation.Vertical" Columns="3" Size="ControlSize.Sm" Grow>
+            <DescriptionList Orientation="Orientation.Vertical" Columns="new() { Base = 2, Md = 3 }" Size="ControlSize.Sm" Grow>
                 <DescriptionItem Term="App">{{ProjectName}}</DescriptionItem>
                 <DescriptionItem Term="Starter">{{Starter}}</DescriptionItem>
 @*#if (Interactivity == "None") *@
@@ -147,19 +146,12 @@
     </Row>
 </Column>
 
-@* The artwork: the knob at the card's end, clipped by the card, and the wordmark for each color scheme. *@
+@* The artwork: the knob at the card's end, clipped by the card, and the wordmark's size. *@
 <style>
     .welcome-opening { position: relative; }
     .welcome-opening > * { position: relative; }
     .welcome-knob { position: absolute; inline-size: 140px; block-size: 140px; inset-block-start: -44px; inset-inline-end: -44px; }
     .welcome-wordmark { block-size: 26px; inline-size: auto; }
-    .welcome-on-dark { display: none; }
-    [data-ib-color-scheme="dark"] .welcome-on-light { display: none; }
-    [data-ib-color-scheme="dark"] .welcome-on-dark { display: block; }
-    @@media (prefers-color-scheme: dark) {
-        :root:not([data-ib-color-scheme]) .welcome-on-light { display: none; }
-        :root:not([data-ib-color-scheme]) .welcome-on-dark { display: block; }
-    }
     @@media (min-width: 768px) {
         .welcome-knob { inline-size: 300px; block-size: 300px; inset-block-start: calc(50% - 150px); inset-inline-end: -90px; }
         .welcome-wordmark { block-size: 34px; }
