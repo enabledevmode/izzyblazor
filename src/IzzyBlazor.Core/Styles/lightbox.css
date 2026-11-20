@@ -106,10 +106,10 @@
     background: rgb(255 255 255 / 0.16);
   }
 
-  /* The carousel fills the middle. Every level takes its height from the viewer, never from an
-     image: the track's one row is the space left, each slide fills it, and the image is placed
-     inside the stage, which has no size of its own. So a tall image (a phone's screenshot) is
-     scaled to fit, and can't stretch its slide past the viewer. */
+  /* The carousel fills the middle. Its slides are stacked in one cell (the main sheet, for a
+     carousel that fades) and take their height from the viewer, never from an image: the image
+     fills a stage that has no size of its own and is drawn inside it at its own size, or scaled
+     down to fit. So nothing about an image, or the order they were looked at in, can move it. */
   .ib-lightbox-slides {
     grid-template-rows: minmax(0, 1fr) auto;
     min-height: 0;
@@ -118,13 +118,17 @@
   .ib-lightbox-slides > .ib-carousel-track {
     grid-template-rows: minmax(0, 1fr);
     min-height: 0;
-    overflow-y: hidden;
     border-radius: 0;
   }
 
   .ib-lightbox-slides > .ib-carousel-track > .ib-carousel-item {
     display: grid;
     min-height: 0;
+    transition-duration: var(--ib-duration-normal);
+  }
+
+  .ib-lightbox-instant > .ib-carousel-track > .ib-carousel-item {
+    transition: none;
   }
 
   .ib-lightbox-figure {
@@ -141,15 +145,17 @@
     min-height: 0;
   }
 
-  /* Centered in the stage at its own size, or scaled down to fit. */
   .ib-lightbox-img {
     position: absolute;
     inset: 0;
-    width: auto;
-    max-width: 100%;
-    height: auto;
-    max-height: 100%;
-    margin: auto;
+    width: 100%;
+    height: 100%;
+    object-fit: scale-down;
+  }
+
+  /* Only the image on show is drawn, so only it is fetched: stacked, every slide is in view. */
+  .ib-lightbox-slides .ib-carousel-item:not([data-ib-shown]) .ib-lightbox-img {
+    display: none;
   }
 
   .ib-lightbox-caption {

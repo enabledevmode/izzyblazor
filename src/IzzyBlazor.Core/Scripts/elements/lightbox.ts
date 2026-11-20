@@ -5,19 +5,29 @@ type Slides = HTMLElement & { goTo?: (index: number, instant?: boolean) => void 
 /**
  * <ib-lightbox> opens a Lightbox's viewer, a <dialog> the server renders closed with a Carousel
  * of the full images inside. A click on an item's link (which, without this, opens the image
- * itself) shows the dialog as a modal on that image; the carousel moves between them and reports
+ * itself) shows the dialog as a modal on that image; the carousel, its slides stacked, moves between them and reports
  * each move. This keeps the counter and the current thumbnail in step, gives the whole viewer
  * the arrow keys, Home and End, closes on the close button and on a click outside the image and
  * controls (data-ib-backdrop), and fades the controls (data-ib-idle on the dialog) when nothing
  * has moved for data-ib-idle-after milliseconds. The open item is reported as `iblayout`, "" when
  * the viewer closes, for @bind-Index; a new data-ib-index from the server opens, moves or closes it.
  */
+// Whether a click on an image landed on the picture itself. The image element fills its stage
+// and draws the picture inside (object-fit: scale-down), so the bands beside it are the element too.
+function onPicture(e: MouseEvent): boolean {
+  const img = e.target as HTMLImageElement;
+  if (img.localName !== "img") return false;
+  if (!img.naturalWidth) return true;
+  const box = img.getBoundingClientRect();
+  const scale = Math.min(1, box.width / img.naturalWidth, box.height / img.naturalHeight);
+  const [w, h] = [img.naturalWidth * scale, img.naturalHeight * scale];
+  return Math.abs(e.clientX - (box.left + box.width / 2)) <= w / 2 && Math.abs(e.clientY - (box.top + box.height / 2)) <= h / 2;
+}
+
 class Lightbox extends IzzyElement {
   #dialog: HTMLDialogElement | null = null;
   #index = -1;
   #idle = 0;
-  // The item being opened, while the track is still being put in place; else -1.
-  #placing = -1;
 
   protected setup(signal: AbortSignal): void {
     const dialog = this.querySelector<HTMLDialogElement>(":scope > dialog.ib-lightbox-panel");
@@ -27,8 +37,7 @@ class Lightbox extends IzzyElement {
     this.addEventListener("click", (e) => this.#onClick(e), { signal });
     dialog.addEventListener("close", () => this.#closed(), { signal });
     dialog.addEventListener("iblayout", (e) => {
-      // While the viewer opens, the track may report where a browser put it back to: not a move.
-      if (e.target !== this.#slides() || !dialog.open || this.#placing >= 0) return;
+      if (e.target !== this.#slides() || !dialog.open) return;
       this.#at(parseInt((e as CustomEvent<{ layout: string }>).detail.layout, 10) || 0);
     }, { signal });
     dialog.addEventListener("keydown", (e) => this.#keys(e), { signal });
@@ -75,7 +84,7 @@ class Lightbox extends IzzyElement {
     const thumb = target.closest<HTMLElement>(".ib-lightbox-thumb");
     if (thumb) this.#go([...thumb.parentElement!.children].indexOf(thumb));
     else if (target.closest(".ib-lightbox-close")) dialog.close();
-    else if (this.hasAttribute("data-ib-backdrop") && !target.closest("img, figcaption, button, .ib-lightbox-bar, .ib-lightbox-thumbs, .ib-carousel-dots")) dialog.close();
+    else if (this.hasAttribute("data-ib-backdrop") && !target.closest("figcaption, button, .ib-lightbox-bar, .ib-lightbox-thumbs, .ib-carousel-dots") && !onPicture(e)) dialog.close();
   }
 
   #open(index: number): void {
@@ -95,22 +104,6 @@ class Lightbox extends IzzyElement {
     this.#at(i);
     if (slides.goTo) slides.goTo(i, instant);
     else void customElements.whenDefined("ib-carousel").then(() => requestAnimationFrame(() => this.#index === i && slides.goTo?.(i, true)));
-    // As the viewer opens, its track has just been laid out again, and a browser may put it back
-    // where it last was (Safari re-snaps to the slide it showed before closing) after this move.
-    // So place it again on the next two frames; a move that's already there does nothing.
-    if (instant) {
-      this.#placing = i;
-      this.#place(i, 2);
-    }
-  }
-
-  #place(index: number, frames: number): void {
-    requestAnimationFrame(() => {
-      if (this.#placing !== index) return;
-      if (this.#dialog?.open) this.#slides()?.goTo?.(index, true);
-      if (frames > 1 && this.#dialog?.open) this.#place(index, frames - 1);
-      else this.#placing = -1;
-    });
   }
 
   // The item in view: the counter, the current thumbnail, and the report.
@@ -131,7 +124,6 @@ class Lightbox extends IzzyElement {
 
   #closed(): void {
     clearTimeout(this.#idle);
-    this.#placing = -1;
     this.#dialog?.removeAttribute("data-ib-idle");
     if (this.#index < 0) return;
     this.#index = -1;
@@ -139,7 +131,8 @@ class Lightbox extends IzzyElement {
   }
 
   #keys(e: KeyboardEvent): void {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // The carousel's track has the same keys when focus is on it: it has moved already.
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     const rtl = getComputedStyle(this.#dialog!).direction === "rtl";
     const count = this.#links().length;
     const loop = this.hasAttribute("data-ib-loop");
@@ -153,8 +146,6 @@ class Lightbox extends IzzyElement {
     else if (e.key === "End") this.#go(count - 1);
     else return;
     e.preventDefault();
-    // The carousel's track has the same keys: one move, not two.
-    e.stopPropagation();
   }
 
   // Shows the controls, and fades them once nothing has moved for a while, unless focus shows on one.

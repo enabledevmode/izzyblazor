@@ -13,6 +13,16 @@ public enum LightboxNav
     Thumbnails,
 }
 
+/// <summary>How one image of a <see cref="Lightbox"/> gives way to the next.</summary>
+public enum LightboxTransition
+{
+    /// <summary>The next image fades in (the default).</summary>
+    Fade,
+
+    /// <summary>The next image shows at once, with no animation.</summary>
+    None,
+}
+
 /// <summary>What a <see cref="Lightbox"/> shares with its items: the items, in order.</summary>
 internal sealed class LightboxContext(Lightbox owner)
 {
