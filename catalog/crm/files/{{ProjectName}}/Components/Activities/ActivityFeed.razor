@@ -162,7 +162,8 @@
             </Trigger>
             <ChildContent>
                 <MenuItem Href="@($"{Href}?dialog={NoteDialog.EditId}&note={note.Id}")" Icon="Lucide.Pencil">Edit</MenuItem>
-                <MenuItem Href="@($"{Href}?dialog={NoteDialog.DeleteId}&note={note.Id}")" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                <MenuItem Submit Form="@NoteDialog.DeleteForm" Name="note" Value="@note.Id.ToString()" Class="@NoteDialog.DeleteClass" data-confirm="@(note.Title ?? note.Opening)"
+                          Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
             </ChildContent>
         </Menu>
     };

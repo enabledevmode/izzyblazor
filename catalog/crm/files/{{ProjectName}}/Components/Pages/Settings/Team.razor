@@ -49,7 +49,7 @@
                 <RowAction Icon="Lucide.LockOpen" Label="Unlock" Form="member-action" Name="unlock" Value="@member.Id" Visible="member.Status == UserStatus.Locked" />
                 <RowAction Icon="Lucide.ShieldOff" Label="Reset two-factor" Form="member-action" Name="twofactor" Value="@member.Id" Visible="member.TwoFactor" />
                 <RowAction Icon="Lucide.UserCheck" Label="Reactivate" Form="member-action" Name="reactivate" Value="@member.Id" Visible="member.Status == UserStatus.Deactivated" />
-                <RowAction Icon="Lucide.UserX" Label="Deactivate" Href="@Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = "deactivate", ["leaving"] = member.Id })" Visible="member.Status != UserStatus.Deactivated && member.Id != _me" />
+                <RowAction Icon="Lucide.UserX" Label="Deactivate" Form="member-action" Name="deactivate" Value="@member.Id" Class="deactivate-member" data-confirm="@member.Shown" Visible="member.Status != UserStatus.Deactivated && member.Id != _me" />
                 <DeleteAction />
             </ActionColumn>
         </Columns>
@@ -63,19 +63,11 @@
     <AntiforgeryToken />
 </form>
 
-@if (_deactivating is { } leaving)
-{
-    <Dialog Id="deactivate" Title="@($"Deactivate {leaving.Shown}?")" Size="DialogSize.Sm">
-        <TextBlock>They can’t sign in until they’re reactivated. Nothing they did is lost.</TextBlock>
-        <DialogFooter>
-            <DialogClose>Cancel</DialogClose>
-            <Button Submit Form="member-action" Name="deactivate" Value="@leaving.Id" Accent="Accent.Danger">Deactivate</Button>
-        </DialogFooter>
-    </Dialog>
-}
+@* Deactivate asks first: one dialog for every row's, naming the member by the action's data-confirm. *@
+<ConfirmDialog For=".deactivate-member" Title="Deactivate {0}?" Message="They can’t sign in until they’re reactivated. Nothing they did is lost."
+               ConfirmText="Deactivate" Accent="Accent.Danger" />
 
 @code {
-    [SupplyParameterFromQuery(Name = "leaving")] private string? DeactivateId { get; set; }
     [SupplyParameterFromForm(FormName = "member-action", Name = "reset")] private string? ResetId { get; set; }
     [SupplyParameterFromForm(FormName = "member-action", Name = "unlock")] private string? UnlockId { get; set; }
     [SupplyParameterFromForm(FormName = "member-action", Name = "twofactor")] private string? TwoFactorId { get; set; }
@@ -84,14 +76,12 @@
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     private List<UserRow> _users = [];
-    private UserRow? _deactivating;
     private string? _me;
 
     protected override async Task OnInitializedAsync()
     {
         _me = UserManager.GetUserId((await AuthState).User);
         _users = await Admin.ListAsync();
-        _deactivating = _users.FirstOrDefault(u => u.Id == DeactivateId && u.Id != _me && u.Status != UserStatus.Deactivated);
     }
 
     // Under a member's name: their email, or where their account stands when they can't sign in.
@@ -145,7 +135,7 @@
             }
         }
         // Back to the list as it was, with no post to repeat on a reload.
-        Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = null, ["leaving"] = null }));
+        Navigation.NavigateTo(Navigation.Uri);
     }
 
     private async Task DeleteAsync(DataGridDelete<UserRow> delete)
