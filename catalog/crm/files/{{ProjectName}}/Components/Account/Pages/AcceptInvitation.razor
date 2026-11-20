@@ -16,11 +16,11 @@
 
 @* Where an invitation's link lands (Admin/UserAdmin.cs makes it): who invited you and as what, then your name
    and a password. Accepting sets both, counts the email as confirmed (the link reached its inbox) and signs
-   you in. A link that's been used goes to sign in; one that's expired says to ask for another. *@
+   you in. A link that's been used goes to log in; one that's expired says to ask for another. *@
 @if (_user is null)
 {
     <AccountPanel Title="This invitation has expired" Description="Ask a workspace admin to send it again.">
-        <Button Href="Account/Login" FullWidth>Back to sign in</Button>
+        <Button Href="Account/Login" FullWidth>Back to log in</Button>
     </AccountPanel>
 }
 else
@@ -75,7 +75,7 @@ else
     {
         if (UserId is null || Code is null || await UserManager.FindByIdAsync(UserId) is not { } user) return;
 
-        // Already accepted: they have a password, so they sign in.
+        // Already accepted: they have a password, so they log in.
         if (user.PasswordHash is not null)
         {
             RedirectManager.RedirectTo("Account/Login");

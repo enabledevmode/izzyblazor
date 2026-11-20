@@ -19,7 +19,7 @@
         <input type="hidden" name="RememberMe" value="@RememberMe" />
         <PinField @bind-Value="Input.TwoFactorCode" Label="Authenticator code" Length="6" AutoComplete="one-time-code" />
         <Checkbox @bind-Value="Input.RememberMachine" Label="Remember this browser" />
-        <Button Submit FullWidth>Sign in</Button>
+        <Button Submit FullWidth>Log in</Button>
     </Form>
     <AccountFoot>
         Lost your device? <Anchor Href="@(NavigationManager.GetUriWithQueryParameters("Account/LoginWithRecoveryCode", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Use a recovery code</Anchor>

@@ -131,7 +131,7 @@
         return result;
     }
 
-    // The record, linked while it still exists; one deleted since, or a sign-in, is only named.
+    // The record, linked while it still exists; one deleted since, or a login, is only named.
     private RenderFragment Record(AuditEvent e) => @<text>
         @if (LinkTo(e) is { } href)
         {

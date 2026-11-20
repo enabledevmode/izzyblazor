@@ -6,8 +6,8 @@ using {{RootNamespace}}.Data;
 namespace {{RootNamespace}}.Auditing;
 
 /// <summary>
-/// Identity's sign-in, with each password, passkey, external, two-factor and recovery-code sign-in written to the
-/// audit log, and the user's last sign-in kept. The account pages call SignInManager as they always do; Program.cs
+/// Identity's login, with each password, passkey, external, two-factor and recovery-code login written to the
+/// audit log, and the user's last login kept. The account pages call SignInManager as they always do; Program.cs
 /// registers this one.
 /// </summary>
 public sealed class AuditingSignInManager(
@@ -44,13 +44,13 @@ public sealed class AuditingSignInManager(
 
     public override async Task<SignInResult> ExternalLoginSignInAsync(string loginProvider, string providerKey, bool isPersistent, bool bypassTwoFactor)
     {
-        // No account for the login isn't a failed sign-in: the page offers to link one.
+        // No account for the login isn't a failed login: the page offers to link one.
         var user = await UserManager.FindByLoginAsync(loginProvider, providerKey);
         var result = await base.ExternalLoginSignInAsync(loginProvider, providerKey, isPersistent, bypassTwoFactor);
         return user is null ? result : await RecordAsync(user, result, $"{loginProvider} login");
     }
 
-    // The account a passkey turned out to be, which PasskeySignInAsync doesn't hand back. A passkey sign-in
+    // The account a passkey turned out to be, which PasskeySignInAsync doesn't hand back. A passkey login
     // comes straight here, so this is also where a deactivated or locked account is turned away.
     ApplicationUser? _signingIn;
 
@@ -86,7 +86,7 @@ public sealed class AuditingSignInManager(
         }
         else
         {
-            var why = result.IsLockedOut ? "The account is locked." : result.IsNotAllowed ? "The account can't sign in yet (email not confirmed)." : $"Wrong {with}.";
+            var why = result.IsLockedOut ? "The account is locked." : result.IsNotAllowed ? "The account can't log in yet (email not confirmed)." : $"Wrong {with}.";
             await audit.RecordAsync(AuditActions.SignInFailed, "User", user.Id, user.Name ?? user.Email, note: why, actor: user);
         }
         return result;

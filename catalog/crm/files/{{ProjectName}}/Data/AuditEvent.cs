@@ -5,7 +5,7 @@ namespace {{RootNamespace}}.Data;
 
 /// <summary>
 /// One entry in the audit log: who did what to which record, when and from where. Written as changes are saved
-/// (Auditing/AuditInterceptor.cs), and by the actions that aren't a record's fields changing, such as a sign-in.
+/// (Auditing/AuditInterceptor.cs), and by the actions that aren't a record's fields changing, such as a login.
 /// </summary>
 public class AuditEvent
 {
@@ -14,7 +14,7 @@ public class AuditEvent
     /// <summary>When it happened, in UTC.</summary>
     public DateTime Time { get; set; }
 
-    /// <summary>The user who did it; null for the app itself (the seeder) or a sign-in to an unknown account.</summary>
+    /// <summary>The user who did it; null for the app itself (the seeder) or a login to an unknown account.</summary>
     [StringLength(450)] public string? ActorId { get; set; }
 
     /// <summary>Their name or email as it was then, so the entry still reads after they're deleted.</summary>
@@ -23,7 +23,7 @@ public class AuditEvent
     /// <summary>What happened: one of <see cref="AuditActions"/>.</summary>
     [Required, StringLength(40)] public string Action { get; set; } = "";
 
-    /// <summary>The kind of record, such as Contact; null for a sign-in.</summary>
+    /// <summary>The kind of record, such as Contact; null for a login.</summary>
     [StringLength(60)] public string? EntityType { get; set; }
 
     [StringLength(60)] public string? EntityId { get; set; }
@@ -34,7 +34,7 @@ public class AuditEvent
     /// <summary>The fields that changed, as JSON: see <see cref="ReadChanges"/>.</summary>
     public string? Changes { get; set; }
 
-    /// <summary>More about it, such as why a sign-in failed.</summary>
+    /// <summary>More about it, such as why a login failed.</summary>
     [StringLength(500)] public string? Note { get; set; }
 
     [StringLength(45)] public string? IpAddress { get; set; }

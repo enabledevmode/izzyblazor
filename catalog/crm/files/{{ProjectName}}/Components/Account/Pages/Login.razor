@@ -13,10 +13,10 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ApplicationDbContext Db
 
-<PageTitle>Sign in</PageTitle>
+<PageTitle>Log in</PageTitle>
 
 @* Accounts come by invitation (Settings & team), so there's no way to register here. *@
-<AccountPanel Title="Welcome back" Description="@($"Sign in to your {_workspace} workspace.")">
+<AccountPanel Title="Welcome back" Description="@($"Log in to your {_workspace} workspace.")">
     <StatusMessage Message="@errorMessage" />
     <Column Gap="3">
         <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login">
@@ -26,12 +26,12 @@
                 <Checkbox @bind-Value="Input.RememberMe" Label="Remember me" />
                 <TextBlock Size="TextSize.Sm"><Anchor Href="Account/ForgotPassword" Underline="AnchorUnderline.Hover">Forgot password?</Anchor></TextBlock>
             </Row>
-            <Button Submit FullWidth>Sign in</Button>
+            <Button Submit FullWidth>Log in</Button>
             @* The passkey button stays in the form: Microsoft's passkey-submit element posts it. *@
             <Column Gap="3" MarginTop="6">
                 <Divider Label="or" />
                 <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email"
-                               Accent="Accent.Neutral" StartIcon="Lucide.FingerprintPattern" FullWidth>Sign in with a passkey</PasskeySubmit>
+                               Accent="Accent.Neutral" StartIcon="Lucide.FingerprintPattern" FullWidth>Log in with a passkey</PasskeySubmit>
             </Column>
         </Form>
         <ExternalLoginPicker Divider="false" />
@@ -80,12 +80,12 @@
         SignInResult result;
         if (!string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
         {
-            // When performing passkey sign-in, don't perform form validation.
+            // When performing passkey login, don't perform form validation.
             result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
         }
         else
         {
-            // If doing a password sign-in, validate the form.
+            // If doing a password login, validate the form.
             if (!editContext.Validate())
             {
                 return;

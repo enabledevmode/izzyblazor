@@ -29,7 +29,7 @@ public static class SeedData
         if (string.IsNullOrEmpty(password))
         {
             password = RandomNumberGenerator.GetString("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789", 16) + "-1a";
-            log.LogWarning("Made the sample accounts. Sign in as jamie@{Domain} (Admin) or alex@{Domain} (Manager) with {Password}, then change both: this is the only time it's shown.", domain, domain, password);
+            log.LogWarning("Made the sample accounts. Log in as jamie@{Domain} (Admin) or alex@{Domain} (Manager) with {Password}, then change both: this is the only time it's shown.", domain, domain, password);
         }
 
         db.Auditing = false;

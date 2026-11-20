@@ -9,7 +9,7 @@
 <PageTitle>Access denied</PageTitle>
 
 @*#endif *@
-@* Where sign-in sends someone who is signed in but lacks the role a page needs, from izzy add
+@* Where login sends someone who is signed in but lacks the role a page needs, from izzy add
    access-denied. Centered, as the other one-message pages: what happened, which role it needs and
    who can give it, the one way on, then the usual cause, the wrong account. *@
 @*#if (Routable) *@
@@ -39,7 +39,7 @@
 @*#endif *@
             </TextBlock>
 @*#if (Routable) *@
-            @* Switch account: sign out, then sign in again and go back to the page. *@
+            @* Switch account: log out, then log in again and go back to the page. *@
             <form id="switch-account" action="Account/Logout" method="post" hidden>
                 <AntiforgeryToken />
                 <input type="hidden" name="ReturnUrl" value="@($"Account/Login?ReturnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}")" />
@@ -53,7 +53,7 @@
 @*#if (Routable) *@
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 
-    // The page they were turned away from, as sign-in passes it.
+    // The page they were turned away from, as login passes it.
     [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
 
     private string? SignedInAs => HttpContext?.User.Identity?.Name;

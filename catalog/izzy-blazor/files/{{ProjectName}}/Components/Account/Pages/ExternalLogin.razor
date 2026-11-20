@@ -90,7 +90,7 @@
             return;
         }
 
-        // Sign in the user with this external login provider if the user already has a login.
+        // Log in the user with this external login provider if the user already has a login.
         var result = await SignInManager.ExternalLoginSignInAsync(
             externalLoginInfo.LoginProvider,
             externalLoginInfo.ProviderKey,
@@ -113,9 +113,9 @@
         }
 
 @*#if (!Registration) *@
-        // People can't make their own accounts here: they're invited, and add this sign-in from Manage
+        // People can't make their own accounts here: they're invited, and add this login from Manage
         // account once they're in.
-        RedirectManager.RedirectToWithStatus("Account/Login", $"Error: No account uses this {ProviderDisplayName} sign-in. Sign in another way, then add it in Manage account.", HttpContext);
+        RedirectManager.RedirectToWithStatus("Account/Login", $"Error: No account uses this {ProviderDisplayName} login. Log in another way, then add it in Manage account.", HttpContext);
 @*#else *@
         // If the user does not have an account, then ask the user to create an account.
         if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
@@ -126,7 +126,7 @@
     }
 
 @*#if (!Registration) *@
-    // People can't make their own accounts here, so the sign-in above never shows this form: only a post made
+    // People can't make their own accounts here, so the login above never shows this form: only a post made
     // by hand gets here.
     private Task OnValidSubmitAsync()
     {
