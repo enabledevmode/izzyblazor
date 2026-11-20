@@ -1,0 +1,42 @@
+@* The sidebar: Home, then each section and its pages, in the order readers should meet them. Add a page to
+   a section here to list it. The previous and next links at the end of an article (DocsPager) follow this
+   order. *@
+<NavMenu>
+    <NavItem Href="" Match="NavLinkMatch.All">Home</NavItem>
+    @foreach (var section in Sections)
+    {
+        <NavLabel>@section.Title</NavLabel>
+        @foreach (var article in section.Pages)
+        {
+            <NavItem Href="@article.Href">@article.Title</NavItem>
+        }
+    }
+</NavMenu>
+
+@code {
+    /// <summary>The sections and their pages. Only Writing pages exists; the rest are yours to write.</summary>
+    public static readonly DocsSection[] Sections =
+    [
+        new("Getting started",
+        [
+            new("Introduction", "docs/introduction"),
+            new("Installation", "docs/installation"),
+            new("Writing pages", "docs/writing-pages"),
+        ]),
+        new("Guides",
+        [
+            new("Navigation", "docs/navigation"),
+            new("Search", "docs/search"),
+            new("Deploying", "docs/deploying"),
+        ]),
+        new("Reference",
+        [
+            new("Configuration", "docs/configuration"),
+            new("Components", "docs/components"),
+        ]),
+    ];
+
+    public sealed record DocsSection(string Title, DocsPage[] Pages);
+
+    public sealed record DocsPage(string Title, string Href);
+}
