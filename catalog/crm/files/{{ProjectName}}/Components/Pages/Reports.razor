@@ -72,11 +72,22 @@
         </Grid>
 
         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
-            <Card Title="@($"Team vs {_targetName} target")" TitleLevel="2" TitleId="report-team">
+            <Card Title="@($"Team vs {_targetName} target")" TitleLevel="2">
                 @if (_team.Count > 0)
                 {
-                    <BulletChart Items="_team" TitledBy="report-team" Label="p => p.Name" Value="p => p.Won" Target="p => p.Target" Accent="Accent.Primary"
-                                 Ranges="p => new[] { p.Target * 0.5, p.Target * 0.9 }" RangeLabels="@(["Under 50%", "50–90%", "90% or more"])" ValueFormat="@_format" />
+                    @* A gauge each: what they won of their target above the bar, the target a tick across it, and
+                       the ranges behind it, named beside the value. *@
+                    <Column Gap="4">
+                        @foreach (var person in _team)
+                        {
+                            <LinearGauge Label="@person.Name" Value="person.Won" Max="person.Max" Target="person.Target" Accent="Accent.Primary" HideScale
+                                         ValueFormat="@($"{_format}' of {Money((decimal)person.Target)}'")">
+                                <GaugeBand From="0" To="person.Target * 0.5" Label="Under 50%" />
+                                <GaugeBand From="person.Target * 0.5" To="person.Target * 0.9" Label="50–90%" />
+                                <GaugeBand From="person.Target * 0.9" To="person.Max" Label="90% or more" />
+                            </LinearGauge>
+                        }
+                    </Column>
                 }
                 else
                 {
@@ -196,8 +207,8 @@
     // A stage's open deals, with the bar's label: "$24,000 · 2 deals".
     private sealed record StageValue(string Stage, decimal Value, string Label);
 
-    // Someone with a target: what they won in the period, and the period's target.
-    private sealed record Seller(string Name, double Won, double Target);
+    // Someone with a target: what they won in the period, the period's target, and where their bar's scale ends.
+    private sealed record Seller(string Name, double Won, double Target, double Max);
 
     private sealed record Risk(Deal Deal, string Reason);
 
@@ -264,7 +275,7 @@
         _team = sellers.Select(u =>
         {
             var (won, target) = ((double)_won.Where(d => d.OwnerId == u.Id).Sum(d => d.Value), (double)u.MonthlyTarget!.Value * length);
-            return new Seller(u.Name ?? u.Email ?? "", won, target);
+            return new Seller(u.Name ?? u.Email ?? "", won, target, Math.Max(target * 1.25, won));
         }).ToList();
 
         // At risk: past its close date, with nothing ahead on the calendar, or quiet for two weeks. A deal's last
