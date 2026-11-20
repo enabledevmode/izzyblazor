@@ -46,7 +46,7 @@
                                     Labels="ChartLabels.Outside" LabelText="m => m.Total" />
                     @if (_target > 0)
                     {
-                        <ChartReferenceLine Value="(double)_target" Label="@($"Target {Money(_target)}")" LabelAlign="ChartAlign.End" />
+                        <ChartReferenceLine Value="(double)_target" Label="Monthly target" InLegend />
                     }
                 </Chart>
             </Card>
@@ -56,7 +56,7 @@
                 @if (_open.Count > 0)
                 {
                     @* As tall as the revenue chart beside it with its legend, so the two cards end together. *@
-                    <Chart Items="_stages" Argument="s => s.Stage" TitledBy="report-stages" Orientation="Orientation.Horizontal" Height="Length.Rem(18.875)">
+                    <Chart Items="_stages" Argument="s => s.Stage" TitledBy="report-stages" Orientation="Orientation.Horizontal" Height="Length.Rem(18.875)" BarWidth="0.5">
                         <ChartValueAxis HideLabels GridLines="false" />
                         <ChartBarSeries Value="s => s.Value" Name="Open value" LabelText="s => s.Label" />
                     </Chart>
@@ -159,7 +159,7 @@
             <Card Title="Won by source" TitleLevel="2" TitleId="report-sources">
                 @if (_sources.Count > 0)
                 {
-                    <Chart Items="_sources" Argument="s => s.Source" TitledBy="report-sources" Orientation="Orientation.Horizontal" Height="@Rows(_sources.Count)">
+                    <Chart Items="_sources" Argument="s => s.Source" TitledBy="report-sources" Orientation="Orientation.Horizontal" Height="Length.Rem(12)" BarWidth="0.5">
                         <ChartValueAxis HideLabels GridLines="false" />
                         <ChartBarSeries Value="s => s.Value" Name="Won" Labels="ChartLabels.Auto" LabelFormat="@_format" />
                     </Chart>
@@ -330,9 +330,6 @@
     // "Closes tomorrow", "Closes Nov 27"; "Was due Nov 12" once the day has passed.
     private string Closes(DateOnly day) => day < _today ? $"Was due {When.Date(day, _today)}"
         : $"Closes {(day.DayNumber - _today.DayNumber <= 1 ? When.Day(day, _today).ToLowerInvariant() : When.Date(day, _today))}";
-
-    // A chart of bars across as tall as its rows need, so the bars stay slim however many there are.
-    private static Length Rows(int count) => Length.Rem(1.5 + 2 * count);
 
     private string Money(decimal amount) => _workspace.Money(amount);
 

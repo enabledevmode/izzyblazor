@@ -1,4 +1,4 @@
-@page "/activities"
+@page "/activities/week"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using System.Globalization
 @using Microsoft.EntityFrameworkCore
@@ -6,18 +6,21 @@
 @inject IAuthorizationService Authorization
 @inject NavigationManager Navigation
 
-<PageTitle>Activities</PageTitle>
+<PageTitle>Week · Activities</PageTitle>
 
 @* Activities: your calendar. The meetings, calls and tasks assigned to you, on the working week; the Scheduler's
    toolbar goes to other weeks and views (a day, a month, a list), and keeps both in the address. Each one links
    to its own page (Detail.razor). The database is asked only for the days shown. Tasks is the same activities as a list
-   (Tasks.razor). Schedule activity opens the activity form over the page
+   (Tasks.razor), and is where Activities opens. Schedule activity opens the activity form over the page
    (Components/Activities/ActivityDialog.razor, ?dialog=new-activity). People who can't edit records (Viewers)
    don't get it. *@
-<PageCrumbs><BreadcrumbItem>Activities</BreadcrumbItem></PageCrumbs>
-
 @* It fills the main area: the calendar's hours scroll, the page doesn't. *@
 <Column Gap="6" Grow>
+    @* In the column, so on a phone the trail has the page's gap above the title. Activities opens on Tasks. *@
+    <PageCrumbs Trail>
+        <BreadcrumbItem Href="activities">Activities</BreadcrumbItem>
+        <BreadcrumbItem>Week</BreadcrumbItem>
+    </PageCrumbs>
     <PageHeader Title="Activities" Description="Keep every commitment connected to a customer.">
         @* On a phone it floats in the corner. *@
         @if (_canEdit)
@@ -29,8 +32,8 @@
     </PageHeader>
 
     <TabNav Label="Activities view" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
-        <TabLink Href="activities" Label="Week" Icon="Lucide.CalendarDays" Current />
-        <TabLink Href="activities/tasks" Label="Tasks" Icon="Lucide.List" />
+        <TabLink Href="activities" Label="Tasks" Icon="Lucide.List" />
+        <TabLink Href="activities/week" Label="Week" Icon="Lucide.CalendarDays" Current />
     </TabNav>
 
     <Card Title="@Period" TitleLevel="2" Grow>

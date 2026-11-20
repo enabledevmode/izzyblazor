@@ -1,4 +1,4 @@
-@page "/activities/tasks"
+@page "/activities"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext Db
@@ -7,17 +7,14 @@
 
 <PageTitle>Tasks</PageTitle>
 
-@* Tasks: yours that are still open, by when they're due: overdue, today, then what's ahead. Ticking one marks it
+@* Tasks, where Activities opens: yours that are still open, by when they're due: overdue, today, then what's ahead. Ticking one marks it
    done (Components/Activities/TaskCheck.razor) and it stays in sight, struck through, until you leave the page.
    Completed tasks (?status=completed) lists the ones you've finished, the latest first, where clearing a box
    reopens one. New task opens the activity form over the page, as a task
-   (Components/Activities/ActivityDialog.razor). The calendar is the same activities by week (Index.razor). *@
+   (Components/Activities/ActivityDialog.razor). The calendar is the same activities by week (Index.razor, /activities/week). *@
+<PageCrumbs><BreadcrumbItem>Activities</BreadcrumbItem></PageCrumbs>
+
 <Column Gap="6">
-    @* In the column, so on a phone the trail has the page's gap above the title. *@
-    <PageCrumbs Trail>
-        <BreadcrumbItem Href="activities">Activities</BreadcrumbItem>
-        <BreadcrumbItem>Tasks</BreadcrumbItem>
-    </PageCrumbs>
     <PageHeader Title="Tasks" Description="Your commitments, organized by due date.">
         @* On a phone it floats in the corner. *@
         @if (_canEdit)
@@ -31,18 +28,18 @@
     @* The view strip: the switch, what the list covers, and the way to the other half at the end. *@
     <Row Gap="3" Align="Align.Center" Wrap>
         <TabNav Label="Activities view" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
-            <TabLink Href="activities" Label="Week" Icon="Lucide.CalendarDays" />
-            <TabLink Href="activities/tasks" Label="Tasks" Icon="Lucide.List" Current />
+            <TabLink Href="activities" Label="Tasks" Icon="Lucide.List" Current />
+            <TabLink Href="activities/week" Label="Week" Icon="Lucide.CalendarDays" />
         </TabNav>
         <Tag>@(Completed ? "Assigned to me · Completed" : "Assigned to me · Open")</Tag>
         <Spacer />
         @if (Completed)
         {
-            <Button Href="activities/tasks" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Open tasks</Button>
+            <Button Href="activities" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Open tasks</Button>
         }
         else
         {
-            <Button Href="activities/tasks?status=completed" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Completed tasks</Button>
+            <Button Href="activities?status=completed" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Completed tasks</Button>
         }
     </Row>
 
