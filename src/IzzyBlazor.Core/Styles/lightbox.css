@@ -158,7 +158,9 @@
     display: none;
   }
 
+  /* Under the image, centered on it: the caption's box is narrower than a wide viewer. */
   .ib-lightbox-caption {
+    justify-self: center;
     max-width: 60rem;
     padding-block: var(--ib-space-3);
     font-size: var(--ib-font-size-sm);
