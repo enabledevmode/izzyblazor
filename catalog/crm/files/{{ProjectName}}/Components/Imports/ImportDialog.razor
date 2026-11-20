@@ -1,0 +1,98 @@
+@using Microsoft.AspNetCore.Http
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+
+@* Import contacts or companies, step one, in a dialog over the list that asked: a link to the list's own address
+   with ?dialog=import-contacts (or import-companies) opens it. Put one on the list's page:
+
+   <ImportDialog Kind="ImportKind.Contacts" CanEdit="_canEdit" />
+
+   Preview import reads the file, keeps it (Data/Import.cs) and goes to its preview (Pages/Imports/Preview.razor),
+   where nothing has been imported yet. A file that can't be imported at all, such as one with no email column,
+   is refused here, under the upload. *@
+@if (CanEdit && Input is not null && Dialog == IdOf(Kind))
+{
+    var (one, many) = Kind == ImportKind.Companies ? ("company", "companies") : ("contact", "contacts");
+    <Dialog Id="@IdOf(Kind)" Title="@($"Import {many}")" CloseOnBackdrop="false">
+        <Form Model="Input" FormName="import" OnSubmit="PreviewAsync" Multipart>
+            <TextBlock Color="Color.Muted">@(Kind == ImportKind.Companies ? "Bring your accounts into your workspace." : "Bring existing relationships into your workspace.")</TextBlock>
+            <Fieldset Label="Upload a CSV" Description="@($"Expected columns: {(Kind == ImportKind.Companies ? "name, website, industry, size, city, country" : "first_name, last_name, email, company, phone")}.")">
+                <FileUpload Name="File" Label="Choose CSV file" Accept=".csv" MaxFileSize="Import.MaxBytes" Required Errors="_problems"
+                            Hint="@($"One {one} per row. The first row should contain column names.")" />
+            </Fieldset>
+            <Fieldset Label="Import options" Description="@($"Choose how to handle matching {many}.")">
+                <RadioGroup @bind-Value="Input.Match" Label="@(Kind == ImportKind.Companies ? "When a company name already exists" : "When an email already exists")"
+                            ItemText="@(match => $"{match} the existing {one}")" />
+                <Select @bind-Value="Input.OwnerId" Label="@($"Owner for new {many}")" Items="_ownerIds" ItemText="id => _owners[id!]" />
+            </Fieldset>
+            <DialogFooter>
+                <DialogClose>Cancel</DialogClose>
+                <Button Submit>Preview import</Button>
+            </DialogFooter>
+        </Form>
+    </Dialog>
+}
+
+@code {
+    /// <summary>The dialog's id for a kind, for links: <c>?dialog=import-contacts</c>, <c>?dialog=import-companies</c>.</summary>
+    public static string IdOf(ImportKind kind) => kind == ImportKind.Companies ? "import-companies" : "import-contacts";
+
+    /// <summary>What the page's list holds, and so what the file does.</summary>
+    [Parameter, EditorRequired] public ImportKind Kind { get; set; }
+
+    /// <summary>Whether the reader can add and edit (Policies.EditRecords). Without it there's no dialog.</summary>
+    [Parameter] public bool CanEdit { get; set; }
+
+    [SupplyParameterFromQuery(Name = "dialog")] private string? Dialog { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    [CascadingParameter] private HttpContext? Http { get; set; }
+
+    // The options; the file itself is read from the request.
+    [SupplyParameterFromForm(FormName = "import")] private Options? Input { get; set; }
+
+    private sealed class Options
+    {
+        public ImportMatch Match { get; set; }
+        public string? OwnerId { get; set; }
+    }
+
+    // The team, by name: who the new records can belong to.
+    private Dictionary<string, string> _owners = [];
+    private List<string?> _ownerIds = [];
+    private string? _me;
+    private IReadOnlyList<string>? _problems;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!CanEdit || Dialog != IdOf(Kind)) return;
+        _owners = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
+        _ownerIds = _owners.OrderBy(o => o.Value).Select(o => (string?)o.Key).ToList();
+        _me = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        // Yours, unless you say otherwise.
+        Input ??= new() { OwnerId = _me };
+    }
+
+    private async Task PreviewAsync()
+    {
+        if (!CanEdit || Input is null) return;
+        var file = Http?.Request.HasFormContentType == true ? Http.Request.Form.Files["File"] : null;
+        var (import, problem) = await Import.ReadAsync(file, Kind);
+        if (import is null)
+        {
+            _problems = [problem!];
+            return;
+        }
+
+        (import.Match, import.OwnerId) = (Input.Match, Input.OwnerId is { } owner && _owners.ContainsKey(owner) ? owner : _me);
+        (import.CreatedById, import.Created) = (_me, DateTime.UtcNow);
+        // Uploads nobody imported are cleared out after a day.
+        var old = DateTime.UtcNow.AddDays(-1);
+        await Db.Imports.Where(i => i.Created < old).ExecuteDeleteAsync();
+        Db.Imports.Add(import);
+        await Db.SaveChangesAsync();
+        Navigation.NavigateTo($"{Kind.ToString().ToLowerInvariant()}/import/{import.Id}");
+    }
+}

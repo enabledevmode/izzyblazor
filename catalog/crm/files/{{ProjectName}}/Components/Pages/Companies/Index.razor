@@ -9,17 +9,19 @@
 
 @* Companies: every account, with how many people the team knows there and what its open deals are worth. The grid
    searches, sorts and pages in the database. Add company opens the company form over the list
-   (Components/Companies/CompanyDialog.razor, ?dialog=new-company); a company's own page has Edit. People who can't
+   (Components/Companies/CompanyDialog.razor, ?dialog=new-company) and Import companies the import's
+   (Components/Imports/ImportDialog.razor, ?dialog=import-companies); a company's own page has Edit. People who can't
    edit records (Viewers) see the list alone. *@
 <PageCrumbs><BreadcrumbItem>Companies</BreadcrumbItem></PageCrumbs>
 
 @* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
 <Column Gap="6" Grow>
     <PageHeader Title="Companies" Description="A shared view of every account.">
-        @* On a phone it floats in the corner. *@
+        @* On a phone the two float in the corner, behind one button. *@
         @if (_canEdit)
         {
-            <PageHeaderActions>
+            <PageHeaderActions FloatLabel="Add companies">
+                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ImportDialog.IdOf(ImportKind.Companies))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Upload" FloatBelow="Breakpoint.Sm">Import companies</Button>
                 <Button Href="@Navigation.GetUriWithQueryParameter("dialog", CompanyDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Add company</Button>
             </PageHeaderActions>
         }
@@ -60,6 +62,7 @@
 </Column>
 
 <CompanyDialog CanEdit="_canEdit" />
+<ImportDialog Kind="ImportKind.Companies" CanEdit="_canEdit" />
 
 @code {
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;

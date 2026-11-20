@@ -11,8 +11,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<CompanyLogo> CompanyLogos => Set<CompanyLogo>();
     public DbSet<Contact> Contacts => Set<Contact>();
 
-    /// <summary>Uploaded files of contacts, waiting to be imported (Data/ContactImport.cs).</summary>
-    public DbSet<ContactImport> ContactImports => Set<ContactImport>();
+    /// <summary>Uploaded files of contacts or companies, waiting to be imported (Data/Import.cs).</summary>
+    public DbSet<Import> Imports => Set<Import>();
     public DbSet<Deal> Deals => Set<Deal>();
     public DbSet<DealAttachment> DealAttachments => Set<DealAttachment>();
     public DbSet<Activity> Activities => Set<Activity>();
@@ -38,8 +38,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<Contact>().HasIndex(c => c.Email).IsUnique();
         builder.Entity<Contact>().HasOne(c => c.Owner).WithMany().HasForeignKey(c => c.OwnerId).OnDelete(DeleteBehavior.SetNull);
         builder.Entity<Contact>().HasOne(c => c.Company).WithMany(c => c.Contacts).HasForeignKey(c => c.CompanyId).OnDelete(DeleteBehavior.SetNull);
-        builder.Entity<ContactImport>().HasOne(i => i.Owner).WithMany().HasForeignKey(i => i.OwnerId).OnDelete(DeleteBehavior.SetNull);
-        builder.Entity<ContactImport>().HasOne(i => i.CreatedBy).WithMany().HasForeignKey(i => i.CreatedById).OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<Import>().HasOne(i => i.Owner).WithMany().HasForeignKey(i => i.OwnerId).OnDelete(DeleteBehavior.SetNull);
+        builder.Entity<Import>().HasOne(i => i.CreatedBy).WithMany().HasForeignKey(i => i.CreatedById).OnDelete(DeleteBehavior.Cascade);
         // A company with deals can't be deleted; a deal's contact can leave it.
         builder.Entity<Deal>().HasOne(d => d.Company).WithMany(c => c.Deals).HasForeignKey(d => d.CompanyId).OnDelete(DeleteBehavior.Restrict);
         builder.Entity<Deal>().HasOne(d => d.Contact).WithMany().HasForeignKey(d => d.ContactId).OnDelete(DeleteBehavior.SetNull);

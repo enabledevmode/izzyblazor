@@ -262,11 +262,12 @@ namespace {{RootNamespace}}.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ContactImports",
+                name: "Imports",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    Kind = table.Column<int>(type: "INTEGER", nullable: false),
                     FileName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     Csv = table.Column<string>(type: "TEXT", nullable: false),
                     Match = table.Column<int>(type: "INTEGER", nullable: false),
@@ -276,15 +277,15 @@ namespace {{RootNamespace}}.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ContactImports", x => x.Id);
+                    table.PrimaryKey("PK_Imports", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ContactImports_AspNetUsers_CreatedById",
+                        name: "FK_Imports_AspNetUsers_CreatedById",
                         column: x => x.CreatedById,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ContactImports_AspNetUsers_OwnerId",
+                        name: "FK_Imports_AspNetUsers_OwnerId",
                         column: x => x.OwnerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -606,16 +607,6 @@ namespace {{RootNamespace}}.Data.Migrations
                 column: "OwnerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ContactImports_CreatedById",
-                table: "ContactImports",
-                column: "CreatedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ContactImports_OwnerId",
-                table: "ContactImports",
-                column: "OwnerId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Contacts_CompanyId",
                 table: "Contacts",
                 column: "CompanyId");
@@ -660,6 +651,16 @@ namespace {{RootNamespace}}.Data.Migrations
                 name: "IX_Deals_Stage",
                 table: "Deals",
                 column: "Stage");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Imports_CreatedById",
+                table: "Imports",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Imports_OwnerId",
+                table: "Imports",
+                column: "OwnerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notes_ActivityId",
@@ -715,13 +716,13 @@ namespace {{RootNamespace}}.Data.Migrations
                 name: "CompanyLogos");
 
             migrationBuilder.DropTable(
-                name: "ContactImports");
-
-            migrationBuilder.DropTable(
                 name: "DataProtectionKeys");
 
             migrationBuilder.DropTable(
                 name: "DealAttachments");
+
+            migrationBuilder.DropTable(
+                name: "Imports");
 
             migrationBuilder.DropTable(
                 name: "Notes");
