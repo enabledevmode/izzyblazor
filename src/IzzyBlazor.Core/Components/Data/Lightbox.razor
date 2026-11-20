@@ -10,8 +10,8 @@
     Lay the items out as you like inside it (a Grid, a Row). Counter shows "2 of 5"; Nav adds a
     dot or a small picture for each item under the image. DarkSrc on an item swaps in another
     image where the color scheme is dark. @bind-Index says which item is open, and opens or
-    closes the viewer from C#, on an interactive page. The next image fades in; Transition None
-    shows it at once. The controls fade when nothing moves for HideControlsAfter, and come back
+    closes the viewer from C#, on an interactive page. The next image shows at once; Transition Fade
+    fades it in. The controls fade when nothing moves for HideControlsAfter, and come back
     with the pointer or a key. An image is shown at its own size, or scaled down to fit.
 
     Accessibility:
@@ -120,8 +120,8 @@
     [Parameter] public bool Arrows { get; set; } = true;
 
     /// <summary>
-    /// How one image gives way to the next: <see cref="LightboxTransition.Fade"/>, the default, or
-    /// <see cref="LightboxTransition.None"/> for no animation.
+    /// How one image gives way to the next: <see cref="LightboxTransition.None"/>, the default, shows it
+    /// at once; <see cref="LightboxTransition.Fade"/> fades it in.
     /// </summary>
     [Parameter] public LightboxTransition Transition { get; set; }
 

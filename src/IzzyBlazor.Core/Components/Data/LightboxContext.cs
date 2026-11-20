@@ -16,11 +16,11 @@ public enum LightboxNav
 /// <summary>How one image of a <see cref="Lightbox"/> gives way to the next.</summary>
 public enum LightboxTransition
 {
-    /// <summary>The next image fades in (the default).</summary>
-    Fade,
-
-    /// <summary>The next image shows at once, with no animation.</summary>
+    /// <summary>The next image shows at once, with no animation (the default).</summary>
     None,
+
+    /// <summary>The next image fades in.</summary>
+    Fade,
 }
 
 /// <summary>What a <see cref="Lightbox"/> shares with its items: the items, in order.</summary>
