@@ -2622,6 +2622,11 @@
     margin-inline-end: calc(var(--ib-space-1) * -1);
   }
 
+  /* ItemAlign Start: a tall item's parts start at its top, the trail's buttons centered on its
+     first line. */
+  .ib-listview-top .ib-listview-item { align-items: flex-start; }
+  .ib-listview-top .ib-listview-trail { margin-block: calc((1lh - var(--ib-control-h-sm)) / 2); }
+
   /* A card's grip, centered on its first line: a card's parts start at its top, not its middle. */
   .ib-listview-cards .ib-sortable-item > .ib-pop-root:has(> .ib-sortable-handle) {
     margin-block: calc((1lh - var(--ib-control-h-sm)) / 2);
