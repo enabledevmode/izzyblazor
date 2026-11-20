@@ -45,7 +45,8 @@
     <CardBody>
         @if (Entries.Count > 0)
         {
-            <Timeline TimePlacement="TimelinePlacement.End">
+            @* The time ends the title's line; on a phone, where the title needs the room, it's under the entry. *@
+            <Timeline TimePlacement="@(new() { Base = TimelinePlacement.Below, Sm = TimelinePlacement.End })">
                 @foreach (var item in Entries)
                 {
                     var note = item.Note;
