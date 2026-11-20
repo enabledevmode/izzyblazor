@@ -8,7 +8,7 @@
 // named Action clobbers form.action), and ConfirmEmailChange says when the user name didn't change.
 {
   "id": "izzy-blazor",
-  "name": "IzzyBlazor Blazor Web App",
+  "name": "IzzyBlazor App",
   "kind": "starter",
   "category": "Starters",
   "summary": "Microsoft's Blazor Web App with IzzyBlazor's components and theme, in every render mode, with the same options.",
