@@ -185,6 +185,13 @@ public class TimelineItem : IzzyComponentBase
     /// <summary>Content under the title: a description, a link, actions.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>
+    /// A control at the end of the item's first line, after the time with
+    /// <see cref="TimelinePlacement.End"/>: a ⋯ <see cref="Menu"/> or an icon button for what can be
+    /// done with this entry (edit or delete a comment). Name it for its item, and keep it to one.
+    /// </summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
     private bool HasAvatar => Avatar is not null || AvatarSrc is not null;
 
     /// <inheritdoc />
@@ -278,6 +285,14 @@ public class TimelineItem : IzzyComponentBase
                 builder.CloseComponent();
             }
 
+            builder.CloseElement();
+        }
+
+        if (Actions is not null)
+        {
+            builder.OpenElement(45, "div");
+            builder.AddAttribute(46, "class", "ib-timeline-actions");
+            builder.AddContent(47, Actions);
             builder.CloseElement();
         }
 
