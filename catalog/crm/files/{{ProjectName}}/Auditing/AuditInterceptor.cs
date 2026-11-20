@@ -83,7 +83,7 @@ public sealed class AuditInterceptor(IHttpContextAccessor http) : SaveChangesInt
                 _ => (null, []),
             };
             if (action is null || (action == AuditActions.Updated && changes.Count == 0)) continue;
-            // Their name as the app shows it, not the sign-in name (their email), read once per save.
+            // Their name as the app shows it, not the login name (their email), read once per save.
             actorName ??= actorId is null ? null
                 : ((ApplicationDbContext)context).Users.AsNoTracking().Where(u => u.Id == actorId).Select(u => u.Name ?? u.Email).FirstOrDefault()
                   ?? user?.Identity?.Name;

@@ -13,7 +13,7 @@
 @* A section of the settings page: its header (with the On/Off state), the status slot, then a row
    per part with its action at the end; turning it off is set apart, last. *@
 <PageHeader Title="Two-factor authentication" TitleLevel="2" Size="ControlSize.Sm"
-            Description="Ask for a code from your phone when you sign in, on top of your password.">
+            Description="Ask for a code from your phone when you log in, on top of your password.">
     <PageHeaderActions>
         <Badge Status="@(is2faEnabled ? Status.Success : Status.Neutral)" Dot>@(is2faEnabled ? "On" : "Off")</Badge>
     </PageHeaderActions>
@@ -30,7 +30,7 @@ else
     @if (is2faEnabled && recoveryCodesLeft == 0)
     {
         <Alert Status="Status.Danger" Title="You have no recovery codes left">
-            Generate new ones before you can sign in with a recovery code.
+            Generate new ones before you can log in with a recovery code.
         </Alert>
     }
     else if (is2faEnabled && recoveryCodesLeft <= 3)
@@ -81,7 +81,7 @@ else
         {
             <Divider />
             <List Plain>
-                <ListItem Icon="Lucide.ShieldOff" IconColor="Color.DangerText" Description="You'll sign in with your password alone. Your app's key stays.">
+                <ListItem Icon="Lucide.ShieldOff" IconColor="Color.DangerText" Description="You'll log in with your password alone. Your app's key stays.">
                     Turn off two-factor authentication
                     <ListItemActions>
                         <Button Href="Account/Manage/Disable2fa" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Danger">Turn off</Button>
@@ -123,7 +123,7 @@ else
         await SignInManager.ForgetTwoFactorClientAsync();
 
         RedirectManager.RedirectToCurrentPageWithStatus(
-            "This browser has been forgotten. The next time you sign in from it, you’ll be asked for your authenticator code.",
+            "This browser has been forgotten. The next time you log in from it, you’ll be asked for your authenticator code.",
             HttpContext);
     }
 }

@@ -8,7 +8,7 @@
 
 <PageTitle>Settings &amp; team</PageTitle>
 
-@* Settings & team, Team members: everyone who can sign in, with their role. Invite member and a member's Edit open
+@* Settings & team, Team members: everyone who can log in, with their role. Invite member and a member's Edit open
    the member form over the list (Components/Settings/MemberDialog.razor); the rest of a row's menu acts on the
    account. Every action is a form post that comes back with a toast; Admin/UserAdmin.cs does the work and
    writes the audit log. For admins only (Policies.ManageUsers). *@
@@ -64,7 +64,7 @@
 </form>
 
 @* Deactivate asks first: one dialog for every row's, naming the member by the action's data-confirm. *@
-<ConfirmDialog For=".deactivate-member" Title="Deactivate {0}?" Message="They can’t sign in until they’re reactivated. Nothing they did is lost."
+<ConfirmDialog For=".deactivate-member" Title="Deactivate {0}?" Message="They can’t log in until they’re reactivated. Nothing they did is lost."
                ConfirmText="Deactivate" Accent="Accent.Danger" />
 
 @code {
@@ -84,7 +84,7 @@
         _users = await Admin.ListAsync();
     }
 
-    // Under a member's name: their email, or where their account stands when they can't sign in.
+    // Under a member's name: their email, or where their account stands when they can't log in.
     private static string Line(UserRow member) => member.Status switch
     {
         UserStatus.Invited => "Invitation pending",
@@ -116,22 +116,22 @@
             else if (UnlockId is not null)
             {
                 await Admin.UnlockAsync(user);
-                Toasts.Success($"{name} can sign in again.", "Member unlocked");
+                Toasts.Success($"{name} can log in again.", "Member unlocked");
             }
             else if (TwoFactorId is not null)
             {
                 await Admin.ResetTwoFactorAsync(user);
-                Toasts.Success($"{name} will set up two-factor again at their next sign-in.", "Two-factor reset");
+                Toasts.Success($"{name} will set up two-factor again at their next login.", "Two-factor reset");
             }
             else if (DeactivatePostId is not null)
             {
                 if (await Admin.DeactivateAsync(user, _me) is { } why) Toasts.Error(why);
-                else Toasts.Success($"{name} can’t sign in until they’re reactivated.", "Member deactivated");
+                else Toasts.Success($"{name} can’t log in until they’re reactivated.", "Member deactivated");
             }
             else
             {
                 await Admin.ReactivateAsync(user);
-                Toasts.Success($"{name} can sign in again.", "Member reactivated");
+                Toasts.Success($"{name} can log in again.", "Member reactivated");
             }
         }
         // Back to the list as it was, with no post to repeat on a reload.

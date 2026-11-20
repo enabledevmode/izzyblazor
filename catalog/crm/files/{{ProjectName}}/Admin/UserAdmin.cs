@@ -42,7 +42,7 @@ public sealed class UserRow
 
     public UserStatus Status { get; set; }
 
-    /// <summary>Whether they sign in with a second step, which an admin can reset.</summary>
+    /// <summary>Whether they log in with a second step, which an admin can reset.</summary>
     public bool TwoFactor { get; set; }
 
     /// <summary>The name, or the email for someone invited without one.</summary>
@@ -51,7 +51,7 @@ public sealed class UserRow
 
 /// <summary>
 /// What an admin does to people's accounts: Settings &amp; team calls these, and each is written to the audit log.
-/// Deactivating is Identity's lockout with no end date, so a deactivated person can't sign in and nothing new is
+/// Deactivating is Identity's lockout with no end date, so a deactivated person can't log in and nothing new is
 /// stored. Two rules keep the app usable: nobody deactivates, deletes or demotes themselves, and the last
 /// Admin can't be removed.
 /// </summary>
@@ -147,7 +147,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
             changes.Add(new("Role", current.ToString(), row.Role.ToString()));
         }
         // Another address or role ends what the old one allowed: the links sent to the old address stop
-        // working (send the invitation again), and their open sessions sign in afresh. Not your own, which
+        // working (send the invitation again), and their open sessions log in afresh. Not your own, which
         // would sign you out as you save.
         if (user.Id != me && changes.Exists(c => c.Field is "Email" or "Role")) await users.UpdateSecurityStampAsync(user);
         if (changes.Count > 0)
@@ -205,7 +205,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         await audit.RecordAsync(AuditActions.Unlocked, "User", user.Id, user.Name ?? user.Email);
     }
 
-    /// <summary>Turns two-factor off and forgets their authenticator, so they set it up again at their next sign-in.</summary>
+    /// <summary>Turns two-factor off and forgets their authenticator, so they set it up again at their next login.</summary>
     public async Task ResetTwoFactorAsync(ApplicationUser user)
     {
         await users.SetTwoFactorEnabledAsync(user, false);

@@ -6,7 +6,7 @@ using {{RootNamespace}}.Data;
 namespace {{RootNamespace}}.Security;
 
 /// <summary>
-/// Puts a person's name in their sign-in, so the header's avatar and account menu show it without a database
+/// Puts a person's name in their login, so the header's avatar and account menu show it without a database
 /// call. Identity's own name claim is the user name, which is the email address.
 /// </summary>
 public static class NameClaim
@@ -19,7 +19,7 @@ public static class NameClaim
 }
 
 /// <summary>
-/// Identity's claims (id, user name, roles) plus <see cref="NameClaim"/>. A sign-in picks up a new name when
+/// Identity's claims (id, user name, roles) plus <see cref="NameClaim"/>. A login picks up a new name when
 /// it's refreshed: at once on your own Profile, and within half an hour when an admin changes it (Identity's
 /// security stamp check).
 /// </summary>

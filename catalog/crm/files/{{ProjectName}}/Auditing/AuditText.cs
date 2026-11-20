@@ -13,11 +13,11 @@ public static class AuditText
         AuditActions.Reactivated, AuditActions.Unlocked, AuditActions.TwoFactorReset, AuditActions.StageChanged, AuditActions.Completed,
     ];
 
-    /// <summary>The action as people read it: "Sign-in failed", "Changed roles".</summary>
+    /// <summary>The action as people read it: "Login failed", "Changed roles".</summary>
     public static string Label(string action) => action switch
     {
         AuditActions.SignedIn => "Signed in",
-        AuditActions.SignInFailed => "Sign-in failed",
+        AuditActions.SignInFailed => "Login failed",
         AuditActions.RolesChanged => "Changed roles",
         AuditActions.PasswordResetSent => "Sent password reset",
         AuditActions.TwoFactorReset => "Reset two-factor",
@@ -37,7 +37,7 @@ public static class AuditText
         _ => Label(e.Action),
     };
 
-    /// <summary>Its badge's color: made or finished green, removed red, a failed sign-in amber, an invite or a sign-in plain, the rest blue.</summary>
+    /// <summary>Its badge's color: made or finished green, removed red, a failed login amber, an invite or a login plain, the rest blue.</summary>
     public static IzzyBlazor.Status Tone(string action) => action switch
     {
         AuditActions.Created or AuditActions.Completed => IzzyBlazor.Status.Success,

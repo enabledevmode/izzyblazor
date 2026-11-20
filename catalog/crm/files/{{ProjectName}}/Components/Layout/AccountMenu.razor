@@ -2,8 +2,8 @@
 @inject NavigationManager NavigationManager
 
 @* At the end of the header on a phone, where the sidebar's account row (in MainLayout) doesn't show. Signed in:
-   your avatar (your name's initials), opening the account menu (AccountMenuItems). Signed out: Sign in; there's
-   no Register, as accounts come by invite. The name comes from your sign-in (Security/NameClaim.cs); with none
+   your avatar (your name's initials), opening the account menu (AccountMenuItems). Signed out: Log in; there's
+   no Register, as accounts come by invite. The name comes from your login (Security/NameClaim.cs); with none
    set, the email. The log out form is here, on every width, for both menus. *@
 <AuthorizeView>
     <Authorized>
@@ -26,7 +26,7 @@
         </form>
     </Authorized>
     <NotAuthorized>
-        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Sign in</Button>
+        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Log in</Button>
     </NotAuthorized>
 </AuthorizeView>
 

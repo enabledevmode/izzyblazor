@@ -70,7 +70,7 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options => options.Val
 // Settings & team offers each link in its toast.
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-// The keys that protect sign-in cookies and form tokens, kept in the database, so every instance of the app
+// The keys that protect login cookies and form tokens, kept in the database, so every instance of the app
 // reads the others' and no request has to go back to the one that served the last.
 builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext>();
 

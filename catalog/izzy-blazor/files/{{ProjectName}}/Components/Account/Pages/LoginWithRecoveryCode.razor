@@ -15,9 +15,9 @@
     <StatusMessage Message="@message" />
     <Form Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync">
         <TextField @bind-Value="Input.RecoveryCode" Label="Recovery code" AutoComplete="off" />
-        <Button Submit FullWidth>Sign in</Button>
+        <Button Submit FullWidth>Log in</Button>
     </Form>
-    <TextBlock Size="TextSize.Sm" Color="Color.Muted">This browser isn't remembered until you sign in with your authenticator app, or turn off two-factor authentication.</TextBlock>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">This browser isn't remembered until you log in with your authenticator app, or turn off two-factor authentication.</TextBlock>
 </AccountPanel>
 
 @code {

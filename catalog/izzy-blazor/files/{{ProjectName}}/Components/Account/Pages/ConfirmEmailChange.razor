@@ -15,14 +15,14 @@
    doesn't: then the old address still logs in. *@
 @if (nameUnchanged)
 {
-    <AccountPanel Title="Your user name didn't change" Description="Your email is the new address, but you still sign in with the old one. Try the change again.">
+    <AccountPanel Title="Your user name didn't change" Description="Your email is the new address, but you still log in with the old one. Try the change again.">
         <Button Href="Account/Manage/Email" FullWidth>Back to your email settings</Button>
     </AccountPanel>
 }
 else
 {
     <AccountPanel Title="@(changed ? "Email changed" : "This link didn't work")"
-                  Description="@(changed ? "You now sign in with your new address." : "It's invalid or has expired. Request the change again.")">
+                  Description="@(changed ? "You now log in with your new address." : "It's invalid or has expired. Request the change again.")">
         <Button Href="Account/Manage/Email" FullWidth>Back to your email settings</Button>
     </AccountPanel>
 }

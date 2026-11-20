@@ -1,5 +1,5 @@
-// The free access denied page: where sign-in sends someone signed in without the role a page needs,
-// written into the project as code you own. It replaces the sign-in starter's
+// The free access denied page: where login sends someone signed in without the role a page needs,
+// written into the project as code you own. It replaces the login starter's
 // Components/Account/Pages/AccessDenied.razor, so add it with --overwrite there.
 {
   "id": "access-denied",
@@ -24,7 +24,7 @@
   "checks": [
     {
       "file": "Program.cs", "pattern": "^(?![\\s\\S]*AddIdentityCookies)",
-      "message": "This app has no sign-in (ASP.NET Core Identity), so nothing sends people to /Account/AccessDenied, and Switch account posts to an Account/Logout that isn't there. Start from izzy new izzy-blazor --auth Individual."
+      "message": "This app has no login (ASP.NET Core Identity), so nothing sends people to /Account/AccessDenied, and Switch account posts to an Account/Logout that isn't there. Start from izzy new izzy-blazor --auth Individual."
     }
   ]
 }

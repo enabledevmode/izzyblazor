@@ -12,7 +12,7 @@
 <PageTitle>Manage your passkeys</PageTitle>
 
 <PageHeader Title="Passkeys" TitleLevel="2" Size="ControlSize.Sm"
-            Description="Sign in with your device's fingerprint, face or PIN instead of a password.">
+            Description="Log in with your device's fingerprint, face or PIN instead of a password.">
     @if (currentPasskeys is { Count: > 0 } && currentPasskeys.Count < MaxPasskeyCount)
     {
         <PageHeaderActions>
@@ -39,7 +39,7 @@
         <MenuItem Submit Form="delete-passkey" Name="CredentialId" Value="@credentialId" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
     </ItemMenu>
     <EmptyContent>
-        <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.FingerprintPattern" Title="No passkeys yet" Description="Add one to sign in without typing a password.">
+        <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.FingerprintPattern" Title="No passkeys yet" Description="Add one to log in without typing a password.">
             <EmptyStateActions>
                 <form @formname="add-passkey" @onsubmit="AddPasskey" method="post">
                     <AntiforgeryToken />
