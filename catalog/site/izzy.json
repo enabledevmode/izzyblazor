@@ -1,0 +1,15 @@
+// Content site: a website, not an app. A header of links that fold into a panel on phones, the page in a
+// centered column and a footer, with no sidebar. Made over izzy-blazor, with the welcome page as its Home.
+// Design: artifacts/izzyblazor-handoff-starters.md (ST6).
+{
+  "id": "site",
+  "name": "Content site",
+  "kind": "starter",
+  "category": "Starters",
+  "summary": "A website shell with links in the header, a centered page column and a footer, and no sidebar.",
+  "components": ["Anchor"],
+  "base": {
+    "item": "izzy-blazor",
+    "fixed": { "Starter": "Content site", "Nav": "Top", "Empty": "false", "Shell": "Flat", "ContentWidth": "72" }
+  }
+}
