@@ -117,10 +117,6 @@
       align-items: baseline;
       gap: normal;
     }
-
-    .ib-dl-columns {
-      grid-template-columns: repeat(var(--ib-dl-columns), minmax(0, 1fr));
-    }
   }
 
   /* ---- Stat ---- */
@@ -338,6 +334,22 @@
     max-width: 100%;
     height: auto;
   }
+
+  /* DarkSrc: the image for the scheme in use. The page follows the system unless it, or a part
+     of it, sets data-ib-color-scheme. */
+  .ib-image-on-dark {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-ib-color-scheme]) .ib-image-on-light { display: none; }
+    :root:not([data-ib-color-scheme]) .ib-image-on-dark { display: block; }
+  }
+
+  [data-ib-color-scheme="dark"] .ib-image-on-light { display: none; }
+  [data-ib-color-scheme="dark"] .ib-image-on-dark { display: block; }
+  [data-ib-color-scheme="light"] .ib-image-on-light { display: block; }
+  [data-ib-color-scheme="light"] .ib-image-on-dark { display: none; }
 
   /* Dark on light in both schemes: not every scanner reads light on dark. */
   .ib-qr {

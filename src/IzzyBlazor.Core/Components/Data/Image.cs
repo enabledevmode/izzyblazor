@@ -18,13 +18,14 @@ public enum ImageFit
 /// <summary>
 /// An image that loads lazily and keeps its space while loading: <c>width</c> and <c>height</c> or a
 /// <see cref="Ratio"/> reserve the box, so the page doesn't jump. <see cref="Caption"/> wraps it in a
-/// <c>figure</c>.
+/// <c>figure</c>; <see cref="DarkSrc"/> swaps in another image in the dark scheme.
 /// </summary>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native <c>img</c> whose <c>alt</c> is <see cref="Alt"/>, a required parameter: say what the picture shows.</item>
 /// <item>Pass <c>Alt=""</c> for a purely decorative image, so screen readers skip it.</item>
 /// <item><see cref="Caption"/> wraps it in a <c>figure</c> with a <c>figcaption</c>; screen readers read both, so don't repeat the caption in <see cref="Alt"/>.</item>
+/// <item>With <see cref="DarkSrc"/> there are two <c>img</c> elements with the same <c>alt</c>; the one not in use is hidden, so it's read once.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="AspectRatio"/>
@@ -35,6 +36,13 @@ public class Image : StyledComponentBase
 {
     /// <summary>The image URL.</summary>
     [Parameter, EditorRequired] public string Src { get; set; } = "";
+
+    /// <summary>
+    /// Another image for the dark color scheme, such as a logo drawn for a dark background. It
+    /// follows the page's scheme, so it also changes with <see cref="ColorSchemeSwitch"/>; only
+    /// the one in use loads when <see cref="Lazy"/> is on.
+    /// </summary>
+    [Parameter] public string? DarkSrc { get; set; }
 
     /// <summary>
     /// What the image shows, for screen readers and when it fails to load. Use "" for a purely
@@ -92,38 +100,48 @@ public class Image : StyledComponentBase
             builder.AddAttribute(1, "class", "ib-figure");
         }
 
-        builder.OpenElement(2, "img");
-        builder.AddMultipleAttributes(3, AdditionalAttributes);
-        builder.AddAttribute(4, "src", Src);
-        builder.AddAttribute(5, "alt", Alt);
+        BuildImg(builder, 2, Src, DarkSrc is null ? cssClass : $"{cssClass} ib-image-on-light", style);
+        if (DarkSrc is not null)
+        {
+            BuildImg(builder, 20, DarkSrc, $"{cssClass} ib-image-on-dark", style);
+        }
+
+        if (Caption is not null)
+        {
+            builder.OpenElement(40, "figcaption");
+            builder.AddAttribute(41, "class", "ib-figure-caption");
+            builder.AddContent(42, Caption);
+            builder.CloseElement();
+            builder.CloseElement();
+        }
+    }
+
+    // One img. With DarkSrc there are two, and CSS shows the one for the scheme in use.
+    private void BuildImg(RenderTreeBuilder builder, int sequence, string src, string? cssClass, string? style)
+    {
+        builder.OpenElement(sequence, "img");
+        builder.AddMultipleAttributes(sequence + 1, AdditionalAttributes);
+        builder.AddAttribute(sequence + 2, "src", src);
+        builder.AddAttribute(sequence + 3, "alt", Alt);
         if (IntrinsicWidth is { } w)
         {
-            builder.AddAttribute(6, "width", w);
+            builder.AddAttribute(sequence + 4, "width", w);
         }
 
         if (IntrinsicHeight is { } h)
         {
-            builder.AddAttribute(7, "height", h);
+            builder.AddAttribute(sequence + 5, "height", h);
         }
 
         if (Lazy)
         {
-            builder.AddAttribute(8, "loading", "lazy");
+            builder.AddAttribute(sequence + 6, "loading", "lazy");
         }
 
-        builder.AddAttribute(9, "decoding", "async");
-        builder.AddAttribute(10, "class", cssClass);
-        builder.AddAttribute(11, "style", style);
+        builder.AddAttribute(sequence + 7, "decoding", "async");
+        builder.AddAttribute(sequence + 8, "class", cssClass);
+        builder.AddAttribute(sequence + 9, "style", style);
         builder.CloseElement();
-
-        if (Caption is not null)
-        {
-            builder.OpenElement(12, "figcaption");
-            builder.AddAttribute(13, "class", "ib-figure-caption");
-            builder.AddContent(14, Caption);
-            builder.CloseElement();
-            builder.CloseElement();
-        }
     }
 }
 

@@ -2231,7 +2231,8 @@
       "id": "image", "icon": "Image", "name": "Image", "category": "Display", "summary": "Loads an image lazily and keeps its space.",
       "examples": [
         { "id": "image-usage", "title": "Ratio and fit", "lead": "Set `Src`, and `Alt` to what the picture shows. To give the image a fixed shape, set `Ratio`. To choose whether it fills the shape (`Cover`, the default) or fits inside it (`Contain`), set `Fit`." },
-        { "id": "image-intrinsic", "title": "Intrinsic size", "lead": "To keep the image's space before it loads, set `IntrinsicWidth` and `IntrinsicHeight`." }
+        { "id": "image-intrinsic", "title": "Intrinsic size", "lead": "To keep the image's space before it loads, set `IntrinsicWidth` and `IntrinsicHeight`." },
+        { "id": "image-dark", "title": "Another image in the dark scheme", "lead": "Use `DarkSrc` for a picture drawn for one background, such as a logo or a screenshot. It follows the page's color scheme, so it changes with the scheme switch too." }
       ]
     },
 
@@ -3362,7 +3363,7 @@
       "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data", "summary": "Lists terms and their details.", "keywords": ["key value", "definition list"], "parts": ["DescriptionItem"],
       "examples": [
         { "id": "description-list-usage", "title": "Terms beside details", "lead": "Put a `DescriptionItem` with a `Term` for each pair, with the detail inside. Terms sit beside their details from 640px up, and above them on phones. To add lines between items, set `Dividers`." },
-        { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "To put each term above its detail, set `Orientation` to `Orientation.Vertical`. To flow the items into columns, set `Columns`." }
+        { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "To put each term above its detail, set `Orientation` to `Orientation.Vertical`. To flow the items into columns, set `Columns`: one number applies from 640px up and phones get one column, and a map such as `new() { Base = 2, Md = 3 }` sets the count at each width." }
       ]
     },
 
