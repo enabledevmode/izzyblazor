@@ -28,7 +28,7 @@
                 @if (records.Count > 0)
                 {
                     <Row Gap="2" Align="Align.Center" Wrap>
-                        <TextBlock As="span" Color="Color.Muted">Written on</TextBlock>
+                        <TextBlock As="span" Color="Color.Muted">Related to</TextBlock>
                         @foreach (var record in records)
                         {
                             <Anchor Href="@record.Href" title="@(char.ToUpperInvariant(record.Kind[0]) + record.Kind[1..])"><Icon Name="record.Icon" Size="IconSize.Sm" /> <VisuallyHidden>@record.Kind </VisuallyHidden>@record.Name</Anchor>
