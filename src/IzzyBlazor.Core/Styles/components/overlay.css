@@ -205,18 +205,14 @@
     text-box: trim-both cap alphabetic;
   }
 
-  /* Shortcuts: a column at the end, well apart from the labels, each in a key cap: a light fill and
-     a line, small text with room around it. 20px tall, centered in the row on whole pixels. */
+  /* Shortcuts: a column at the end, well apart from the labels, in small muted text as menus on
+     the desktop write them. Each key is an element of its own; symbol keys (⇧⌘P) sit a hair apart. */
   .ib-menu-shortcut {
     display: inline-flex;
     flex: none;
     align-items: center;
-    height: 1.25rem;
+    gap: 0.125em;
     margin-inline-start: var(--ib-space-6);
-    padding-inline: var(--ib-space-2);
-    border: 1px solid var(--ib-color-border);
-    border-radius: var(--ib-radius-sm);
-    background-color: var(--ib-color-fill);
     color: var(--ib-color-muted);
     font-family: inherit;
     font-size: var(--ib-text-xs);
@@ -224,11 +220,12 @@
     font-variant-numeric: tabular-nums;
     line-height: 1;
     white-space: nowrap;
-    /* Text widths are rarely whole: rounded up, so the cap's left edge lands on a pixel. */
-    width: calc-size(max-content, round(up, size, 1px));
-    /* Short shortcuts (⌘+O, ⌘+D) share one width, so the column's edges line up. */
-    min-width: 3rem;
-    justify-content: center;
+  }
+
+  .ib-menu-key {
+    display: inline-flex;
+    align-items: center;
+    font: inherit;
   }
 
   /* A modifier key drawn as an icon: the text's size, nudged onto the letters' line. */

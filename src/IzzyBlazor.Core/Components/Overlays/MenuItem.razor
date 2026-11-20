@@ -236,24 +236,46 @@ else
         <span class="ib-menu-label">@ChildContent</span>
         @if (!string.IsNullOrWhiteSpace(Shortcut))
         {
-            @* The item's description, not part of its name: "Move up", then "Alt up arrow". *@
-            <kbd class="ib-menu-shortcut" id="@ShortcutId" aria-hidden="true">
-                @* Mac modifier symbols as icons: no web font has them, and system fallbacks draw them
-                   at very different sizes. The character stays for screen readers. *@
-                @foreach (var c in Shortcut)
-                {
-                    if (ModifierIcon(c) is { } modifier)
-                    {
-                        <Icon Name="modifier" Class="ib-menu-key-icon" /><span class="ib-visually-hidden">@c</span>
-                    }
-                    else
-                    {
-                        @c
-                    }
-                }
-            </kbd>
+            @* The item's description, not part of its name: "Move up", then "Alt up arrow". A kbd for
+               the shortcut holding a kbd for each key, as the HTML spec writes a combination; the
+               "+" between them is as the shortcut was written. No space between the elements, so
+               the text reads "Alt+↑". *@
+            <kbd class="ib-menu-shortcut" id="@ShortcutId" aria-hidden="true">@foreach (var (key, plus) in ShortcutKeys(Shortcut)){if (plus){<span class="ib-menu-key-plus">+</span>}<kbd class="ib-menu-key">@if (key.Length == 1 && ModifierIcon(key[0]) is { } modifier){
+                        @* Mac modifier symbols as icons: no web font has them, and system fallbacks draw
+                           them at very different sizes. The character stays for screen readers. *@
+                        <Icon Name="modifier" Class="ib-menu-key-icon" /><span class="ib-visually-hidden">@key</span>}else{@key}</kbd>}</kbd>
         }
     </text>;
+
+    // A shortcut's keys as written, each with whether a "+" was written before it: "Ctrl+Shift+P"
+    // is three keys with two pluses, "⇧⌘P" three with none, "Ctrl++" ends with the plus key.
+    internal static List<(string Key, bool Plus)> ShortcutKeys(string? shortcut)
+    {
+        var keys = new List<(string, bool)>();
+        var text = shortcut?.Trim() ?? "";
+        var plusKey = text.EndsWith("++", StringComparison.Ordinal) || text == "+";
+        var parts = text.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        for (var p = 0; p < parts.Length; p++)
+        {
+            var rest = parts[p];
+            var first = true;
+            while (rest.Length > 1 && ModifierIcon(rest[0]) is not null)
+            {
+                keys.Add((rest[..1], first && p > 0));
+                rest = rest[1..];
+                first = false;
+            }
+
+            keys.Add((rest, first && p > 0));
+        }
+
+        if (plusKey)
+        {
+            keys.Add(("+", keys.Count > 0));
+        }
+
+        return keys;
+    }
 
     private string? _shortcutId;
 
