@@ -23,22 +23,16 @@
     </PageHeader>
 
     <Column Gap="4">
+        @* Four figures, each against the period before, over a line of the last three periods. *@
         <Grid Columns="new() { Base = 2, Lg = 4 }" Gap="4">
-            <Card>
-                <Stat Label="@($"Won this {_period}")" Value="@Money(_won.Sum(d => d.Value))"
-                      Change="@_change" Trend="_trend" ChangeStatus="@(_trend == StatTrend.Down ? Status.Danger : Status.Success)" Description="@(_change is null ? $"Nothing won in {_before}" : $"vs {_before}")"
-                      Sparkline="_history" SparklineType="SparklineType.Area" SparklineFormat="@_format"
-                      SparklineLabel="@($"Won this {_period}, last {_history.Length} {_period}s")" />
-            </Card>
-            <Card><Stat Label="Open pipeline" Value="@Money(_open.Sum(d => d.Value))" Description="@($"{Count(_open.Count, "deal")} · {Count(_stages.Count, "stage")}")" /></Card>
-            <Card>
-                <Stat Label="Win rate" Value="@(_won.Count + _lost == 0 ? "—" : (_won.Count / (double)(_won.Count + _lost)).ToString("P0"))"
-                      Description="@(_won.Count + _lost == 0 ? "No deals closed yet" : $"{_won.Count:N0} won, {_lost:N0} lost")" />
-            </Card>
-            <Card>
-                <Stat Label="Average won deal" Value="@(_won.Count == 0 ? "—" : Money(Math.Round(_won.Average(d => d.Value))))"
-                      Description="@($"{Count(_won.Count, "deal")} won in {_short}")" />
-            </Card>
+            @foreach (var figure in _figures)
+            {
+                <Card>
+                    <Stat Label="@figure.Label" Value="@figure.Value" Change="@figure.Change" Trend="figure.Trend"
+                          ChangeStatus="@(figure.Trend == StatTrend.Down ? Status.Danger : Status.Success)" Description="@figure.Against"
+                          Sparkline="figure.History" SparklineType="SparklineType.Area" SparklineFormat="@figure.Format" SparklineLabel="@figure.HistoryLabel" />
+                </Card>
+            }
         </Grid>
 
         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
@@ -191,17 +185,17 @@
     private Workspace _workspace = new();
     private DateOnly _today;
     private string _period = "month", _name = "", _short = "", _before = "", _targetName = "monthly", _format = "", _axis = "";
-    private string? _change;
-    private StatTrend _trend;
-    private double?[] _history = [];
+    private List<Figure> _figures = [];
     private decimal _target;
-    private int _lost;
     private List<Deal> _won = [], _open = [], _next = [];
     private List<MonthRevenue> _months = [];
     private List<StageValue> _stages = [];
     private List<Seller> _team = [];
     private List<Risk> _risks = [];
     private List<SourceValue> _sources = [];
+
+    // A figure at the top: its value, how it changed from the period before, and its last three periods as a line.
+    private sealed record Figure(string Label, string Value, string? Change, StatTrend Trend, string Against, double?[] History, string Format, string HistoryLabel);
 
     // A month of the revenue chart: what was won in it, and what open deals are due to close in it.
     private sealed record MonthRevenue(string Month, decimal? Won, decimal? Expected, string? Total);
@@ -248,13 +242,34 @@
         _open = deals.Where(d => d.IsOpen).ToList();
         List<Deal> WonIn(DateOnly from, DateOnly to) => deals.Where(d => d.Stage == DealStage.Won && d.Closed >= from && d.Closed < to).ToList();
         _won = WonIn(start, end);
-        _lost = deals.Count(d => d.Stage == DealStage.Lost && d.Closed >= start && d.Closed < end);
 
-        // Against the period before, and the last three periods as the stat's line.
-        var (now, before) = (_won.Sum(d => d.Value), WonIn(start.AddMonths(-length), start).Sum(d => d.Value));
-        (_change, _trend) = before == 0 ? (null, StatTrend.None)
-            : (Math.Abs((now - before) / before).ToString("P0"), now > before ? StatTrend.Up : now < before ? StatTrend.Down : StatTrend.Flat);
-        _history = [.. Enumerable.Range(0, 3).Select(i => (double?)WonIn(start.AddMonths(-length * (2 - i)), start.AddMonths(-length * (1 - i))).Sum(d => d.Value))];
+        // The four figures, for this period and the two before it. The pipeline is read as it stood at each
+        // period's end: the deals made by then and not yet closed, at today's values.
+        var periods = Enumerable.Range(0, 3).Select(i => (From: start.AddMonths(-length * (2 - i)), To: start.AddMonths(-length * (1 - i)))).ToArray();
+        int Lost(DateOnly from, DateOnly to) => deals.Count(d => d.Stage == DealStage.Lost && d.Closed >= from && d.Closed < to);
+        double? Rate(DateOnly from, DateOnly to) => WonIn(from, to).Count is var won && won + Lost(from, to) is > 0 and var closed ? won / (double)closed : null;
+        double? Average(DateOnly from, DateOnly to) => WonIn(from, to) is { Count: > 0 } won ? (double)Math.Round(won.Average(d => d.Value)) : null;
+        double? OpenAt(DateOnly day) => (double)deals.Where(d => d.Created <= day && (d.Closed is null || d.Closed > day)).Sum(d => d.Value);
+        var lastDay = start.AddDays(-1);
+        var percent = "0%";
+        Figure Of(string label, Func<DateOnly, DateOnly, double?> measure, string format, string none, bool points = false, string? against = null)
+        {
+            double?[] history = [.. periods.Select(p => measure(p.From, p.To))];
+            var (now, before) = (history[2], history[1]);
+            var value = now is { } v ? v.ToString(format) : "—";
+            // A share changes by points, an amount by a share of what it was.
+            var (change, trend) = now is not { } a || before is not { } b || (!points && b == 0) ? (null, StatTrend.None)
+                : (points ? $"{Math.Abs(Math.Round((a - b) * 100)):N0} pts" : Math.Abs((a - b) / b).ToString("P0"), a > b ? StatTrend.Up : a < b ? StatTrend.Down : StatTrend.Flat);
+            return new(label, value, change, trend, change is null ? none : $"vs {against ?? _before}", history, format, $"{label}, last 3 {_period}s");
+        }
+
+        _figures =
+        [
+            Of($"Won this {_period}", (from, to) => (double)WonIn(from, to).Sum(d => d.Value), _format, $"Nothing won in {_before}"),
+            Of("Open pipeline", (_, to) => OpenAt(to > _today ? _today : to.AddDays(-1)), _format, $"Nothing open on {When.Date(lastDay, _today)}", against: When.Date(lastDay, _today)),
+            Of("Win rate", Rate, percent, $"No deals closed in {_before}", points: true),
+            Of("Average won deal", Average, _format, $"Nothing won in {_before}"),
+        ];
 
         // Revenue by month: this month with two each side, or the quarter's or year's months. An open deal past its
         // close date is expected this month.
