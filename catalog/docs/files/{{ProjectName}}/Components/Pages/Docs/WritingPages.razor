@@ -17,7 +17,11 @@
     </Collapsible>
 
     <Heading Level="2" Size="TextSize.Xl" MarginTop="4">Create a page</Heading>
+    @*#if (UseWebAssembly && InteractiveAtRoot) *@
+    <TextBlock LineHeight="LineHeight.Relaxed">Add a <Code>.razor</Code> file under <Code>{{ProjectName}}.Client/Pages/Docs</Code>. Its <Code>@@page</Code> line is its address; its first heading is its title.</TextBlock>
+    @*#else *@
     <TextBlock LineHeight="LineHeight.Relaxed">Add a <Code>.razor</Code> file under <Code>Components/Pages/Docs</Code>. Its <Code>@@page</Code> line is its address; its first heading is its title.</TextBlock>
+    @*#endif *@
     <Code Block Language="razor">@Sample</Code>
 
     <Heading Level="2" Size="TextSize.Xl" MarginTop="4">Add it to the sidebar</Heading>

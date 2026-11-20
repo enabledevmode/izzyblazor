@@ -37,10 +37,12 @@ public sealed class StarterBuildTests : IDisposable
     /// <summary>
     /// The shells with files of their own, each in the settings that reach the most of them: accounts for the
     /// sidebar's foot and the inbox's prompt, and every page interactive in WebAssembly for the pages that
-    /// move to the .Client project. The sidebar and top navigation shells are izzy-blazor's own layouts.
+    /// move to the .Client project. rail also without accounts, the default.
+    /// The sidebar and top navigation shells are izzy-blazor's own layouts.
     /// </summary>
     public static TheoryData<string, string> Shells() => new()
     {
+        { "rail", "" },
         { "rail", "Auth=Individual" },
         { "site", "" },
         { "docs", "Interactivity=WebAssembly;AllInteractive=true;Auth=Individual" },
