@@ -37,7 +37,7 @@
          id="@ElementId"
          popover="@(AutoClose ? "auto" : "manual")"
          role="dialog"
-         aria-labelledby="@(Title is not null ? TitleId : TriggerId)"
+         aria-labelledby="@(Title is not null ? TitleId : AdditionalAttributes?.GetValueOrDefault("aria-labelledby") ?? TriggerId)"
          class="@_class"
          style="@_style"
          @onibtoggle="HandleToggle">

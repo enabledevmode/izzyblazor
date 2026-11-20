@@ -39,26 +39,34 @@ public class BrandChartPaletteTests(ITestOutputHelper output) : BunitContext
         }
     }
 
-    // Charts start at the brand: the app's theme writes a brand's colors (tokens.css has the default brand's), a
-    // part of the page with its own brand writes its own, and a fixed palette leaves both alone.
+    // Charts start at the brand: the app's theme writes its brand's colors and points the charts at them, unless
+    // it chose a fixed palette; a part of the page with its own brand writes its own, and one that asks for Brand
+    // by name takes the app's.
     [Fact]
     public void A_theme_gives_its_charts_its_brand()
     {
         string? Style(Action<ComponentParameterCollectionBuilder<IzzyTheme>> set) => Render(set).FindAll("style").FirstOrDefault()?.TextContent;
 
         var rose = Style(p => p.Add(t => t.Brand, "rose"));
-        Assert.Contains("--ib-chart-1: var(--ib-color-primary); --ib-chart-2: var(--ib-chart-contrast-2); --ib-chart-3: var(--ib-chart-contrast-1);", rose);
-        Assert.Contains("--ib-chart-", Style(p => p.Add(t => t.Preset, ThemePreset.Soft)));
-        Assert.DoesNotContain("--ib-chart-", Style(p => p.Add(t => t.Preset, ThemePreset.Compact)) ?? "");
-        Assert.DoesNotContain("--ib-chart-", Style(p => p.Add(t => t.Brand, "rose").Add(t => t.ChartPalette, ThemeChartPalette.Calm)) ?? "");
+        Assert.Contains("--ib-chart-brand-1: var(--ib-color-primary); --ib-chart-brand-2: var(--ib-chart-contrast-2); --ib-chart-brand-3: var(--ib-chart-contrast-1);", rose);
+        Assert.Contains("--ib-chart-1: var(--ib-chart-brand-1);", rose);
+        Assert.Contains("--ib-chart-1: var(--ib-chart-brand-1);", Style(p => { }));
+        var calm = Style(p => p.Add(t => t.Brand, "rose").Add(t => t.ChartPalette, ThemeChartPalette.Calm));
+        Assert.Contains("--ib-chart-brand-1:", calm);
+        Assert.DoesNotContain("--ib-chart-1:", calm);
+        // Ink is the text color, which the marks drawn over a series use: its charts stay Contrast's.
+        Assert.DoesNotContain("--ib-chart-", Style(p => p.Add(t => t.Preset, ThemePreset.Editorial)) ?? "");
+        Assert.DoesNotContain("--ib-chart-", Style(p => p.Add(t => t.Brand, "#222222")) ?? "x");
         // A brand too light to show on white is drawn in its text color there.
-        Assert.Matches(@"--ib-chart-1: light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\);", Style(p => p.Add(t => t.Brand, "#fde047")));
+        Assert.Matches(@"--ib-chart-brand-1: light-dark\(#[0-9a-f]{6}, #[0-9a-f]{6}\);", Style(p => p.Add(t => t.Brand, "#fde047")));
 
         var part = Render<ThemeScope>(p => p.Add(t => t.Brand, "indigo").AddChildContent("<p>Chart</p>")).Find("div");
         Assert.Contains("--ib-chart-1: var(--ib-color-primary);", part.GetAttribute("style"));
+        var named = Render<ThemeScope>(p => p.Add(t => t.ChartPalette, ThemeChartPalette.Brand).AddChildContent("<p>Chart</p>")).Find("div");
+        Assert.Contains("--ib-chart-1: var(--ib-chart-brand-1, var(--ib-chart-contrast-1));", named.GetAttribute("style"));
     }
 
-    // The colors the palette is worked out from are the stylesheets' own, and tokens.css holds the default brand's.
+    // The colors the palette is worked out from are the stylesheets' own.
     [Fact]
     public void Its_colors_and_its_default_are_the_stylesheets()
     {
@@ -74,9 +82,6 @@ public class BrandChartPaletteTests(ITestOutputHelper output) : BunitContext
         {
             Assert.Matches($@"data-ib-brand=""{name}""[^}}]*--ib-color-primary: light-dark\({light}, {dark}\);", themes);
         }
-
-        var declared = Regex.Matches(tokens, @"--ib-chart-(?:\d|of\d-\d): [^;]+;").Select(m => m.Value);
-        Assert.Equal(BrandChartPalette.Default, string.Join(" ", declared));
     }
 
     private static string RepoRoot()

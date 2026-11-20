@@ -12,9 +12,11 @@ namespace IzzyBlazor;
 /// </summary>
 /// <remarks>
 /// The colors are named by their tokens, so the palette is a list of <c>var()</c>s: the brand is
-/// <c>--ib-color-primary</c>, read where it's used, and the rest are tokens.css's Contrast colors. tokens.css
-/// holds the palette for the default brand (blue); <see cref="IzzyTheme"/> and <see cref="ThemeScope"/> write
-/// another brand's.
+/// <c>--ib-color-primary</c>, read where it's used, and the rest are tokens.css's Contrast colors. A stylesheet
+/// can't work the palette out, so tokens.css's own default is Contrast: <see cref="IzzyTheme"/> writes the app's
+/// brand's as <c>--ib-chart-brand-*</c> and points the charts at it, and a <see cref="ThemeScope"/> with a brand
+/// writes its own. A brand set any other way (a <c>data-ib-brand</c> attribute, your own
+/// <c>--ib-color-primary</c>) keeps Contrast.
 /// </remarks>
 internal static class BrandChartPalette
 {
@@ -63,28 +65,53 @@ internal static class BrandChartPalette
 
     private const string Primary = "var(--ib-color-primary)";
 
-    private static readonly ConcurrentDictionary<(string, string, string), string> Cache = new();
+    private static readonly ConcurrentDictionary<(string, string, string, string), string> Cache = new();
 
-    /// <summary>The default brand's palette, which tokens.css holds: a theme with the same one writes nothing.</summary>
-    internal static string Default => Css("blue");
+    // The tokens charts read: the eight, and the sets for two, three and four series.
+    private static readonly string[] Tokens = [.. Enumerable.Range(1, 8).Select(i => $"{i}"),
+        .. Enumerable.Range(2, 3).SelectMany(n => Enumerable.Range(1, n).Select(i => $"of{n}-{i}"))];
 
-    /// <summary>A built-in brand's palette as CSS declarations.</summary>
-    internal static string Css(string brand) => Css(Brands[brand].Light, Brands[brand].Dark, Primary);
+    /// <summary>
+    /// Points the charts at the app's brand palette (<c>--ib-chart-brand-*</c>, which <see cref="IzzyTheme"/>
+    /// writes). <paramref name="orContrast"/>: for part of a page, which can't know there's an IzzyTheme.
+    /// </summary>
+    internal static string Use(bool orContrast) => orContrast ? UseOrContrast : UseBrand;
+
+    /// <summary>The Contrast palette by name, for part of a page whose brand has no color (<see cref="Colorless(string)"/>).</summary>
+    internal static readonly string Contrast = string.Join(" ", Tokens.Select(t => $"--ib-chart-{t}: var(--ib-chart-contrast-{t});"));
+
+    /// <summary>
+    /// A brand with no color of its own: ink, which is the text color. Its charts keep Contrast: a first series
+    /// in the text color is the color of the target ticks, reference lines and trend lines drawn over it.
+    /// </summary>
+    internal static bool Colorless(string brand) => brand == "ink";
+
+    /// <summary>A hex brand that's a gray, black or white.</summary>
+    internal static bool Colorless(BrandPalette brand) => ToLch(Rgb.Parse(brand.Fill)).C < 0.03;
+
+    private static readonly string UseBrand = string.Join(" ", Tokens.Select(t => $"--ib-chart-{t}: var(--ib-chart-brand-{t});"));
+    private static readonly string UseOrContrast = string.Join(" ", Tokens.Select(t => $"--ib-chart-{t}: var(--ib-chart-brand-{t}, var(--ib-chart-contrast-{t}));"));
+
+    /// <summary>
+    /// A built-in brand's palette as CSS declarations. <paramref name="app"/>: as <c>--ib-chart-brand-*</c>, the
+    /// app's, which <see cref="Use"/> points the charts at; otherwise the charts' own tokens, for part of a page.
+    /// </summary>
+    internal static string Css(string brand, bool app = false) => Css(Brands[brand].Light, Brands[brand].Dark, Primary, app ? "brand-" : "");
 
     /// <summary>
     /// A hex brand's palette as CSS declarations. A fill too light to show on white (under 3:1) is drawn in the
     /// accent's text color there, as the focus ring is.
     /// </summary>
-    internal static string Css(BrandPalette brand) => brand.Focus is { } visible
-        ? Css(visible, brand.DarkFill, $"light-dark({visible}, {brand.DarkFill})")
-        : Css(brand.Fill, brand.DarkFill, Primary);
+    internal static string Css(BrandPalette brand, bool app = false) => brand.Focus is { } visible
+        ? Css(visible, brand.DarkFill, $"light-dark({visible}, {brand.DarkFill})", app ? "brand-" : "")
+        : Css(brand.Fill, brand.DarkFill, Primary, app ? "brand-" : "");
 
     /// <summary>The declarations for a brand of these two colors, written as <paramref name="first"/>.</summary>
-    internal static string Css(string light, string dark, string first) => Cache.GetOrAdd((light, dark, first), key =>
+    internal static string Css(string light, string dark, string first, string prefix = "") => Cache.GetOrAdd((light, dark, first, prefix), key =>
     {
         var (eight, sets) = Pick(key.Item1, key.Item2);
         var css = new System.Text.StringBuilder();
-        void Add(string token, string? color) => css.Append("--ib-chart-").Append(token).Append(": ")
+        void Add(string token, string? color) => css.Append("--ib-chart-").Append(key.Item4).Append(token).Append(": ")
             .Append(color is null ? key.Item3 : $"var(--ib-chart-{color})").Append("; ");
         for (var i = 0; i < eight.Length; i++) Add((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), eight[i]);
         for (var n = 2; n <= 4; n++)

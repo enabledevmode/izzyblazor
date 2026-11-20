@@ -26,7 +26,8 @@
                     {
                         <tr>
                             <td><code>@p.Name</code></td>
-                            <td><span style="display: inline-flex; gap: 4px; vertical-align: middle">@for (var i = 1; i <= 8; i++) { var slot = $"background: var(--ib-chart-{p.Token}{i}); width: 16px; height: 16px; border-radius: 4px; display: inline-block"; <span style="@slot"></span> }</span></td>
+                            @* Brand's row is shown for a brand with a color: this site's own is ink, whose charts are Contrast's. *@
+                            <td><ThemeScope Brand="@(p.Token == "" ? "blue" : null)"><span style="display: inline-flex; gap: 4px; vertical-align: middle">@for (var i = 1; i <= 8; i++) { var slot = $"background: var(--ib-chart-{p.Token}{i}); width: 16px; height: 16px; border-radius: 4px; display: inline-block"; <span style="@slot"></span> }</span></ThemeScope></td>
                             <td>@p.Use</td>
                         </tr>
                     }
@@ -37,7 +38,10 @@
             Brand, the default, puts the brand color first, so a chart of one series is your app's color. The rest are
             Contrast's colors without the one nearest the brand, in the order that keeps neighbors furthest apart. It
             follows <Code>Brand</Code> on the <Code>IzzyTheme</Code>, a preset's brand, and a <Code>ThemeScope</Code>
-            that sets a brand of its own.
+            that sets a brand of its own. The <Code>IzzyTheme</Code> works the palette out: a brand set only in CSS,
+            with a <Code>data-ib-brand</Code> attribute or your own <Code>--ib-color-primary</Code>, keeps Contrast. So does
+            a brand with no color of its own, such as ink or a gray: a chart draws target ticks and reference lines in the
+            text color, and they'd be lost on a series of the same color.
         </TextBlock>
         <TextBlock>
             Contrast has eight colors of one lightness, each at least 3:1 on the surface in both schemes, so thin lines
@@ -46,7 +50,7 @@
         <TextBlock>
             With Brand or Contrast, a chart with exactly two, three or four series gets a set chosen for that count, where
             every pair stays apart, not only neighbors. Brand's sets start at the brand color; a brand that leaves no
-            such set of four (teal and green) takes its first four colors. The count is the series the chart defines, so
+            such set of four (teal and green) takes the four that come closest. The count is the series the chart defines, so
             hiding one from the legend never repaints the others.
         </TextBlock>
         <TextBlock>
