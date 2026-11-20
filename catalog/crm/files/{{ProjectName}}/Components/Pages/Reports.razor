@@ -55,7 +55,8 @@
                 <CardActions><Button Href="deals" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" EndIcon="Lucide.ArrowRight">View pipeline</Button></CardActions>
                 @if (_open.Count > 0)
                 {
-                    <Chart Items="_stages" Argument="s => s.Stage" TitledBy="report-stages" Orientation="Orientation.Horizontal" Height="@Rows(_stages.Count)">
+                    @* As tall as the revenue chart beside it with its legend, so the two cards end together. *@
+                    <Chart Items="_stages" Argument="s => s.Stage" TitledBy="report-stages" Orientation="Orientation.Horizontal" Height="Length.Rem(18.875)">
                         <ChartValueAxis HideLabels GridLines="false" />
                         <ChartBarSeries Value="s => s.Value" Name="Open value" LabelText="s => s.Label" />
                     </Chart>
