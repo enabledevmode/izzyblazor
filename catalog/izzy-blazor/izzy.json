@@ -108,6 +108,7 @@
     "SampleContent": "!Empty",
     "ShellStarter": "Starter != \"\"",
     "HeaderRegister": "Registration",
+    "HeaderTitle": "false",
     "IndividualLocalAuth": "Auth == \"Individual\"",
     "RequiresHttps": "IndividualLocalAuth",
     "HasHttpsProfile": "RequiresHttps || !NoHttps",
