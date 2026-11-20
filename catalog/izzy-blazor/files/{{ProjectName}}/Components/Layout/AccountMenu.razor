@@ -27,7 +27,13 @@
         </form>
     </Authorized>
     <NotAuthorized>
-        @*#if (SampleContent) *@
+        @*#if (ShellStarter) *@
+        @* Log in stays at every width; on phones Register is at the foot of the menu. *@
+        <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Log in</Button>
+        @*#if (HeaderRegister) *@
+        <Button Href="Account/Register" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Md">Register</Button>
+        @*#endif *@
+        @*#elif (SampleContent) *@
         <Button Href="Account/Login" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Md">Sign in</Button>
         @*#if (Registration) *@
         <Button Href="Account/Register" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Md">Register</Button>

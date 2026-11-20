@@ -2,6 +2,207 @@
 
 <PageTitle>Home</PageTitle>
 
+@*#if (ShellStarter) *@
+@* The welcome page of a new app: it says the app runs, shows what it was made with and a few components in
+   its theme, and points at what to do next. It's static, and it's one file: replace it with your own Home. *@
+@*#if (Preset == "Compact") *@
+<Column Gap="8" MaxWidth="Length.Rem(75)">
+@*#else *@
+<Column Gap="new() { Base = 8, Md = 10 }" MaxWidth="Length.Rem(75)">
+@*#endif *@
+    <Card Overflow="Overflow.Hidden" aria-labelledby="welcome-title">
+        <CardBody Flush Class="welcome-opening" Gap="3" Align="Align.Start" Justify="Justify.Center"
+                  PaddingX="new() { Base = 5, Md = 10 }" PaddingY="new() { Base = 6, Md = 10 }" MinHeight="new() { Md = Length.Px(240) }">
+            <Image Src="img/izzyblazor-knob.svg" Alt="" Class="welcome-knob" Lazy="false" />
+            <Image Src="img/izzyblazor-wordmark-light.svg" Alt="IzzyBlazor" Class="welcome-wordmark welcome-on-light" Lazy="false" />
+            <Image Src="img/izzyblazor-wordmark-dark.svg" Alt="IzzyBlazor" Class="welcome-wordmark welcome-on-dark" Lazy="false" />
+            <Heading Level="1" id="welcome-title" Size="new() { Base = TextSize.Xl2, Md = TextSize.Xl4 }" Wrap="TextWrap.NoWrap">Your app is running.</Heading>
+            <TextBlock Size="new() { Base = TextSize.Lg, Md = TextSize.Xl }" Weight="FontWeight.Medium" Color="Color.Muted" Wrap="TextWrap.NoWrap">No circuit required.</TextBlock>
+        </CardBody>
+        <CardFooter Bg="Color.FillSubtle" BorderTop="1" PaddingX="new() { Base = 5, Md = 10 }" PaddingY="new() { Base = 4, Md = 5 }">
+            <VisuallyHidden As="h2">What you generated</VisuallyHidden>
+            <DescriptionList Orientation="Orientation.Vertical" Columns="3" Size="ControlSize.Sm" Grow>
+                <DescriptionItem Term="App">{{ProjectName}}</DescriptionItem>
+                <DescriptionItem Term="Starter">{{Starter}}</DescriptionItem>
+@*#if (Interactivity == "None") *@
+                <DescriptionItem Term="Render mode">Static SSR</DescriptionItem>
+@*#elif (InteractiveAtRoot) *@
+                <DescriptionItem Term="Render mode">Interactive {{Interactivity}}</DescriptionItem>
+@*#else *@
+                <DescriptionItem Term="Render mode">Static SSR + {{Interactivity}}</DescriptionItem>
+@*#endif *@
+                <DescriptionItem Term="Preset">{{Preset}}</DescriptionItem>
+                <DescriptionItem Term="Brand color">
+                    <Row Gap="2" Align="Align.Center">
+                        <Box As="span" Width="Length.Px(12)" Height="Length.Px(12)" Bg="Color.Primary" Radius="Radius.Full" Shrink="false" aria-hidden="true" />
+@*#if (Brand != "") *@
+                        {{Brand}}
+@*#elif (Preset == "Compact") *@
+                        Indigo
+@*#elif (Preset == "Soft") *@
+                        Teal
+@*#elif (Preset == "Editorial") *@
+                        Ink
+@*#else *@
+                        Blue
+@*#endif *@
+                    </Row>
+                </DescriptionItem>
+@*#if (IndividualLocalAuth) *@
+                <DescriptionItem Term="Sign-in">Individual accounts</DescriptionItem>
+@*#else *@
+                <DescriptionItem Term="Sign-in">None</DescriptionItem>
+@*#endif *@
+            </DescriptionList>
+        </CardFooter>
+    </Card>
+
+    <Column As="section" Gap="4" aria-labelledby="welcome-sample">
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Heading Level="2" id="welcome-sample" Size="TextSize.Lg">Your theme, in components</Heading>
+            <Badge>Sample data</Badge>
+        </Row>
+@*#if (SidebarNav) *@
+        <Grid Columns="new() { Base = 2, Lg = 3 }" Gap="new() { Base = 3, Md = 4 }">
+            <Card ColSpan="new() { Base = 2, Lg = 1 }">
+@*#else *@
+        <Grid Columns="new() { Base = 2, Sm = 3 }" Gap="new() { Base = 3, Md = 4 }">
+            <Card ColSpan="new() { Base = 2, Sm = 1 }">
+@*#endif *@
+                <Stat Label="Revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up"
+                      Sparkline="Revenue" SparklineType="SparklineType.Area" SparklineLabel="Revenue, last 10 weeks" SparklineFormat="C0" />
+            </Card>
+            <Card><Stat Label="Orders" Value="1,284" Change="4%" Trend="StatTrend.Up" Description="Last 7 days" /></Card>
+            <Card><Stat Label="Conversion" Value="3.4%" Description="Last 7 days" /></Card>
+        </Grid>
+@*#if (SidebarNav) *@
+        <Grid Template='new() { Base = "minmax(0, 1fr)", Xl = "minmax(0, 2fr) minmax(0, 1fr)" }' Gap="4">
+@*#else *@
+        <Grid Template='new() { Base = "minmax(0, 1fr)", Lg = "minmax(0, 2fr) minmax(0, 1fr)" }' Gap="4">
+@*#endif *@
+            <Card Title="Orders this week" TitleId="welcome-orders">
+                <CardActions><TextBlock Size="TextSize.Xs" Color="Color.Muted">378 total</TextBlock></CardActions>
+                <Chart Items="Orders" Argument="day => day.Name" TitledBy="welcome-orders" Height="Length.Rem(12.5)">
+                    <ChartBarSeries Value="day => day.Count" Name="Orders" />
+                </Chart>
+            </Card>
+            <Card Title="Controls">
+                <CardBody Gap="4" Align="Align.Start">
+                    <SegmentedControl @bind-Value="range" Items="Ranges" Label="Range" HideLabel Size="ControlSize.Sm" />
+                    <Switch @bind-Value="summary" Label="Email me a weekly summary" ControlPosition="ControlPosition.End" AlignSelf="Align.Stretch" />
+                    <Row Gap="2" Wrap>
+                        <Badge Status="Status.Success">Paid</Badge>
+                        <Badge Status="Status.Warning">Pending</Badge>
+                        <Badge Accent="Accent.Primary">New</Badge>
+                        <Badge>Draft</Badge>
+                    </Row>
+                    <Row Gap="2">
+                        <Button Size="ControlSize.Sm">Save</Button>
+                        <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+                    </Row>
+                </CardBody>
+            </Card>
+        </Grid>
+    </Column>
+
+    <Column As="section" Gap="4" aria-labelledby="welcome-next">
+        <Heading Level="2" id="welcome-next" Size="TextSize.Lg">Next steps</Heading>
+        @* Each leaves the app for the docs site, so its arrow points out. *@
+        <ListView Items="Steps" Columns="2" ItemAlign="Align.Start" Label="Next steps"
+                  ItemText="step => step.Title" ItemDescription="step => step.Text" ItemHref="step => step.Href"
+                  ItemLabel='step => $"{step.Title} (opens the IzzyBlazor docs)"' Context="step">
+            <ItemMedia><Avatar Icon="step.Icon" Square Accent="Accent.Primary" Decorative /></ItemMedia>
+            <ItemActions><Icon Name="Lucide.ArrowUpRight" Size="IconSize.Sm" Color="Color.Muted" /></ItemActions>
+        </ListView>
+        <Heading Level="3" Size="TextSize.Sm" MarginTop="2">Add to your app</Heading>
+@*#if (SidebarNav) *@
+        <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
+@*#else *@
+        <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
+@*#endif *@
+            @foreach (var command in Commands)
+            {
+                <Column Gap="2">
+                    <Row Gap="2" Align="Align.Center" Bg="Color.FillSubtle" Border="1" Radius="Radius.Md" PaddingStart="3" PaddingEnd="1" MinHeight="Length.Px(44)">
+                        <TextBlock As="code" Family="FontFamily.Mono" Size="TextSize.Sm" Wrap="TextWrap.NoWrap" Grow><TextBlock As="span" Color="Color.Muted" aria-hidden="true">$ </TextBlock>@command.Text</TextBlock>
+                        <CopyButton Text="@command.Text" Label="Copy command" Size="ControlSize.Sm" />
+                    </Row>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@command.Does</TextBlock>
+                </Column>
+            }
+        </Grid>
+    </Column>
+
+    <Row Gap="2" Align="Align.Start" BorderTop="1" PaddingTop="5">
+        <Icon Name="Lucide.FileCode" Color="Color.Muted" />
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">To replace this page, edit <Code>Components/Pages/Home.razor</Code></TextBlock>
+    </Row>
+</Column>
+
+@* The artwork: the knob at the card's end, clipped by the card, and the wordmark for each color scheme. *@
+<style>
+    .welcome-opening { position: relative; }
+    .welcome-opening > * { position: relative; }
+    .welcome-knob { position: absolute; inline-size: 140px; block-size: 140px; inset-block-start: -44px; inset-inline-end: -44px; }
+    .welcome-wordmark { block-size: 26px; inline-size: auto; }
+    .welcome-on-dark { display: none; }
+    [data-ib-color-scheme="dark"] .welcome-on-light { display: none; }
+    [data-ib-color-scheme="dark"] .welcome-on-dark { display: block; }
+    @@media (prefers-color-scheme: dark) {
+        :root:not([data-ib-color-scheme]) .welcome-on-light { display: none; }
+        :root:not([data-ib-color-scheme]) .welcome-on-dark { display: block; }
+    }
+    @@media (min-width: 768px) {
+        .welcome-knob { inline-size: 300px; block-size: 300px; inset-block-start: calc(50% - 150px); inset-inline-end: -90px; }
+        .welcome-wordmark { block-size: 34px; }
+    }
+@*#if (SidebarNav) *@
+    @@media (min-width: 1280px) {
+@*#else *@
+    @@media (min-width: 1024px) {
+@*#endif *@
+        .welcome-knob { inset-inline-end: 40px; }
+    }
+</style>
+
+@code {
+    private static readonly double?[] Revenue = [3.1, 3.6, 3.4, 4.3, 4.0, 5.1, 4.8, 5.9, 5.7, 6.8];
+
+    private static readonly Day[] Orders =
+    [
+        new("Mon", 42), new("Tue", 58), new("Wed", 51), new("Thu", 74), new("Fri", 88), new("Sat", 36), new("Sun", 29),
+    ];
+
+    // The sample controls respond, and change nothing.
+    private static readonly string[] Ranges = ["Day", "Week", "Month"];
+    private string range = "Week";
+    private bool summary = true;
+
+    private static readonly Step[] Steps =
+    [
+        new(Lucide.LayoutGrid, "Browse the components", "Every component, with examples you can copy.", "https://izzyblazor.com/docs/components"),
+        new(Lucide.Palette, "Theme your app", "Presets, brand colors, dark mode and your own tokens.", "https://izzyblazor.com/docs/theming"),
+@*#if (InteractiveAtRoot) *@
+        new(Lucide.Layers, "Choose a render mode", "Every page is interactive. See when a static page would serve better.", "https://izzyblazor.com/docs/common/render-modes"),
+@*#else *@
+        new(Lucide.Layers, "Choose a render mode", "Pages are static. Make one interactive when it needs to be.", "https://izzyblazor.com/docs/common/render-modes"),
+@*#endif *@
+        new(Lucide.Sparkles, "Use an AI assistant", "Give your assistant the docs, so it writes IzzyBlazor.", "https://izzyblazor.com/docs/get-started/ai-assistants"),
+    ];
+
+    private static readonly Command[] Commands =
+    [
+        new("izzy add crud Product", "A list, form and detail page for Product."),
+        new("izzy add hero", "A hero block for the top of a page."),
+    ];
+
+    private sealed record Day(string Name, int Count);
+
+    private sealed record Step(IconData Icon, string Title, string Text, string Href);
+
+    private sealed record Command(string Text, string Does);
+}
+@*#else *@
 <Container Size="ContainerSize.Lg" Align="ContainerAlign.Start" Gutters="false">
     <Column Gap="new() { Base = 6, Md = 8 }">
         <PageHeader Title="Hello, world!" Description="Your IzzyBlazor app is running. Here's where to go next." />
@@ -34,3 +235,4 @@
         </Grid>
     </Column>
 </Container>
+@*#endif *@
