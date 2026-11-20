@@ -59,8 +59,7 @@
         if (Orientation == Orientation.Vertical && !Columns.IsEmpty)
         {
             // A single number is the count from 640px up; a map is taken as written.
-            var entries = Columns.Entries.ToList();
-            var columns = entries is [(null, var count)] ? new Responsive<int> { Sm = count } : Columns;
+            var columns = Columns.IsSingleValue ? new Responsive<int> { Sm = Columns.Base } : Columns;
             ApplyResponsive(classes, styles, columns, "ib-cols", "cols", count => StyleValues.GridColumns(Math.Clamp(count, 1, 4)));
         }
 

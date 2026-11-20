@@ -335,21 +335,15 @@
     height: auto;
   }
 
-  /* DarkSrc: the image for the scheme in use. The page follows the system unless it, or a part
-     of it, sets data-ib-color-scheme. */
+  /* DarkSrc: the image for the scheme in use. tokens.css sets --ib-on-light and
+     --ib-on-dark with each color scheme, so a part of the page with its own scheme gets its own. */
+  .ib-image-on-light {
+    display: var(--ib-on-light, block);
+  }
+
   .ib-image-on-dark {
-    display: none;
+    display: var(--ib-on-dark, none);
   }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-ib-color-scheme]) .ib-image-on-light { display: none; }
-    :root:not([data-ib-color-scheme]) .ib-image-on-dark { display: block; }
-  }
-
-  [data-ib-color-scheme="dark"] .ib-image-on-light { display: none; }
-  [data-ib-color-scheme="dark"] .ib-image-on-dark { display: block; }
-  [data-ib-color-scheme="light"] .ib-image-on-light { display: block; }
-  [data-ib-color-scheme="light"] .ib-image-on-dark { display: none; }
 
   /* Dark on light in both schemes: not every scanner reads light on dark. */
   .ib-qr {

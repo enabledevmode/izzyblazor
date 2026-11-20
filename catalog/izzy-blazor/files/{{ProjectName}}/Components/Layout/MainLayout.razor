@@ -14,9 +14,15 @@
 @*#else *@
 <AppShell Variant="ShellVariant.{{Shell}}">
 @*#endif *@
+    @*#if (ShellStarter) *@
+    @* The header: the menu button (phones), the brand, the links (top bar), the color scheme and, at
+       the end, the account control. On phones the menu opens a panel under the header, with
+       Register at its foot. *@
+    @*#else *@
     @* One header for both nav layouts: the menu button (phones), the brand, the links (top bar),
        the color scheme and, at the end, the account control. On phones both layouts open a panel
        under the header, with Sign in and Register at its foot. *@
+    @*#endif *@
     <AppHeader>
         @*#if (SidebarNav && SampleContent) *@
         <SidebarToggle />
