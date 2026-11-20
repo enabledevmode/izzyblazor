@@ -1830,7 +1830,7 @@
         { "feature": "Focus goes back where it was", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "context-menu-usage", "title": "A folder's menu", "lead": "Set `For` to the id of the element that opens the menu, and `Label` to name it. Right-click can't be seen, so give its actions another way in, here the toolbar. For a menu with a button that also opens by right-click, use a Menu's `ContextFor`.",
+        { "id": "context-menu-usage", "title": "A folder's menu", "lead": "Set `For` to the id of the element that opens the menu, and `Label` to name it; give its actions another way in, here the toolbar. A selector such as `.folder` opens it from every match, for actions that are the same for all. For one card's actions, give each card a Menu with `ContextFor`.",
           "notes": {
             "noscript": "Right-click shows the browser's own menu; the toolbar has the same actions.",
             "static": "IzzyBlazor's script opens the menu at the pointer. Its items are links."
