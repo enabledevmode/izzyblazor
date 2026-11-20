@@ -19,13 +19,13 @@
 <a @attributes="AdditionalAttributes"
    class="@_class"
    style="@_style"
-   href="@PageLinks.ToFragment(Navigation, For)"
-   aria-controls="@For"
+   href="@PageLinks.ToFragment(Navigation, ForId)"
+   aria-controls="@ForId"
    aria-label="@(Label ?? TextDefaults.OpenMenu)"
    data-ib-shell-toggle>
     <Icon Purpose="IconPurpose.Menu" />
 </a>
-<label class="@_collapseClass" style="@_style" for="@($"{For}-collapse")" aria-hidden="true" title="@(CollapseLabel ?? TextDefaults.CollapseSidebar)">
+<label class="@_collapseClass" style="@_style" for="@($"{ForId}-collapse")" aria-hidden="true" title="@(CollapseLabel ?? TextDefaults.CollapseSidebar)">
     <Icon Purpose="IconPurpose.Menu" />
 </label>
 @* A sidebar that opens as a panel under the header: while it's open this close button takes the
@@ -33,7 +33,7 @@
 <a class="@_closeClass"
    style="@_style"
    href="@PageLinks.ToFragment(Navigation, "ib-shell-closed")"
-   aria-controls="@For"
+   aria-controls="@ForId"
    aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)"
    data-ib-shell-close>
     <Icon Purpose="IconPurpose.Close" />
@@ -43,8 +43,10 @@
     /// <summary>The accessible name. Defaults to "Open menu".</summary>
     [Parameter] public string? Label { get; set; }
 
-    /// <summary>The sidebar to open. Defaults to <c>ib-sidebar</c>, AppShell's default.</summary>
+    /// <summary>The id of the sidebar to open. Defaults to <c>ib-sidebar</c>, AppShell's default.</summary>
     [Parameter] public string For { get; set; } = "ib-sidebar";
+
+    private string ForId => ForTarget.Id(For, nameof(SidebarToggle));
 
     /// <summary>Visual weight. Defaults to ghost.</summary>
     [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Ghost;

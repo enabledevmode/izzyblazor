@@ -57,9 +57,9 @@
     [Parameter] public string? Label { get; set; }
 
     /// <summary>
-    /// The id of an element whose right-click, long press, menu key or Shift+F10 also opens this
-    /// menu, at the pointer, such as the card it acts on. Needs script; with JavaScript off the
-    /// browser's own menu shows. For a menu with no button, use <see cref="ContextMenu"/>.
+    /// An element whose right-click, long press, menu key or Shift+F10 also opens this menu, at
+    /// the pointer, such as the card it acts on: its id, or a CSS selector when it starts with
+    /// <c>#</c>, <c>.</c> or <c>[</c>. Needs script; with JavaScript off the browser's own menu shows. For a menu with no button, use <see cref="ContextMenu"/>.
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public string? ContextFor { get; set; }

@@ -85,7 +85,7 @@ public class CopyButton : ButtonBase
 
         builder.OpenElement(0, "ib-copy");
         builder.AddAttribute(1, "data-copy-text", Text);
-        builder.AddAttribute(2, "data-copy-for", For);
+        builder.AddAttribute(2, "data-copy-for", ForTarget.Id(For, nameof(CopyButton)));
         builder.OpenElement(3, "button");
         builder.AddAttribute(4, "type", "button");
         builder.AddAttribute(5, "disabled", Disabled);

@@ -1,3 +1,4 @@
+import { forSelector } from "../for";
 import { IzzyElement, defineElement } from "../izzy-element";
 
 /**
@@ -12,7 +13,7 @@ class Confirm extends IzzyElement {
     const dialog = this.querySelector<HTMLDialogElement>("dialog");
     const target = this.dataset.for ?? "";
     if (!dialog || !target) return;
-    const selector = /^[#.[]/.test(target) ? target : `#${CSS.escape(target)}`;
+    const selector = forSelector(target);
     let asked: HTMLElement | null = null;
     let passing = false;
 
