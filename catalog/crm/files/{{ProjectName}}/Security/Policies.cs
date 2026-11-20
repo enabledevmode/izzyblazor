@@ -4,7 +4,7 @@ namespace {{RootNamespace}}.Security;
 
 /// <summary>
 /// The app's roles. They're set here, in code, not edited in the app: a new role is a constant here, a line in
-/// the seeder (Data/SeedData.cs), its place in <see cref="Policies"/> and a member of the Users grid's UserRole.
+/// the seeder (Data/SeedData.cs), its place in <see cref="Policies"/> and a member of the team list's UserRole.
 /// </summary>
 public static class Roles
 {
@@ -14,21 +14,12 @@ public static class Roles
 
     public static IReadOnlyList<string> All { get; } = [Admin, Manager, Viewer];
 
-    /// <summary>A role in a line, as the Users grid's Invite and Edit dialogs put it under each choice.</summary>
+    /// <summary>A role in a line, as the member form puts it under each choice (Components/Settings/MemberDialog.razor).</summary>
     public static string Summary(string role) => role switch
     {
-        Admin => "Everything, including users, roles and the audit log.",
-        Manager => "Contacts, companies, deals and activities: add, edit and delete.",
-        Viewer => "Sees every record and report. Can't change anything.",
-        _ => "",
-    };
-
-    /// <summary>What a role is for, as the Roles page describes it.</summary>
-    public static string Description(string role) => role switch
-    {
-        Admin => "Runs the app: everything Managers do, plus people and the audit log.",
-        Manager => "Works the pipeline: adds and edits contacts, companies, deals and activities.",
-        Viewer => "Follows along: sees every record and report, and changes nothing.",
+        Admin => "Manage customer records, team access, and workspace settings.",
+        Manager => "Add and update contacts, companies, deals, and activities.",
+        Viewer => "View customer records and reports without making changes.",
         _ => "",
     };
 }
@@ -36,7 +27,7 @@ public static class Roles
 /// <summary>
 /// What pages and actions ask for: <c>@attribute [Authorize(Policy = Policies.EditRecords)]</c> on a page, or
 /// <c>&lt;AuthorizeView Policy="@Policies.EditRecords"&gt;</c> around a button. Change who has a policy in
-/// <see cref="All"/>: the app enforces it and the Roles page lists it, from the same line.
+/// <see cref="All"/>: the app enforces it from that line.
 /// </summary>
 public static class Policies
 {
@@ -52,7 +43,7 @@ public static class Policies
     /// <summary>The audit log.</summary>
     public const string ViewAudit = nameof(ViewAudit);
 
-    /// <summary>Each policy: what it lets people do, in the Roles page's words, and the roles that have it.</summary>
+    /// <summary>Each policy: what it lets people do, and the roles that have it.</summary>
     public static IReadOnlyList<(string Name, string Allows, string[] Roles)> All { get; } =
     [
         (ViewRecords, "View contacts, companies, deals and activities", [Security.Roles.Admin, Security.Roles.Manager, Security.Roles.Viewer]),

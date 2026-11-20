@@ -15,12 +15,12 @@ namespace {{RootNamespace}}.Admin;
 public enum UserStatus { Active, Invited, Locked, Deactivated }
 
 /// <summary>
-/// A person's role, as the Users grid shows and edits it. The roles nest (an Admin can do all a Manager can,
+/// A person's role, as the team list shows and the member form edits it. The roles nest (an Admin can do all a Manager can,
 /// and a Manager all a Viewer can), so each person has one. The names are the Identity roles in Security/Policies.cs.
 /// </summary>
 public enum UserRole { Admin, Manager, Viewer }
 
-/// <summary>One person, as the Users grid lists, adds and edits them.</summary>
+/// <summary>One person, as Settings &amp; team lists them and the member form invites and edits them.</summary>
 public sealed class UserRow
 {
     public string Id { get; set; } = "";
@@ -32,6 +32,10 @@ public sealed class UserRow
     public string Email { get; set; } = "";
 
     public UserRole Role { get; set; } = UserRole.Viewer;
+
+    /// <summary>What they aim to win each month, in the workspace's currency; empty for someone who doesn't sell.</summary>
+    [Range(0, 100_000_000, ErrorMessage = "Enter an amount of 0 or more.")]
+    public decimal? MonthlyTarget { get; set; }
 
     public UserStatus Status { get; set; }
 
@@ -52,7 +56,7 @@ public sealed class UserRow
 }
 
 /// <summary>
-/// What an admin does to people's accounts: the Users page calls these, and each is written to the audit log.
+/// What an admin does to people's accounts: Settings &amp; team calls these, and each is written to the audit log.
 /// Deactivating is Identity's lockout with no end date, so a deactivated person can't sign in and nothing new is
 /// stored. Two rules keep the app usable: nobody deactivates, deletes or demotes themselves, and the last
 /// Admin can't be removed.
@@ -79,7 +83,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         var all = await db.Users.AsNoTracking().ToListAsync();
         return all.Select(u => new UserRow
         {
-            Id = u.Id, Name = u.Name, Email = u.Email!, Role = byUser.GetValueOrDefault(u.Id, UserRole.Viewer),
+            Id = u.Id, Name = u.Name, Email = u.Email!, Role = byUser.GetValueOrDefault(u.Id, UserRole.Viewer), MonthlyTarget = Whole(u.MonthlyTarget),
             Status = StatusOf(u), LastSignIn = u.LastSignIn, Created = u.Created, EmailConfirmed = u.EmailConfirmed,
             TwoFactor = u.TwoFactorEnabled, FailedAttempts = u.AccessFailedCount,
             LockedUntil = StatusOf(u) == UserStatus.Locked ? u.LockoutEnd : null,
@@ -105,7 +109,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         return (link, null);
     }
 
-    /// <summary>Saves an edit of <paramref name="row"/>'s name, email and role; returns why not, if it can't.</summary>
+    /// <summary>Saves an edit of <paramref name="row"/>'s name, email, role and monthly target; returns why not, if it can't.</summary>
     public async Task<string?> UpdateAsync(ApplicationUser user, UserRow row, string? me)
     {
         var current = await RoleOfAsync(user);
@@ -130,6 +134,11 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         {
             changes.Add(new("Name", user.Name, Blank(row.Name)));
             user.Name = Blank(row.Name);
+        }
+        if (row.MonthlyTarget != user.MonthlyTarget)
+        {
+            changes.Add(new("MonthlyTarget", Amount(user.MonthlyTarget), Amount(row.MonthlyTarget)));
+            user.MonthlyTarget = row.MonthlyTarget;
         }
         if (changes.Count > 0)
         {
@@ -220,6 +229,11 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
     private async Task<bool> IsLastAdminAsync(ApplicationUser user) =>
         await users.IsInRoleAsync(user, Roles.Admin)
         && (await users.GetUsersInRoleAsync(Roles.Admin)).Count(u => u.Id != user.Id && StatusOf(u) != UserStatus.Deactivated) == 0;
+
+    // 20000, not the 20000.0 the database hands back: it's what the form's field shows.
+    private static decimal? Whole(decimal? amount) => amount is { } a && decimal.Truncate(a) == a ? decimal.Truncate(a) : amount;
+
+    private static string? Amount(decimal? amount) => amount?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
 
     private static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
 }
