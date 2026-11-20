@@ -80,7 +80,7 @@
                     <Column Gap="4">
                         @foreach (var person in _team)
                         {
-                            <LinearGauge Label="@person.Name" Value="person.Won" Max="person.Max" Target="person.Target" Accent="Accent.Primary" HideScale
+                            <LinearGauge Label="@person.Name" Value="person.Won" Max="person.Max" Target="person.Target" HideScale
                                          ValueFormat="@($"{_format}' of {Money((decimal)person.Target)}'")">
                                 <GaugeBand From="0" To="person.Target * 0.5" Label="Under 50%" />
                                 <GaugeBand From="person.Target * 0.5" To="person.Target * 0.9" Label="50–90%" />

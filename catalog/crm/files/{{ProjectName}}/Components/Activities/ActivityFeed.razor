@@ -147,10 +147,11 @@
         <TextBlock As="span" LineClamp="4">@item.Text</TextBlock>
     };
 
-    // An entry with no menu keeps a menu button's room, so every entry's time ends on the same line.
+    // An entry with no menu keeps a menu button's room, so every entry's time ends on the same line: a small
+    // control's size, which follows the theme's density.
     private static readonly RenderFragment NoMenu = __builder =>
     {
-        <Box Width="Length.Rem(2)" aria-hidden="true" />
+        <Box Width="@Length.Of("var(--ib-control-h-sm)")" aria-hidden="true" />
     };
 
     private RenderFragment NoteMenu(Note note) => __builder =>
