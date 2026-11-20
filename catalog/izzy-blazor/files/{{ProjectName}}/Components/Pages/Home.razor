@@ -150,7 +150,8 @@
 <style>
     .welcome-opening { position: relative; }
     .welcome-opening > * { position: relative; }
-    .welcome-knob { position: absolute; inline-size: 140px; block-size: 140px; inset-block-start: -44px; inset-inline-end: -44px; }
+    /* On phones the knob is small enough to clear the heading in every preset's font. */
+    .welcome-knob { position: absolute; inline-size: 112px; block-size: 112px; inset-block-start: -44px; inset-inline-end: -44px; }
     .welcome-wordmark { block-size: 26px; inline-size: auto; }
     @@media (min-width: 768px) {
         .welcome-knob { inline-size: 300px; block-size: 300px; inset-block-start: calc(50% - 150px); inset-inline-end: -90px; }
