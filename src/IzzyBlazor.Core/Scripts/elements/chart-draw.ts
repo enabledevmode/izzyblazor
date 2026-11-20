@@ -47,6 +47,7 @@ export interface DrawSeries {
 export interface DrawData {
   h: boolean; // horizontal
   ar?: boolean; // the arguments run backward (ChartArgumentAxis Reverse)
+  bw?: [number, number]; // Chart.BarWidth: a group's share of its band, and a bar's of its slot
   st: number; // 0 none, 1 stacked, 2 full
   lo: number | null; // ValueMin
   hi: number | null; // ValueMax
@@ -542,8 +543,10 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
   const band = 1 / Math.max(1, n) / vspan;
   // A histogram's bars fill their bins, touching; its series overlap, or stack.
   const hist = !!d.hb;
-  const slotWidth = hist ? band : stacked ? band * 0.8 : (band * 0.8) / Math.max(1, bars.length);
-  const width = hist ? band : slotWidth * 0.9;
+  // Or the chart's own (BarWidth): the group's share of its band, and a bar's of its slot.
+  const [group, share] = d.bw ?? [0.8, 0.9];
+  const slotWidth = hist ? band : stacked ? band * group : (band * group) / Math.max(1, bars.length);
+  const width = hist ? band : slotWidth * share;
   let barSvg = "";
   bars.forEach((s, j) => {
     const prices = d.s[s].cl;
@@ -551,7 +554,7 @@ export function draw(d: DrawData, hidden: Set<number>, plotPx: { w: number; h: n
     for (let i = 0; i < n; i++) {
       const top = highs[s][i];
       if (top === null) continue;
-      let a0 = (i / Math.max(1, n) - vfrom) / vspan + (hist ? 0 : band * 0.1 + (stacked ? 0 : j * slotWidth) + slotWidth * 0.05);
+      let a0 = (i / Math.max(1, n) - vfrom) / vspan + (hist ? 0 : (band * (1 - group)) / 2 + (stacked ? 0 : j * slotWidth) + (slotWidth * (1 - share)) / 2);
       if (a0 + width <= 0 || a0 >= 1) continue;
       if (d.ar) a0 = 1 - a0 - width;
       const sc = d.s[s].ax ? scale2 : scale;

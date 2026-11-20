@@ -256,6 +256,13 @@
     vector-effect: non-scaling-stroke;
   }
 
+  /* A reference line named in the legend (InLegend): its dashes, in the text color. */
+  .ib-chart-key-rule line {
+    stroke: var(--ib-color-on-surface);
+    stroke-dasharray: 5 3;
+    stroke-linecap: butt;
+  }
+
   /* Box plots (ChartBoxPlotSeries): the box filled as a bar, its whiskers and caps in the series
      color, the median across it in the surface's (the fill is the color, which has 3:1 on the
      surface, mixed 85% into it, so the line keeps nearly that), outliers hollow and the mean a

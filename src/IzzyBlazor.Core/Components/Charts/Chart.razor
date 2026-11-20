@@ -120,6 +120,14 @@
     [Parameter] public Length? Height { get; set; }
 
     /// <summary>
+    /// How thick the bars are: the share of its band a bar takes, above 0 and up to 1, such as
+    /// <c>0.5</c> for slim bars with as much room between them. A stack counts as one bar, and bars
+    /// side by side share it. Defaults to 0.72. The plot's size and the number of bars set the
+    /// band; this sets how much of it is bar. Not a histogram's, whose bars fill their bins.
+    /// </summary>
+    [Parameter] public double? BarWidth { get; set; }
+
+    /// <summary>
     /// Shows a tooltip with every series' value for the item under the pointer, or under keyboard
     /// focus on the chart, with script. By default it's on unless every series writes its values
     /// as <see cref="ChartSeriesBase{TItem}.Labels"/>, which the tooltip would repeat; true or false
@@ -350,6 +358,11 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (BarWidth is <= 0 or > 1 || (BarWidth is { } barWidth && double.IsNaN(barWidth)))
+        {
+            throw new ArgumentOutOfRangeException(nameof(BarWidth), BarWidth, "BarWidth is the share of its band a bar takes: above 0, up to 1.");
+        }
+
         // A new View from the app stops following, unless it's the view the chart just reported (@bind-View).
         if (!Equals(View, _viewSet)) (_view, _viewSet, _follow) = (View, View, Equals(View, _view) ? _follow : null);
         if (Paused != _pausedSet)
@@ -658,7 +671,8 @@
         // A waterfall's legend keys its three colors, by default; its keys don't hide anything.
         // Series named at their ends need none.
         var legend = Legend is not (ChartLegend.Auto or ChartLegend.None)
-            || (Legend == ChartLegend.Auto && (series.Count > 1 || waterfall is not null) && !series.All(s => s.EndLabel));
+            || (Legend == ChartLegend.Auto && (series.Count > 1 || waterfall is not null) && !series.All(s => s.EndLabel))
+            || (Legend == ChartLegend.Auto && _context.Marks.OfType<ChartReferenceLine>().Any(line => line.InLegend));
 
         // Hidden needs a legend to show the series again: with none (or a waterfall's), it's drawn.
         if (!legend || waterfall is not null) series = series.Select(s => s with { Hidden = false }).ToList();
@@ -678,6 +692,7 @@
         {
             Stacked = Stacked,
             Horizontal = horizontal,
+            BarWidth = BarWidth,
             HeightPx = HeightInPixels(Height),
             ValueFormat = ValueFormat,
             ArgumentFormat = ArgumentFormat,
@@ -1523,6 +1538,16 @@
                 {
                     @SizeKeyItem(key)
                 }
+                @* Reference lines named here (InLegend): what they are, not toggles. *@
+                @foreach (var line in model.Marks.Where(m => m.InLegend))
+                {
+                    <li>
+                        <span class="ib-chart-entry">
+                            <svg class="ib-chart-key ib-chart-key-rule" width="24" height="12" aria-hidden="true"><line x1="0" x2="24" y1="6" y2="6" /></svg>
+                            @line.Text
+                        </span>
+                    </li>
+                }
             </ul>
         }
 
@@ -1718,9 +1743,14 @@
         // Zoom: its place on the whole axis, which the script maps into each view.
         builder.AddAttribute(6, "data-ib-za", mark.Zoom is { } z ? $"{z.P.ToString("R", CultureInfo.InvariantCulture)} {z.Q.ToString("R", CultureInfo.InvariantCulture)}" : null);
         builder.AddAttribute(7, "data-ib-out", mark.Out ? "" : null);
-        builder.OpenElement(8, "span");
-        builder.AddContent(9, mark.Text);
-        builder.CloseElement();
+        // A line the legend names has no label of its own.
+        if (!mark.InLegend)
+        {
+            builder.OpenElement(8, "span");
+            builder.AddContent(9, mark.Text);
+            builder.CloseElement();
+        }
+
         builder.CloseElement();
     };
 
@@ -2166,6 +2196,14 @@
             w.WriteStartObject();
             w.WriteBoolean("h", horizontal);
             if (_argumentAxis?.Reverse == true) w.WriteBoolean("ar", true);
+            if (BarWidth is { } barWidth)
+            {
+                var (group, share) = new ChartInput([], []) { BarWidth = barWidth }.BarShares;
+                w.WriteStartArray("bw");
+                w.WriteNumberValue(group);
+                w.WriteNumberValue(share);
+                w.WriteEndArray();
+            }
             w.WriteNumber("st", (int)Stacked);
             Number("lo", ValueMin);
             Number("hi", ValueMax);
