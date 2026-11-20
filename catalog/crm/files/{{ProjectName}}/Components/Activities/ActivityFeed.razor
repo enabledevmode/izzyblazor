@@ -23,9 +23,13 @@
                     </Trigger>
                     <ChildContent>
                         <MenuItem Href="@Add(NoteDialog.NewId)" Icon="Icon(FeedKind.Note)">Note</MenuItem>
-                        <MenuItem Href="@Add(ActivityDialog.NewId, "meeting")" Icon="Icon(FeedKind.Meeting)">Meeting</MenuItem>
-                        <MenuItem Href="@Add(ActivityDialog.NewId, "call")" Icon="Icon(FeedKind.Call)">Call</MenuItem>
-                        <MenuItem Href="@Add(ActivityDialog.NewId, "task")" Icon="Icon(FeedKind.Task)">Task</MenuItem>
+                        @* A line, and a name, between writing a note and putting something on the calendar. *@
+                        <MenuDivider />
+                        <MenuGroup Label="Schedule">
+                            <MenuItem Href="@Add(ActivityDialog.NewId, "meeting")" Icon="Icon(FeedKind.Meeting)">Meeting</MenuItem>
+                            <MenuItem Href="@Add(ActivityDialog.NewId, "call")" Icon="Icon(FeedKind.Call)">Call</MenuItem>
+                            <MenuItem Href="@Add(ActivityDialog.NewId, "task")" Icon="Icon(FeedKind.Task)">Task</MenuItem>
+                        </MenuGroup>
                     </ChildContent>
                 </Menu>
             }
@@ -53,7 +57,7 @@
                     <TimelineItem @key="item" Icon="Icon(item.Kind)" Status="Tone(item.Kind)" Time="@item.Time" DateTime="@item.When.ToString("yyyy-MM-ddTHH:mm")"
                                   Title="@(item.Title.Length > 0 ? item.Title : null)" Href="@(note?.Title is null ? null : $"notes/{note.Id}")"
                                   TitleContent="@(item.Title.Length > 0 ? null : Lead(item))" Actions="@(!CanEdit ? null : note is not null ? NoteMenu(note) : NoMenu)">
-                        @* Up to two lines about it, then what kind it is, who, and where a note was written. *@
+                        @* Up to two lines about it, then what kind it is, who, and what else a note is related to. *@
                         @if (item.Title.Length > 0 && !string.IsNullOrWhiteSpace(item.Text))
                         {
                             <TextBlock Color="Color.Muted" LineClamp="2">@item.Text</TextBlock>
@@ -62,7 +66,7 @@
                             @string.Join(" · ", new[] { Kind(item.Kind), item.By, note is not null && note.Edited > note.Created ? "Edited" : null }.Where(part => part is not null))
                             @if (note is not null && FeedItem.Records(note).Where(r => r.Href != On).ToList() is { Count: > 0 } records)
                             {
-                                <text> · Written on </text>
+                                <text> · Related to </text>
                                 @foreach (var (record, index) in records.Select((r, i) => (r, i)))
                                 {
                                     @(index > 0 ? ", " : "")<Anchor Href="@record.Href" InheritColor>@record.Name</Anchor>
@@ -92,7 +96,7 @@
     /// <summary>The address of the page it's on, such as "contacts/7": where the filters link and the dialogs open.</summary>
     [Parameter, EditorRequired] public string Href { get; set; } = "";
 
-    /// <summary>The page's own record, such as "contacts/7": left out of each note's "Written on".</summary>
+    /// <summary>The page's own record, such as "contacts/7": left out of each note's "Related to".</summary>
     [Parameter] public string? On { get; set; }
 
     /// <summary>Whether the reader can add and change (Policies.EditRecords).</summary>
