@@ -19,7 +19,8 @@
 @if (!DialogsOnly)
 {
     var adding = CanEdit && New is not null;
-    <Card>
+    @* A line across the card between the box and the notes. *@
+    <Card Dividers>
         @if (adding)
         {
             <CardBody>
