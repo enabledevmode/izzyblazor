@@ -24,19 +24,18 @@ public class BrandChartPaletteTests(ITestOutputHelper output) : BunitContext
         for (var i = 0; i + 1 < eight.Length; i++) Apart(Color(eight[i]), Color(eight[i + 1]));
         foreach (var set in sets)
         {
-            // A brand that leaves no set with every pair apart (teal and green, of four) takes the first of its eight.
-            if (set.SequenceEqual(eight.Take(set.Length))) continue;
+            // A brand that leaves no set of four with every pair on target (teal and green) takes its best, just short.
             for (var i = 0; i < set.Length; i++)
             {
-                for (var j = i + 1; j < set.Length; j++) Apart(Color(set[i]), Color(set[j]));
+                for (var j = i + 1; j < set.Length; j++) Apart(Color(set[i]), Color(set[j]), set.Length == 4 ? 0.9 : 1);
             }
         }
 
-        void Apart(BrandChartPalette.Named a, BrandChartPalette.Named b)
+        void Apart(BrandChartPalette.Named a, BrandChartPalette.Named b, double share = 1)
         {
             var (cvd, normal) = BrandChartPalette.Apart(a, b);
-            Assert.True(cvd >= BrandChartPalette.CvdTarget, $"{brand}: {a.Token} and {b.Token} are {cvd:F1} apart for color-blind readers");
-            Assert.True(normal >= BrandChartPalette.NormalFloor, $"{brand}: {a.Token} and {b.Token} are {normal:F1} apart");
+            Assert.True(cvd >= BrandChartPalette.CvdTarget * share, $"{brand}: {a.Token} and {b.Token} are {cvd:F1} apart for color-blind readers");
+            Assert.True(normal >= BrandChartPalette.NormalFloor * share, $"{brand}: {a.Token} and {b.Token} are {normal:F1} apart");
         }
     }
 

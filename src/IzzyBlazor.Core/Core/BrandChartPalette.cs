@@ -132,7 +132,7 @@ internal static class BrandChartPalette
         string?[] eight = [null, .. order.Select(i => Eight[i].Token)];
 
         // The sets: Contrast's own, with the brand in place of its nearest color, when every pair then stays
-        // apart; else the brand with the colors furthest from it and each other; else the first of the eight.
+        // apart; else the brand with the colors that keep its closest pair furthest apart, on target or not.
         var pool = Eight.Concat(Sets.SelectMany(set => set)).ToArray();
         var sets = new string?[3][];
         for (var n = 2; n <= 4; n++)
@@ -143,8 +143,7 @@ internal static class BrandChartPalette
             if (!(SetScore(brand, kept) >= 1))
             {
                 kept = Combinations(pool, n - 1).Select(c => (Colors: c, Score: SetScore(brand, c)))
-                    .Where(c => c.Score >= 1).OrderByDescending(c => Math.Round(c.Score, 2)).Select(c => c.Colors).FirstOrDefault()
-                    ?? [.. order.Take(n - 1).Select(i => Eight[i])];
+                    .OrderByDescending(c => Math.Round(c.Score, 2)).Select(c => c.Colors).First();
             }
 
             sets[n - 2] = [null, .. kept.Select(c => c.Token)];
