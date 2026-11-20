@@ -10,56 +10,83 @@
 @* Contacts: everyone the team knows, the one last heard from first. The grid searches, filters by status, sorts
    and pages in the database. Add contact opens the contact form over the list (Components/Contacts/ContactDialog.razor,
    ?dialog=new-contact) and Import contacts the import's (Components/Imports/ImportDialog.razor,
-   ?dialog=import-contacts); a contact's own page has Edit. People who can't edit records (Viewers) see the list alone. *@
+   ?dialog=import-contacts); a contact's own page has Edit. People who can't edit records (Viewers) see the list alone.
+   With no contacts at all the page is its first-use state: the two ways to add them, in a card. *@
 <PageCrumbs><BreadcrumbItem>Contacts</BreadcrumbItem></PageCrumbs>
 
-@* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
-<Column Gap="6" Grow>
-    <PageHeader Title="Contacts" Description="The people behind your relationships.">
-        @* On a phone the two float in the corner, behind one button. *@
-        @if (_canEdit)
-        {
-            <PageHeaderActions FloatLabel="Add contacts">
-                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ImportDialog.IdOf(ImportKind.Contacts))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Upload" FloatBelow="Breakpoint.Sm">Import contacts</Button>
-                <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ContactDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Add contact</Button>
-            </PageHeaderActions>
-        }
-    </PageHeader>
+@if (_none)
+{
+    @* First use: no contacts yet, so the page is the way to add the first. *@
+    <Column Gap="6">
+        <PageHeader Title="Contacts" Description="Start building your customer relationships." />
+        <Card>
+            @if (_canEdit)
+            {
+                <EmptyState Icon="Lucide.Users" Accent="Accent.Primary" Title="Your first relationship starts here" TitleLevel="2"
+                            Description="Add a contact to keep their details, conversations, and follow-ups together.">
+                    <EmptyStateActions>
+                        <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ContactDialog.NewId)" StartIcon="Lucide.Plus">Add your first contact</Button>
+                        <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ImportDialog.IdOf(ImportKind.Contacts))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Upload">Import a CSV</Button>
+                    </EmptyStateActions>
+                </EmptyState>
+            }
+            else
+            {
+                <EmptyState Icon="Lucide.Users" Accent="Accent.Primary" Title="No contacts yet" TitleLevel="2" Description="Contacts your team adds show here." />
+            }
+        </Card>
+    </Column>
+}
+else
+{
+    @* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
+    <Column Gap="6" Grow>
+        <PageHeader Title="Contacts" Description="The people behind your relationships.">
+            @* On a phone the two float in the corner, behind one button. *@
+            @if (_canEdit)
+            {
+                <PageHeaderActions FloatLabel="Add contacts">
+                    <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ImportDialog.IdOf(ImportKind.Contacts))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Upload" FloatBelow="Breakpoint.Sm">Import contacts</Button>
+                    <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ContactDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Add contact</Button>
+                </PageHeaderActions>
+            }
+        </PageHeader>
 
-    <DataGrid id="contacts" TItem="Contact" ItemsProvider="FindAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Contacts"
-              PageSize="25" InitialSort="-lastactivity" Searchable SearchLabel="Search contacts…" SmallScreen="DataGridSmallScreen.HideColumns" Grow>
-        <ToolbarContent>
-            <DataGridSearch />
-            <DataGridFilter Column="status" />
-        </ToolbarContent>
-        <NoMatchesContent>
-            <EmptyState Icon="Lucide.SearchX" Title="No matching contacts" Description="Try a different name, company, or email address. Your other contacts are still here." />
-        </NoMatchesContent>
-        <Columns>
-            <TemplateColumn Title="Name" SortKey="name" SortBy="c => c.FirstName" Sortable Context="contact">
-                <Row Gap="3" Align="Align.Center">
-                    <Avatar Name="@contact.Name" Size="AvatarSize.Sm" Decorative />
-                    <Stack Gap="0" Grow>
-                        <TextBlock Weight="FontWeight.Medium" Truncate><Anchor Href="@($"contacts/{contact.Id}")" InheritColor Underline="AnchorUnderline.Hover">@contact.Name</Anchor></TextBlock>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@contact.Email</TextBlock>
-                    </Stack>
-                </Row>
-            </TemplateColumn>
-            <TemplateColumn Title="Company" SortKey="company" SortBy="c => c.Company!.Name" Sortable Context="contact">
-                @contact.Company?.Name
-            </TemplateColumn>
-            <PropertyColumn Property="c => c.Status" Width="Length.Rem(7)" Priority="1" Sortable Filterable Context="contact">
-                <Badge Status="Tones.Of(contact.Status)">@contact.Status</Badge>
-            </PropertyColumn>
-            <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" Sortable Context="contact">
-                @contact.Owner?.Name
-            </TemplateColumn>
-            <PropertyColumn Property="c => c.LastActivity" Title="Last activity" Width="Length.Rem(9)" Sortable Context="contact">
-                @(contact.LastActivity is { } at ? When.Day(DateOnly.FromDateTime(When.Local(at, _workspace)), _today) : null)
-            </PropertyColumn>
-        </Columns>
-    </DataGrid>
-</Column>
+        <DataGrid id="contacts" TItem="Contact" ItemsProvider="FindAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Contacts"
+                  PageSize="25" InitialSort="-lastactivity" Searchable SearchLabel="Search contacts…" SmallScreen="DataGridSmallScreen.HideColumns" Grow>
+            <ToolbarContent>
+                <DataGridSearch />
+                <DataGridFilter Column="status" />
+            </ToolbarContent>
+            <NoMatchesContent>
+                <EmptyState Icon="Lucide.SearchX" Title="No matching contacts" Description="Try a different name, company, or email address. Your other contacts are still here." />
+            </NoMatchesContent>
+            <Columns>
+                <TemplateColumn Title="Name" SortKey="name" SortBy="c => c.FirstName" Sortable Context="contact">
+                    <Row Gap="3" Align="Align.Center">
+                        <Avatar Name="@contact.Name" Size="AvatarSize.Sm" Decorative />
+                        <Stack Gap="0" Grow>
+                            <TextBlock Weight="FontWeight.Medium" Truncate><Anchor Href="@($"contacts/{contact.Id}")" InheritColor Underline="AnchorUnderline.Hover">@contact.Name</Anchor></TextBlock>
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@contact.Email</TextBlock>
+                        </Stack>
+                    </Row>
+                </TemplateColumn>
+                <TemplateColumn Title="Company" SortKey="company" SortBy="c => c.Company!.Name" Sortable Context="contact">
+                    @contact.Company?.Name
+                </TemplateColumn>
+                <PropertyColumn Property="c => c.Status" Width="Length.Rem(7)" Priority="1" Sortable Filterable Context="contact">
+                    <Badge Status="Tones.Of(contact.Status)">@contact.Status</Badge>
+                </PropertyColumn>
+                <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" Sortable Context="contact">
+                    @contact.Owner?.Name
+                </TemplateColumn>
+                <PropertyColumn Property="c => c.LastActivity" Title="Last activity" Width="Length.Rem(9)" Sortable Context="contact">
+                    @(contact.LastActivity is { } at ? When.Day(DateOnly.FromDateTime(When.Local(at, _workspace)), _today) : null)
+                </PropertyColumn>
+            </Columns>
+        </DataGrid>
+    </Column>
+}
 
 <ContactDialog CanEdit="_canEdit" />
 <ImportDialog Kind="ImportKind.Contacts" CanEdit="_canEdit" />
@@ -69,12 +96,16 @@
 
     // Who may add: the EditRecords policy.
     private bool _canEdit;
+
+    // No contacts at all yet: the first-use page.
+    private bool _none;
     private Workspace? _workspace;
     private DateOnly _today;
 
     protected override async Task OnInitializedAsync()
     {
         _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, Policies.EditRecords)).Succeeded;
+        _none = !await Db.Contacts.AnyAsync();
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
         _today = DateOnly.FromDateTime(Clock.Now(_workspace));
     }
