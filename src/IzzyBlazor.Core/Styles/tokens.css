@@ -11,7 +11,7 @@
     color-scheme: light dark;
 
     /* Spacing scale: one step = 4px at the default 16px root size. */
-    --ib-space-0: 0;
+    --ib-space-0: 0px;
     --ib-space-1: 0.25rem;
     --ib-space-2: 0.5rem;
     --ib-space-3: 0.75rem;
