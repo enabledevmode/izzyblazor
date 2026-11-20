@@ -102,33 +102,18 @@
                 </DescriptionList>
             </Card>
 
-            @* What's happening, and beside it from 1024px the scope and files: under it on smaller screens. *@
+            @* Above the feed until the side column shows (1024px). *@
+            <Box HiddenFrom="Breakpoint.Lg">@NextStep</Box>
+
+            @* What's happened, and beside it from 1024px what's next, the scope and files: under it on smaller screens. *@
             <Grid Template="@(new() { Base = "minmax(0, 1fr)", Lg = "minmax(0, 1fr) 20rem" })" Gap="4" Align="Align.Start">
                 <Column Gap="4">
-                    <Card Title="Next step" TitleLevel="2">
-                        <CardBody Gap="3" Align="Align.Start">
-                            @if (_next is { } next)
-                            {
-                                <Column Gap="0">
-                                    <Heading Level="3" Size="TextSize.Sm">@next.Title</Heading>
-                                    <TextBlock Color="Color.Muted">@About(When.Day(DateOnly.FromDateTime(next.Start), _today), When.Time(next.Start), next.Contact?.Name)</TextBlock>
-                                </Column>
-                            }
-                            else
-                            {
-                                <TextBlock Color="Color.Muted">Nothing scheduled.</TextBlock>
-                            }
-                            @if (_canEdit)
-                            {
-                                <Button Href="@NewActivityHref">Schedule follow-up</Button>
-                            }
-                        </CardBody>
-                    </Card>
-
                     <ActivityFeed Title="Deal activity" Items="_history" Href="@($"deals/{Id}")" On="@($"deals/{Id}")" CanEdit="_canEdit" />
                 </Column>
 
                 <Column Gap="4">
+                    <Box VisibleFrom="Breakpoint.Lg">@NextStep</Box>
+
                     @* What's included: the deal's own Scope field, edited with the rest. *@
                     @if (deal.Scope?.Trim() is { Length: > 0 } scope)
                     {
@@ -201,6 +186,30 @@
     private DateOnly _today;
     private Deal? _deal;
     private Activity? _next;
+
+    // What's next on the calendar about it: beside the feed on a wide screen, above it on a small one.
+    private RenderFragment NextStep => __builder =>
+    {
+        <Card Title="Next step" TitleLevel="2">
+            <CardBody Gap="3" Align="Align.Start">
+                @if (_next is { } next)
+                {
+                    <Column Gap="0">
+                        <Heading Level="3" Size="TextSize.Sm">@next.Title</Heading>
+                        <TextBlock Color="Color.Muted">@About(When.Day(DateOnly.FromDateTime(next.Start), _today), When.Time(next.Start), next.Contact?.Name)</TextBlock>
+                    </Column>
+                }
+                else
+                {
+                    <TextBlock Color="Color.Muted">Nothing scheduled.</TextBlock>
+                }
+                @if (_canEdit)
+                {
+                    <Button Href="@NewActivityHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Schedule follow-up</Button>
+                }
+            </CardBody>
+        </Card>
+    };
     private List<FeedItem> _history = [];
     private bool _canEdit;
     private string? _me;
