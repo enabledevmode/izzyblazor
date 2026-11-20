@@ -1,0 +1,170 @@
+@page "/templates/{Id}"
+@using IzzyBlazor.Generation
+@inject TemplateCatalog Templates
+@inject NavigationManager Navigation
+
+@*
+    A starter's or kit's page, generated from its manifest (catalog/<id>/izzy.json): the commands
+    that create it, its screenshots (a kit: a Lightbox of its key screens, each in the light and the
+    dark scheme) or its picture (a starter), the options it takes, and the render modes it supports.
+*@
+
+@if (_template is not null)
+{
+    <PageMeta Title="@($"{_template.Name} · IzzyBlazor")" Description="@(_template.Manifest.Summary ?? _template.Name)" />
+
+    <article class="site-article">
+        <Stack Gap="4" Class="site-pagehead">
+            <Breadcrumb>
+                <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
+                <BreadcrumbItem Href="templates">Templates</BreadcrumbItem>
+                <BreadcrumbItem Href="@($"templates#{TemplateCatalog.GroupAnchor(_template.Group)}")">@_template.Group</BreadcrumbItem>
+            </Breadcrumb>
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Heading Level="1" Size="TextSize.Xl3">@_template.Name</Heading>
+                @if (_template.Free)
+                {
+                    <Badge Status="Status.Success">Free</Badge>
+                }
+                else
+                {
+                    <Badge Variant="BadgeVariant.Outline">Pro</Badge>
+                }
+            </Row>
+            <div class="site-lead">@_template.Manifest.Summary</div>
+            <div class="site-block-command">
+                <Code Block Language="bash">@($"izzy new {_template.Id} -n MyApp")</Code>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                    Or, with the <Anchor Href="docs/get-started/create-app">templates package</Anchor> installed: <code>dotnet new @_template.Id -n MyApp</code>
+                </TextBlock>
+            </div>
+        </Stack>
+
+        @if (_screens.Count > 0)
+        {
+            <Heading Level="2" id="screens">Screens</Heading>
+            <TextBlock>@($"{_template.Name} running with its sample data. Choose one to see it full size.")</TextBlock>
+            <Lightbox Label="@($"{_template.Name} screens")" Counter Nav="LightboxNav.Thumbnails" Loop Class="site-template-screens">
+                <Stack Gap="4">
+                    <Grid Columns="new() { Base = 2, Md = 3 }" Gap="4">
+                        @foreach (var screen in _screens.Where(s => !s.Phone))
+                        {
+                            @Screen(screen)
+                        }
+                    </Grid>
+                    @if (_screens.Any(s => s.Phone))
+                    {
+                        <Grid Columns="new() { Base = 3, Md = 6 }" Gap="4">
+                            @foreach (var screen in _screens.Where(s => s.Phone))
+                            {
+                                @Screen(screen)
+                            }
+                        </Grid>
+                    }
+                </Stack>
+            </Lightbox>
+        }
+        else
+        {
+            <Heading Level="2" id="preview">Preview</Heading>
+            <div class="site-block-stage">
+                <TemplatePicture Template="_template" Alt="@($"An app made from {_template.Name}")" />
+            </div>
+        }
+
+        @if (_template.Manifest.Base is { } made && Templates.ById(made.Item) is { } on)
+        {
+            <Heading Level="2" id="built-on">Built on</Heading>
+            <TextBlock>
+                @_template.Name is made over the <Anchor Href="@on.Href">@on.Name</Anchor> starter, so it has that starter's
+                shell, theme and account pages, with some of its options decided for you.
+            </TextBlock>
+        }
+
+        @if (_options.Count > 0)
+        {
+            <Heading Level="2" id="options">Options</Heading>
+            <TextBlock>Each option is a flag on <code>izzy new</code> and on <code>dotnet new</code>:</TextBlock>
+            <Code Block Language="bash">@OptionExample</Code>
+            <Table Items="_options" Caption="@($"{_template.Name} options")" Size="ControlSize.Sm" Class="site-params site-settings" Bordered="false" SmallScreen="TableSmallScreen.Stack">
+                <Columns>
+                    <TemplateColumn Title="Option"><code class="site-member-name">@($"--{context!.Option}")</code></TemplateColumn>
+                    <TemplateColumn Title="Type or choices">
+                        <code class="site-type site-choices">@TypeText(context!)</code>
+                    </TemplateColumn>
+                    <TemplateColumn Title="Default">
+                        @if (context!.Default.Length > 0)
+                        {
+                            <code class="site-default">@context.Default</code>
+                        }
+                        else
+                        {
+                            <span class="site-none">Empty</span>
+                        }
+                    </TemplateColumn>
+                    <TemplateColumn Title="Description">@context!.Description</TemplateColumn>
+                </Columns>
+            </Table>
+        }
+
+        @if (_template.Manifest.Modes.Count > 0)
+        {
+            <Heading Level="2" id="render-modes">Render modes</Heading>
+            <DescriptionList>
+                @foreach (var (mode, level) in _template.Manifest.Modes)
+                {
+                    <DescriptionItem Term="@mode">@(level == "none" ? "Not supported" : level == "full" ? "Supported" : "Partly supported")</DescriptionItem>
+                }
+            </DescriptionList>
+        }
+    </article>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private Template? _template;
+    private IReadOnlyList<TemplateScreen> _screens = [];
+    private List<ItemParameter> _options = [];
+
+    protected override void OnParametersSet()
+    {
+        _template = Templates.ById(Id);
+        if (_template is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        _screens = TemplateCatalog.Screens(_template);
+        _options = _template.Options.ToList();
+    }
+
+    // One screenshot: a link to the full image, light and dark, drawn from its smaller copy.
+    private RenderFragment Screen(TemplateScreen screen) => __builder =>
+    {
+        var path = $"img/templates/{_template!.Id}/{screen.File}";
+        <LightboxItem Src="@($"{path}.webp")" DarkSrc="@($"{path}-dark.webp")"
+                      Thumbnail="@($"{path}-thumb.webp")" DarkThumbnail="@($"{path}-dark-thumb.webp")"
+                      Alt="@screen.Alt" Caption="@screen.Caption" Class="site-template-screen" />
+    };
+
+    // The first choice option set to something other than its default, as a worked example.
+    private string OptionExample
+    {
+        get
+        {
+            var option = _options.FirstOrDefault(p => p.Type == ParameterType.Choice && p.Choices.Any(c => c != p.Default));
+            var flag = option is null ? "" : $" --{option.Option} {option.Choices.First(c => c != option.Default)}";
+            return $"izzy new {_template!.Id} -n MyApp{flag}";
+        }
+    }
+
+    private static string TypeText(ItemParameter p) => p.Type switch
+    {
+        ParameterType.Choice => string.Join(" | ", p.Choices),
+        ParameterType.Bool => "true | false",
+        ParameterType.Text => "text",
+        _ => "number",
+    };
+}

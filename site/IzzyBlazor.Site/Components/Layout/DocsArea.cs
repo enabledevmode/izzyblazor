@@ -14,4 +14,7 @@ public enum DocsArea
 
     /// <summary>The blocks: blocks/.</summary>
     Blocks,
+
+    /// <summary>The starters and app kits: templates/.</summary>
+    Templates,
 }

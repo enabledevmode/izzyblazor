@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @inject Registry Registry
 @inject BlockCatalog Blocks
+@inject TemplateCatalog Templates
 @inject NavigationManager Navigation
 
 @* The docs sidebar, one of two by the header's area (as ng-zorro's): on the articles, every
@@ -22,6 +23,25 @@
                 <NavItem Href="@block.Href">
                     @block.Name
                     @if (block.Free)
+                    {
+                        <span class="site-nav-free">Free</span>
+                    }
+                </NavItem>
+            }
+        }
+    }
+    else if (_area == DocsArea.Templates)
+    {
+        @* Every starter and kit under its group's heading, as the blocks are. *@
+        <NavItem Href="templates" Match="NavLinkMatch.All">Overview</NavItem>
+        @foreach (var group in Templates.Groups)
+        {
+            <NavLabel>@group</NavLabel>
+            @foreach (var template in Templates.InGroup(group))
+            {
+                <NavItem Href="@template.Href">
+                    @template.Name
+                    @if (template.Free)
                     {
                         <span class="site-nav-free">Free</span>
                     }
@@ -89,12 +109,13 @@
     // On docs/components, the group it shows (?group=), whose heading is current.
     private string? _group;
 
-    /// <summary>Which sidebar a docs page has: the components' under docs/components, the blocks' under blocks, else the articles'.</summary>
+    /// <summary>Which sidebar a docs page has: the components' under docs/components, the blocks' under blocks, the templates' under templates, else the articles'.</summary>
     public static DocsArea AreaOf(NavigationManager navigation) => Parts(navigation) switch
     {
         ["docs", "components", ..] => DocsArea.Components,
         ["docs", ..] => DocsArea.Articles,
         ["blocks", ..] => DocsArea.Blocks,
+        ["templates", ..] => DocsArea.Templates,
         _ => DocsArea.None,
     };
 
