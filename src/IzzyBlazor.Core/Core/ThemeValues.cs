@@ -59,7 +59,8 @@ public enum ThemeChartPalette
     /// <summary>
     /// The default: the brand color first, so a chart of one series is the app's color, then the
     /// <see cref="Contrast"/> colors without the one nearest the brand, ordered to keep neighbors
-    /// apart. Charts of two, three or four series get sets that start at the brand too.
+    /// apart. Charts of two, three or four series get sets that start at the brand too. A brand with
+    /// no color of its own (ink, a gray) keeps <see cref="Contrast"/>.
     /// </summary>
     Brand,
 

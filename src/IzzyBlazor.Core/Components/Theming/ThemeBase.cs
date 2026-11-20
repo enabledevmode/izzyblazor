@@ -50,21 +50,36 @@ public abstract class ThemeBase : ComponentBase
     /// </summary>
     [Parameter] public ThemeChartPalette? ChartPalette { get; set; }
 
-    // The fixed palettes are chosen in CSS, by name. Brand's colors are tokens.css's for the default brand
-    // and written out for any other (BrandChartCss), so it has no name there.
+    // The fixed palettes are chosen in CSS, by name. Brand's colors are worked out for the brand and written
+    // out (BrandChartCss), so it has no name there.
     private protected string? ChartPaletteName => ChartPalette is { } palette and not ThemeChartPalette.Brand ? ChartPaletteNames.Name(palette) : null;
 
     /// <summary>
-    /// The Brand chart palette's declarations for this theme's brand, or null when the charts use a fixed palette.
-    /// <paramref name="app"/>: the app's theme, where a preset brings its brand; part of a page takes a
-    /// palette only with a brand of its own, or when it asks for Brand by name.
+    /// The Brand chart palette's declarations for this theme, or null when there are none to write.
+    /// <paramref name="app"/>: the app's theme, where a preset brings its brand. It always writes its brand's
+    /// palette (<c>--ib-chart-brand-*</c>), and points the charts at it unless it chose a fixed one. Part of a
+    /// page with a brand of its own writes that brand's; one that asks for Brand by name takes the app's.
+    /// A brand with no color (ink, a gray) has no palette of its own: its charts are Contrast's.
     /// </summary>
     private protected string? BrandChartCss(bool app)
     {
-        if (ChartPalette is not (null or ThemeChartPalette.Brand)) return null;
-        if (BrandColor.Hex is { } hex) return BrandChartPalette.Css(BrandPalette.From(hex));
-        if (BrandColor.Name is { } name) return BrandChartPalette.Css(name);
-        return app ? BrandChartPalette.Css(BrandChartPalette.BrandOf(Preset)) : ChartPalette is null ? null : BrandChartPalette.Default;
+        var brand = ChartPalette is null or ThemeChartPalette.Brand;
+        var hex = BrandColor.Hex is { } value ? BrandPalette.From(value) : null;
+        var name = BrandColor.Name ?? (app ? BrandChartPalette.BrandOf(Preset) : null);
+        var colorless = hex is not null ? BrandChartPalette.Colorless(hex) : name is not null && BrandChartPalette.Colorless(name);
+        if (app)
+        {
+            // tokens.css's own are Contrast.
+            if (colorless) return null;
+            var palette = hex is not null ? BrandChartPalette.Css(hex, app: true) : BrandChartPalette.Css(name!, app: true);
+            return brand ? $"{palette} {BrandChartPalette.Use(orContrast: false)}" : palette;
+        }
+
+        if (!brand) return null;
+        if (colorless) return BrandChartPalette.Contrast;
+        if (hex is not null) return BrandChartPalette.Css(hex);
+        if (name is not null) return BrandChartPalette.Css(name);
+        return ChartPalette is null ? null : BrandChartPalette.Use(orContrast: true);
     }
 
     /// <summary>The brand color as parsed: a built-in name or a hex color.</summary>

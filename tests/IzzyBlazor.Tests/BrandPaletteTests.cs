@@ -90,9 +90,6 @@ public class IzzyThemeRenderTests : BunitContext
         Assert.Throws<ArgumentException>(() => Render<IzzyTheme>(p => p.Add(t => t.BodyFont, font)));
 
     [Fact]
-    public void Passes_a_nonce_and_renders_nothing_without_a_color()
-    {
+    public void Passes_a_nonce_to_its_style_element() =>
         Assert.Equal("abc", Render<IzzyTheme>(p => p.Add(t => t.Brand, "#0af").Add(t => t.Nonce, "abc")).Find("style").GetAttribute("nonce"));
-        Assert.Empty(Render<IzzyTheme>(p => p.Add(t => t.Brand, "")).FindAll("style"));
-    }
 }

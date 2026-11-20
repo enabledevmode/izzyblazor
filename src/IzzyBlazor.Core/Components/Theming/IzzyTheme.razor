@@ -14,7 +14,7 @@
     fixed Contrast, OkabeIto or Calm); ColorScheme is
     the default light or dark. `Brand` and Gray take a built-in name or a hex
     color. Everything is server-rendered (meta tags the theme CSS matches, and a small <style> block
-    for hex colors and the fonts), so it's in place on first paint, needs no script and works in
+    for the chart colors, hex colors and the fonts), so it's in place on first paint, needs no script and works in
     every render mode.
 
     To theme part of a page, use ThemeScope. For one exact value, use CSS: its variable in your
@@ -150,8 +150,8 @@
             declarations.Add(GrayPalette.From(grayHex).ToCss());
         }
 
-        // The charts' colors for this brand; tokens.css already has the default brand's.
-        if (BrandChartCss(app: true) is { } charts && charts != BrandChartPalette.Default)
+        // The charts' colors for this brand: a stylesheet can't work them out, so tokens.css's own are Contrast.
+        if (BrandChartCss(app: true) is { } charts)
         {
             declarations.Add(charts);
         }

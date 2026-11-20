@@ -88,6 +88,8 @@ internal static class ChartTools
                 b.AddContent(7, name);
                 b.CloseElement();
             }));
+            // Named as its button is: a name isn't read through the button's own aria-labelledby.
+            if (labelledBy is not null) builder.AddAttribute(17, "aria-labelledby", labelledBy);
             builder.AddComponentParameter(15, nameof(Popover.ChildContent), table);
             builder.CloseComponent();
             return;

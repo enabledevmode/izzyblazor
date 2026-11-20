@@ -231,12 +231,13 @@
     /* The palette charts, gauges and the scheduler read: --ib-chart-1 to -8, and the sets
        ChartPalette.Colors uses for a chart of exactly two, three or four series (by the number it
        defines, so hiding one never repaints the rest). The default is Brand: the brand color
-       first, then Contrast's without the one nearest it. These are the default brand's (blue);
-       IzzyTheme and ThemeScope write another brand's (BrandChartPalette.cs), and themes.css the
-       fixed palettes. A palette without sets (Okabe-Ito, Calm) points them at its first colors.
+       first, then Contrast's without the one nearest it. Which those are depends on the brand,
+       so IzzyTheme and ThemeScope write them (BrandChartPalette.cs); without an IzzyTheme these
+       stay Contrast, whatever sets the brand. themes.css has the fixed palettes; one without
+       sets (Okabe-Ito, Calm) points them at its first colors.
        To use your own colors everywhere, set --ib-chart-1 to -8 and the of2 to of4 sets, or give
        a chart ChartPalette.Of(...). */
-    --ib-chart-1: var(--ib-color-primary);
+    --ib-chart-1: var(--ib-chart-contrast-1);
     --ib-chart-2: var(--ib-chart-contrast-2);
     --ib-chart-3: var(--ib-chart-contrast-3);
     --ib-chart-4: var(--ib-chart-contrast-4);
@@ -244,12 +245,12 @@
     --ib-chart-6: var(--ib-chart-contrast-6);
     --ib-chart-7: var(--ib-chart-contrast-7);
     --ib-chart-8: var(--ib-chart-contrast-8);
-    --ib-chart-of2-1: var(--ib-color-primary);
+    --ib-chart-of2-1: var(--ib-chart-contrast-of2-1);
     --ib-chart-of2-2: var(--ib-chart-contrast-of2-2);
-    --ib-chart-of3-1: var(--ib-color-primary);
+    --ib-chart-of3-1: var(--ib-chart-contrast-of3-1);
     --ib-chart-of3-2: var(--ib-chart-contrast-of3-2);
     --ib-chart-of3-3: var(--ib-chart-contrast-of3-3);
-    --ib-chart-of4-1: var(--ib-color-primary);
+    --ib-chart-of4-1: var(--ib-chart-contrast-of4-1);
     --ib-chart-of4-2: var(--ib-chart-contrast-of4-2);
     --ib-chart-of4-3: var(--ib-chart-contrast-of4-3);
     --ib-chart-of4-4: var(--ib-chart-contrast-of4-4);
