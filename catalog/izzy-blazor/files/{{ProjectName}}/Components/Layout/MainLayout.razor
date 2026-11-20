@@ -25,10 +25,12 @@
         @*#if (!SidebarNav && SampleContent) *@
         <SiteNav MenuButtonPosition="MenuButtonPosition.Start">
             <NavItem Href="" Match="NavLinkMatch.All">Home</NavItem>
+            @*#if (!ShellStarter) *@
             <NavItem Href="counter">Counter</NavItem>
             <NavItem Href="weather">Weather</NavItem>
             <NavItem Href="contact">Contact</NavItem>
-            @*#if (IndividualLocalAuth) *@
+            @*#endif *@
+            @*#if (IndividualLocalAuth && !ShellStarter) *@
             <NavItem Href="auth">Auth required</NavItem>
             <SiteNavFooter>
                 <AuthorizeView>
@@ -39,6 +41,18 @@
                             <Button Href="Account/Register" Size="ControlSize.Lg" Grow>Register</Button>
                             @*#endif *@
                         </Row>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </SiteNavFooter>
+            @*#elif (IndividualLocalAuth && Registration) *@
+            @* On phones the header keeps Log in; Register is at the foot of the menu. *@
+            <SiteNavFooter>
+                <AuthorizeView>
+                    <NotAuthorized>
+                        <Column Gap="2" Grow>
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">New here?</TextBlock>
+                            <Button Href="Account/Register" FullWidth>Register</Button>
+                        </Column>
                     </NotAuthorized>
                 </AuthorizeView>
             </SiteNavFooter>
@@ -56,14 +70,28 @@
     <AppSidebar SmallScreen="SidebarSmallScreen.Panel">
         <NavMenu>
             <NavItem Href="" Match="NavLinkMatch.All" Icon="Lucide.House">Home</NavItem>
+            @*#if (!ShellStarter) *@
             <NavItem Href="counter" Icon="Lucide.CirclePlus">Counter</NavItem>
             <NavItem Href="weather" Icon="Lucide.CloudSun">Weather</NavItem>
             <NavItem Href="contact" Icon="Lucide.Mail">Contact</NavItem>
-            @*#if (IndividualLocalAuth) *@
+            @*#endif *@
+            @*#if (IndividualLocalAuth && !ShellStarter) *@
             <NavItem Href="auth" Icon="Lucide.Lock">Auth required</NavItem>
             @*#endif *@
         </NavMenu>
-        @*#if (IndividualLocalAuth) *@
+        @*#if (IndividualLocalAuth && ShellStarter && Registration) *@
+        @* On phones the header keeps Log in; Register is at the foot of the drawer. *@
+        <SidebarFooter>
+            <AuthorizeView>
+                <NotAuthorized>
+                    <Column Gap="2" HiddenFrom="Breakpoint.Md">
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">New here?</TextBlock>
+                        <Button Href="Account/Register" FullWidth>Register</Button>
+                    </Column>
+                </NotAuthorized>
+            </AuthorizeView>
+        </SidebarFooter>
+        @*#elif (IndividualLocalAuth && !ShellStarter) *@
         <SidebarFooter>
             <AuthorizeView>
                 <NotAuthorized>

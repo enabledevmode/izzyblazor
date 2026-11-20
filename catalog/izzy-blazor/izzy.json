@@ -39,6 +39,10 @@
         "type": "boolean", "default": false,
         "description": "With Individual authentication, stores accounts in SQL Server LocalDB instead of SQLite."
       },
+      "Starter": {
+        "type": "string", "default": "", "x-hidden": true,
+        "description": "The name of the shell starter made over this one, such as Docs site: its Home is the welcome page, and it has no sample pages. Empty for IzzyBlazor App itself."
+      },
       "Empty": {
         "type": "boolean", "default": false,
         "description": "Leaves out the sample pages (Counter, Weather and Contact) and the sidebar."
@@ -102,6 +106,8 @@
     "UseWebAssembly": "Interactivity == \"WebAssembly\" || Interactivity == \"Auto\"",
     "InteractiveAtRoot": "AllInteractive && Interactivity != \"None\"",
     "SampleContent": "!Empty",
+    "ShellStarter": "Starter != \"\"",
+    "HeaderRegister": "Registration",
     "IndividualLocalAuth": "Auth == \"Individual\"",
     "RequiresHttps": "IndividualLocalAuth",
     "HasHttpsProfile": "RequiresHttps || !NoHttps",
@@ -123,6 +129,17 @@
         "{{ProjectName}}/Data/**",
         "{{ProjectName}}/Components/Pages/Auth.razor",
         "{{ProjectName}}.Client/Pages/Auth.razor"
+      ]
+    },
+    { "if": "!ShellStarter", "paths": ["{{ProjectName}}/wwwroot/img/izzyblazor-*.svg"] },
+    {
+      "if": "ShellStarter",
+      "paths": [
+        "{{ProjectName}}/Components/Pages/Counter.*",
+        "{{ProjectName}}/Components/Pages/Weather.*",
+        "{{ProjectName}}/Components/Pages/Contact.*",
+        "{{ProjectName}}/Components/Pages/Auth.*",
+        "{{ProjectName}}.Client/Pages/**"
       ]
     },
     { "if": "!Registration", "paths": ["{{ProjectName}}/Components/Account/Pages/Register.razor", "{{ProjectName}}/Components/Account/Pages/RegisterConfirmation.razor"] },
