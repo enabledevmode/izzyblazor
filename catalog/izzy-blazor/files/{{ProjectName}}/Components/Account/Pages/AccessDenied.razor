@@ -1,7 +1,21 @@
 @page "/Account/AccessDenied"
+@* Signed in, so the app shell: the nav and your account stay in reach. *@
+@*#if (UseWebAssembly && InteractiveAtRoot) *@
+@layout {{RootNamespace}}.Client.Layout.MainLayout
+@*#else *@
+@layout {{RootNamespace}}.Components.Layout.MainLayout
+@*#endif *@
 
 <PageTitle>Access denied</PageTitle>
 
-<AccountPanel Title="Access denied" Description="You don't have access to this page.">
-    <Button Href="" FullWidth>Go to the home page</Button>
-</AccountPanel>
+<Column Gap="6">
+    <PageHeader Title="Access denied" Description="This area is restricted." />
+    <Card>
+        <EmptyState Icon="Lucide.ShieldCheck" Status="Status.Warning" TitleLevel="2" Title="You don’t have access to this page"
+                    Description="Ask whoever manages this app if you need it.">
+            <EmptyStateActions>
+                <Button Href="">Back to home</Button>
+            </EmptyStateActions>
+        </EmptyState>
+    </Card>
+</Column>

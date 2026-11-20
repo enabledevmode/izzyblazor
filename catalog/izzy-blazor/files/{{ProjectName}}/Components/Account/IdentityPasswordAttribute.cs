@@ -40,7 +40,7 @@ internal sealed class IdentityPasswordAttribute : ValidationAttribute
             : new ValidationResult($"Add {Join(missing)}.", [context.MemberName!]);
     }
 
-    /// <summary>Identity's password rules in one line: "At least 6 characters, with mixed case, a number and a symbol."</summary>
+    /// <summary>Identity's password rules in one line: "Use at least 12 characters."</summary>
     public static string? Hint(PasswordOptions options)
     {
         var parts = new List<string>();
@@ -53,8 +53,8 @@ internal sealed class IdentityPasswordAttribute : ValidationAttribute
 
         return (options.RequiredLength, parts.Count) switch
         {
-            ( > 0, 0) => $"At least {options.RequiredLength} characters.",
-            ( > 0, _) => $"At least {options.RequiredLength} characters, with {Join(parts)}.",
+            ( > 0, 0) => $"Use at least {options.RequiredLength} characters.",
+            ( > 0, _) => $"Use at least {options.RequiredLength} characters, with {Join(parts)}.",
             (_, > 0) => $"Use {Join(parts)}.",
             _ => null,
         };

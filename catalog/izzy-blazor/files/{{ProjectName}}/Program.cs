@@ -74,6 +74,11 @@ public class Program
         builder.Services.AddIdentityCore<ApplicationUser>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;
+                // A long password and no rules about what's in it (NIST SP 800-63B). The password fields' hint and
+                // their checks follow these (Components/Account/IdentityPasswordAttribute.cs).
+                options.Password.RequiredLength = 12;
+                options.Password.RequireDigit = options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = options.Password.RequireNonAlphanumeric = false;
                 options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -197,6 +202,11 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = true;
+        // A long password and no rules about what's in it (NIST SP 800-63B). The password fields' hint and
+        // their checks follow these (Components/Account/IdentityPasswordAttribute.cs).
+        options.Password.RequiredLength = 12;
+        options.Password.RequireDigit = options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = options.Password.RequireNonAlphanumeric = false;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()

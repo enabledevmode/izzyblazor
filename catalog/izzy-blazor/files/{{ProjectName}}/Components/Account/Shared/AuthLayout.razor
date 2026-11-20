@@ -1,0 +1,20 @@
+@inherits LayoutComponentBase
+@inject IConfiguration Configuration
+
+@* The signed-out pages' frame (sign in, two-factor, forgot and reset password, confirm email, locked out):
+   the color scheme in the corner and the page's one column under it (AccountPanel). No header, sidebar or
+   account menu: nothing else here works until you sign in, and the app's mark above the title links home. *@
+<AppShell>
+    <AppMain PaddingX="4" PaddingY="2">
+        <Row Justify="Justify.End">
+            <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Menu" />
+        </Row>
+        <ErrorGuard ShowDetails="DetailedErrors">
+            @Body
+        </ErrorGuard>
+    </AppMain>
+</AppShell>
+
+@code {
+    private bool DetailedErrors => Configuration.GetValue<bool>("DetailedErrors");
+}

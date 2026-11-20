@@ -1,0 +1,136 @@
+@page "/Account/Login"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using {{RootNamespace}}.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext Db
+
+<PageTitle>Sign in</PageTitle>
+
+@* Accounts come by invitation (Settings & team), so there's no way to register here. *@
+<AccountPanel Title="Welcome back" Description="@($"Sign in to your {_workspace} workspace.")">
+    <StatusMessage Message="@errorMessage" />
+    <Column Gap="3">
+        <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login">
+            <TextField @bind-Value="Input.Email" Label="Email address" AutoComplete="username webauthn" />
+            <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" />
+            <Row Justify="Justify.Between" Align="Align.Center" Wrap>
+                <Checkbox @bind-Value="Input.RememberMe" Label="Remember me" />
+                <TextBlock Size="TextSize.Sm"><Anchor Href="Account/ForgotPassword" Underline="AnchorUnderline.Hover">Forgot password?</Anchor></TextBlock>
+            </Row>
+            <Button Submit FullWidth>Sign in</Button>
+            @* The passkey button stays in the form: Microsoft's passkey-submit element posts it. *@
+            <Column Gap="3" MarginTop="6">
+                <Divider Label="or" />
+                <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email"
+                               Accent="Accent.Neutral" StartIcon="Lucide.FingerprintPattern" FullWidth>Sign in with a passkey</PasskeySubmit>
+            </Column>
+        </Form>
+        <ExternalLoginPicker Divider="false" />
+    </Column>
+    <AccountFoot>Access is by invitation from your team.</AccountFoot>
+</AccountPanel>
+
+@code {
+    private string? errorMessage;
+
+    // The workspace's name, for the page's description.
+    private string? _workspace;
+    private EditContext editContext = default!;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Input ??= new();
+        _workspace = await Db.Workspaces.AsNoTracking().Select(w => w.Name).FirstOrDefaultAsync();
+
+        editContext = new EditContext(Input);
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+    public async Task LoginUser()
+    {
+        if (!string.IsNullOrEmpty(Input.Passkey?.Error))
+        {
+            errorMessage = $"Error: {Input.Passkey.Error}";
+            return;
+        }
+
+        SignInResult result;
+        if (!string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
+        {
+            // When performing passkey sign-in, don't perform form validation.
+            result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
+        }
+        else
+        {
+            // If doing a password sign-in, validate the form.
+            if (!editContext.Validate())
+            {
+                return;
+            }
+
+            // This doesn't count login failures towards account lockout
+            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        }
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User logged in.");
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo(
+                "Account/LoginWith2fa",
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            errorMessage = "Error: That email and password don’t match. Check them and try again.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
+
+        public PasskeyInputModel? Passkey { get; set; }
+    }
+}

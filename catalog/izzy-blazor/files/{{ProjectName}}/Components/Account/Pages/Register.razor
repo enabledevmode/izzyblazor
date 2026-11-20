@@ -20,16 +20,16 @@
 
 <AccountPanel Title="Create an account" Description="Use your email and a password.">
     <StatusMessage Message="@Message" />
-    <Form Model="Input" OnValidSubmit="RegisterUser" FormName="register" RequiredMark="RequiredMark.Optional">
-        <TextField @bind-Value="Input.Email" AutoComplete="username" />
+    <Form Model="Input" OnValidSubmit="RegisterUser" FormName="register">
+        <TextField @bind-Value="Input.Email" Label="Email address" AutoComplete="username" />
         <PasswordField @bind-Value="Input.Password" AutoComplete="new-password" Hint="@IdentityPasswordAttribute.Hint(IdentityOptionsAccessor.Value.Password)" />
         <PasswordField @bind-Value="Input.ConfirmPassword" AutoComplete="new-password" />
         <Button Submit FullWidth>Register</Button>
     </Form>
     <ExternalLoginPicker />
-    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-        Already have an account? <Anchor Href="Account/Login">Log in</Anchor>
-    </TextBlock>
+    <AccountFoot>
+        Already have an account? <Anchor Href="Account/Login">Sign in</Anchor>
+    </AccountFoot>
 </AccountPanel>
 
 @code {
