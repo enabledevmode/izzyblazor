@@ -1,0 +1,178 @@
+@page "/tickets"
+@layout ShellLayout
+
+<PageTitle>Inbox</PageTitle>
+
+@* A list and the chosen item beside it. The ticket is in the address (?id=), so choosing one is a link:
+   it works on a static page, and the browser's Back returns to the list. From 768px up the list and the
+   ticket sit side by side and scroll on their own; below that they are two screens, the list until a
+   ticket is chosen. *@
+@*#if (IndividualLocalAuth) *@
+<AuthorizeView>
+    <NotAuthorized>
+        <Center Height="Length.Full" Padding="6">
+            <EmptyState Icon="Lucide.Lock" Title="Log in to see your tickets" TitleLevel="1" Size="ControlSize.Lg"
+                        Description="Tickets are only shown to signed-in users.">
+                <Column Gap="4" Align="Align.Center">
+                    <Button Href="Account/Login" Size="ControlSize.Lg">Log in</Button>
+                    @*#if (Registration) *@
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">No account? <Anchor Href="Account/Register">Register</Anchor></TextBlock>
+                    @*#endif *@
+                </Column>
+            </EmptyState>
+        </Center>
+    </NotAuthorized>
+    <Authorized>
+@*#endif *@
+<Row Gap="0" Align="Align.Stretch" Height="Length.Full">
+    <Column As="section" Gap="0" Height="Length.Full" Width="@ListWidth" Shrink="false" BorderEnd="@(new() { Md = 1 })" VisibleFrom="@(Chosen is null ? null : Breakpoint.Md)" aria-labelledby="inbox-heading">
+        <Row Justify="Justify.Between" Align="Align.Center" PaddingX="3" MinHeight="Length.Rem(3.5)" BorderBottom="1">
+            <Heading Level="1" Size="TextSize.Md" id="inbox-heading">Inbox</Heading>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">12 open</TextBlock>
+        </Row>
+        <Box Grow MinHeight="Length.Px(0)" Overflow="Overflow.Auto">
+            <ListView Items="Ticket.Sample" ItemKey="t => t.Id.ToString()" Label="Tickets" ItemHref="@(t => $"tickets?id={t.Id}")"
+                      ItemCurrent="t => t == Chosen" ItemLabel="t => t.Subject" Context="ticket">
+                @{ var unread = ticket.Unread && ticket != Chosen; }
+                <Column Gap="1" Grow MinWidth="Length.Px(0)">
+                    <Row Gap="2" Align="Align.Center">
+                        @if (unread)
+                        {
+                            <Box As="span" Width="Length.Px(8)" Height="Length.Px(8)" Bg="Color.Primary" Radius="Radius.Full" Shrink="false"><VisuallyHidden>Unread</VisuallyHidden></Box>
+                        }
+                        <TextBlock Size="TextSize.Sm" Weight="@(unread ? FontWeight.Semibold : FontWeight.Medium)" Truncate Grow MinWidth="Length.Px(0)">@ticket.From</TextBlock>
+                        <TextBlock Size="TextSize.Xs" Color="Color.Muted">@ticket.Time</TextBlock>
+                    </Row>
+                    <TextBlock Size="TextSize.Sm" Weight="@(unread ? FontWeight.Semibold : FontWeight.Normal)" Truncate>@ticket.Subject</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@ticket.Snippet</TextBlock>
+                </Column>
+            </ListView>
+        </Box>
+    </Column>
+
+    <Box Grow MinWidth="Length.Px(0)" Height="Length.Full" Overflow="Overflow.Auto" VisibleFrom="@(Chosen is null ? Breakpoint.Md : null)">
+        @if (Chosen is { } chosen)
+        {
+            <Column As="article" Gap="5" MaxWidth="Length.Px(760)" PaddingX="new() { Base = 4, Md = 8 }" PaddingY="new() { Base = 4, Md = 7 }" aria-labelledby="ticket-heading">
+                @* On phones the ticket is a screen of its own: a way back above it. *@
+                <Button Href="tickets" Variant="ButtonVariant.Ghost" StartIcon="Lucide.ArrowLeft" AlignSelf="Align.Start" HiddenFrom="Breakpoint.Md">Inbox</Button>
+                <Row Gap="3" Justify="Justify.Between" Align="Align.Start">
+                    <Heading Level="2" Size="TextSize.Xl" id="ticket-heading">@chosen.Subject</Heading>
+                    <Menu Placement="Placement.BottomEnd">
+                        <Trigger Context="trigger">
+                            <IconButton Label="More actions" Icon="Lucide.Ellipsis" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="trigger" />
+                        </Trigger>
+                        <ChildContent>
+                            <MenuItem Icon="Lucide.UserCheck">Assign to me</MenuItem>
+                            <MenuItem Icon="Lucide.MailOpen">Mark as unread</MenuItem>
+                            <MenuDivider />
+                            <MenuItem Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                        </ChildContent>
+                    </Menu>
+                </Row>
+                <Row Gap="3" Align="Align.Center">
+                    <Avatar Name="@chosen.From" />
+                    <Column Gap="0" MinWidth="Length.Px(0)">
+                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Semibold">@chosen.From</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@chosen.Email · @chosen.Sent</TextBlock>
+                    </Column>
+                </Row>
+                <Column Gap="3" MaxWidth="Length.Px(640)">
+                    @foreach (var paragraph in chosen.Body)
+                    {
+                        <TextBlock LineHeight="LineHeight.Relaxed" KeepLines>@paragraph</TextBlock>
+                    }
+                </Column>
+                @* Sample buttons: give them an OnClick, or put them in a form that posts. *@
+                <Row Gap="2" Wrap PaddingTop="4" BorderTop="1">
+                    <Button Size="ControlSize.Sm" StartIcon="Lucide.Reply">Reply</Button>
+                    <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Check">Mark as done</Button>
+                </Row>
+            </Column>
+        }
+        else
+        {
+            <Center Height="Length.Full" Padding="6">
+                <EmptyState Icon="Lucide.Inbox" Title="No ticket chosen" TitleLevel="2" Description="Choose a ticket from the list to read it here." />
+            </Center>
+        }
+    </Box>
+</Row>
+@*#if (IndividualLocalAuth) *@
+    </Authorized>
+</AuthorizeView>
+@*#endif *@
+
+@code {
+    // The chosen ticket's id, from the address.
+    [SupplyParameterFromQuery] private int? Id { get; set; }
+
+    private Ticket? Chosen => Ticket.Sample.FirstOrDefault(t => t.Id == Id);
+
+    // The list is the whole screen on phones, and a column beside the ticket from 768px up.
+    private static readonly Responsive<Length> ListWidth = new() { Base = Length.Full, Md = Length.Px(340), Xl = Length.Px(380) };
+
+    /// <summary>A support ticket: a row in the list, and what the panel beside it shows.</summary>
+    private record Ticket(int Id, string From, string Email, string Subject, string Snippet, string Time, string Sent, bool Unread, string[] Body)
+    {
+        /// <summary>Sample data. Replace it with a query against your own store.</summary>
+        public static readonly Ticket[] Sample =
+        [
+            new(1, "Maya Chen", "maya@northwind.example", "Can’t download last month’s invoice", "The download button spins and then nothing happens…", "10:42", "Today, 10:42", true,
+            [
+                "Hi,",
+                "When I open Billing and choose Download on the October invoice, the button spins for a few seconds and then nothing happens. September’s downloads fine.",
+                "Our accountant needs it by Friday. Could you send it another way in the meantime?",
+                "Thanks,\nMaya",
+            ]),
+            new(2, "Jonas Weber", "jonas@weber.example", "Change the billing email", "Invoices should go to accounts@weber.example from now on.", "9:15", "Today, 9:15", true,
+            [
+                "Hello,",
+                "Invoices should go to accounts@weber.example from now on. The old address belongs to someone who has left the company.",
+                "Best,\nJonas",
+            ]),
+            new(3, "Priya Raman", "priya@lumen.example", "Export to CSV drops accents", "Names like José come out as JosÃ© in the file.", "8:03", "Today, 8:03", true,
+            [
+                "Hi,",
+                "Names like José come out as JosÃ© in the file when I export customers to CSV and open it in Excel. The names are right on screen.",
+                "Thanks,\nPriya",
+            ]),
+            new(4, "Tom Becker", "tom@becker.example", "Add a second admin", "Can my colleague get the same access as me?", "Yesterday", "Yesterday, 16:20", false,
+            [
+                "Hi,",
+                "Can my colleague get the same access as me? She covers for me when I’m away and needs to manage users and billing.",
+                "Thanks,\nTom",
+            ]),
+            new(5, "Lena Novak", "lena@novak.example", "Two-factor code never arrives", "I’ve tried three times this morning.", "Yesterday", "Yesterday, 9:05", false,
+            [
+                "Hello,",
+                "I’ve tried three times this morning and the text message with my code never arrives. My phone number hasn’t changed.",
+                "Lena",
+            ]),
+            new(6, "Omar Haddad", "omar@haddad.example", "Refund for a duplicate charge", "We were charged twice for November.", "Mon", "Monday, 14:31", false,
+            [
+                "Hi,",
+                "We were charged twice for November. Both charges are on the same card, a minute apart. Could you refund one of them?",
+                "Regards,\nOmar",
+            ]),
+            new(7, "Sara Costa", "sara@costa.example", "Dark mode in emails", "Small request: the receipts are very bright at night.", "Mon", "Monday, 22:48", false,
+            [
+                "Hi,",
+                "Small request: the receipts are very bright at night. Could the emails follow dark mode the way the app does?",
+                "Sara",
+            ]),
+            new(8, "Ada Lindqvist", "ada@lindqvist.example", "Thank you!", "The new dashboard saves me an hour a week.", "Nov 14", "Nov 14, 11:02", false,
+            [
+                "Hi,",
+                "The new dashboard saves me an hour a week. I used to build the same report by hand every Monday.",
+                "Thank you!\nAda",
+            ]),
+            new(9, "Luis Ortega", "luis@ortega.example", "API rate limit question", "What happens when we pass 100 requests a minute?", "Nov 13", "Nov 13, 15:40", false,
+            [
+                "Hello,",
+                "What happens when we pass 100 requests a minute? We’re planning a nightly sync and want to know whether requests are queued or refused.",
+                "Thanks,\nLuis",
+            ]),
+        ];
+    }
+}

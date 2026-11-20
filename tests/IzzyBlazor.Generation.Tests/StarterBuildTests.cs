@@ -34,6 +34,29 @@ public sealed class StarterBuildTests : IDisposable
         await ProjectBuild.BuildAsync(_work, $"{name} {settings}");
     }
 
+    /// <summary>
+    /// The shells with files of their own, each in the settings that reach the most of them: accounts for the
+    /// sidebar's foot and the inbox's prompt, and every page interactive in WebAssembly for the pages that
+    /// move to the .Client project. The sidebar and top navigation shells are izzy-blazor's own layouts.
+    /// </summary>
+    public static TheoryData<string, string> Shells() => new()
+    {
+        { "rail", "Auth=Individual" },
+        { "site", "" },
+        { "docs", "Interactivity=WebAssembly;AllInteractive=true;Auth=Individual" },
+        { "inbox", "Interactivity=WebAssembly;AllInteractive=true;Auth=Individual" },
+    };
+
+    [Theory]
+    [MemberData(nameof(Shells))]
+    public async Task The_shell_starter_builds(string id, string settings)
+    {
+        var changes = Generator.Generate(ProjectBuild.Item(id), ProjectBuild.StarterSettings(settings), ProjectInfo.ForNewProject("MyApp"));
+        ChangesetWriter.Apply(changes, _work);
+        ProjectBuild.PointAtRepo(_work);
+        await ProjectBuild.BuildAsync(_work, $"{id} {settings}");
+    }
+
     [Fact]
     public async Task The_crm_kit_builds()
     {
