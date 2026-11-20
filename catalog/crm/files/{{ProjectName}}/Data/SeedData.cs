@@ -165,16 +165,24 @@ public static class SeedData
 
         db.Notes.Add(new Note
         {
-            Contact = olivia, Deal = website, AuthorId = jamie.Id, Created = Utc(-3, 12, 10), Edited = Utc(-3, 12, 10),
+            Title = "Discovery call notes", Contact = olivia, Deal = website, AuthorId = jamie.Id, Created = Utc(-3, 12, 10), Edited = Utc(-3, 12, 10),
             Body =
                 """
-                Discovery call. Olivia wants a clearer story for the website and a more straightforward path from product pages to a sales conversation.
+                Olivia wants a clearer story for the website and a more straightforward path from product pages to a sales conversation.
+
+                ### Priorities
 
                 - Launch the new website in January.
                 - Make the case studies easier to find and maintain.
                 - Keep the existing analytics setup.
 
-                The proposed $18,000 budget is within range. Ethan will review operations requirements before the final approval. Next: send a revised proposal with content responsibilities and a phased launch timeline.
+                ### Budget and approvals
+
+                The proposed $18,000 budget is within range. Ethan will review operations requirements before the final approval.
+
+                ### Next steps
+
+                Send a revised proposal with content responsibilities and a phased launch timeline. Follow up on November 19.
                 """,
         });
         await db.SaveChangesAsync();
