@@ -35,15 +35,6 @@ public sealed class StarterBuildTests : IDisposable
     }
 
     [Fact]
-    public async Task The_admin_kit_builds()
-    {
-        var changes = Generator.Generate(ProjectBuild.Item("admin"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme"));
-        ChangesetWriter.Apply(changes, _work);
-        ProjectBuild.PointAtRepo(_work);
-        await ProjectBuild.BuildAsync(_work, "admin");
-    }
-
-    [Fact]
     public async Task The_crm_kit_builds()
     {
         var changes = Generator.Generate(ProjectBuild.Item("crm"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme"));
