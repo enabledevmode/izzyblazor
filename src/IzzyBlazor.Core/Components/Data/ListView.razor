@@ -277,6 +277,14 @@
     /// <summary>A rounded border around the list. Defaults to false.</summary>
     [Parameter] public bool Bordered { get; set; }
 
+    /// <summary>
+    /// Where an item's icon, text and end content sit against each other. Centered by default, which
+    /// suits a line or two; <c>Align.Start</c> puts them at the item's top, the ⋯ button and
+    /// <see cref="ItemActions"/> on its first line, for items several lines tall, such as notes or
+    /// comments.
+    /// </summary>
+    [Parameter] public Align ItemAlign { get; set; } = Align.Center;
+
     /// <summary>Item spacing and text size. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
@@ -440,6 +448,7 @@
         classes.Add("ib-listview-dividers", Dividers && Orientation == Orientation.Vertical && !AsCards);
         classes.Add("ib-listview-bordered", Bordered && !AsCards);
         classes.Add("ib-listview-cards", AsCards);
+        classes.Add("ib-listview-top", ItemAlign == Align.Start && !AsCards);
         classes.Add("ib-listview-sm", Size == ControlSize.Sm);
         classes.Add("ib-listview-lg", Size == ControlSize.Lg);
         if (ColumnCount > 1)
