@@ -345,42 +345,6 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.ToTable("Contacts");
                 });
 
-            modelBuilder.Entity("{{RootNamespace}}.Data.ContactImport", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("CreatedById")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Csv")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Match")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("OwnerId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("OwnerId");
-
-                    b.ToTable("ContactImports");
-                });
-
             modelBuilder.Entity("{{RootNamespace}}.Data.Deal", b =>
                 {
                     b.Property<int>("Id")
@@ -475,6 +439,45 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.HasIndex("DealId");
 
                     b.ToTable("DealAttachments");
+                });
+
+            modelBuilder.Entity("{{RootNamespace}}.Data.Import", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Csv")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Match")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("OwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Imports");
                 });
 
             modelBuilder.Entity("{{RootNamespace}}.Data.Note", b =>
@@ -799,23 +802,6 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("{{RootNamespace}}.Data.ContactImport", b =>
-                {
-                    b.HasOne("{{RootNamespace}}.Data.ApplicationUser", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("{{RootNamespace}}.Data.ApplicationUser", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Owner");
-                });
-
             modelBuilder.Entity("{{RootNamespace}}.Data.Deal", b =>
                 {
                     b.HasOne("{{RootNamespace}}.Data.Company", "Company")
@@ -857,6 +843,23 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Navigation("AddedBy");
 
                     b.Navigation("Deal");
+                });
+
+            modelBuilder.Entity("{{RootNamespace}}.Data.Import", b =>
+                {
+                    b.HasOne("{{RootNamespace}}.Data.ApplicationUser", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("{{RootNamespace}}.Data.ApplicationUser", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("{{RootNamespace}}.Data.Note", b =>
