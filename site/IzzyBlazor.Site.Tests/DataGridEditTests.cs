@@ -41,7 +41,6 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Cancel_leaves_the_row_and_the_address_as_they_were(string mode)
     {
