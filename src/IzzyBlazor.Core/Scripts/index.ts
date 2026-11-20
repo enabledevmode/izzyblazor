@@ -126,6 +126,11 @@ export const izzyEvents: IzzyEventDefinition[] = [
     createEventArgs: (event) => (event as CustomEvent).detail,
   },
   {
+    // A ContextMenu opened in an element with a data-menu-value (elements/context-menu.ts).
+    name: "ibcontext",
+    createEventArgs: (event) => ({ value: (event as CustomEvent<{ value: string }>).detail?.value ?? null }),
+  },
+  {
     // ColorSchemeSwitch reports the user's choice for @bind-Value.
     name: "ibscheme",
     createEventArgs: (event) => ({ scheme: (event as CustomEvent<{ scheme: string }>).detail?.scheme ?? null }),

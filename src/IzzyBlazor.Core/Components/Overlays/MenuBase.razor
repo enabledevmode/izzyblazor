@@ -32,7 +32,10 @@
     </div>
     @if (ContextTarget is not null)
     {
-        <ib-context-menu data-for="@ContextTarget" hidden></ib-context-menu>
+        <ib-context-menu data-for="@ContextTarget"
+                         data-needs-value="@(ContextValueOpened.HasDelegate ? "" : null)"
+                         hidden
+                         @onibcontext="@(e => ContextValueOpened.InvokeAsync(e.Value))"></ib-context-menu>
     }
 </ib-popover>
 
@@ -61,8 +64,11 @@
     /// <summary>The button that opens the menu, wired by <see cref="TriggerAttributes"/>; none for a context menu.</summary>
     private protected virtual RenderFragment? TriggerContent => null;
 
-    /// <summary>The id of the element whose right-click opens the menu at the pointer, if any.</summary>
+    /// <summary>The element whose right-click opens the menu at the pointer, if any: an id, or a selector.</summary>
     private protected virtual string? ContextTarget => null;
+
+    /// <summary>Runs with the pressed element's <c>data-menu-value</c> when a context menu opens.</summary>
+    private protected virtual EventCallback<string> ContextValueOpened => default;
 
     /// <summary>The menu's name when no button names it.</summary>
     private protected virtual string? MenuName => null;
