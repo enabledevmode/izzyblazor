@@ -473,6 +473,10 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Property<DateTime>("Edited")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Title")
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ActivityId");

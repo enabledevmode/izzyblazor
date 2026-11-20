@@ -443,6 +443,7 @@ namespace {{RootNamespace}}.Data.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    Title = table.Column<string>(type: "TEXT", maxLength: 120, nullable: true),
                     ContactId = table.Column<int>(type: "INTEGER", nullable: true),
                     DealId = table.Column<int>(type: "INTEGER", nullable: true),
                     CompanyId = table.Column<int>(type: "INTEGER", nullable: true),

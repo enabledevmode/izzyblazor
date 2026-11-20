@@ -104,22 +104,8 @@
                         break;
 
                     case "notes":
-                        @if (_canEdit)
-                        {
-                            <Card>
-                                <Form Model="Draft" FormName="add-note" OnValidSubmit="AddNoteAsync" RequiredMark="RequiredMark.None">
-                                    <TextArea @bind-Value="Draft!.Body" Label="Note" Rows="3" AutoGrow Placeholder="Goals, decisions, and next steps…" />
-                                    <FormActions>
-                                        <Button Submit>Add note</Button>
-                                    </FormActions>
-                                </Form>
-                            </Card>
-                        }
-                        <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"contacts/{Id}/notes")" Workspace="_workspace" Today="_today" Cards />
-                        @if (_notes.Count == 0 && !_canEdit)
-                        {
-                            <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about {contact.FirstName} show here.")" /></Card>
-                        }
+                        <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"contacts/{Id}/notes")" On="@($"contacts/{Id}")"
+                                  New="@(() => new Note { ContactId = Id })" About="@contact.Name" Workspace="_workspace" Today="_today" />
                         break;
                 }
             </Column>
@@ -189,13 +175,7 @@
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    // The note being written on the Notes tab.
-    [SupplyParameterFromForm(FormName = "add-note")] private NoteDraft? Draft { get; set; }
 
-    private sealed class NoteDraft
-    {
-        [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string? Body { get; set; }
-    }
 
     private Workspace? _workspace;
     private DateOnly _today;
@@ -252,7 +232,6 @@
         var user = (await AuthState).User;
         _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
-        Draft ??= new();
 
         _contact = await Db.Contacts.AsNoTracking().Include(c => c.Company).Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
         if (_contact is null || Section is not (null or "deals" or "tasks" or "notes"))
@@ -284,23 +263,12 @@
                     .OrderBy(a => a.Start).ToListAsync();
                 break;
             case "notes":
-                _notes = await Db.Notes.AsNoTracking().Include(n => n.Author)
+                _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
                     .Where(n => n.ContactId == Id).OrderByDescending(n => n.Created).ToListAsync();
                 break;
         }
     }
 
-    // A note written on the page: linked to the contact, yours.
-    private async Task AddNoteAsync()
-    {
-        if (!_canEdit) return;
-        var now = DateTime.UtcNow;
-        Db.Notes.Add(new Note { ContactId = Id, Body = Draft!.Body!.Trim(), AuthorId = _me, Created = now, Edited = now });
-        if (await Db.Contacts.FirstOrDefaultAsync(c => c.Id == Id) is { } contact) contact.LastActivity = now;
-        await Db.SaveChangesAsync();
-        Toasts.Success($"It’s on {_contact!.Name}’s page for the whole team.", "Note added");
-        Navigation.NavigateTo($"contacts/{Id}/notes");
-    }
 
     // The number as a link that calls: its digits, a leading + kept. Null without one.
     private static string? Tel(Contact contact) =>

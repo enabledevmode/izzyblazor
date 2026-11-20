@@ -6,11 +6,14 @@ namespace {{RootNamespace}}.Data;
 /// <summary>
 /// A note the whole team can find, about a contact, a deal (or both) or a company, written on that record's page,
 /// or on an activity's: what a meeting decided, which is also about the meeting's contact and deal.
-/// It has no title: it is its text, which is Markdown.
+/// It is its text, which is Markdown; one given a title is a document with a page of its own.
 /// </summary>
 public class Note : IAudited
 {
     public int Id { get; set; }
+
+    /// <summary>What it's called, for a note worth a page of its own; most have none.</summary>
+    [StringLength(120)] public string? Title { get; set; }
 
     public int? ContactId { get; set; }
     public Contact? Contact { get; set; }
@@ -47,5 +50,5 @@ public class Note : IAudited
         }
     }
 
-    string IAudited.AuditName => Opening;
+    string IAudited.AuditName => Title ?? Opening;
 }

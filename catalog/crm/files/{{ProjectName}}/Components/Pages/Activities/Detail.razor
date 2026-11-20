@@ -108,25 +108,11 @@
                     </Card>
                 }
 
-                @* As a contact's Notes: a box to write one, then the notes written here, newest first. *@
+                @* The notes written here: also on its contact's and its deal's pages. *@
                 <Column Gap="4" As="section" aria-labelledby="activity-notes">
                     <Heading Level="2" Size="TextSize.Lg" id="activity-notes">Notes</Heading>
-                    @if (_canEdit)
-                    {
-                        <Card>
-                            <Form Model="Draft" FormName="add-note" OnValidSubmit="AddNoteAsync" RequiredMark="RequiredMark.None">
-                                <TextArea @bind-Value="Draft!.Body" Label="Note" Rows="3" AutoGrow Placeholder="Goals, decisions, and next steps…" />
-                                <FormActions>
-                                    <Button Submit>Add note</Button>
-                                </FormActions>
-                            </Form>
-                        </Card>
-                    }
-                    <NoteList Notes="_notes" CanEdit="_canEdit" Href="@Here" Workspace="_workspace" Today="_today" Cards />
-                    @if (_notes.Count == 0 && !_canEdit)
-                    {
-                        <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about {activity.Title} show here.")" /></Card>
-                    }
+                    <NoteList Notes="_notes" CanEdit="_canEdit" Href="@Here" On="@Here"
+                              New="@(() => new Note { ActivityId = Id, ContactId = activity.ContactId, DealId = activity.DealId })" About="@activity.Title" Workspace="_workspace" Today="_today" />
                 </Column>
             </Column>
 
@@ -196,14 +182,7 @@
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    // The note being written, as its form posts it.
-    [SupplyParameterFromForm(FormName = "add-note")] private NoteDraft? Draft { get; set; }
 
-    private sealed class NoteDraft
-    {
-        [Required(ErrorMessage = "Enter a note."), StringLength(20000, ErrorMessage = "Use 20,000 characters or fewer.")]
-        public string? Body { get; set; }
-    }
 
     private Activity? _activity;
     private List<Note> _notes = [];
@@ -226,7 +205,6 @@
         var user = (await AuthState).User;
         _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
-        Draft ??= new();
 
         _activity = await Db.Activities.AsNoTracking()
             .Include(a => a.Contact!.Company).Include(a => a.Deal!.Company).Include(a => a.AssignedTo).Include(a => a.CreatedBy)
@@ -237,7 +215,7 @@
             return;
         }
 
-        _notes = await Db.Notes.AsNoTracking().Include(n => n.Author)
+        _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
             .Where(n => n.ActivityId == Id).OrderByDescending(n => n.Created).ToListAsync();
     }
 
@@ -257,20 +235,6 @@
         Navigation.NavigateTo(Here);
     }
 
-    // A note written here: about the activity, and so about its contact and deal, whose pages list it too.
-    private async Task AddNoteAsync()
-    {
-        if (!_canEdit || _activity is null) return;
-        var now = DateTime.UtcNow;
-        Db.Notes.Add(new Note
-        {
-            ActivityId = Id, ContactId = _activity.ContactId, DealId = _activity.DealId,
-            Body = Draft!.Body!.Trim(), AuthorId = _me, Created = now, Edited = now,
-        });
-        await Db.SaveChangesAsync();
-        Toasts.Success($"It’s on {_activity.Title}’s page for the whole team.", "Note added");
-        Navigation.NavigateTo(Here);
-    }
 
     // The badge beside the title: done, a task past its day, or still ahead.
     private (string Text, Status Tone) Status(Activity activity) =>

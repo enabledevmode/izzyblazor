@@ -157,22 +157,8 @@
 
                         @* As a contact's Notes: a box to write one about the deal, then the notes, newest first. *@
                         case "notes":
-                            @if (_canEdit)
-                            {
-                                <Card>
-                                    <Form Model="Draft" FormName="add-note" OnValidSubmit="AddNoteAsync" RequiredMark="RequiredMark.None">
-                                        <TextArea @bind-Value="Draft!.Body" Label="Note" Rows="3" AutoGrow Placeholder="Goals, decisions, and next steps…" />
-                                        <FormActions>
-                                            <Button Submit>Add note</Button>
-                                        </FormActions>
-                                    </Form>
-                                </Card>
-                            }
-                            <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"deals/{Id}/notes")" Workspace="_workspace" Today="_today" Cards />
-                            @if (_notes.Count == 0 && !_canEdit)
-                            {
-                                <Card><EmptyState Icon="Lucide.NotebookPen" Size="ControlSize.Sm" Title="No notes yet" Description="@($"Notes about {deal.Name} show here.")" /></Card>
-                            }
+                            <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"deals/{Id}/notes")" On="@($"deals/{Id}")"
+                                      New="@(() => new Note { DealId = Id })" About="@deal.Name" Workspace="_workspace" Today="_today" />
                             break;
                     }
                 </Column>
@@ -239,13 +225,7 @@
     // The stage a button posted: a DealStage's name.
     [SupplyParameterFromForm(FormName = "deal-action", Name = "stage")] private string? StagePost { get; set; }
 
-    // The note being written on the Notes tab.
-    [SupplyParameterFromForm(FormName = "add-note")] private NoteDraft? Draft { get; set; }
 
-    private sealed class NoteDraft
-    {
-        [Required(ErrorMessage = "Enter a note."), StringLength(20000)] public string? Body { get; set; }
-    }
 
     // The stages a deal moves through while it's open, in order.
     private static readonly DealStage[] Pipeline = [DealStage.Discovery, DealStage.Qualified, DealStage.Proposal, DealStage.Negotiation];
@@ -282,7 +262,6 @@
         var user = (await AuthState).User;
         _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
-        Draft ??= new();
 
         _deal = await Db.Deals.AsNoTracking().Include(d => d.Company).Include(d => d.Contact).Include(d => d.Owner).FirstOrDefaultAsync(d => d.Id == Id);
         if (_deal is null || Section is not (null or "notes"))
@@ -298,7 +277,7 @@
 
         if (Section is null) await LoadHistoryAsync(_deal);
         else
-            _notes = await Db.Notes.AsNoTracking().Include(n => n.Author)
+            _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
                 .Where(n => n.DealId == Id).OrderByDescending(n => n.Created).ToListAsync();
     }
 
@@ -327,16 +306,6 @@
         Navigation.NavigateTo(Here);
     }
 
-    // A note written on the page: about the deal, yours.
-    private async Task AddNoteAsync()
-    {
-        if (!_canEdit) return;
-        var now = DateTime.UtcNow;
-        Db.Notes.Add(new Note { DealId = Id, Body = Draft!.Body!.Trim(), AuthorId = _me, Created = now, Edited = now });
-        await Db.SaveChangesAsync();
-        Toasts.Success($"It’s on {_deal!.Name}’s page for the whole team.", "Note added");
-        Navigation.NavigateTo($"deals/{Id}/notes");
-    }
 
     // The timeline, newest first: what's been finished, the calls and meetings put on the calendar, each move to
     // another stage, then the day the deal was created. Who scheduled, moved or created comes from the audit log.
