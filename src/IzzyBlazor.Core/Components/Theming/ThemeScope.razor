@@ -68,6 +68,12 @@
             styles.AddRaw(BrandPalette.From(brandHex).ToCss());
         }
 
+        // A brand here gives the charts here its palette: written on the element, so the brand is read here.
+        if (BrandChartCss(app: false) is { } charts)
+        {
+            styles.AddRaw(charts);
+        }
+
         styles.AddRaw(Style);
         _class = classes.Build();
         _style = styles.Build();

@@ -45,12 +45,27 @@ public abstract class ThemeBase : ComponentBase
 
     /// <summary>
     /// The colors charts, gauges and the scheduler use, unless a chart sets its own
-    /// <see cref="IzzyBlazor.ChartPalette"/>. Unset: <see cref="ThemeChartPalette.Contrast"/> (or, in a
-    /// ThemeScope, what's around it).
+    /// <see cref="IzzyBlazor.ChartPalette"/>. Unset: <see cref="ThemeChartPalette.Brand"/>, which starts at
+    /// the brand color (in a ThemeScope, what's around it, or its own <see cref="Brand"/>'s).
     /// </summary>
     [Parameter] public ThemeChartPalette? ChartPalette { get; set; }
 
-    private protected string? ChartPaletteName => ChartPalette is { } palette ? ChartPaletteNames.Name(palette) : null;
+    // The fixed palettes are chosen in CSS, by name. Brand's colors are tokens.css's for the default brand
+    // and written out for any other (BrandChartCss), so it has no name there.
+    private protected string? ChartPaletteName => ChartPalette is { } palette and not ThemeChartPalette.Brand ? ChartPaletteNames.Name(palette) : null;
+
+    /// <summary>
+    /// The Brand chart palette's declarations for this theme's brand, or null when the charts use a fixed palette.
+    /// <paramref name="app"/>: the app's theme, where a preset brings its brand; part of a page takes a
+    /// palette only with a brand of its own, or when it asks for Brand by name.
+    /// </summary>
+    private protected string? BrandChartCss(bool app)
+    {
+        if (ChartPalette is not (null or ThemeChartPalette.Brand)) return null;
+        if (BrandColor.Hex is { } hex) return BrandChartPalette.Css(BrandPalette.From(hex));
+        if (BrandColor.Name is { } name) return BrandChartPalette.Css(name);
+        return app ? BrandChartPalette.Css(BrandChartPalette.BrandOf(Preset)) : ChartPalette is null ? null : BrandChartPalette.Default;
+    }
 
     /// <summary>The brand color as parsed: a built-in name or a hex color.</summary>
     private protected (string? Name, string? Hex) BrandColor { get; private set; }

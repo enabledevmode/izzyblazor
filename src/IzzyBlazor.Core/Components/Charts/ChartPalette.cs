@@ -37,14 +37,15 @@ public sealed class ChartPalette
     /// default. A chart of exactly two, three or four series gets a set picked for that count, so
     /// every pair stays apart for color-blind readers (<c>--ib-chart-of2-1</c> and on); any other
     /// count takes the theme's eight in order (<c>--ib-chart-1</c> to <c>--ib-chart-8</c>). Which
-    /// palette that is follows <see cref="ThemeBase.ChartPalette"/> (Contrast unless set). The
+    /// palette that is follows <see cref="ThemeBase.ChartPalette"/>: Brand unless set, so the
+    /// first series, or a chart's only one, is the brand color. The
     /// count is the series a chart defines, so hiding one never repaints the rest.
     /// </summary>
     public static ChartPalette Colors { get; } = new(Kind.Colors);
 
     /// <summary>
     /// The Contrast palette whatever the theme's: eight colors of one lightness, each 3:1 or more on
-    /// the surface, with sets picked for two, three or four series. The theme's default.
+    /// the surface, with sets picked for two, three or four series. The same in every app: it doesn't follow the brand.
     /// </summary>
     public static ChartPalette Contrast { get; } = new(Kind.Named, "contrast");
 
