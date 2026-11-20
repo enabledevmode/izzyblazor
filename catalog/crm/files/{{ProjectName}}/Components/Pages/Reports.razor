@@ -46,8 +46,10 @@
                 <Chart Items="_months" Argument="m => m.Month" TitledBy="report-revenue" Stacking="ChartStacking.Normal" Legend="ChartLegend.Top" Height="Length.Rem(14)">
                     <ChartValueAxis Format="@_axis" />
                     <ChartBarSeries Value="m => m.Won" Name="Won" />
-                    @* The top series labels each column with the month's total, past the stack's end. *@
-                    <ChartBarSeries Value="m => m.Expected" Name="Expected to close" Labels="ChartLabels.Outside" LabelText="m => m.Total" />
+                    @* Expected is the same measure not yet won: the same color, lighter. It's the top series, so
+                       it labels each column with the month's total, past the stack's end. *@
+                    <ChartBarSeries Value="m => m.Expected" Name="Expected to close" Color="var(--ib-color-primary)" Opacity="0.65"
+                                    Labels="ChartLabels.Outside" LabelText="m => m.Total" />
                     @if (_target > 0)
                     {
                         <ChartReferenceLine Value="(double)_target" Label="@($"Target {Money(_target)}")" LabelAlign="ChartAlign.End" />
