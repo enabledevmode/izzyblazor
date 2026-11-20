@@ -69,7 +69,9 @@ internal static class ChartTools
         {
             builder.OpenComponent<Popover>(10);
             builder.AddComponentParameter(11, nameof(Popover.Placement), Placement.TopStart);
-            builder.AddComponentParameter(12, nameof(Popover.Title), title ?? text.ChartShowData);
+            // Headed by the chart's title. A chart named by a heading on the page (TitledBy) has none to
+            // repeat: the popover then has no heading, and takes its name from the button ("Show data, …").
+            builder.AddComponentParameter(12, nameof(Popover.Title), title);
             builder.AddComponentParameter(13, nameof(Popover.Class), "ib-chart-data-pop");
             // As wide as the table, up to the screen's width.
             builder.AddComponentParameter(16, nameof(Popover.PanelWidth), Length.MaxContent);
