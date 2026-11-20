@@ -2,11 +2,9 @@
 @page "/contacts/{Id:int}/{Section}"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
-@using System.ComponentModel.DataAnnotations
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 @inject IAuthorizationService Authorization
-@inject ToastService Toasts
 
 <PageTitle>@(_contact?.Name ?? "Contact")</PageTitle>
 
@@ -77,7 +75,7 @@
                         }
                         else
                         {
-                            <Card><EmptyState Icon="Lucide.Handshake" Size="ControlSize.Sm" Title="No open deals" Description="@($"Deals with {contact.FirstName} show here.")" /></Card>
+                            <Card><EmptyState TitleLevel="2" Icon="Lucide.Handshake" Size="ControlSize.Sm" Title="No open deals" Description="@($"Deals with {contact.FirstName} show here.")" /></Card>
                         }
                         break;
 
@@ -164,8 +162,6 @@
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-
-
     private Workspace? _workspace;
     private DateOnly _today;
     private Contact? _contact;
@@ -174,16 +170,18 @@
     private List<Deal> _deals = [];
     private List<Activity> _tasks = [];
     private bool _canEdit;
-    private string? _me;
+
+    // This tab's address, without its query.
+    private string Here => Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0];
 
     // Edit opens the contact form over this tab.
-    private string EditHref => $"{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}?dialog={ContactDialog.EditId}";
+    private string EditHref => $"{Here}?dialog={ContactDialog.EditId}";
 
     // New deal opens the deal form over this tab, with the contact and their company chosen.
-    private string NewDealHref => $"{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}?dialog={DealDialog.NewId}";
+    private string NewDealHref => $"{Here}?dialog={DealDialog.NewId}";
 
     // Schedule activity opens the activity form over this tab, with the contact chosen.
-    private string NewActivityHref => $"{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}?dialog={ActivityDialog.NewId}";
+    private string NewActivityHref => $"{Here}?dialog={ActivityDialog.NewId}";
 
     // What's next on the calendar with them: beside the sections on a wide screen, above them on a small one.
     private RenderFragment NextFollowUp => __builder =>
@@ -215,7 +213,6 @@
         var now = Clock.Now(_workspace);
         _today = DateOnly.FromDateTime(now);
         var user = (await AuthState).User;
-        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
 
         _contact = await Db.Contacts.AsNoTracking().Include(c => c.Company).Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
@@ -249,7 +246,6 @@
                 break;
         }
     }
-
 
     // The number as a link that calls: its digits, a leading + kept. Null without one.
     private static string? Tel(Contact contact) =>

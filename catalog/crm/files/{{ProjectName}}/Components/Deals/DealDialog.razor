@@ -143,7 +143,7 @@
         }
         else
         {
-            var me = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var me = (await AuthState).User.UserId();
             var with = Contact is { } person && _contacts.ContainsKey(person) ? Contact : null;
             var at = with is { } chosen ? _contacts[chosen].CompanyId : Company;
             Input = new DealInput
@@ -202,15 +202,7 @@
 
         // Another stage is its own line in the log, as from the deal's page. Won or Lost closes the deal today;
         // back in the pipeline, it's open again.
-        if (!adding && Input.Stage != from)
-        {
-            saved.Stage = Input.Stage;
-            saved.Closed = saved.IsOpen ? null : today;
-            Db.Auditing = false;
-            await Db.SaveChangesAsync();
-            Db.Auditing = true;
-            await Audit.RecordAsync(AuditActions.StageChanged, nameof(Data.Deal), saved.Id.ToString(), saved.Name, [new AuditChange("Stage", from.ToString(), saved.Stage.ToString())]);
-        }
+        if (!adding && Input.Stage != from) await Audit.MoveAsync(saved, Input.Stage, today);
 
         if (adding) Toasts.Success($"{saved.Name} is in your pipeline.", "Deal created");
         else Toasts.Success($"{saved.Name} is up to date.", "Deal saved");
@@ -219,12 +211,4 @@
 
     // Without the database's trailing ".0": 18000, not 18000.0.
     private static decimal Plain(decimal value) => value % 1 == 0 ? decimal.Truncate(value) : value;
-
-    private static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-
-    private static void Fail(EditContext form, string field, string message)
-    {
-        new ValidationMessageStore(form).Add(form.Field(field), message);
-        form.NotifyValidationStateChanged();
-    }
 }

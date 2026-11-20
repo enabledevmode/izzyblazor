@@ -70,7 +70,7 @@
     {
         var user = (await AuthState).User;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
-        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _me = user.UserId();
         _today = Clock.Today(await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync());
     }
 

@@ -237,7 +237,11 @@
         // period's end: the deals made by then and not yet closed, at today's values.
         var periods = Enumerable.Range(0, 3).Select(i => (From: start.AddMonths(-length * (2 - i)), To: start.AddMonths(-length * (1 - i)))).ToArray();
         int Lost(DateOnly from, DateOnly to) => deals.Count(d => d.Stage == DealStage.Lost && d.Closed >= from && d.Closed < to);
-        double? Rate(DateOnly from, DateOnly to) => WonIn(from, to).Count is var won && won + Lost(from, to) is > 0 and var closed ? won / (double)closed : null;
+        double? Rate(DateOnly from, DateOnly to)
+        {
+            var (won, lost) = (WonIn(from, to).Count, Lost(from, to));
+            return won + lost > 0 ? won / (double)(won + lost) : null;
+        }
         double? Average(DateOnly from, DateOnly to) => WonIn(from, to) is { Count: > 0 } won ? (double)Math.Round(won.Average(d => d.Value)) : null;
         double? OpenAt(DateOnly day) => (double)deals.Where(d => d.Created <= day && (d.Closed is null || d.Closed > day)).Sum(d => d.Value);
         var lastDay = start.AddDays(-1);

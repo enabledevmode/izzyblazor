@@ -2,11 +2,9 @@
 @page "/companies/{Id:int}/{Section}"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
-@using System.ComponentModel.DataAnnotations
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 @inject IAuthorizationService Authorization
-@inject ToastService Toasts
 
 <PageTitle>@(_company?.Name ?? "Company")</PageTitle>
 
@@ -167,8 +165,6 @@
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-
-
     // Activity lists this many, the newest first.
     private const int Shown = 20;
 
@@ -180,7 +176,6 @@
     private List<Contact> _people = [];
     private List<FeedItem> _history = [];
     private bool _canEdit;
-    private string? _me;
 
     // This tab's address: where Edit and a note's dialogs come back to.
     private string Here => Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0];
@@ -196,7 +191,6 @@
         var now = Clock.Now(_workspace);
         _today = DateOnly.FromDateTime(now);
         var user = (await AuthState).User;
-        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
 
         _company = await Db.Companies.AsNoTracking().Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
@@ -225,7 +219,6 @@
                 break;
         }
     }
-
 
     // The activities with the company's people, or about its deals.
     private IQueryable<Activity> Theirs(IQueryable<Activity> activities) =>

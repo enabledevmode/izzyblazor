@@ -23,7 +23,7 @@
             }
             @* The file posts with the form, and SaveAsync reads it from the request. *@
             <Stack ColSpan="GridSpan.Full" Gap="2">
-                <FileUpload Name="Logo" Label="Logo" Size="ControlSize.Sm" Accept=".png,.jpg,.jpeg" AcceptText="PNG or JPG · up to 2 MB" MaxFileSize="CompanyLogo.MaxBytes">
+                <FileUpload Name="Logo" Label="Logo" Size="ControlSize.Sm" Accept=".png,.jpg,.jpeg" AcceptText="PNG or JPG · up to 2 MB" MaxFileSize="CompanyLogo.MaxBytes" Errors="_logoProblems">
                     <Preview><Avatar Src="@_logoSrc" Icon="Lucide.BuildingComplex" Size="AvatarSize.Lg" Accent="Accent.Neutral" Square Decorative /></Preview>
                 </FileUpload>
                 @if (_logoSrc is not null)
@@ -97,7 +97,7 @@
         }
         else
         {
-            var me = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var me = (await AuthState).User.UserId();
             Input = new Company
             {
                 OwnerId = me, Status = CompanyStatus.Prospect, Industry = Industry.DesignTechnology, Size = CompanySize.UpTo10,
@@ -105,6 +105,9 @@
             };
         }
     }
+
+    // What's wrong with the chosen logo, shown under its field.
+    private IReadOnlyList<string>? _logoProblems;
 
     private async Task SaveAsync(EditContext form)
     {
@@ -119,7 +122,7 @@
             (logo, var problem) = await CompanyLogo.ReadAsync(file);
             if (problem is not null)
             {
-                Fail(form, nameof(Input.Name), problem);
+                _logoProblems = [problem];
                 return;
             }
         }
@@ -159,13 +162,5 @@
         if (adding) Toasts.Success($"{saved.Name} is in your companies.", "Company created");
         else Toasts.Success($"{saved.Name} is up to date.", "Company saved");
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("dialog", (string?)null));
-    }
-
-    private static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-
-    private static void Fail(EditContext form, string field, string message)
-    {
-        new ValidationMessageStore(form).Add(form.Field(field), message);
-        form.NotifyValidationStateChanged();
     }
 }

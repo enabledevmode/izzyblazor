@@ -119,7 +119,7 @@
     private IReadOnlyList<FeedItem> Entries => Shown is { } kind ? Items.Where(i => i.Kind == kind).ToList() : Items;
 
     // The page with a form open on it: a note's, or the activity form as a kind.
-    private string Add(string dialog, string? type = null) => $"{Href}?dialog={dialog}{(type is null ? "" : $"&type={type}")}";
+    private string Add(string dialog, string? type = null) => $"{Href}?dialog={dialog}{(type is null ? "" : $"&as={type}")}";
 
     private static IconData Icon(FeedKind kind) => kind switch
     {

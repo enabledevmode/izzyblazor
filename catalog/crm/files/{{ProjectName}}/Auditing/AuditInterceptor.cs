@@ -11,9 +11,13 @@ namespace {{RootNamespace}}.Auditing;
 /// <summary>A record whose changes go in the audit log: add this to an entity to audit it.</summary>
 public interface IAudited
 {
-    /// <summary>How the log names the record, such as a customer's name; kept as it was when it changed.</summary>
+    /// <summary>How the log names the record, such as a contact's name; kept as it was when it changed.</summary>
     string AuditName { get; }
 }
+
+/// <summary>A field the log leaves out: one the app keeps up itself, such as when a contact was last heard from.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class NotAuditedAttribute : Attribute;
 
 /// <summary>
 /// Writes an <see cref="AuditEvent"/> for every <see cref="IAudited"/> record a save creates, changes or deletes,
@@ -112,7 +116,7 @@ public sealed class AuditInterceptor(IHttpContextAccessor http) : SaveChangesInt
         return true;
     }
 
-    // What an update changes. A record saved through Update() (a copy read without tracking, as crud's stores do)
+    // What an update changes. A record saved through Update() (a copy read without tracking)
     // has no original values, only the new ones; then the database's values are the "before".
     static List<AuditChange> Updated(EntityEntry entry)
     {
@@ -122,7 +126,7 @@ public sealed class AuditInterceptor(IHttpContextAccessor http) : SaveChangesInt
     }
 
     static List<AuditChange> Fields(EntityEntry entry, Func<PropertyEntry, bool> include, Func<PropertyEntry, object?> before, Func<PropertyEntry, object?> after) =>
-        [.. entry.Properties.Where(include).Select(p => new AuditChange(p.Metadata.Name, Format(before(p)), Format(after(p))))];
+        [.. entry.Properties.Where(p => include(p) && p.Metadata.PropertyInfo?.IsDefined(typeof(NotAuditedAttribute), false) != true).Select(p => new AuditChange(p.Metadata.Name, Format(before(p)), Format(after(p))))];
 
     // Values as text that reads the same in any culture: dates as 2026-11-16, numbers with a dot.
     static string? Format(object? value) => value switch

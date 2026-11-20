@@ -106,7 +106,7 @@
     protected override async Task OnInitializedAsync()
     {
         // Yours, not imported yet, and at its own kind's address: otherwise there's no such page.
-        var me = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var me = (await AuthState).User.UserId();
         _import = await Db.Imports.FirstOrDefaultAsync(i => i.Id == Id && i.CreatedById == me);
         if (_import is null || !Navigation.ToBaseRelativePath(Navigation.Uri).StartsWith(_import.Kind.ToString(), StringComparison.OrdinalIgnoreCase))
         {

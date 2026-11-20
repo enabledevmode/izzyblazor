@@ -42,9 +42,12 @@
         {
             task.Completed = Model.Done ? DateTime.UtcNow : null;
             // Done is its own line in the audit log; reopening is an ordinary change.
-            Db.Auditing = !Model.Done;
-            await Db.SaveChangesAsync();
-            Db.Auditing = true;
+            if (Model.Done)
+            {
+                await Db.TouchContactAsync(task.ContactId, task.Completed!.Value);
+                await Db.SaveUnauditedAsync();
+            }
+            else await Db.SaveChangesAsync();
             if (Model.Done)
                 await Audit.RecordAsync(AuditActions.Completed, nameof(Activity), task.Id.ToString(), task.Title, [new AuditChange("Status", null, "Completed")]);
             Toasts.Success(task.Title, Model.Done ? "Task completed" : "Task reopened");

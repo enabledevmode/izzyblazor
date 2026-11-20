@@ -68,7 +68,7 @@ public static class AuditText
         workspace is not null && field is "Value" or "MonthlyTarget" && decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var amount)
             ? workspace!.Money(amount) : value;
 
-    /// <summary>A field's change as one line: "Status: Active → Paused".</summary>
+    /// <summary>A field's change as one line: "Status: Lead → Customer".</summary>
     public static string Line(AuditChange c) => (c.Before, c.After) switch
     {
         (null, var after) => $"{Field(c.Field)}: {after}",

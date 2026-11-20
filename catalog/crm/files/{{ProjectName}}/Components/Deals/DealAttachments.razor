@@ -10,7 +10,7 @@
    question (?dialog=remove-file&file=5). Both post here and go back to the page, so a deal's page
    shows them by writing:
 
-   <DealAttachments Deal="Id" CanEdit="_canEdit" Href="@($"deals/{Id}")" Today="_today" /> *@
+   <DealAttachments Deal="Id" CanEdit="_canEdit" Href="@($"deals/{Id}")" Workspace="_workspace" Today="_today" /> *@
 <Card Title="Attachments" TitleLevel="2">
     @if (CanEdit)
     {
@@ -43,7 +43,7 @@
 @if (CanEdit)
 {
     <Dialog Id="attach" Title="Add file" CloseOnBackdrop="false">
-        <Form Model="Upload" FormName="attach-file" OnSubmit="AttachAsync" Multipart>
+        <Form Model="Upload" FormName="attach-file" OnSubmit="AttachAsync">
             <FileUpload Name="Files" Label="Files" HideLabel Multiple MaxFileSize="DealAttachment.MaxBytes" AcceptText="Any file · up to 10 MB each" Errors="_problems" />
             <DialogFooter>
                 <DialogClose>Cancel</DialogClose>
@@ -77,6 +77,7 @@
     /// <summary>The address of the page it's on, such as "deals/3": where the dialog opens and where a post goes back to.</summary>
     [Parameter, EditorRequired] public string Href { get; set; } = "";
 
+    /// <summary>The workspace, for its clock: when each file was added.</summary>
     [Parameter] public Workspace? Workspace { get; set; }
 
     /// <summary>The workspace's today (Clock).</summary>
@@ -122,10 +123,10 @@
     {
         if (!CanEdit) return;
         var posted = Http?.Request.HasFormContentType == true ? Http.Request.Form.Files.GetFiles("Files") : [];
-        var chosen = posted.Where(f => f.Length > 0).Take(10).ToList();
-        if (chosen.Count == 0)
+        var chosen = posted.Where(f => f.Length > 0).ToList();
+        if (chosen.Count is 0 or > DealAttachment.MaxFiles)
         {
-            _problems = ["Choose a file."];
+            _problems = [chosen.Count == 0 ? "Choose a file." : $"Choose {DealAttachment.MaxFiles} files or fewer at a time."];
             return;
         }
 
@@ -140,7 +141,7 @@
             }
 
             (file.DealId, file.Added) = (Deal, DateTime.UtcNow);
-            file.AddedById = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            file.AddedById = (await AuthState).User.UserId();
             files.Add(file);
         }
 

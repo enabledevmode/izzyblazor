@@ -65,10 +65,10 @@ else
                 <DataGridFilter Column="stage" />
             </ToolbarContent>
             <EmptyContent>
-            <EmptyState Icon="Lucide.Columns3" Title="No open deals" Description="Every deal so far is won or lost. New deals show here." />
-        </EmptyContent>
-        <NoMatchesContent>
-                <EmptyState Icon="Lucide.SearchX" Title="No matching deals" Description="Try a different deal, company, or stage. Your other deals are still here." />
+                <EmptyState TitleLevel="2" Icon="Lucide.Columns3" Title="No open deals" Description="Every deal so far is won or lost. New deals show here." />
+            </EmptyContent>
+            <NoMatchesContent>
+                <EmptyState TitleLevel="2" Icon="Lucide.SearchX" Title="No matching deals" Description="Try a different deal, company, or stage. Your other deals are still here." />
             </NoMatchesContent>
             <Columns>
                 <TemplateColumn Title="Deal" SortKey="name" SortBy="d => d.Name" Sortable Context="deal">
@@ -145,15 +145,10 @@ else
     // The grid's page of open deals, from the database. Its search looks in deal and company names.
     private async ValueTask<DataResult<Deal>> FindAsync(DataRequest<Deal> request)
     {
-        var query = Open.Include(d => d.Company);
+        IQueryable<Deal> query = Open.Include(d => d.Company);
         // Lower case on both sides, so "acme" finds Acme Co.'s deals in any database.
         if (request.Search?.Trim().ToLower() is { Length: > 0 } search)
-        {
-            return await (request with { Search = null }).ToResultAsync(
-                query.Where(d => d.Name.ToLower().Contains(search) || d.Company!.Name.ToLower().Contains(search)),
-                (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
-        }
+            query = query.Where(d => d.Name.ToLower().Contains(search) || d.Company!.Name.ToLower().Contains(search));
         return await (request with { Search = null }).ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
     }
-
 }

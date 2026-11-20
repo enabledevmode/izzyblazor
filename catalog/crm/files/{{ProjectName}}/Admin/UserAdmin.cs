@@ -11,7 +11,10 @@ using {{RootNamespace}}.Security;
 
 namespace {{RootNamespace}}.Admin;
 
-/// <summary>Where an account stands, worked out from Identity's own fields: nothing extra is stored.</summary>
+/// <summary>
+/// Where an account stands, worked out from Identity's own fields: nothing extra is stored. Invited is an
+/// account with no password yet: accepting the invitation sets one.
+/// </summary>
 public enum UserStatus { Active, Invited, Locked, Deactivated }
 
 /// <summary>
@@ -39,17 +42,8 @@ public sealed class UserRow
 
     public UserStatus Status { get; set; }
 
-    public DateTime? LastSignIn { get; set; }
-
-    public DateTime Created { get; set; }
-
-    public bool EmailConfirmed { get; set; }
-
+    /// <summary>Whether they sign in with a second step, which an admin can reset.</summary>
     public bool TwoFactor { get; set; }
-
-    public int FailedAttempts { get; set; }
-
-    public DateTimeOffset? LockedUntil { get; set; }
 
     /// <summary>The name, or the email for someone invited without one.</summary>
     public string Shown => string.IsNullOrWhiteSpace(Name) ? Email : Name;
@@ -69,10 +63,10 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
     public static UserStatus StatusOf(ApplicationUser user) =>
         user.LockoutEnd == DateTimeOffset.MaxValue ? UserStatus.Deactivated
         : user.LockoutEnd > DateTimeOffset.UtcNow ? UserStatus.Locked
-        : !user.EmailConfirmed && user.PasswordHash is null ? UserStatus.Invited
+        : user.PasswordHash is null ? UserStatus.Invited
         : UserStatus.Active;
 
-    /// <summary>Everyone, with their role. An admin console has tens or hundreds of people, so they're read at once.</summary>
+    /// <summary>Everyone, with their role. A team has tens or hundreds of people, so they're read at once.</summary>
     public async Task<List<UserRow>> ListAsync()
     {
         var roles = await (from ur in db.UserRoles join r in db.Roles on ur.RoleId equals r.Id select new { ur.UserId, r.Name })
@@ -84,9 +78,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         return all.Select(u => new UserRow
         {
             Id = u.Id, Name = u.Name, Email = u.Email!, Role = byUser.GetValueOrDefault(u.Id, UserRole.Viewer), MonthlyTarget = Whole(u.MonthlyTarget),
-            Status = StatusOf(u), LastSignIn = u.LastSignIn, Created = u.Created, EmailConfirmed = u.EmailConfirmed,
-            TwoFactor = u.TwoFactorEnabled, FailedAttempts = u.AccessFailedCount,
-            LockedUntil = StatusOf(u) == UserStatus.Locked ? u.LockoutEnd : null,
+            Status = StatusOf(u), TwoFactor = u.TwoFactorEnabled,
         }).OrderBy(u => u.Shown).ToList();
     }
 
@@ -109,14 +101,17 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         return (link, null);
     }
 
-    /// <summary>Saves an edit of <paramref name="row"/>'s name, email, role and monthly target; returns why not, if it can't.</summary>
-    public async Task<string?> UpdateAsync(ApplicationUser user, UserRow row, string? me)
+    /// <summary>
+    /// Saves an edit of <paramref name="row"/>'s name, email, role and monthly target; when it can't, returns why
+    /// and the field that's about.
+    /// </summary>
+    public async Task<(string Field, string Message)?> UpdateAsync(ApplicationUser user, UserRow row, string? me)
     {
         var current = await RoleOfAsync(user);
         if (row.Role != current)
         {
-            if (user.Id == me && current == UserRole.Admin) return "You can't change your own role: ask another Admin.";
-            if (current == UserRole.Admin && await IsLastAdminAsync(user)) return OnlyAdmin;
+            if (user.Id == me && current == UserRole.Admin) return (nameof(row.Role), "You can't change your own role: ask another Admin.");
+            if (current == UserRole.Admin && await IsLastAdminAsync(user)) return (nameof(row.Role), OnlyAdmin);
         }
 
         var address = row.Email.Trim();
@@ -124,7 +119,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         if (!string.Equals(address, user.Email, StringComparison.OrdinalIgnoreCase))
         {
             if (await users.FindByEmailAsync(address) is { } other && other.Id != user.Id)
-                return $"{other.Name ?? other.Email} already has that email.";
+                return (nameof(row.Email), $"{other.Name ?? other.Email} already has that email.");
             changes.Add(new("Email", user.Email, address));
             // An admin vouches for the address they type, so it stays confirmed.
             user.Email = user.UserName = address;
@@ -143,7 +138,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         if (changes.Count > 0)
         {
             var saved = await users.UpdateAsync(user);
-            if (!saved.Succeeded) return string.Join(" ", saved.Errors.Select(e => e.Description));
+            if (!saved.Succeeded) return (nameof(row.Email), string.Join(" ", saved.Errors.Select(e => e.Description)));
         }
         if (row.Role != current)
         {
@@ -151,6 +146,10 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
             await users.AddToRoleAsync(user, row.Role.ToString());
             changes.Add(new("Role", current.ToString(), row.Role.ToString()));
         }
+        // Another address or role ends what the old one allowed: the links sent to the old address stop
+        // working (send the invitation again), and their open sessions sign in afresh. Not your own, which
+        // would sign you out as you save.
+        if (user.Id != me && changes.Exists(c => c.Field is "Email" or "Role")) await users.UpdateSecurityStampAsync(user);
         if (changes.Count > 0)
             await audit.RecordAsync(changes.Exists(c => c.Field == "Role") ? AuditActions.RolesChanged : AuditActions.Updated,
                 "User", user.Id, user.Name ?? user.Email, changes);

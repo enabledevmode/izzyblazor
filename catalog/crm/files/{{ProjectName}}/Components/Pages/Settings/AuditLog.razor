@@ -19,7 +19,7 @@
     <FilterForm CollapseBelow="Breakpoint.Sm">
         <FilterSearch Name="q" Label="Search records" Placeholder="Search records" />
         <FilterSelect Name="who" Label="Person" Items="_people.Keys" ItemText="id => _people[id]" AllText="All team members" />
-        <FilterSelect Name="action" Label="Action" Items="AuditText.Actions" ItemText="AuditText.Label" />
+        <FilterSelect Name="event" Label="Action" Items="AuditText.Actions" ItemText="AuditText.Label" />
         <FilterSelect Name="month" Label="Date range" Items="_months" ItemText="MonthText" AllText="Any time" />
     </FilterForm>
 
@@ -58,7 +58,8 @@
 @code {
     [SupplyParameterFromQuery(Name = "q")] private string? Search { get; set; }
     [SupplyParameterFromQuery(Name = "who")] private string? Person { get; set; }
-    [SupplyParameterFromQuery(Name = "action")] private string? Action { get; set; }
+    // "event", not "action": a field named action hides the form's own address from script.
+    [SupplyParameterFromQuery(Name = "event")] private string? Action { get; set; }
     [SupplyParameterFromQuery(Name = "month")] private string? Month { get; set; }
 
     private Workspace? _workspace;

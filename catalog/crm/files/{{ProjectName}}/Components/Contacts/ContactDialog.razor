@@ -88,7 +88,7 @@
         }
         else
         {
-            var me = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var me = (await AuthState).User.UserId();
             Input = new Contact
             {
                 OwnerId = me, Status = ContactStatus.Lead, Source = LeadSource.Referral,
@@ -110,7 +110,8 @@
 
         // One contact per email address.
         var email = Input.Email.Trim();
-        if (await Db.Contacts.AnyAsync(c => c.Email == email && c.Id != saved.Id))
+        // SQLite compares text by case, so both sides are lowered: Olivia@ is olivia@.
+        if (await Db.Contacts.AnyAsync(c => c.Email.ToLower() == email.ToLower() && c.Id != saved.Id))
         {
             Fail(form, nameof(Input.Email), "Another contact has this email address.");
             return;
@@ -132,13 +133,5 @@
         if (adding) Toasts.Success($"{saved.Name} is in your contacts.", "Contact created");
         else Toasts.Success($"{saved.Name} is up to date.", "Contact saved");
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("dialog", (string?)null));
-    }
-
-    private static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-
-    private static void Fail(EditContext form, string field, string message)
-    {
-        new ValidationMessageStore(form).Add(form.Field(field), message);
-        form.NotifyValidationStateChanged();
     }
 }
