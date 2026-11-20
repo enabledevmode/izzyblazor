@@ -353,9 +353,15 @@
   .site-hero-stage:focus-within::after { opacity: 0; }
 }
 /* --w: the window's scale: exactly 1280px of page as wide as the stage (less its 2px of border), up to 0.95
-   (the design's 1216px). tan(atan2()) divides one length by another. At 1280px the page lays out as its
-   picture does (HomePosterTests), so nothing moves when the frame fades in over it. */
-@container hero-stage (min-width: 0px) { .site-hero-stage > * { --w: min(0.95, tan(atan2(calc(100cqi - 2px), 1280px))); } }
+   (the design's 1216px). At 1280px the page lays out as its picture does (HomePosterTests), so nothing
+   moves when the frame fades in over it. One length divided by another, where the browser can; if not,
+   tan(atan2()) does it. Division comes first because Safari (26) gets tan(atan2()) wrong for a
+   container's units: tan() reads the angle's degrees as radians, the scale comes out negative, and
+   the window collapses. */
+@container hero-stage (min-width: 0px) {
+  .site-hero-stage > * { --w: min(0.95, tan(atan2(calc(100cqi - 2px), 1280px))); }
+  @supports (scale: calc(1px / 1px)) { .site-hero-stage > * { --w: min(0.95, calc((100cqi - 2px) / 1280px)); } }
+}
 
 .site-install { background: #1b1d22; border-color: #2c2f36; }
 .site-install {
