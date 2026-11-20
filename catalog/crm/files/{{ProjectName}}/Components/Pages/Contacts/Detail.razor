@@ -11,10 +11,10 @@
 <PageTitle>@(_contact?.Name ?? "Contact")</PageTitle>
 
 @* A contact: who they are, and everything the team has done with them. Its sections are tabs with an address
-   each (/contacts/7, /contacts/7/deals, /tasks, /notes), so each loads only its own data, can be linked to, and
+   each (/contacts/7, /contacts/7/deals, /tasks), so each loads only its own data, can be linked to, and
    Back works. Beside every section: what's next on the calendar, the contact's details and their background
-   (Edit opens the contact form over the page: Components/Contacts/ContactDialog.razor). On a phone the header's buttons float in the
-   corner, and what's next comes before the sections. Notes are the team's own (Components/Notes/NoteList.razor). People who can't edit records (Viewers)
+   (Edit opens the contact form over the page: Components/Contacts/ContactDialog.razor). On a phone Email and Call are a row under the header, New deal floats in the
+   corner, and what's next comes before the sections. Activity is one feed of what happened and the team's notes (Components/Activities/ActivityFeed.razor). People who can't edit records (Viewers)
    read everything and can email or call, and see no other buttons. *@
 @if (_contact is { } contact)
 {
@@ -26,20 +26,27 @@
         </PageCrumbs>
         <PageHeader Title="@contact.Name" Description="@Summary(contact)">
             <PageHeaderMedia><Avatar Name="@contact.Name" Size="AvatarSize.Lg" Decorative /></PageHeaderMedia>
-            @* On a phone all four float in the corner, behind one button: one place for what you can do. *@
-            <PageHeaderActions FloatLabel="Contact actions">
-                <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" FloatBelow="Breakpoint.Sm">Email</Button>
+            @* On a phone Email and Call are a row under the header, and New deal floats in the corner. *@
+            <PageHeaderActions>
+                <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" VisibleFrom="Breakpoint.Sm">Email</Button>
                 @if (Tel(contact) is { } tel)
                 {
-                    <Button Href="@tel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" FloatBelow="Breakpoint.Sm">Call</Button>
+                    <Button Href="@tel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" VisibleFrom="Breakpoint.Sm">Call</Button>
                 }
                 @if (_canEdit)
                 {
-                    <Button Href="@NewActivityHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.CalendarPlus" FloatBelow="Breakpoint.Sm">Log activity</Button>
                     <Button Href="@NewDealHref" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
                 }
             </PageHeaderActions>
         </PageHeader>
+
+        <Grid Columns="2" Gap="3" HiddenFrom="Breakpoint.Sm">
+            <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" FullWidth>Email</Button>
+            @if (Tel(contact) is { } phone)
+            {
+                <Button Href="@phone" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" FullWidth>Call</Button>
+            }
+        </Grid>
 
         @* Above the sections until the side column shows (1024px). *@
         <Box HiddenFrom="Breakpoint.Lg">@NextFollowUp</Box>
@@ -48,7 +55,6 @@
             <TabLink Href="@($"contacts/{Id}")" Label="Activity" Match="NavLinkMatch.All" />
             <TabLink Href="@($"contacts/{Id}/deals")" Label="Deals" />
             <TabLink Href="@($"contacts/{Id}/tasks")" Label="Tasks" />
-            <TabLink Href="@($"contacts/{Id}/notes")" Label="Notes" />
         </TabNav>
 
         @* The section, and beside it from 1024px the details: under it on smaller screens. *@
@@ -57,20 +63,7 @@
                 @switch (Section)
                 {
                     case null:
-                        <Card Title="Relationship timeline" TitleLevel="2">
-                            <CardActions><Badge>All activity</Badge></CardActions>
-                            <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
-                                @foreach (var item in _history)
-                                {
-                                    <TimelineItem Title="@item.Title" Time="@item.Time" DateTime="@item.When.ToString("yyyy-MM-ddTHH:mm")">
-                                        @if (!string.IsNullOrWhiteSpace(item.About))
-                                        {
-                                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@item.About</TextBlock>
-                                        }
-                                    </TimelineItem>
-                                }
-                            </Timeline>
-                        </Card>
+                        <ActivityFeed Title="Relationship timeline" Items="_history" Href="@($"contacts/{Id}")" On="@($"contacts/{Id}")" CanEdit="_canEdit" />
                         break;
 
                     case "deals":
@@ -101,11 +94,6 @@
                                 }
                             </CardBody>
                         </Card>
-                        break;
-
-                    case "notes":
-                        <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"contacts/{Id}/notes")" On="@($"contacts/{Id}")"
-                                  New="@(() => new Note { ContactId = Id })" About="@contact.Name" Workspace="_workspace" Today="_today" />
                         break;
                 }
             </Column>
@@ -148,8 +136,8 @@
                                 <Button Href="@EditHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Pencil" aria-label="Edit background">Edit</Button>
                             </CardActions>
                         }
-                        @* Four lines, the rest behind Show more: a long one doesn't push the page down. *@
-                        <ShowMore Lines="4">
+                        @* Three lines, the rest behind Show more: a long one doesn't push the page down. *@
+                        <ShowMore Lines="3">
                             <TextBlock Color="Color.Muted" KeepLines>@background</TextBlock>
                         </ShowMore>
                     </Card>
@@ -161,13 +149,14 @@
     <ContactDialog CanEdit="_canEdit" Contact="Id" />
     <DealDialog CanEdit="_canEdit" Contact="Id" />
     <ActivityDialog CanEdit="_canEdit" Contact="Id" />
+    <NoteDialog CanEdit="_canEdit" Contact="Id" />
 }
 
 @code {
     /// <summary>The contact.</summary>
     [Parameter] public int Id { get; set; }
 
-    /// <summary>The tab: none for Activity, or "deals", "tasks", "notes".</summary>
+    /// <summary>The tab: none for Activity, or "deals", "tasks".</summary>
     [Parameter] public string? Section { get; set; }
 
     /// <summary>The tasks just ticked here, which stay in the list: "4,7".</summary>
@@ -181,10 +170,9 @@
     private DateOnly _today;
     private Contact? _contact;
     private Activity? _next;
-    private List<Happened> _history = [];
+    private List<FeedItem> _history = [];
     private List<Deal> _deals = [];
     private List<Activity> _tasks = [];
-    private List<Note> _notes = [];
     private bool _canEdit;
     private string? _me;
 
@@ -194,7 +182,7 @@
     // New deal opens the deal form over this tab, with the contact and their company chosen.
     private string NewDealHref => $"{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}?dialog={DealDialog.NewId}";
 
-    // Log activity and Schedule activity open the activity form over this tab, with the contact chosen.
+    // Schedule activity opens the activity form over this tab, with the contact chosen.
     private string NewActivityHref => $"{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0]}?dialog={ActivityDialog.NewId}";
 
     // What's next on the calendar with them: beside the sections on a wide screen, above them on a small one.
@@ -221,9 +209,6 @@
         </Card>
     };
 
-    // Something in the contact's history: what, more about it, "who · when" as written, and when (the workspace's time).
-    private sealed record Happened(string Title, string? About, string Time, DateTime When);
-
     protected override async Task OnParametersSetAsync()
     {
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
@@ -234,7 +219,7 @@
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
 
         _contact = await Db.Contacts.AsNoTracking().Include(c => c.Company).Include(c => c.Owner).FirstOrDefaultAsync(c => c.Id == Id);
-        if (_contact is null || Section is not (null or "deals" or "tasks" or "notes"))
+        if (_contact is null || Section is not (null or "deals" or "tasks"))
         {
             _contact = null;
             Navigation.NotFound();
@@ -262,10 +247,6 @@
                     .Where(a => a.Type == ActivityType.Task && a.ContactId == Id && (a.Completed == null || ticked.Contains(a.Id)))
                     .OrderBy(a => a.Start).ToListAsync();
                 break;
-            case "notes":
-                _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
-                    .Where(n => n.ContactId == Id).OrderByDescending(n => n.Created).ToListAsync();
-                break;
         }
     }
 
@@ -274,7 +255,8 @@
     private static string? Tel(Contact contact) =>
         string.IsNullOrWhiteSpace(contact.Phone) ? null : $"tel:{new string(contact.Phone.Where(c => char.IsDigit(c) || c == '+').ToArray())}";
 
-    // The timeline, newest first: every activity with them that's finished, then the day they were added.
+    // The feed, newest first: every activity with them that's finished, the notes about them, then the day they
+    // were added.
     private async Task LoadHistoryAsync(Contact contact)
     {
         var done = await Db.Activities.AsNoTracking().Include(a => a.AssignedTo)
@@ -282,21 +264,26 @@
         _history = done.Select(a =>
         {
             var at = When.Local(a.Completed!.Value, _workspace);
-            return new Happened(
+            return new FeedItem(FeedItem.KindOf(a),
                 a.Type switch
                 {
                     ActivityType.Call => $"Call logged · {a.Duration} minutes",
                     ActivityType.Meeting => $"Meeting held · {a.Duration} minutes",
                     _ => a.Title,
                 },
-                a.Agenda, About(a.AssignedTo?.Name, When.At(at, _today)), at);
+                a.Agenda, a.AssignedTo?.Name, When.At(at, _today), at);
         }).ToList();
+
+        var notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
+            .Where(n => n.ContactId == Id).ToListAsync();
+        _history.AddRange(notes.Select(n => FeedItem.Of(n, _workspace, _today)));
+        _history = _history.OrderByDescending(h => h.When).ToList();
 
         // Who added them, from the audit log; the day is the contact's own.
         var id = Id.ToString();
         var added = await Db.AuditEvents.AsNoTracking()
             .Where(e => e.Action == AuditActions.Created && e.EntityType == nameof(Contact) && e.EntityId == id).OrderBy(e => e.Time).FirstOrDefaultAsync();
-        _history.Add(new Happened("Contact added", null, About(added?.ActorName, When.Day(contact.Added, _today)), contact.Added.ToDateTime(TimeOnly.MinValue)));
+        _history.Add(new FeedItem(FeedKind.Event, "Contact added", null, added?.ActorName, When.Day(contact.Added, _today), contact.Added.ToDateTime(TimeOnly.MinValue)));
     }
 
     // Under the name: "Marketing director · Acme Co.". Without a job title, the status takes its place after the

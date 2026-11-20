@@ -8,11 +8,11 @@
 <PageTitle>@(_note?.Title ?? "Note")</PageTitle>
 
 @* A note, to read: its title, who wrote it and when, the records it's on, and its text at a reading width. A
-   note with a title links here from every list it's in. Edit note opens the same dialog as the lists'
-   (Components/Notes/NoteList.razor), where the title is set. *@
+   note with a title links here from every list it's in. Edit note opens the note form over the page
+   (Components/Notes/NoteDialog.razor), where the title is set. *@
 @if (_note is { } note)
 {
-    var records = NoteList.Records(note).ToList();
+    var records = FeedItem.Records(note).ToList();
     <Column Gap="6" MaxWidth="Length.Rem(48)">
         @* Under the first record it's on. In the column, so on a phone the trail has the page's gap above the title. *@
         <PageCrumbs Trail>
@@ -24,7 +24,7 @@
         </PageCrumbs>
         <PageHeader Title="@(note.Title ?? "Note")">
             <Column Gap="0">
-                <TextBlock Color="Color.Muted">@(note.Author?.Name ?? "Someone") · @NoteList.Written(note.Created, _workspace, _today)@(note.Edited > note.Created ? " · Edited" : "")</TextBlock>
+                <TextBlock Color="Color.Muted">@(note.Author?.Name ?? "Someone") · @FeedItem.Written(note.Created, _workspace, _today)@(note.Edited > note.Created ? " · Edited" : "")</TextBlock>
                 @if (records.Count > 0)
                 {
                     <Row Gap="2" Align="Align.Center" Wrap>
@@ -39,7 +39,7 @@
             @if (_canEdit)
             {
                 <PageHeaderActions>
-                    <Button Href="@($"notes/{Id}?dialog=edit-note&note={Id}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil" FloatBelow="Breakpoint.Sm">Edit note</Button>
+                    <Button Href="@($"notes/{Id}?dialog={NoteDialog.EditId}&note={Id}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil" FloatBelow="Breakpoint.Sm">Edit note</Button>
                 </PageHeaderActions>
             }
         </PageHeader>
@@ -50,7 +50,7 @@
         </Card>
     </Column>
 
-    <NoteList Notes="@(new[] { note })" CanEdit="_canEdit" Href="@($"notes/{Id}")" Workspace="_workspace" Today="_today" DialogsOnly />
+    <NoteDialog CanEdit="_canEdit" />
 }
 
 @code {
