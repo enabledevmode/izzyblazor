@@ -867,8 +867,9 @@ html:has(> body > .frame) body { margin: 0; }
 /* The header's search button: room for the word and the shortcut, which shows only with script
    (it needs site.js); its box stays without, so the button is one width either way. */
 .site-search-button { width: 15rem; justify-content: flex-start; color: var(--ib-color-muted); font-weight: 400; }
-/* Four areas in the header: between Md and Lg the search box gives them the room. */
-@media (768px <= width < 1024px) { .site-search-button { width: 10rem; } }
+/* Four areas in the header: between Md and Lg the search box gives them the room, and drops its
+   shortcut's keys, which no longer fit beside the word (Ctrl + K is three boxes wide). */
+@media (768px <= width < 1024px) { .site-search-button { width: 10rem; } .site-search-key { display: none; } }
 .site-search-button .ib-btn-label { display: flex; flex: 1 1 auto; align-items: center; justify-content: space-between; gap: var(--ib-space-2); }
 @media (scripting: none) {
   .site-search-key { visibility: hidden; }

@@ -8,7 +8,9 @@
 <DialogTrigger For="@Id" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Search"
                VisibleFrom="Breakpoint.Md" Class="site-search-button" aria-keyshortcuts="@(Mac ? "Meta+K" : "Control+K")" data-site-search-open>
     <span>Search</span>
-    <Kbd Class="site-search-key" aria-hidden="true">@(Mac ? "⌘K" : "Ctrl K")</Kbd>
+    @* A box for each key. Symbols sit side by side (⌘ K); words take a plus (Ctrl + K). The button's
+       aria-keyshortcuts says it to screen readers, so the picture is hidden from them. *@
+    <Kbd Class="site-search-key" aria-hidden="true" Keys="@(Mac ? "⌘+K" : "Ctrl+K")" Separator="@(Mac ? "" : "+")" />
 </DialogTrigger>
 <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" HiddenFrom="Breakpoint.Md"
             commandfor="@Id" command="show-modal" aria-haspopup="dialog" data-site-search-open />
