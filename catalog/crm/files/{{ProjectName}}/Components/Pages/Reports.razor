@@ -42,7 +42,7 @@
                     <ChartBarSeries Value="m => m.Won" Name="Won" />
                     @* Expected is the same measure not yet won: the same color, lighter. It's the top series, so
                        it labels each column with the month's total, past the stack's end. *@
-                    <ChartBarSeries Value="m => m.Expected" Name="Expected to close" Color="var(--ib-color-primary)" Opacity="0.5"
+                    <ChartBarSeries Value="m => m.Expected" Name="Expected to close" Color="var(--ib-chart-1)" Opacity="0.5"
                                     Labels="ChartLabels.Outside" LabelText="m => m.Total" />
                     @if (_target > 0)
                     {
@@ -242,7 +242,7 @@
         double? OpenAt(DateOnly day) => (double)deals.Where(d => d.Created <= day && (d.Closed is null || d.Closed > day)).Sum(d => d.Value);
         var lastDay = start.AddDays(-1);
         var percent = "0%";
-        Figure Of(string label, Func<DateOnly, DateOnly, double?> measure, string format, string none, bool points = false, string? against = null)
+        Figure Of(string label, Func<DateOnly, DateOnly, double?> measure, string format, string none, bool points = false, string? against = null, string? nothing = null)
         {
             double?[] history = [.. periods.Select(p => measure(p.From, p.To))];
             var (now, before) = (history[2], history[1]);
@@ -250,15 +250,16 @@
             // A share changes by points, an amount by a share of what it was.
             var (change, trend) = now is not { } a || before is not { } b || (!points && b == 0) ? (null, StatTrend.None)
                 : (points ? $"{Math.Abs(Math.Round((a - b) * 100)):N0} pts" : Math.Abs((a - b) / b).ToString("P0"), a > b ? StatTrend.Up : a < b ? StatTrend.Down : StatTrend.Flat);
-            return new(label, value, change, trend, change is null ? none : $"vs {against ?? _before}", history, format, $"{label}, last 3 {_period}s");
+            return new(label, value, change, trend, change is not null ? $"vs {against ?? _before}" : now is null ? nothing ?? none : none, history, format, $"{label}, last 3 {_period}s");
         }
 
         _figures =
         [
             Of($"Won this {_period}", (from, to) => (double)WonIn(from, to).Sum(d => d.Value), _format, $"Nothing won in {_before}"),
             Of("Open pipeline", (_, to) => OpenAt(to > _today ? _today : to.AddDays(-1)), _format, $"Nothing open on {When.Date(lastDay, _today)}", against: When.Date(lastDay, _today)),
-            Of("Win rate", Rate, percent, $"No deals closed in {_before}", points: true),
-            Of("Average won deal", Average, _format, $"Nothing won in {_before}"),
+            // With nothing closed yet in this period there's no figure, and the line under it says so, not the last period's.
+            Of("Win rate", Rate, percent, $"No deals closed in {_before}", points: true, nothing: $"No deals closed yet this {_period}"),
+            Of("Average won deal", Average, _format, $"Nothing won in {_before}", nothing: $"Nothing won yet this {_period}"),
         ];
 
         // Revenue by month: this month with two each side, or the quarter's or year's months. An open deal past its

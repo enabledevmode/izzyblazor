@@ -32,19 +32,19 @@ public static class CompanyImport
         foreach (var row in rows)
         {
             var name = row["name"]?.ToLowerInvariant() ?? "";
-            string?[] facts = [IndustryOf(row) is { } industry ? Names.Of(industry) : null, SizeOf(row) is { } size ? Names.Of(size) : null];
-            string?[] place = [row["city"], CountryOf(row)];
             (row.Name, row.Detail) = (row["name"] ?? "", row["website"]);
-            (row.Aside, row.AsideNote) = (Joined(" · ", facts), Joined(", ", place));
             row.Problem = Check(row) ?? (seen.TryGetValue(name, out var first) ? $"Same name as row {first}" : null);
-            if (row.Problem is not null)
+            if (row.Problem is not null) row.Result = ImportResult.LeftOut;
+            else
             {
-                row.Result = ImportResult.LeftOut;
-                continue;
+                seen[name] = row.Number;
+                if (companies.TryGetValue(name, out var id)) (row.ExistingId, row.Result) = (id, import.Match == ImportMatch.Update ? ImportResult.Updated : ImportResult.Skipped);
             }
 
-            seen[name] = row.Number;
-            if (companies.TryGetValue(name, out var id)) (row.ExistingId, row.Result) = (id, import.Match == ImportMatch.Update ? ImportResult.Updated : ImportResult.Skipped);
+            // After the match: what an unlisted industry or country becomes depends on whether the company is here.
+            string?[] facts = [IndustryOf(row) is { } industry ? Names.Of(industry) : null, SizeOf(row) is { } size ? Names.Of(size) : null];
+            string?[] place = [row["city"], CountryOf(row)];
+            (row.Aside, row.AsideNote) = (Joined(" · ", facts), Joined(", ", place));
         }
         return new ImportPlan(rows);
     }
@@ -72,9 +72,11 @@ public static class CompanyImport
         : row["city"]?.Length > 80 ? "City is too long"
         : null;
 
-    // The industry a row names, by the list's own words ("Design & technology", "retail"); anything else is Other.
+    // The industry a row names, by the list's own words ("Design & technology", "retail"). Anything else is Other
+    // for a new company and nothing for one that's here, which keeps its own.
     private static Industry? IndustryOf(ImportRow row) => row["industry"] is not { } text ? null
-        : Enum.GetValues<Industry>().Cast<Industry?>().FirstOrDefault(i => Import.Key(Names.Of(i!.Value)) == Import.Key(text)) ?? Industry.Other;
+        : Enum.GetValues<Industry>().Cast<Industry?>().FirstOrDefault(i => Import.Key(Names.Of(i!.Value)) == Import.Key(text))
+            ?? (row.ExistingId is null ? Industry.Other : null);
 
     // The size a row gives: one of the list's ranges ("11-50", "11–50 people", "201+") or a head count ("35").
     private static CompanySize? SizeOf(ImportRow row)
@@ -88,12 +90,13 @@ public static class CompanyImport
         return digits switch { "110" => CompanySize.UpTo10, "1150" => CompanySize.UpTo50, "51200" => CompanySize.UpTo200, "201" => CompanySize.Over200, _ => null };
     }
 
-    // The country a row names, as the list has it; one that isn't on the list is Other.
+    // The country a row names, as the list has it. One that isn't on the list is Other for a new company and
+    // nothing for one that's here.
     private static string? CountryOf(ImportRow row) => row["country"] is not { } text ? null : Import.Key(text) switch
     {
         "us" or "usa" or "unitedstatesofamerica" => "United States",
         "uk" or "gb" or "greatbritain" => "United Kingdom",
-        var key => Company.Countries.FirstOrDefault(country => Import.Key(country) == key) ?? "Other",
+        var key => Company.Countries.FirstOrDefault(country => Import.Key(country) == key) ?? (row.ExistingId is null ? "Other" : null),
     };
 
     private static string? Joined(string separator, string?[] parts) => string.Join(separator, parts.Where(part => part is not null)) is { Length: > 0 } text ? text : null;
