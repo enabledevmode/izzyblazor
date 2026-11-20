@@ -26,7 +26,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy describe <item> [--json]
           izzy add <item> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize]
-          izzy new <starter or kit> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--json] [--overwrite]
+          izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
 
         izzy add crud makes a page whose grid adds, edits and deletes a model's records (list, detail and
@@ -133,7 +133,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         output.WriteLine($"{m.Name} ({m.Id}), {Lower(m.Kind)}{(m.Tier == ItemTier.Pro ? ", Pro" : "")}");
         if (m.Summary is not null) output.WriteLine(m.Summary);
         output.WriteLine();
-        output.WriteLine(m.Kind.MakesProject() ? $"izzy new {m.Id} -n <name> [settings]" : $"izzy add {m.Id} [settings]");
+        output.WriteLine(m.Kind.MakesProject() ? $"{m.NewCommand()} -n <name> [settings]" : $"izzy add {m.Id} [settings]");
         output.WriteLine();
         output.WriteLine("Settings:");
         foreach (var p in m.Parameters.Where(p => !p.Hidden))
@@ -159,7 +159,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var item = crud ? Catalog["crud"] : Item(args, "izzy add <item>");
         if (item.Manifest.Kind == ItemKind.Setup) throw new UsageException("IzzyBlazor's setup runs with izzy init.");
         if (item.Manifest.Kind.MakesProject())
-            throw new UsageException($"{item.Manifest.Id} makes a new project: izzy new {item.Manifest.Id} -n <name>.");
+            throw new UsageException($"{item.Manifest.Id} makes a new project: {item.Manifest.NewCommand()} -n <name>.");
         var project = ProjectInfo.FromProject(FindProject(args.Take("project")));
         var host = Path.Combine(project.Directory!, project.Host, project.Name + ".csproj");
         if (!ReferencesIzzyBlazor(File.ReadAllText(host)))
@@ -181,9 +181,17 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     int New(Args args)
     {
-        var item = Item(args, "izzy new <starter or kit>");
+        // izzy new starter sidebar, izzy new kit crm: the kind, then the id.
+        const string usage = "izzy new starter|kit <id> [-n <name>]";
+        if (args.Words.Count == 2 && Catalog.Items.TryGetValue(args.Words[1], out var named) && named.Manifest.Kind.MakesProject())
+            throw new UsageException($"Say what {named.Manifest.Id} is: {named.Manifest.NewCommand()} -n <name>.");
+        Words(args, 3, usage);
+        if (args.Words[1] is not ("starter" or "kit")) throw new UsageException($"Usage: {usage}");
+        var item = Catalog[args.Words[2]];
         if (!item.Manifest.Kind.MakesProject())
             throw new UsageException($"{item.Manifest.Id} goes into a project you have: izzy add {item.Manifest.Id}.");
+        if (!item.Manifest.Kind.ToString().Equals(args.Words[1], StringComparison.OrdinalIgnoreCase))
+            throw new UsageException($"{item.Manifest.Id} is a {item.Manifest.Kind.ToString().ToLowerInvariant()}: {item.Manifest.NewCommand()} -n <name>.");
         var name = args.Take("name");
         var folder = args.Take("output");
         var directory = Path.GetFullPath(folder ?? name ?? ".", workingDirectory);

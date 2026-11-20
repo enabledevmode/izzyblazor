@@ -25,7 +25,7 @@ public sealed class CliTests : IDisposable
     [Fact]
     public void A_new_app_takes_a_hero_once_and_records_both()
     {
-        Assert.Equal(0, Izzy(_work, "new", "izzy-blazor", "-n", "Acme", "--no-restore").Exit);
+        Assert.Equal(0, Izzy(_work, "new", "starter", "izzy-blazor", "-n", "Acme", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
 
         var preview = Izzy(app, "add", "hero", "--layout", "Split", "--dry-run", "--json");
@@ -59,7 +59,7 @@ public sealed class CliTests : IDisposable
     [Fact]
     public void At_a_line_the_hero_goes_there_instead_of_Home()
     {
-        Assert.Equal(0, Izzy(_work, "new", "izzy-blazor", "-n", "Acme", "--no-restore").Exit);
+        Assert.Equal(0, Izzy(_work, "new", "starter", "izzy-blazor", "-n", "Acme", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
         var home = File.ReadAllText(Path.Combine(app, "Components", "Pages", "Home.razor"));
 
@@ -81,7 +81,7 @@ public sealed class CliTests : IDisposable
         var izzy = Path.Combine(tools, OperatingSystem.IsWindows() ? "izzy.exe" : "izzy");
         Assert.Contains("hero", await Run(_work, izzy, "list"));
         // Dot files ship too: --mcp writes .mcp.json from the catalogue.
-        await Run(_work, izzy, "new", "izzy-blazor", "-n", "App", "--mcp", "--no-restore");
+        await Run(_work, izzy, "new", "starter", "izzy-blazor", "-n", "App", "--mcp", "--no-restore");
         Assert.True(File.Exists(Path.Combine(_work, "App", ".mcp.json")));
     }
 

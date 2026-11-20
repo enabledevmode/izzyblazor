@@ -23,7 +23,7 @@ public sealed class CrudTests : IDisposable
     [Fact]
     public async Task The_free_grid_builds_for_two_models_and_pages_are_Pro()
     {
-        Assert.Equal(0, Izzy(_work, "new", "izzy-blazor", "-n", "Acme", "--auth", "Individual", "--no-restore").Exit);
+        Assert.Equal(0, Izzy(_work, "new", "starter", "izzy-blazor", "-n", "Acme", "--auth", "Individual", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
         Directory.CreateDirectory(Path.Combine(app, "Models"));
         File.WriteAllText(Path.Combine(app, "Models", "Models.cs"), """

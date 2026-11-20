@@ -174,6 +174,13 @@ public static class ItemKinds
 {
     /// <summary>Whether it makes a new project (<c>izzy new</c>, <c>dotnet new</c>) rather than going into one.</summary>
     public static bool MakesProject(this ItemKind kind) => kind is ItemKind.Starter or ItemKind.Kit;
+
+    /// <summary>
+    /// The command that makes a project from a starter or a kit: <c>izzy new starter sidebar</c>,
+    /// <c>izzy new kit crm</c>. The kind is part of it, so a short id such as <c>sidebar</c> can't be taken
+    /// for a component.
+    /// </summary>
+    public static string NewCommand(this ItemManifest manifest) => $"izzy new {manifest.Kind.ToString().ToLowerInvariant()} {manifest.Id}";
 }
 
 /// <summary>The item a kit is made over.</summary>

@@ -337,11 +337,13 @@
 
   /* DarkSrc: the image for the scheme in use. tokens.css sets --ib-on-light and
      --ib-on-dark with each color scheme, so a part of the page with its own scheme gets its own. */
-  .ib-image-on-light {
+  /* Two classes each, so a container's rule for its picture (a card's media sets display) doesn't
+     bring the hidden one back. */
+  .ib-image.ib-image-on-light {
     display: var(--ib-on-light, block);
   }
 
-  .ib-image-on-dark {
+  .ib-image.ib-image-on-dark {
     display: var(--ib-on-dark, none);
   }
 
