@@ -134,6 +134,13 @@ public sealed partial class SearchIndex
             tier = Math.Max(tier, 3);
         }
 
+        // Nor is a parameter that begins with the query's word ("dark": DarkSrc). More of its name
+        // typed ("darks") still finds it first.
+        if (entry.Kind == SearchKind.Member && tier == 2 && terms.All(t => entry.TitleWords.Contains(t)))
+        {
+            tier = 3;
+        }
+
         // A standard heading is told from another page's by its page: the shorter name is the closer one
         // ("dialog accessibility" is Dialog's, before ConfirmDialog's).
         var length = entry.Title.Length + (entry.Standard ? entry.Context?.Length ?? 0 : 0);

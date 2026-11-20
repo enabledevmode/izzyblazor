@@ -1,0 +1,104 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@implements IDisposable
+
+@*
+    One picture of a Lightbox: a link to the image, drawn as a small picture of it (or as its
+    content). With script, the link opens the image in the lightbox's viewer; with JavaScript off,
+    it opens the image itself.
+*@
+
+<a @attributes="AdditionalAttributes" class="@_class" style="@_style" href="@Src">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <img class="@(DarkThumb is null ? "ib-lightbox-thumb-img" : "ib-lightbox-thumb-img ib-lightbox-on-light")" src="@(Thumbnail ?? Src)" alt="@Alt" loading="lazy" decoding="async" />
+        @if (DarkThumb is { } dark)
+        {
+            <img class="ib-lightbox-thumb-img ib-lightbox-on-dark" src="@dark" alt="@Alt" loading="lazy" decoding="async" />
+        }
+    }
+</a>
+
+@code {
+    /// <summary>The full-size image's URL: what the viewer shows, and where the link goes.</summary>
+    [Parameter, EditorRequired] public string Src { get; set; } = "";
+
+    /// <summary>
+    /// What the image shows, for screen readers and when it fails to load, such as "The deal
+    /// pipeline, five columns of cards". Required.
+    /// </summary>
+    [Parameter, EditorRequired] public string? Alt { get; set; }
+
+    /// <summary>A caption under the image in the viewer.</summary>
+    [Parameter] public string? Caption { get; set; }
+
+    /// <summary>A smaller image for the link and the viewer's thumbnails. Defaults to <see cref="Src"/>.</summary>
+    [Parameter] public string? Thumbnail { get; set; }
+
+    /// <summary>The image to show in its place where the color scheme is dark, such as a screenshot taken in dark mode.</summary>
+    [Parameter] public string? DarkSrc { get; set; }
+
+    /// <summary>A smaller image for the dark scheme. Defaults to <see cref="DarkSrc"/>.</summary>
+    [Parameter] public string? DarkThumbnail { get; set; }
+
+    /// <summary>
+    /// The link's content, in place of the small picture: a card, a button, any markup. Name what
+    /// it opens in it, since the link takes its name from this content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private LightboxContext? Context { get; set; }
+
+    internal string? DarkThumb => DarkThumbnail ?? DarkSrc;
+
+    private string? _class;
+    private string? _style;
+    private (string, string?, string?, string?, string?, string?) _drawn;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Context is null)
+        {
+            throw new InvalidOperationException("LightboxItem must be inside a Lightbox.");
+        }
+
+        _drawn = Drawn;
+        Context.Register(this);
+    }
+
+    private (string, string?, string?, string?, string?, string?) Drawn => (Src, Alt, Caption, Thumbnail, DarkSrc, DarkThumbnail);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-lightbox-link");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Alt is null)
+        {
+            throw new InvalidOperationException("LightboxItem needs Alt, what the image shows, such as \"The deal pipeline\".");
+        }
+
+        Context!.Seen(this);
+        (_class, _style) = BuildRootAttributes();
+
+        // The viewer draws this item's image and caption: tell it when they change.
+        if (_drawn != Drawn)
+        {
+            _drawn = Drawn;
+            Context.Changed();
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Context?.Unregister(this);
+}

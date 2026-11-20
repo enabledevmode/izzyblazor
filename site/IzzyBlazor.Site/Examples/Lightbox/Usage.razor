@@ -1,0 +1,19 @@
+@* Screenshots of four pages; a click opens one full size, and the dark shots show in dark mode. *@
+<Lightbox Label="Page screenshots" Counter>
+    <Grid Columns="new() { Base = 2, Md = 4 }" Gap="3">
+        @foreach (var (name, alt) in _pages)
+        {
+            <LightboxItem Src="@($"img/blocks/{name}.webp")" DarkSrc="@($"img/blocks/{name}-dark.webp")" Alt="@alt" Caption="@alt" />
+        }
+    </Grid>
+</Lightbox>
+
+@code {
+    private readonly (string Name, string Alt)[] _pages =
+    [
+        ("pricing", "The pricing page, three plans side by side"),
+        ("features", "The features page, a grid of six features"),
+        ("signup", "The sign-up page, a form beside its pitch"),
+        ("faq", "The questions page, an accordion of answers"),
+    ];
+}

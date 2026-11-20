@@ -3465,6 +3465,23 @@
     },
 
     {
+      "id": "lightbox", "icon": "Images", "name": "Lightbox", "category": "Display", "summary": "Opens pictures full size in a viewer over the page.", "keywords": ["gallery", "image viewer", "screenshots", "photos", "zoom", "preview", "fullscreen"],
+      "parts": ["LightboxItem"],
+      "features": [
+        { "feature": "Links to each image, drawn as small pictures you lay out", "noscript": "full" },
+        { "feature": "A viewer over the page with previous and next, a counter, captions and a close button", "noscript": "none" },
+        { "feature": "Dots or thumbnails to move between the images", "noscript": "none" },
+        { "feature": "Another image where the color scheme is dark" },
+        { "feature": "The open image bound to C#", "noscript": "none", "static": "none", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "lightbox-usage", "title": "Pictures that open full size", "lead": "Use a `Lightbox` for pictures people need to see at full size, such as screenshots or product photos. Put a `LightboxItem` for each image inside it, laid out as you like, and name the viewer with `Label`. `Counter` shows the open image's place, and `Caption` puts text under it.", "after": ["Each item is a link to its image. With JavaScript off, the link opens the image on its own.", "To show a different image in dark mode, such as a screenshot taken in dark mode, set `DarkSrc`. For a smaller file in the link than in the viewer, set `Thumbnail`."] },
+        { "id": "lightbox-thumbnails", "title": "Thumbnails and dots", "lead": "To add a small picture of each image under the open one, set `Nav` to `Thumbnails`; `Dots` adds a dot for each instead. To wrap from the last image to the first, set `Loop`.", "after": ["The controls fade after 3 seconds without a pointer move or a key. `HideControlsAfter` changes that, and `TimeSpan.Zero` keeps them."] },
+        { "id": "lightbox-bound", "title": "Opening it from C#", "lead": "To open the viewer from C#, and to know which image is open, bind `@bind-Index`. It's null while the viewer is closed.", "modes": ["interactive"] }
+      ]
+    },
+
+    {
       "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Navigation", "summary": "Shows sections that open and close, even with JavaScript off.", "keywords": ["expander"], "parts": ["AccordionItem", "AccordionHeader"],
       "features": [
         { "feature": "Items open and close, one at a time with Exclusive" },

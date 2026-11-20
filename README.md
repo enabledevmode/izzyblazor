@@ -79,7 +79,7 @@ The same CLI adds blocks and pages to the app as code you own (`izzy add hero`).
 - **Navigation:** SiteNav, NavMenu, Tabs, TabNav, Breadcrumb, Pagination, PrevNext, OnThisPage, Stepper, Carousel, Accordion, Collapsible
 - **Feedback:** Alert, Banner, Toast, Spinner, Progress, ProgressCircle, Skeleton, EmptyState
 - **Data:** FilterBuilder, FilterForm, Table, DataGrid (filtering, grouping, editing, column menus, frozen columns, export), TreeList, ListView, DropZoneGroup, DescriptionList, TreeView, Scheduler
-- **Display:** Card, Stat, Avatar, AvatarGroup, Badge, Tag, Image, VideoEmbed, Timeline, Comment, Chat, Barcode, QrCode
+- **Display:** Card, Stat, Avatar, AvatarGroup, Badge, Tag, Image, Lightbox, VideoEmbed, Timeline, Comment, Chat, Barcode, QrCode
 - **Charts:** bar, line, area, range bar and area, scatter, bubble, histogram, box plot, violin, candlestick, OHLC, waterfall, pie and donut, nested donut, funnel, heatmap, calendar heatmap, radar, Sankey, treemap, BulletChart, Sparkline, Gauge, LinearGauge, with zoom, drill-down, live data and a RangeSelector; drawn on the server as SVG
 - **Utilities:** IzzyTheme, ThemeScope, ColorSchemeSwitch, LiveRegion, ErrorGuard
 

@@ -1,0 +1,181 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, each link opens its image on its own, and there's no viewer.")]
+
+@*
+    Pictures that open full size in a viewer over the page: screenshots, a photo gallery, product
+    shots. Each LightboxItem is a link to its image, drawn as a small picture; a click opens the
+    viewer on that image, with previous and next buttons, a close button and the caption.
+
+    Lay the items out as you like inside it (a Grid, a Row). Counter shows "2 of 5"; Nav adds a
+    dot or a small picture for each item under the image. DarkSrc on an item swaps in another
+    image where the color scheme is dark. @bind-Index says which item is open, and opens or
+    closes the viewer from C#, on an interactive page. The controls fade when nothing moves for
+    HideControlsAfter, and come back with the pointer or a key.
+
+    Accessibility:
+    - Each item is a link named by its image's Alt, which is required (or by its own content).
+    - The viewer is a modal dialog named by Label, which is required. Focus moves to its close
+      button, stays inside while it's open, and returns to the link that opened it.
+    - The slides are a carousel: each is a group named "3 of 5", and the one a person moves to is
+      announced. The image's Alt and its caption are read with it.
+    - The controls stay visible while keyboard focus is on one.
+
+    Keyboard:
+    In the viewer
+    - Left, Right | Go to the previous or next image (reversed on right-to-left pages)
+    - Home, End | Go to the first or last image
+    - Escape | Close the viewer
+    See also: LightboxItem, Carousel, Image, Dialog.
+*@
+
+<ib-lightbox @attributes="AdditionalAttributes" class="@_class" style="@_style"
+             data-ib-index="@(Index?.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+             data-ib-backdrop="@(CloseOnBackdrop ? "" : null)"
+             data-ib-loop="@(Loop ? "" : null)"
+             data-ib-idle-after="@Durations.Ms(HideControlsAfter)"
+             @oniblayout="OnLayout">
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/lightbox.css"]" />
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+    @{ var items = _context.Items; }
+    <dialog class="ib-lightbox-panel" aria-label="@Label">
+        <div class="ib-lightbox-bar">
+            @if (Counter)
+            {
+                @* The script writes the place here, as an attribute the sheet draws. *@
+                <span class="ib-lightbox-counter" aria-hidden="true" data-ib-format="@TextDefaults.SlideOf" data-ib-text="@string.Format(TextDefaults.SlideOf, 1, items.Count)"></span>
+            }
+            <button type="button" class="ib-btn ib-btn-neutral ib-btn-icon-only ib-lightbox-close" aria-label="@TextDefaults.Close">
+                <Icon Purpose="IconPurpose.Close" />
+            </button>
+        </div>
+        <Carousel Label="@Label" Class="ib-lightbox-slides" Gap="0" Loop="Loop" Arrows="Arrows" Transition="Transition"
+                  Dots="@(Nav == LightboxNav.Dots ? CarouselDots.Below : CarouselDots.None)">
+            @foreach (var item in items)
+            {
+                <CarouselItem @key="item">
+                    <figure class="ib-lightbox-figure">
+                        <img class="@(item.DarkSrc is null ? "ib-lightbox-img" : "ib-lightbox-img ib-lightbox-on-light")" src="@item.Src" alt="@item.Alt" loading="lazy" decoding="async" />
+                        @if (item.DarkSrc is { } dark)
+                        {
+                            <img class="ib-lightbox-img ib-lightbox-on-dark" src="@dark" alt="@item.Alt" loading="lazy" decoding="async" />
+                        }
+                        @if (item.Caption is { Length: > 0 } caption)
+                        {
+                            <figcaption class="ib-lightbox-caption">@caption</figcaption>
+                        }
+                    </figure>
+                </CarouselItem>
+            }
+        </Carousel>
+        @if (Nav == LightboxNav.Thumbnails)
+        {
+            <div class="ib-lightbox-thumbs">
+                @for (var i = 0; i < items.Count; i++)
+                {
+                    var item = items[i];
+                    <button type="button" @key="item" class="ib-lightbox-thumb" aria-label="@string.Format(TextDefaults.GoToSlide, i + 1)">
+                        <img class="@(item.DarkThumb is null ? null : "ib-lightbox-on-light")" src="@(item.Thumbnail ?? item.Src)" alt="" loading="lazy" decoding="async" />
+                        @if (item.DarkThumb is { } dark)
+                        {
+                            <img class="ib-lightbox-on-dark" src="@dark" alt="" loading="lazy" decoding="async" />
+                        }
+                    </button>
+                }
+            </div>
+        }
+    </dialog>
+</ib-lightbox>
+
+@code {
+    /// <summary>What the pictures are, such as "Product photos": the viewer's accessible name. Required.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>
+    /// The item open in the viewer, from 0; null when the viewer is closed. With <c>@bind-Index</c>
+    /// it follows what a person opens, moves to and closes, on an interactive page.
+    /// </summary>
+    [Parameter] public int? Index { get; set; }
+
+    /// <summary>Called when a person opens the viewer, moves to another item or closes it (null), on an interactive page.</summary>
+    [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
+    public EventCallback<int?> IndexChanged { get; set; }
+
+    /// <summary>Shows the open item's place, such as "2 of 5".</summary>
+    [Parameter] public bool Counter { get; set; }
+
+    /// <summary>Adds a dot or a small picture for each item under the image. Defaults to <see cref="LightboxNav.None"/>.</summary>
+    [Parameter] public LightboxNav Nav { get; set; }
+
+    /// <summary>Shows the previous and next buttons. Defaults to true.</summary>
+    [Parameter] public bool Arrows { get; set; } = true;
+
+    /// <summary>
+    /// How one image gives way to the next: <see cref="CarouselTransition.Slide"/>, the default, or
+    /// <see cref="CarouselTransition.Fade"/>.
+    /// </summary>
+    [Parameter] public CarouselTransition Transition { get; set; }
+
+    /// <summary>Wraps from the last image to the first, and back.</summary>
+    [Parameter] public bool Loop { get; set; }
+
+    /// <summary>Closes the viewer on a click outside the image and its controls. Defaults to true.</summary>
+    [Parameter] public bool CloseOnBackdrop { get; set; } = true;
+
+    /// <summary>
+    /// How long without a pointer move or a key before the viewer's controls fade. Defaults to
+    /// 3 seconds; <see cref="TimeSpan.Zero"/> keeps them.
+    /// </summary>
+    [Parameter] public TimeSpan HideControlsAfter { get; set; } = TimeSpan.FromSeconds(3);
+
+    /// <summary>The <see cref="LightboxItem"/>s, laid out as you like.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private LightboxContext _context = null!;
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _context = new LightboxContext(this);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-lightbox");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("Lightbox needs a Label, the viewer's accessible name, such as \"Product photos\".");
+        }
+
+        if (HideControlsAfter < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(HideControlsAfter), HideControlsAfter, "A Lightbox's HideControlsAfter can't be negative.");
+        }
+
+        base.OnParametersSet();
+        _context.BeginPass();
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    // An item arrived, left or changed: draw the viewer again.
+    internal void Refresh() => StateHasChanged();
+
+    // The script reports the open item, or "" when the viewer closes, on an interactive page.
+    private async Task OnLayout(IzzyLayoutEventArgs e)
+    {
+        int? index = int.TryParse(e.Layout, System.Globalization.CultureInfo.InvariantCulture, out var i) ? i : null;
+        if (IndexChanged.HasDelegate && index != Index)
+        {
+            Index = index;
+            await IndexChanged.InvokeAsync(index);
+        }
+    }
+}
