@@ -87,7 +87,7 @@ public sealed partial class SearchIndex
     // ---- Ranking ----
 
     // Tiers, best first: the whole query is the title or a keyword; the title starts with it; every
-    // word is in the title; in the title or context; anywhere. Then the kind, then the shorter title.
+    // word is in the title; in the title or context; anywhere. Then the kind, then the shorter title (for a standard heading, with its page's name).
     private static int? Score(SearchEntry entry, IReadOnlyList<string> terms, string squashed)
     {
         int tier;
@@ -134,7 +134,10 @@ public sealed partial class SearchIndex
             tier = Math.Max(tier, 3);
         }
 
-        return (6 - tier) * 10_000 + Weight(entry.Kind) * 100 - Math.Min(entry.Title.Length, 99);
+        // A standard heading is told from another page's by its page: the shorter name is the closer one
+        // ("dialog accessibility" is Dialog's, before ConfirmDialog's).
+        var length = entry.Title.Length + (entry.Standard ? entry.Context?.Length ?? 0 : 0);
+        return (6 - tier) * 10_000 + Weight(entry.Kind) * 100 - Math.Min(length, 99);
     }
 
     private static int Weight(SearchKind kind) => kind switch
