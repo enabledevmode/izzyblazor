@@ -6,6 +6,7 @@ css=$(gzip -c src/IzzyBlazor.Core/wwwroot/izzyblazor.css | wc -c)
 js=$(gzip -c src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js | wc -c)
 date=$(gzip -c src/IzzyBlazor.Core/wwwroot/date.css | wc -c)
 carousel=$(gzip -c src/IzzyBlazor.Core/wwwroot/carousel.css | wc -c)
+lightbox=$(gzip -c src/IzzyBlazor.Core/wwwroot/lightbox.css | wc -c)
 chart=$(gzip -c src/IzzyBlazor.Core/wwwroot/chart.css | wc -c)
 heatmap=$(gzip -c src/IzzyBlazor.Core/wwwroot/heatmap.css | wc -c)
 radar=$(gzip -c src/IzzyBlazor.Core/wwwroot/radar.css | wc -c)
@@ -38,6 +39,7 @@ sched=$(gzip -c src/IzzyBlazor.Core/wwwroot/scheduler.css | wc -c)
 echo "CSS gzip: $css bytes (budget 53760)"
 echo "date.css gzip: $date bytes (budget 3072; only pages with a calendar load it)"
 echo "carousel.css gzip: $carousel bytes (budget 2048; only pages with a carousel load it)"
+echo "lightbox.css gzip: $lightbox bytes (budget 1536; only pages with a lightbox load it)"
 echo "chart.css gzip: $chart bytes (budget 6400; only pages with a chart load it)"
 echo "heatmap.css gzip: $heatmap bytes (budget 2048; only pages with a HeatmapChart or CalendarHeatmap load it)"
 echo "radar.css gzip: $radar bytes (budget 1024; only pages with a RadarChart load it)"
@@ -92,4 +94,4 @@ for f in src/IzzyBlazor.Core/wwwroot/elements/parts/*.js; do
 done
 echo "Largest on-demand element: $big bytes (budget 6656)"
 echo "rich-text.js: $richcore bytes (budget 8192; its tables, images, links, formats and Markdown are parts)"
-test "$css" -le 53760 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$chart" -le 6400 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$treemap" -le 1024 && test "$bullet" -le 1536 && test "$gauge" -le 2048 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$account" -le 1536 && test "$sitenav" -le 2560 && test "$treeselect" -le 1024 && test "$slider" -le 2048 && test "$diffcss" -le 2048 && test "$timeline" -le 2048 && test "$bands" -le 1024 && test "$picker" -le 1024 && test "$richtext" -le 2048 && test "$richcontent" -le 1024 && test "$colorpanel" -le 2048 && test "$chat" -le 2048 && test "$quote" -le 1024 && test "$comment" -le 1024 && test "$showmore" -le 1024 && test "$tiles" -le 2048 && test "$mentions" -le 1024 && test "$sheet" -le 1024 && test "$rangesel" -le 2048 && test "$sched" -le 3328 && test "$js" -le 16384 && test "$big" -le 6656 && test "$richcore" -le 8192
+test "$css" -le 53760 && test "$date" -le 3072 && test "$carousel" -le 2048 && test "$lightbox" -le 1536 && test "$chart" -le 6400 && test "$heatmap" -le 2048 && test "$radar" -le 1024 && test "$sankey" -le 1024 && test "$treemap" -le 1024 && test "$bullet" -le 1536 && test "$gauge" -le 2048 && test "$tabsedit" -le 1024 && test "$speeddial" -le 1024 && test "$account" -le 1536 && test "$sitenav" -le 2560 && test "$treeselect" -le 1024 && test "$slider" -le 2048 && test "$diffcss" -le 2048 && test "$timeline" -le 2048 && test "$bands" -le 1024 && test "$picker" -le 1024 && test "$richtext" -le 2048 && test "$richcontent" -le 1024 && test "$colorpanel" -le 2048 && test "$chat" -le 2048 && test "$quote" -le 1024 && test "$comment" -le 1024 && test "$showmore" -le 1024 && test "$tiles" -le 2048 && test "$mentions" -le 1024 && test "$sheet" -le 1024 && test "$rangesel" -le 2048 && test "$sched" -le 3328 && test "$js" -le 16384 && test "$big" -le 6656 && test "$richcore" -le 8192

@@ -100,6 +100,11 @@ class Carousel extends IzzyElement {
     this.#update();
   }
 
+  /** Goes to a slide, for a component that holds this carousel (Lightbox). */
+  goTo(index: number, instant = false): void {
+    this.#go(index, instant);
+  }
+
   #wanted(): number {
     return Math.max(0, parseInt(this.dataset.ibIndex ?? "0", 10) || 0);
   }

@@ -1,0 +1,189 @@
+/*
+ * The lightbox's styles, built to wwwroot/lightbox.css and linked by Lightbox, so pages without
+ * one don't pay for them. The viewer is always dark, whatever the page's scheme: pictures read
+ * best on black, and its controls are white over them.
+ */
+@layer izzy.components {
+  .ib-lightbox {
+    display: block;
+  }
+
+  /* An item: a link to the full image, drawn as a small picture of it. */
+  .ib-lightbox-link {
+    display: block;
+    overflow: hidden;
+    border-radius: var(--ib-radius-md);
+    cursor: zoom-in;
+  }
+
+  .ib-lightbox-link:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-lightbox-thumb-img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* DarkSrc: the image for the scheme in use. The page follows the system unless it, or a part
+     of it, sets data-ib-color-scheme. */
+  .ib-lightbox-on-dark {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-ib-color-scheme]) .ib-lightbox-on-light { display: none; }
+    :root:not([data-ib-color-scheme]) .ib-lightbox-on-dark { display: block; }
+  }
+
+  [data-ib-color-scheme="dark"] .ib-lightbox-on-light { display: none; }
+  [data-ib-color-scheme="dark"] .ib-lightbox-on-dark { display: block; }
+  [data-ib-color-scheme="light"] .ib-lightbox-on-light { display: block; }
+  [data-ib-color-scheme="light"] .ib-lightbox-on-dark { display: none; }
+
+  /* The viewer: the whole screen. Bar, slides, then dots or thumbnails. */
+  .ib-lightbox-panel {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(0 0 0 / 0.95);
+    color: #fff;
+    color-scheme: dark;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .ib-lightbox-panel[open] {
+    display: grid;
+  }
+
+  .ib-lightbox-panel::backdrop {
+    background: none;
+  }
+
+  /* The page behind doesn't scroll, and keeps its width (scrollbar.ts), as under a Dialog. */
+  html:has(.ib-lightbox-panel[open]) {
+    overflow: hidden;
+  }
+
+  html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-lightbox-panel[open]) {
+    scrollbar-gutter: auto;
+    padding-inline-end: var(--ib-scrollbar-w);
+  }
+
+  .ib-lightbox-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 3rem;
+    padding: var(--ib-space-2) var(--ib-space-3);
+  }
+
+  .ib-lightbox-counter {
+    font-size: var(--ib-font-size-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-lightbox-counter::before {
+    content: attr(data-ib-text);
+  }
+
+  .ib-lightbox-close {
+    margin-inline-start: auto;
+    border-radius: var(--ib-radius-full);
+    background: transparent;
+    color: #fff;
+  }
+
+  .ib-lightbox-close:is(:hover, :focus-visible) {
+    background: rgb(255 255 255 / 0.16);
+  }
+
+  /* The carousel fills the middle; each slide centers its image over its caption. */
+  .ib-lightbox-slides {
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: 0;
+  }
+
+  .ib-lightbox-slides > .ib-carousel-track {
+    border-radius: 0;
+  }
+
+  .ib-lightbox-figure {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    justify-items: center;
+    height: 100%;
+    margin: 0;
+    padding-inline: var(--ib-space-3);
+  }
+
+  .ib-lightbox-img {
+    align-self: center;
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 0;
+    object-fit: contain;
+  }
+
+  .ib-lightbox-caption {
+    max-width: 60rem;
+    padding-block: var(--ib-space-3);
+    font-size: var(--ib-font-size-sm);
+    text-align: center;
+  }
+
+  /* Thumbnails: a row that scrolls, the current one outlined. */
+  .ib-lightbox-thumbs {
+    display: flex;
+    gap: var(--ib-space-2);
+    justify-content: safe center;
+    overflow-x: auto;
+    padding: var(--ib-space-2) var(--ib-space-3) var(--ib-space-3);
+    scrollbar-width: none;
+  }
+
+  .ib-lightbox-thumb {
+    flex: none;
+    width: 4.5rem;
+    height: 3rem;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: none;
+    opacity: 0.55;
+    cursor: pointer;
+  }
+
+  .ib-lightbox-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ib-lightbox-thumb:is(:hover, :focus-visible, [aria-current]) {
+    opacity: 1;
+  }
+
+  .ib-lightbox-thumb:is(:focus-visible, [aria-current]) {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+  }
+
+  /* Nothing has moved for a while: the controls fade, and come back with the pointer or a key. */
+  .ib-lightbox-panel :is(.ib-lightbox-bar, .ib-lightbox-thumbs, .ib-carousel-prev, .ib-carousel-next, .ib-carousel-dots) {
+    transition: opacity var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  .ib-lightbox-panel[data-ib-idle] :is(.ib-lightbox-bar, .ib-lightbox-thumbs, .ib-carousel-prev, .ib-carousel-next, .ib-carousel-dots) {
+    opacity: 0;
+  }
+}

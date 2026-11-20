@@ -158,6 +158,8 @@ IconButton
 Image
 IzzyTheme
 Kbd
+Lightbox
+LightboxItem
 LinearGauge
 List
 ListItem

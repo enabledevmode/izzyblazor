@@ -1,0 +1,18 @@
+@* A button opens the viewer on the pricing page, and the text follows what's open. *@
+<Stack Gap="3">
+    <Row Gap="3" Align="Align.Center">
+        <Button Variant="ButtonVariant.Outline" OnClick="() => _open = 1">Open the pricing page</Button>
+        <TextBlock Color="Color.Muted">@(_open is { } i ? $"Showing {i + 1} of 3" : "Closed")</TextBlock>
+    </Row>
+    <Lightbox Label="Page screenshots" @bind-Index="_open" Counter>
+        <Grid Columns="3" Gap="3">
+            <LightboxItem Src="img/blocks/features.webp" DarkSrc="img/blocks/features-dark.webp" Alt="The features page" />
+            <LightboxItem Src="img/blocks/pricing.webp" DarkSrc="img/blocks/pricing-dark.webp" Alt="The pricing page" />
+            <LightboxItem Src="img/blocks/faq.webp" DarkSrc="img/blocks/faq-dark.webp" Alt="The questions page" />
+        </Grid>
+    </Lightbox>
+</Stack>
+
+@code {
+    private int? _open;
+}

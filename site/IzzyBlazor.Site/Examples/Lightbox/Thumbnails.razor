@@ -1,0 +1,21 @@
+@* A small picture of each page under the open one, and the last wraps to the first. *@
+<Lightbox Label="Page screenshots" Nav="LightboxNav.Thumbnails" Loop>
+    <Grid Columns="new() { Base = 3, Md = 6 }" Gap="3">
+        @foreach (var (name, alt) in _pages)
+        {
+            <LightboxItem Src="@($"img/blocks/{name}.webp")" DarkSrc="@($"img/blocks/{name}-dark.webp")" Alt="@alt" />
+        }
+    </Grid>
+</Lightbox>
+
+@code {
+    private readonly (string Name, string Alt)[] _pages =
+    [
+        ("hero", "The home page's opening section"),
+        ("features", "The features page"),
+        ("pricing", "The pricing page"),
+        ("articles", "The articles page"),
+        ("contact", "The contact page"),
+        ("legal", "The terms page"),
+    ];
+}
