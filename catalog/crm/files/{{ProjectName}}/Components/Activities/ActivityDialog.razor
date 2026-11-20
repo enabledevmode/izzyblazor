@@ -41,7 +41,7 @@
                 <Select @bind-Value="Input.Reminder" Label="Reminder" Items="Reminders" ItemText="Before" Placeholder="No reminder" />
                 <TextField @bind-Value="Input.Location" Label="Location or meeting link" autocomplete="off" />
             </Fieldset>
-            <TextArea @bind-Value="Input.Agenda" Label="Agenda or notes" Placeholder="What should you cover?" Rows="4" />
+            <TextArea @bind-Value="Input.Agenda" Label="Agenda" Placeholder="What should you cover?" Rows="4" />
             <DialogFooter>
                 <DialogClose>Cancel</DialogClose>
                 <Button Submit>@(adding ? "Save activity" : "Save changes")</Button>
@@ -70,6 +70,9 @@
     [Parameter] public int? Deal { get; set; }
 
     [SupplyParameterFromQuery(Name = "dialog")] private string? Dialog { get; set; }
+
+    /// <summary>What a new one starts as, from a link: <c>&amp;type=call</c>. It wins over <see cref="Type"/>.</summary>
+    [SupplyParameterFromQuery(Name = "type")] private string? Asked { get; set; }
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
@@ -157,7 +160,7 @@
                 var with = Contact is { } person && _contacts.ContainsKey(person) ? Contact : about is { } chosen ? _deals[chosen].ContactId : null;
                 Input = new ActivityInput
                 {
-                    Type = Type, ContactId = with, DealId = about, Reminder = 30,
+                    Type = Enum.TryParse<ActivityType>(Asked, ignoreCase: true, out var asked) && Enum.IsDefined(asked) ? asked : Type, ContactId = with, DealId = about, Reminder = 30,
                     Date = DateOnly.FromDateTime(next), StartTime = TimeOnly.FromDateTime(next),
                     AssignedToId = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
                 };

@@ -1,5 +1,4 @@
 @page "/deals/{Id:int}"
-@page "/deals/{Id:int}/{Section}"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
 @using System.ComponentModel.DataAnnotations
@@ -16,7 +15,7 @@
    lost). Each posts here, writes "Changed stage" in the audit log and comes back with a toast. On a phone the
    same actions float in the corner, with the next stage in place of the menu. Activity and Notes are tabs with
    an address each (/deals/3, /deals/3/notes). Notes are the team's own about the deal
-   (Components/Notes/NoteList.razor), and its files are in the database (Components/Deals/DealAttachments.razor).
+   (Components/Activities/ActivityFeed.razor), and its files are in the database (Components/Deals/DealAttachments.razor).
    People who can't edit records (Viewers) read everything and see no buttons. *@
 @if (_deal is { } deal)
 {
@@ -126,41 +125,7 @@
                         </CardBody>
                     </Card>
 
-                    <TabNav Label="Deal sections">
-                        <TabLink Href="@($"deals/{Id}")" Label="Activity" Match="NavLinkMatch.All" />
-                        <TabLink Href="@($"deals/{Id}/notes")" Label="Notes" />
-                    </TabNav>
-
-                    @switch (Section)
-                    {
-                        case null:
-                            <Card Title="Deal activity" TitleLevel="2">
-                                @if (_canEdit)
-                                {
-                                    <CardActions>
-                                        <Button Href="@NewActivityHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Plus">Log activity</Button>
-                                    </CardActions>
-                                }
-                                <Timeline TimePlacement="TimelinePlacement.Below" Size="ControlSize.Sm">
-                                    @foreach (var item in _history)
-                                    {
-                                        <TimelineItem Title="@item.Title" Time="@item.Time" DateTime="@item.When.ToString("yyyy-MM-ddTHH:mm")">
-                                            @if (!string.IsNullOrWhiteSpace(item.About))
-                                            {
-                                                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@item.About</TextBlock>
-                                            }
-                                        </TimelineItem>
-                                    }
-                                </Timeline>
-                            </Card>
-                            break;
-
-                        @* As a contact's Notes: a box to write one about the deal, then the notes, newest first. *@
-                        case "notes":
-                            <NoteList Notes="_notes" CanEdit="_canEdit" Href="@($"deals/{Id}/notes")" On="@($"deals/{Id}")"
-                                      New="@(() => new Note { DealId = Id })" About="@deal.Name" Workspace="_workspace" Today="_today" />
-                            break;
-                    }
+                    <ActivityFeed Title="Deal activity" Items="_history" Href="@($"deals/{Id}")" On="@($"deals/{Id}")" CanEdit="_canEdit" />
                 </Column>
 
                 <Column Gap="4">
@@ -211,14 +176,13 @@
 
     <DealDialog CanEdit="_canEdit" Deal="Id" />
     <ActivityDialog CanEdit="_canEdit" Deal="Id" />
+    <NoteDialog CanEdit="_canEdit" Deal="Id" Contact="deal.ContactId" />
 }
 
 @code {
     /// <summary>The deal.</summary>
     [Parameter] public int Id { get; set; }
 
-    /// <summary>The tab: none for Activity, or "notes".</summary>
-    [Parameter] public string? Section { get; set; }
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
@@ -237,22 +201,18 @@
     private DateOnly _today;
     private Deal? _deal;
     private Activity? _next;
-    private List<Happened> _history = [];
-    private List<Note> _notes = [];
+    private List<FeedItem> _history = [];
     private bool _canEdit;
     private string? _me;
 
     // This tab's address: where the file dialogs open and come back to.
-    private string Here => Section is null ? $"deals/{Id}" : $"deals/{Id}/{Section}";
+    private string Here => $"deals/{Id}";
 
     // Edit opens the deal form over this tab.
     private string EditHref => $"{Here}?dialog={DealDialog.EditId}";
 
     // Schedule follow-up opens the activity form over this tab, with the deal and its primary contact chosen.
     private string NewActivityHref => $"{Here}?dialog={ActivityDialog.NewId}";
-
-    // Something in the deal's history: what, more about it, "who · when" as written, and when (the workspace's time).
-    private sealed record Happened(string Title, string? About, string Time, DateTime When);
 
     protected override async Task OnParametersSetAsync()
     {
@@ -264,7 +224,7 @@
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
 
         _deal = await Db.Deals.AsNoTracking().Include(d => d.Company).Include(d => d.Contact).Include(d => d.Owner).FirstOrDefaultAsync(d => d.Id == Id);
-        if (_deal is null || Section is not (null or "notes"))
+        if (_deal is null)
         {
             _deal = null;
             Navigation.NotFound();
@@ -275,10 +235,7 @@
         _next = await Db.Activities.AsNoTracking().Include(a => a.Contact)
             .Where(a => a.DealId == Id && a.Completed == null && a.Start >= now).OrderBy(a => a.Start).FirstOrDefaultAsync();
 
-        if (Section is null) await LoadHistoryAsync(_deal);
-        else
-            _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
-                .Where(n => n.DealId == Id).OrderByDescending(n => n.Created).ToListAsync();
+        await LoadHistoryAsync(_deal);
     }
 
     // Moves the deal to the stage a button named. Won or Lost closes it today; back in the pipeline, it's open again.
@@ -316,7 +273,7 @@
         _history = done.Select(a =>
         {
             var at = When.Local(a.Completed!.Value, _workspace);
-            return new Happened(a.Type == ActivityType.Task ? a.Title : $"{a.Title} completed", a.Agenda, About(a.AssignedTo?.Name, When.Happened(at, _today)), at);
+            return new FeedItem(FeedItem.KindOf(a), a.Type == ActivityType.Task ? a.Title : $"{a.Title} completed", a.Agenda, a.AssignedTo?.Name, When.Happened(at, _today), at);
         }).ToList();
 
         var ahead = await Db.Activities.AsNoTracking().Include(a => a.Contact)
@@ -327,9 +284,9 @@
         _history.AddRange(scheduled.Select(e =>
         {
             var (a, at) = (ahead[e.EntityId!], When.Local(e.Time, _workspace));
-            return new Happened($"{a.Title} scheduled",
+            return new FeedItem(FeedItem.KindOf(a), $"{a.Title} scheduled",
                 About(When.Day(DateOnly.FromDateTime(a.Start), _today), When.Hours(a.Start, a.End), a.Contact?.Name),
-                About(e.ActorName, When.Happened(at, _today)), at);
+                e.ActorName, When.Happened(at, _today), at);
         }));
 
         var id = Id.ToString();
@@ -340,9 +297,14 @@
         {
             var at = When.Local(e.Time, _workspace);
             var stage = e.ReadChanges().FirstOrDefault(c => c.Field == "Stage")?.After;
-            return new Happened(stage switch { nameof(DealStage.Won) => "Deal won", nameof(DealStage.Lost) => "Deal lost", _ => $"Moved to {stage}" },
-                null, About(e.ActorName, When.Happened(at, _today)), at);
+            return new FeedItem(FeedKind.Event, stage switch { nameof(DealStage.Won) => "Deal won", nameof(DealStage.Lost) => "Deal lost", _ => $"Moved to {stage}" },
+                null, e.ActorName, When.Happened(at, _today), at);
         }));
+
+        // The notes about the deal.
+        var notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
+            .Where(n => n.DealId == Id).OrderByDescending(n => n.Created).Take(Shown).ToListAsync();
+        _history.AddRange(notes.Select(n => FeedItem.Of(n, _workspace, _today)));
         _history = _history.OrderByDescending(h => h.When).Take(Shown).ToList();
 
         // Who created it, from the audit log; the day is the deal's own.
@@ -350,7 +312,7 @@
         {
             var created = await Db.AuditEvents.AsNoTracking()
                 .Where(e => e.Action == AuditActions.Created && e.EntityType == nameof(Deal) && e.EntityId == id).OrderBy(e => e.Time).FirstOrDefaultAsync();
-            _history.Add(new Happened("Deal created", null, About(created?.ActorName, When.Day(deal.Created, _today)), deal.Created.ToDateTime(TimeOnly.MinValue)));
+            _history.Add(new FeedItem(FeedKind.Event, "Deal created", null, created?.ActorName, When.Day(deal.Created, _today), deal.Created.ToDateTime(TimeOnly.MinValue)));
         }
     }
 

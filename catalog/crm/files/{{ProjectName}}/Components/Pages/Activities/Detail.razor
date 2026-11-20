@@ -108,12 +108,8 @@
                     </Card>
                 }
 
-                @* The notes written here: also on its contact's and its deal's pages. *@
-                <Column Gap="4" As="section" aria-labelledby="activity-notes">
-                    <Heading Level="2" Size="TextSize.Lg" id="activity-notes">Notes</Heading>
-                    <NoteList Notes="_notes" CanEdit="_canEdit" Href="@Here" On="@Here"
-                              New="@(() => new Note { ActivityId = Id, ContactId = activity.ContactId, DealId = activity.DealId })" About="@activity.Title" Workspace="_workspace" Today="_today" />
-                </Column>
+                @* What was decided: notes written here, which are also about its contact and deal. *@
+                <ActivityFeed Title="Notes" Items="_notes" Href="@Here" On="@Here" CanEdit="_canEdit" NotesOnly />
             </Column>
 
             <Column Gap="4">
@@ -174,6 +170,7 @@
 
     @* Edit is this activity; a follow-up is a new one with the same person and deal. *@
     <ActivityDialog CanEdit="_canEdit" Activity="Id" Contact="activity.ContactId" Deal="activity.DealId" />
+    <NoteDialog CanEdit="_canEdit" Activity="Id" Contact="activity.ContactId" Deal="activity.DealId" />
 }
 
 @code {
@@ -185,7 +182,7 @@
 
 
     private Activity? _activity;
-    private List<Note> _notes = [];
+    private List<FeedItem> _notes = [];
     private Workspace? _workspace;
     private DateOnly _today;
     private bool _canEdit;
@@ -215,8 +212,8 @@
             return;
         }
 
-        _notes = await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
-            .Where(n => n.ActivityId == Id).OrderByDescending(n => n.Created).ToListAsync();
+        _notes = (await Db.Notes.AsNoTracking().Include(n => n.Author).Include(n => n.Contact).Include(n => n.Deal).Include(n => n.Company).Include(n => n.Activity)
+            .Where(n => n.ActivityId == Id).OrderByDescending(n => n.Created).ToListAsync()).Select(n => FeedItem.Of(n, _workspace, _today)).ToList();
     }
 
     // Marks it done, now. Its own line in the audit log, as a task ticked on a list is.
