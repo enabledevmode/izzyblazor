@@ -1,0 +1,109 @@
+@namespace IzzyBlazor
+@inject IServiceProvider Services
+@attribute [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off, the buttons and links it's for act without asking.")]
+
+@*
+    One dialog that asks before any of several things act: a menu item, a row's action, an icon
+    button, a link. It names what it's for (For), and they stay as they are: a click on one opens
+    the dialog, and confirming does what the click would have done, whether that posts a form,
+    follows a link or runs C#.
+
+      <MenuItem Class="delete-note" data-confirm="Kickoff notes"
+                Submit Form="notes" Name="delete" Value="5">Delete</MenuItem>
+
+      <ConfirmDialog For=".delete-note" Title="Delete {0}?" Message="This can't be undone."
+                     ConfirmText="Delete" Accent="Accent.Danger" />
+
+    For is an id, or a CSS selector when it starts with "#", "." or "[", so one dialog serves every
+    row of a list. {0} in Title and Message is the data-confirm value of the one clicked, such as
+    the row's name.
+
+    Put it outside any form. For a button of its own that asks first, with JavaScript off too,
+    use ConfirmButton.
+
+    Accessibility:
+    - A modal `dialog` with `role="alertdialog"`, named by `Title` and described by `Message` and
+      `Body`.
+    - Cancel ("Cancel", `CancelText`) takes focus when it opens, so Enter doesn't confirm by
+      accident.
+    - While it's open, focus stays in the dialog; Escape closes it and focus returns to what was
+      clicked, or to its menu's button when that was a menu item. A backdrop click doesn't close
+      it, and there's no close button.
+    - With JavaScript off, what it's for acts without asking.
+    See also: ConfirmButton, Dialog, Menu.
+*@
+
+<ib-confirm data-for="@For" data-title="@Title" data-message="@Message">
+    <Dialog Id="@DialogId"
+            Title="@Title"
+            Size="DialogSize.Sm"
+            QueryKey="@null"
+            ShowCloseButton="false"
+            CloseOnBackdrop="false"
+            role="alertdialog"
+            aria-describedby="@(Message is not null || Body is not null ? MessageId : null)">
+        @if (Message is not null || Body is not null)
+        {
+            <div id="@MessageId" class="ib-confirm-message">
+                @if (Message is not null)
+                {
+                    <p>@Message</p>
+                }
+                @Body
+            </div>
+        }
+        <DialogFooter>
+            <DialogClose autofocus>@(CancelText ?? Text.Cancel)</DialogClose>
+            <Button Accent="Accent" data-ib-confirm>@(ConfirmText ?? Text.Confirm)</Button>
+        </DialogFooter>
+    </Dialog>
+</ib-confirm>
+
+@code {
+    private string? _generatedId;
+
+    /// <summary>
+    /// What it asks for: the id of a button or link, or a CSS selector when it starts with
+    /// <c>#</c>, <c>.</c> or <c>[</c>, such as <c>.delete-note</c> for every row's Delete.
+    /// </summary>
+    [Parameter, EditorRequired] public string For { get; set; } = "";
+
+    /// <summary>
+    /// The question, such as "Delete this note?". Also the dialog's accessible name. <c>{0}</c> is
+    /// the <c>data-confirm</c> value of the one clicked: "Delete {0}?".
+    /// </summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>A line under the question, such as "This can't be undone." <c>{0}</c> works as in <see cref="Title"/>.</summary>
+    [Parameter] public string? Message { get; set; }
+
+    /// <summary>More content under the question, the same for whichever was clicked.</summary>
+    [Parameter] public RenderFragment? Body { get; set; }
+
+    /// <summary>The confirm button's text, such as "Delete". Defaults to "Confirm".</summary>
+    [Parameter] public string? ConfirmText { get; set; }
+
+    /// <summary>The cancel button's text. Defaults to "Cancel".</summary>
+    [Parameter] public string? CancelText { get; set; }
+
+    /// <summary>The confirm button's color: <see cref="Accent.Danger"/> for deleting.</summary>
+    [Parameter] public Accent Accent { get; set; } = Accent.Primary;
+
+    /// <summary>The dialog's id. One is made up without it.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    private string DialogId => Id ?? (_generatedId ??= IdGenerator.Next("ib-confirm"));
+
+    private string MessageId => $"{DialogId}-message";
+
+    private IzzyText Text => IzzyText.From(Services);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(For))
+        {
+            throw new InvalidOperationException("ConfirmDialog needs For: the id of what it asks for, or a selector such as \".delete-note\".");
+        }
+    }
+}

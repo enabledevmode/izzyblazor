@@ -385,6 +385,12 @@ public sealed class RowAction : RowActionBase
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback OnClick { get; set; }
 
+    /// <summary>
+    /// Other attributes, put on the button or the menu item: the <c>Class</c> a <see cref="ConfirmDialog"/> is
+    /// for, say, with <c>data-confirm</c> naming the row. Not an <c>id</c>: an action can be drawn twice.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
     private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope)
     {
         if (scope.InMenu)
@@ -417,6 +423,7 @@ public sealed class RowAction : RowActionBase
             }
         }
 
+        builder.AddMultipleAttributes(13, AdditionalAttributes!);
         builder.CloseComponent();
     }
 }

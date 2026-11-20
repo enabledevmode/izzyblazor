@@ -1761,6 +1761,23 @@
     },
 
     {
+      "id": "confirm-dialog", "icon": "ShieldQuestionMark", "name": "ConfirmDialog", "category": "Overlays", "summary": "Asks before a menu item, row action or link acts: one dialog for a whole list.", "keywords": ["are you sure", "confirmation", "delete row"],
+      "features": [
+        { "feature": "A click on what it's for opens the dialog instead of acting", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Confirming posts the form, follows the link or runs the C# of the one clicked", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "{0} in Title and Message names the one clicked", "noscript": "none", "static": "full", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "confirm-dialog-usage", "title": "Asking before each row's action", "lead": "One `ConfirmDialog` asks for every row's action: set `For` to an id, or to a selector such as `.revoke-key`. To name the row in the question, write `{0}` in `Title` and put `data-confirm` on each button. For a single button that asks first, use a ConfirmButton.",
+          "notes": {
+            "noscript": "The buttons revoke without asking: the form posts as soon as one is pressed.",
+            "static": "Confirming posts the form with the pressed button's revoke value.",
+            "interactive": "Confirming runs the pressed button's OnClick in C#, and nothing is posted."
+          } }
+      ]
+    },
+
+    {
       "id": "reconnect-dialog", "icon": "WifiOff", "name": "ReconnectDialog", "category": "Overlays", "summary": "Tells the user, in your theme, when an interactive server page loses its connection.", "keywords": ["reconnect", "connection lost", "circuit", "components-reconnect-modal"],
       "features": [
         { "feature": "Shows while Blazor rejoins, retries, fails or is paused", "noscript": "none", "static": "none", "interactive": "full" }

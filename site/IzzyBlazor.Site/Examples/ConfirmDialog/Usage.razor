@@ -1,0 +1,51 @@
+<form method="post" @onsubmit="() => Revoke(Posted ?? _revoked)" @formname="api-keys" data-enhance>
+    <AntiforgeryToken />
+    <Card Title="API keys" Size="ControlSize.Sm">
+        <List Plain>
+            @foreach (var key in Keys)
+            {
+                <ListItem Icon="Lucide.KeyRound" Description="@key.Used">
+                    @key.Name
+                    <ListItemActions>
+                        @if (_revoked == key.Id)
+                        {
+                            <Badge Status="Status.Neutral">Revoked</Badge>
+                        }
+                        else
+                        {
+                            <IconButton Class="revoke-key" data-confirm="@key.Name" Label="@($"Revoke {key.Name}")" Icon="Lucide.Trash"
+                                        Submit Name="revoke" Value="@key.Id" OnClick="() => Revoke(key.Id)"
+                                        Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                        }
+                    </ListItemActions>
+                </ListItem>
+            }
+        </List>
+    </Card>
+</form>
+
+@* One dialog for every row's button: {0} is the clicked button's data-confirm. *@
+<ConfirmDialog For=".revoke-key" Title="Revoke {0}?" Message="Apps that use this key stop working at once."
+               ConfirmText="Revoke key" Accent="Accent.Danger" />
+
+@code {
+    // Static pages: the confirmed button's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "api-keys", Name = "revoke")]
+    private string? Posted { get; set; }
+
+    private string? _revoked;
+
+    // Interactive pages post nothing (Posted stays empty), so OnClick says which key it was.
+    private void Revoke(string? id) => _revoked = id;
+
+    @* hide *@
+    private sealed record Key(string Id, string Name, string Used);
+
+    private static readonly Key[] Keys =
+    [
+        new("prod", "Production server", "Last used 2 hours ago"),
+        new("ci", "CI pipeline", "Last used yesterday"),
+        new("local", "Dana's laptop", "Last used Oct 3"),
+    ];
+    @* /hide *@
+}
