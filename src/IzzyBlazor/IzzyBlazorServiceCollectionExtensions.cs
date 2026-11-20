@@ -1,4 +1,5 @@
 using IzzyBlazor;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,12 @@ public static class IzzyBlazorServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.TryAddScoped<IToastCarrier, CookieToastCarrier>();
         services.TryAddScoped<IRequestCookies, HttpRequestCookies>();
+
+        // A static page that fails after an ErrorGuard caught an exception renders again with the
+        // guard's message (see ErrorGuardRerender).
+        services.TryAddScoped<IErrorGuardReplay, HttpErrorGuardReplay>();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IExceptionHandler, ErrorGuardRerender>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IDeveloperPageExceptionFilter, ErrorGuardRerender>());
         return services;
     }
 }

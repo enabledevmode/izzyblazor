@@ -17,17 +17,22 @@
       layout: Blazor's own boundary stays in its error state after the user navigates away.
     - ShowDetails adds the exception in a collapsed section; set it from the environment so only
       Development shows it.
+    - On a static page, ASP.NET Core fails the request when the content a guard removes held a form
+      (dotnet/aspnetcore#70640). AddIzzyBlazor renders the page again with the guard's message in
+      place; this needs the app's UseExceptionHandler (or the developer exception page). A post isn't
+      rendered again, since its handler could run twice: it gets the app's error page.
     - A popup that renders outside it (a Dialog, a Menu's panel) isn't inside it; guard the
       content of the popup too.
 *@
 
-@if (CurrentException is null)
+@{ var caught = CurrentException ?? _caughtBefore; }
+@if (caught is null)
 {
     @ChildContent
 }
 else if (ErrorContent is not null)
 {
-    @ErrorContent(CurrentException)
+    @ErrorContent(caught)
 }
 else
 {
@@ -48,7 +53,7 @@ else
                 {
                     <details class="ib-error-guard-details">
                         <summary>@text.ErrorDetails</summary>
-                        <Code Block Highlight="false" MaxHeight='Length.Of("16rem")'>@CurrentException.ToString()</Code>
+                        <Code Block Highlight="false" MaxHeight='Length.Of("16rem")'>@caught.ToString()</Code>
                     </details>
                 }
             </Stack>
@@ -86,14 +91,27 @@ else
 
     private string ClassName => string.IsNullOrWhiteSpace(Class) ? "ib-error-guard" : $"ib-error-guard {Class}";
 
+    // Static pages only: see IErrorGuardReplay.
+    private IErrorGuardReplay? _replay;
+    private int _index = -1;
+    private Exception? _caughtBefore;
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        if (!RendererInfo.IsInteractive && Services.GetService(typeof(IErrorGuardReplay)) is IErrorGuardReplay replay)
+        {
+            _replay = replay;
+            _index = replay.Join();
+            _caughtBefore = replay.CaughtBefore(_index);
+        }
+
         if (ResetOnNavigation) Navigation.LocationChanged += OnLocationChanged;
     }
 
     protected override async Task OnErrorAsync(Exception exception)
     {
+        _replay?.Caught(_index, exception);
         await base.OnErrorAsync(exception);
         await OnError.InvokeAsync(exception);
     }
