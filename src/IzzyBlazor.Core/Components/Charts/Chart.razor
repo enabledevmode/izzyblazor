@@ -744,6 +744,12 @@
         var valueRight = !horizontal && _valueAxis?.Position == ChartAxisPosition.Right;
 
         @* A bubble chart's size key goes where the legend does, with or without the series' keys. *@
+        // A line the legend can't name (there's none, or it's a waterfall's keys) keeps its own label.
+        if (!legend || waterfall is not null)
+        {
+            for (var i = 0; i < model.Marks.Count; i++) model.Marks[i] = model.Marks[i] with { InLegend = false };
+        }
+
         var keyed = legend || (Legend != ChartLegend.None && model.SizeKey is not null);
         @* In the top corner, across from the title, when the chart is wide enough (chart.css). *@
         var cornerKey = keyed && model.SizeKey is not null && TitledBy is null && !HideTitle && Place is ChartLegend.Top or ChartLegend.Bottom;
