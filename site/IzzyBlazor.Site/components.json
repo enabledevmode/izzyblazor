@@ -1827,13 +1827,19 @@
       "features": [
         { "feature": "Opens by right-click, long press, the menu key or Shift+F10", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Links and form posts as items" },
+        { "feature": "One menu for every card of a list, told which was pressed", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Focus goes back where it was", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
-        { "id": "context-menu-usage", "title": "A folder's menu", "lead": "Set `For` to the id of the element that opens the menu, and `Label` to name it; give its actions another way in, here the toolbar. A selector such as `.folder` opens it from every match, for actions that are the same for all. For one card's actions, give each card a Menu with `ContextFor`.",
+        { "id": "context-menu-usage", "title": "A folder's menu", "lead": "Set `For` to the id of the element that opens the menu, and `Label` to name it. Right-click can't be seen, so give its actions another way in, here the toolbar. For a menu with a button that also opens by right-click, use a Menu's `ContextFor`.",
           "notes": {
             "noscript": "Right-click shows the browser's own menu; the toolbar has the same actions.",
             "static": "IzzyBlazor's script opens the menu at the pointer. Its items are links."
+          } },
+        { "id": "context-menu-shared", "title": "One menu for every card", "lead": "A selector as `For`, such as `.file-card`, opens one menu from every element it matches. Each says which it is with `data-menu-value`, and `{0}` in an item's `Value` or `Href` is the value of the one pressed. On interactive pages `OnOpen` gets it, for items that run C#.",
+          "notes": {
+            "noscript": "Right-click shows the browser's own menu, so each file needs its actions somewhere else too, such as its own page.",
+            "static": "IzzyBlazor's script puts the pressed card's value into the items as the menu opens. Open is a link; Duplicate and Delete post the form."
           } }
       ]
     },

@@ -92,6 +92,16 @@ public sealed class IzzyTilesEventArgs : EventArgs
     public int Seq { get; set; }
 }
 
+/// <summary>
+/// Data for the <c>ibcontext</c> event, which IzzyBlazor's script raises when a <c>ContextMenu</c>
+/// opens on an interactive page. Apps use its <c>OnOpen</c>.
+/// </summary>
+public sealed class IzzyContextEventArgs : EventArgs
+{
+    /// <summary>The <c>data-menu-value</c> of the element it opened in.</summary>
+    public string? Value { get; set; }
+}
+
 /// <summary>Registers IzzyBlazor's custom events with the Razor compiler.</summary>
 /// <remarks>
 /// Within this assembly, Razor compiles <c>@onibmove:stopPropagation</c> on these events as a plain
@@ -104,6 +114,7 @@ public sealed class IzzyTilesEventArgs : EventArgs
 [EventHandler("onibmove", typeof(IzzyMoveEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("oniblayout", typeof(IzzyLayoutEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibtiles", typeof(IzzyTilesEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("onibcontext", typeof(IzzyContextEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibscheme", typeof(IzzySchemeEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 public static class EventHandlers
 {

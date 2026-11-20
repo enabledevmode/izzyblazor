@@ -46,6 +46,10 @@ function listen(): void {
  * the element with that id, or each one a selector matches when it starts with "#", "." or "[". A
  * menu whose element is nearer the press (a row's, another ContextFor's) wins. Escape or a choice
  * puts focus back where it was when the menu opened.
+ *
+ * The pressed element's data-menu-value says which it is: it replaces "{0}" in the items' value
+ * and href, and goes to C# as `ibcontext` (ContextMenu OnOpen). A menu that uses it stays shut in
+ * an element without one.
  */
 class ContextMenu extends IzzyElement {
   protected setup(signal: AbortSignal): void {
@@ -60,10 +64,32 @@ class ContextMenu extends IzzyElement {
       return;
     }
 
+    // An item's Value or Href with "{0}" in it, as rendered: the pressed element's value goes there.
+    const templates = new WeakMap<Element, string>();
+    const fill = (item: Element, attribute: string, value: string): boolean => {
+      const now = item.getAttribute(attribute) ?? "";
+      // Rendered again since the last fill, or never filled.
+      if (/\{0\}|%7B0%7D/i.test(now)) templates.set(item, now);
+      const template = templates.get(item);
+      if (template === undefined) return false;
+      item.setAttribute(attribute, template.replace(/\{0\}|%7B0%7D/gi, attribute === "href" ? encodeURIComponent(value) : value));
+      return true;
+    };
+
     let back: HTMLElement | null = null;
     const entry: Entry = {
       selector,
       open: (region, x, y) => {
+        const value = region.dataset.menuValue;
+        let asks = this.dataset.needsValue !== undefined;
+        for (const item of panel.querySelectorAll("a[href], button[value]")) {
+          asks = fill(item, item instanceof HTMLAnchorElement ? "href" : "value", value ?? "") || asks;
+        }
+        if (asks && value === undefined) {
+          console.warn("IzzyBlazor: this context menu uses the pressed element's value ({0} in an item, or OnOpen), and the element has no data-menu-value.", region);
+          return;
+        }
+        if (value !== undefined) this.emit("ibcontext", { value });
         // What had focus in the element; else the menu's own rule (its button) applies.
         const active = document.activeElement;
         back = active instanceof HTMLElement && region.contains(active) ? active : null;
