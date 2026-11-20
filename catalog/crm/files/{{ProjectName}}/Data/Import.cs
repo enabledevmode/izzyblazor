@@ -51,9 +51,19 @@ public class Import
     {
         if (file is not { Length: > 0 }) return (null, "Choose a CSV file.");
         if (file.Length > MaxBytes) return (null, "Choose a file of 1 MB or less.");
-        // UTF-8, or what the file's byte order mark says.
-        using var reader = new StreamReader(file.OpenReadStream(), Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-        var text = await reader.ReadToEndAsync();
+        // UTF-8, or what the file's byte order mark says. One that isn't UTF-8 is read as Windows-1252, which is
+        // what Excel's plain "CSV" writes: read as UTF-8, its accented letters would be lost.
+        using var bytes = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(bytes);
+        string Decode(Encoding encoding)
+        {
+            bytes.Position = 0;
+            using var reader = new StreamReader(bytes, encoding, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
+            return reader.ReadToEnd();
+        }
+        string text;
+        try { text = Decode(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true)); }
+        catch (DecoderFallbackException) { text = Decode(CodePagesEncodingProvider.Instance.GetEncoding(1252) ?? Encoding.Latin1); }
         if (text.Contains('\0')) return (null, "Choose a CSV file. This one isn’t text.");
 
         var name = Path.GetFileName(file.FileName.Replace('\\', '/')).Trim();

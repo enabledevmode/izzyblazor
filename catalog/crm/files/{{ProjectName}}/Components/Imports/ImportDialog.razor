@@ -88,9 +88,9 @@
 
         (import.Match, import.OwnerId) = (Input.Match, Input.OwnerId is { } owner && _owners.ContainsKey(owner) ? owner : _me);
         (import.CreatedById, import.Created) = (_me, DateTime.UtcNow);
-        // Uploads nobody imported are cleared out after a day.
+        // Uploads nobody imported are cleared out after a day, and yours of this kind now: this file takes their place.
         var old = DateTime.UtcNow.AddDays(-1);
-        await Db.Imports.Where(i => i.Created < old).ExecuteDeleteAsync();
+        await Db.Imports.Where(i => i.Created < old || (i.CreatedById == _me && i.Kind == Kind)).ExecuteDeleteAsync();
         Db.Imports.Add(import);
         await Db.SaveChangesAsync();
         Navigation.NavigateTo($"{Kind.ToString().ToLowerInvariant()}/import/{import.Id}");
