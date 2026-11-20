@@ -1,0 +1,309 @@
+@page "/reports"
+@attribute [Authorize(Policy = Policies.ViewRecords)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+
+<PageTitle>Sales overview</PageTitle>
+
+@* Sales overview: what the team won this month, quarter or year (?period=), against the one before and against
+   each person's target (ApplicationUser.MonthlyTarget), and where the open pipeline stands today: its value by
+   stage, the deals that need attention and the ones due to close next. Won and lost come from a deal's Closed
+   day; expected revenue is the open deals by the month they're due to close. *@
+<PageCrumbs><BreadcrumbItem>Reports</BreadcrumbItem></PageCrumbs>
+
+<Column Gap="6">
+    <PageHeader Title="Sales overview" Description="@($"{_name} · Team performance")">
+        <PageHeaderActions>
+            <TabNav Label="Report period" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+                <TabLink Href="reports" Label="This month" Current="@(_period == "month")" />
+                <TabLink Href="reports?period=quarter" Label="This quarter" Current="@(_period == "quarter")" />
+                <TabLink Href="reports?period=year" Label="This year" Current="@(_period == "year")" />
+            </TabNav>
+        </PageHeaderActions>
+    </PageHeader>
+
+    <Column Gap="4">
+        <Grid Columns="new() { Base = 2, Lg = 4 }" Gap="4">
+            <Card>
+                <Stat Label="@($"Won this {_period}")" Value="@Money(_won.Sum(d => d.Value))"
+                      Change="@_change" Trend="_trend" ChangeStatus="@(_trend == StatTrend.Down ? Status.Danger : Status.Success)" Description="@(_change is null ? $"Nothing won in {_before}" : $"vs {_before}")"
+                      Sparkline="_history" SparklineType="SparklineType.Area" SparklineFormat="@_format"
+                      SparklineLabel="@($"Won this {_period}, last {_history.Length} {_period}s")" />
+            </Card>
+            <Card><Stat Label="Open pipeline" Value="@Money(_open.Sum(d => d.Value))" Description="@($"{Count(_open.Count, "deal")} · {Count(_stages.Count, "stage")}")" /></Card>
+            <Card>
+                <Stat Label="Win rate" Value="@(_won.Count + _lost == 0 ? "—" : (_won.Count / (double)(_won.Count + _lost)).ToString("P0"))"
+                      Description="@(_won.Count + _lost == 0 ? "No deals closed yet" : $"{_won.Count:N0} won, {_lost:N0} lost")" />
+            </Card>
+            <Card>
+                <Stat Label="Average won deal" Value="@(_won.Count == 0 ? "—" : Money(Math.Round(_won.Average(d => d.Value))))"
+                      Description="@($"{Count(_won.Count, "deal")} won in {_short}")" />
+            </Card>
+        </Grid>
+
+        <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
+            <Card Title="Won and expected revenue" TitleLevel="2" TitleId="report-revenue">
+                <Chart Items="_months" Argument="m => m.Month" TitledBy="report-revenue" Stacking="ChartStacking.Normal" Legend="ChartLegend.Top" Height="Length.Rem(14)">
+                    <ChartValueAxis Format="@_axis" />
+                    <ChartBarSeries Value="m => m.Won" Name="Won" Labels="ChartLabels.Auto" LabelFormat="@_format" />
+                    <ChartBarSeries Value="m => m.Expected" Name="Expected to close" Labels="ChartLabels.Auto" LabelFormat="@_format" />
+                    @if (_target > 0)
+                    {
+                        <ChartReferenceLine Value="(double)_target" Label="@($"Target {Money(_target)}")" LabelAlign="ChartAlign.End" />
+                    }
+                </Chart>
+            </Card>
+
+            <Card Title="Open value by stage" TitleLevel="2" TitleId="report-stages">
+                <CardActions><Button Href="deals" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" EndIcon="Lucide.ArrowRight">View pipeline</Button></CardActions>
+                @if (_open.Count > 0)
+                {
+                    <Chart Items="_stages" Argument="s => s.Stage" TitledBy="report-stages" Orientation="Orientation.Horizontal" Height="Length.Rem(14)">
+                        <ChartValueAxis HideLabels GridLines="false" />
+                        <ChartBarSeries Value="s => s.Value" Name="Open value" LabelText="s => s.Label" />
+                    </Chart>
+                }
+                else
+                {
+                    <EmptyState Icon="Lucide.Handshake" Size="ControlSize.Sm" Title="No open deals" Description="Deals in the pipeline show here by stage." />
+                }
+            </Card>
+        </Grid>
+
+        <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
+            <Card Title="@($"Team vs {_targetName} target")" TitleLevel="2" TitleId="report-team">
+                @if (_team.Count > 0)
+                {
+                    <BulletChart Items="_team" TitledBy="report-team" Label="p => p.Name" Value="p => p.Won" Target="p => p.Target" Accent="Accent.Primary"
+                                 Ranges="p => new[] { p.Target * 0.5, p.Target * 0.9 }" RangeLabels="@(["Under 50%", "50–90%", "90% or more"])" ValueFormat="@_format" />
+                }
+                else
+                {
+                    <EmptyState Icon="Lucide.Target" Size="ControlSize.Sm" Title="No targets yet" Description="Give a team member a monthly target to measure what they win against it." />
+                }
+            </Card>
+
+            <Card Title="Deals at risk" TitleLevel="2">
+                <CardBody Flush>
+                    @if (_risks.Count > 0)
+                    {
+                        <ListView Items="_risks" ItemKey="r => r.Deal.Id.ToString()" ItemLabel="r => r.Deal.Name" Label="Deals at risk" Context="risk">
+                            <ChildContent>
+                                <Column Gap="1">
+                                    <Column Gap="0">
+                                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium"><Anchor Href="@($"deals/{risk.Deal.Id}")" InheritColor Underline="AnchorUnderline.Hover">@risk.Deal.Name</Anchor></TextBlock>
+                                        <TextBlock Size="TextSize.Xs" Color="Color.Muted">@About(risk.Deal.Company?.Name, risk.Deal.Owner?.Name)</TextBlock>
+                                    </Column>
+                                    @* A phone has the reason under the deal, a wider screen beside its value. *@
+                                    <Row HiddenFrom="Breakpoint.Sm"><Badge Status="Status.Warning">@risk.Reason</Badge></Row>
+                                </Column>
+                            </ChildContent>
+                            <ItemActions>
+                                <Row Gap="3" Align="Align.Center">
+                                    <Row VisibleFrom="Breakpoint.Sm"><Badge Status="Status.Warning">@risk.Reason</Badge></Row>
+                                    <TextBlock As="span" Size="TextSize.Sm" Weight="FontWeight.Semibold" TabularNums>@Money(risk.Deal.Value)</TextBlock>
+                                </Row>
+                            </ItemActions>
+                        </ListView>
+                    }
+                    else
+                    {
+                        <EmptyState Icon="Lucide.CircleCheck" Size="ControlSize.Sm" Title="Nothing at risk" Description="Every open deal has a next step and recent activity." />
+                    }
+                </CardBody>
+            </Card>
+        </Grid>
+
+        <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
+            <Card Title="Deals closing next" TitleLevel="2">
+                <CardBody Flush>
+                    @if (_next.Count > 0)
+                    {
+                        <ListView Items="_next" ItemKey="d => d.Id.ToString()" ItemLabel="d => d.Name" Label="Deals closing next" Context="deal">
+                            <ChildContent>
+                                <Column Gap="1">
+                                    <Column Gap="0">
+                                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium"><Anchor Href="@($"deals/{deal.Id}")" InheritColor Underline="AnchorUnderline.Hover">@deal.Name</Anchor></TextBlock>
+                                        <TextBlock Size="TextSize.Xs" Color="Color.Muted">
+                                            @About(deal.Company?.Name, deal.Owner?.Name) ·
+                                            <TextBlock As="span" Color="@(deal.ExpectedClose < _today ? Color.DangerText : Color.Muted)">@Closes(deal.ExpectedClose)</TextBlock>
+                                        </TextBlock>
+                                    </Column>
+                                    <Row HiddenFrom="Breakpoint.Sm"><Badge Status="Tones.Of(deal.Stage)">@deal.Stage</Badge></Row>
+                                </Column>
+                            </ChildContent>
+                            <ItemActions>
+                                <Row Gap="3" Align="Align.Center">
+                                    <Row VisibleFrom="Breakpoint.Sm"><Badge Status="Tones.Of(deal.Stage)">@deal.Stage</Badge></Row>
+                                    <TextBlock As="span" Size="TextSize.Sm" Weight="FontWeight.Semibold" TabularNums>@Money(deal.Value)</TextBlock>
+                                </Row>
+                            </ItemActions>
+                        </ListView>
+                    }
+                    else
+                    {
+                        <EmptyState Icon="Lucide.Handshake" Size="ControlSize.Sm" Title="No open deals" Description="The deals due to close soonest show here." />
+                    }
+                </CardBody>
+            </Card>
+
+            <Card Title="Won by source" TitleLevel="2" TitleId="report-sources">
+                @if (_sources.Count > 0)
+                {
+                    <Chart Items="_sources" Argument="s => s.Source" TitledBy="report-sources" Orientation="Orientation.Horizontal" Height="@Length.Rem(2.5 + 2.25 * _sources.Count)">
+                        <ChartValueAxis HideLabels GridLines="false" />
+                        <ChartBarSeries Value="s => s.Value" Name="Won" Labels="ChartLabels.Auto" LabelFormat="@_format" />
+                    </Chart>
+                }
+                else
+                {
+                    <EmptyState Icon="Lucide.Trophy" Size="ControlSize.Sm" Title="Nothing won yet" Description="@($"Deals won in {_short} show here by where they came from.")" />
+                }
+            </Card>
+        </Grid>
+    </Column>
+</Column>
+
+@code {
+    /// <summary>The period reported: "quarter", "year", or the month without it.</summary>
+    [SupplyParameterFromQuery] private string? Period { get; set; }
+
+    // An open deal is at risk when nothing has happened on it for this many days.
+    private const int QuietDays = 14;
+
+    // Deals closing next lists this many.
+    private const int Shown = 4;
+
+    private Workspace _workspace = new();
+    private DateOnly _today;
+    private string _period = "month", _name = "", _short = "", _before = "", _targetName = "monthly", _format = "", _axis = "";
+    private string? _change;
+    private StatTrend _trend;
+    private double?[] _history = [];
+    private decimal _target;
+    private int _lost;
+    private List<Deal> _won = [], _open = [], _next = [];
+    private List<MonthRevenue> _months = [];
+    private List<StageValue> _stages = [];
+    private List<Seller> _team = [];
+    private List<Risk> _risks = [];
+    private List<SourceValue> _sources = [];
+
+    // A month of the revenue chart: what was won in it, and what open deals are due to close in it.
+    private sealed record MonthRevenue(string Month, decimal? Won, decimal? Expected);
+
+    // A stage's open deals, with the bar's label: "$24,000 · 2 deals".
+    private sealed record StageValue(string Stage, decimal Value, string Label);
+
+    // Someone with a target: what they won in the period, and the period's target.
+    private sealed record Seller(string Name, double Won, double Target);
+
+    private sealed record Risk(Deal Deal, string Reason);
+
+    private sealed record SourceValue(string Source, decimal Value);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync() ?? new Workspace();
+        _today = Clock.Today(_workspace);
+        _format = _workspace.CurrencySymbol + "#,##0";
+        _axis = $"{_workspace.CurrencySymbol}#,##0,k;;{_workspace.CurrencySymbol}0";
+
+        // The period: its first day, how many months it has, and what it and the one before are called.
+        _period = Period is "quarter" or "year" ? Period : "month";
+        var month = new DateOnly(_today.Year, _today.Month, 1);
+        var (start, length) = _period switch
+        {
+            "quarter" => (new DateOnly(_today.Year, (_today.Month - 1) / 3 * 3 + 1, 1), 3),
+            "year" => (new DateOnly(_today.Year, 1, 1), 12),
+            _ => (month, 1),
+        };
+        var end = start.AddMonths(length);
+        string Named(DateOnly from, bool full) => _period switch
+        {
+            "quarter" => full || from.Year != start.Year ? $"Q{(from.Month + 2) / 3} {from.Year}" : $"Q{(from.Month + 2) / 3}",
+            "year" => from.Year.ToString(),
+            _ => from.ToString(full || from.Year != start.Year ? "MMMM yyyy" : "MMMM"),
+        };
+        (_name, _short, _before) = (Named(start, true), Named(start, false), Named(start.AddMonths(-length), false));
+        _targetName = _period switch { "quarter" => "quarterly", "year" => "yearly", _ => "monthly" };
+
+        // Every deal, with who it's with and whose it is: a small team's pipeline is a few hundred rows, and SQLite
+        // can't add up decimals itself.
+        var deals = await Db.Deals.AsNoTracking().Include(d => d.Company).Include(d => d.Owner).ToListAsync();
+        _open = deals.Where(d => d.IsOpen).ToList();
+        List<Deal> WonIn(DateOnly from, DateOnly to) => deals.Where(d => d.Stage == DealStage.Won && d.Closed >= from && d.Closed < to).ToList();
+        _won = WonIn(start, end);
+        _lost = deals.Count(d => d.Stage == DealStage.Lost && d.Closed >= start && d.Closed < end);
+
+        // Against the period before, and the last three periods as the stat's line.
+        var (now, before) = (_won.Sum(d => d.Value), WonIn(start.AddMonths(-length), start).Sum(d => d.Value));
+        (_change, _trend) = before == 0 ? (null, StatTrend.None)
+            : (Math.Abs((now - before) / before).ToString("P0"), now > before ? StatTrend.Up : now < before ? StatTrend.Down : StatTrend.Flat);
+        _history = [.. Enumerable.Range(0, 3).Select(i => (double?)WonIn(start.AddMonths(-length * (2 - i)), start.AddMonths(-length * (1 - i))).Sum(d => d.Value))];
+
+        // Revenue by month: this month with two each side, or the quarter's or year's months. An open deal past its
+        // close date is expected this month.
+        var (first, count) = _period == "month" ? (month.AddMonths(-2), 5) : (start, length);
+        decimal? Some(decimal sum) => sum == 0 ? null : sum;
+        _months = Enumerable.Range(0, count).Select(i => first.AddMonths(i)).Select(m => new MonthRevenue(
+            m.ToString("MMM"),
+            Some(WonIn(m, m.AddMonths(1)).Sum(d => d.Value)),
+            Some(_open.Where(d => (d.ExpectedClose < month ? month : d.ExpectedClose) is var due && due >= m && due < m.AddMonths(1)).Sum(d => d.Value)))).ToList();
+
+        // Open value by stage, in the pipeline's order.
+        _stages = _open.GroupBy(d => d.Stage).OrderBy(g => g.Key)
+            .Select(g => new StageValue(g.Key.ToString(), g.Sum(d => d.Value), $"{Money(g.Sum(d => d.Value))} · {Count(g.Count(), "deal")}")).ToList();
+
+        // Each person with a target: the period's is their monthly one times its months. The team's is the chart's line.
+        var sellers = await Db.Users.AsNoTracking().Where(u => u.MonthlyTarget != null).ToListAsync();
+        sellers = sellers.Where(u => u.MonthlyTarget > 0).OrderBy(u => u.Name ?? u.Email).ToList();
+        _target = sellers.Sum(u => u.MonthlyTarget!.Value);
+        _team = sellers.Select(u =>
+        {
+            var (won, target) = ((double)_won.Where(d => d.OwnerId == u.Id).Sum(d => d.Value), (double)u.MonthlyTarget!.Value * length);
+            return new Seller(u.Name ?? u.Email ?? "", won, target);
+        }).ToList();
+
+        // At risk: past its close date, with nothing ahead on the calendar, or quiet for two weeks. A deal's last
+        // activity is the latest of when it was created or changed, an activity on it finished, or a note written.
+        var openIds = _open.Select(d => d.Id).ToList();
+        var activities = await Db.Activities.AsNoTracking().Where(a => a.DealId != null && openIds.Contains(a.DealId.Value))
+            .Select(a => new { DealId = a.DealId!.Value, a.Completed }).ToListAsync();
+        var notes = await Db.Notes.AsNoTracking().Where(n => n.DealId != null && openIds.Contains(n.DealId.Value))
+            .Select(n => new { DealId = n.DealId!.Value, n.Created }).ToListAsync();
+        var keys = openIds.Select(id => id.ToString()).ToList();
+        var changes = await Db.AuditEvents.AsNoTracking().Where(e => e.EntityType == nameof(Deal) && keys.Contains(e.EntityId!))
+            .Select(e => new { e.EntityId, e.Time }).ToListAsync();
+        DateOnly Local(DateTime utc) => DateOnly.FromDateTime(When.Local(utc, _workspace));
+        _risks = _open.OrderByDescending(d => d.Value).Select(d =>
+        {
+            var last = new[] { d.Created }
+                .Concat(activities.Where(a => a.DealId == d.Id && a.Completed != null).Select(a => Local(a.Completed!.Value)))
+                .Concat(notes.Where(n => n.DealId == d.Id).Select(n => Local(n.Created)))
+                .Concat(changes.Where(e => e.EntityId == d.Id.ToString()).Select(e => Local(e.Time)))
+                .Max();
+            var quiet = _today.DayNumber - last.DayNumber;
+            var reason = d.ExpectedClose < _today ? "Close date passed"
+                : !activities.Any(a => a.DealId == d.Id && a.Completed == null) ? "No next step"
+                : quiet >= QuietDays ? $"No activity in {quiet:N0} days"
+                : null;
+            return reason is null ? null : new Risk(d, reason);
+        }).OfType<Risk>().ToList();
+
+        _next = _open.OrderBy(d => d.ExpectedClose).ThenByDescending(d => d.Value).Take(Shown).ToList();
+
+        _sources = _won.GroupBy(d => d.Source).Select(g => new SourceValue(g.Key is { } source ? Names.Of(source) : "Not recorded", g.Sum(d => d.Value)))
+            .OrderByDescending(s => s.Value).ToList();
+    }
+
+    // "Closes tomorrow", "Closes Nov 27"; "Was due Nov 12" once the day has passed.
+    private string Closes(DateOnly day) => day < _today ? $"Was due {When.Date(day, _today)}"
+        : $"Closes {(day.DayNumber - _today.DayNumber <= 1 ? When.Day(day, _today).ToLowerInvariant() : When.Date(day, _today))}";
+
+    private string Money(decimal amount) => _workspace.Money(amount);
+
+    private static string Count(int count, string noun) => $"{count:N0} {noun}{(count == 1 ? "" : "s")}";
+
+    private static string About(params string?[] parts) => string.Join(" · ", parts.Where(p => !string.IsNullOrEmpty(p)));
+}
