@@ -70,13 +70,6 @@ public static class When
         return offset == TimeSpan.Zero ? "UTC" : $"UTC{(offset < TimeSpan.Zero ? "−" : "+")}{offset:h\\:mm}".Replace(":00", "");
     }
 
-    /// <summary>A time the database keeps in UTC, as a time in the workspace's zone: for components that take one, such as Comment.</summary>
-    public static DateTimeOffset Zoned(DateTime utc, Workspace? workspace)
-    {
-        var at = new DateTimeOffset(DateTime.SpecifyKind(utc, DateTimeKind.Utc));
-        return workspace is null ? at : TimeZoneInfo.ConvertTime(at, TimeZoneInfo.FindSystemTimeZoneById(workspace.TimeZone));
-    }
-
     /// <summary>A time the database keeps in UTC (when something was done), on the workspace's clock.</summary>
     public static DateTime Local(DateTime utc, Workspace? workspace) =>
         workspace is null ? utc : TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), TimeZoneInfo.FindSystemTimeZoneById(workspace.TimeZone));

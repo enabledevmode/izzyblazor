@@ -78,7 +78,7 @@
         var user = (await Auth.GetAuthenticationStateAsync()).User;
         if (!user.IsInRole(Roles.Admin) && !user.IsInRole(Roles.Manager) && !user.IsInRole(Roles.Viewer)) return;
 
-        var me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var me = user.UserId();
         var tomorrow = Clock.Today(workspace).AddDays(1).ToDateTime(TimeOnly.MinValue);
         _due = await Db.Activities.CountAsync(a => a.Type == ActivityType.Task && a.Completed == null && a.AssignedToId == me && a.Start < tomorrow);
         _contacts = await Db.Contacts.CountAsync();

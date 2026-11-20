@@ -15,7 +15,7 @@
 {
     var (one, many) = Kind == ImportKind.Companies ? ("company", "companies") : ("contact", "contacts");
     <Dialog Id="@IdOf(Kind)" Title="@($"Import {many}")" CloseOnBackdrop="false">
-        <Form Model="Input" FormName="import" OnSubmit="PreviewAsync" Multipart>
+        <Form Model="Input" FormName="import" OnSubmit="PreviewAsync">
             <TextBlock Color="Color.Muted">@(Kind == ImportKind.Companies ? "Bring your accounts into your workspace." : "Bring existing relationships into your workspace.")</TextBlock>
             <Fieldset Label="Upload a CSV" Description="@($"Expected columns: {(Kind == ImportKind.Companies ? "name, website, industry, size, city, country" : "first_name, last_name, email, company, phone")}.")">
                 <FileUpload Name="File" Label="Choose CSV file" Accept=".csv" MaxFileSize="Import.MaxBytes" Required Errors="_problems"
@@ -70,7 +70,7 @@
         if (!CanEdit || Dialog != IdOf(Kind)) return;
         _owners = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
         _ownerIds = _owners.OrderBy(o => o.Value).Select(o => (string?)o.Key).ToList();
-        _me = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _me = (await AuthState).User.UserId();
         // Yours, unless you say otherwise.
         Input ??= new() { OwnerId = _me };
     }

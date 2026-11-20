@@ -100,17 +100,11 @@
             }
             if (await Admin.UpdateAsync(user, Input, me) is { } why)
             {
-                Fail(form, why.Contains("email", StringComparison.OrdinalIgnoreCase) ? nameof(Input.Email) : nameof(Input.Role), why);
+                Fail(form, why.Field, why.Message);
                 return;
             }
             Toasts.Success($"{Input.Shown} is up to date.", "Member saved");
         }
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = null, ["member"] = null }));
-    }
-
-    private static void Fail(EditContext form, string field, string message)
-    {
-        new ValidationMessageStore(form).Add(form.Field(field), message);
-        form.NotifyValidationStateChanged();
     }
 }

@@ -90,9 +90,8 @@
                 return;
             }
 
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            // Wrong passwords count towards locking the account (Identity's Lockout options: five, for five minutes).
+            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
         }
 
         if (result.Succeeded)
@@ -121,6 +120,7 @@
     {
         [Required]
         [EmailAddress]
+        [StringLength(256)]
         public string Email { get; set; } = "";
 
         [Required]

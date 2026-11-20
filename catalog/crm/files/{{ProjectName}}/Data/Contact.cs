@@ -36,7 +36,11 @@ public class Contact : IAudited
 
     public DateOnly Added { get; set; }
 
-    /// <summary>The last time anything happened with them, in UTC: the Contacts list sorts by it.</summary>
+    /// <summary>
+    /// The last time anything happened with them, in UTC: the Contacts list sorts by it. A note about them or a
+    /// finished activity with them sets it (ApplicationDbContext.TouchContactAsync).
+    /// </summary>
+    [NotAudited]
     public DateTime? LastActivity { get; set; }
 
     public string Name => $"{FirstName} {LastName}";

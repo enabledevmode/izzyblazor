@@ -1,7 +1,6 @@
 @page "/deals/{Id:int}"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
-@using System.ComponentModel.DataAnnotations
 @inject ApplicationDbContext Db
 @inject Audit Audit
 @inject NavigationManager Navigation
@@ -13,9 +12,8 @@
 @* A deal: where it is in the pipeline, what it's worth, what's next and what's been done. The stage strip follows
    the deal's stage, which changes from the header: Mark as won, or the arrow beside it for another stage (or
    lost). Each posts here, writes "Changed stage" in the audit log and comes back with a toast. On a phone the
-   same actions float in the corner, with the next stage in place of the menu. Activity and Notes are tabs with
-   an address each (/deals/3, /deals/3/notes). Notes are the team's own about the deal
-   (Components/Activities/ActivityFeed.razor), and its files are in the database (Components/Deals/DealAttachments.razor).
+   same actions float in the corner, with the next stage in place of the menu. Its activity and the team's notes about
+   it are one feed (Components/Activities/ActivityFeed.razor), and its files are in the database (Components/Deals/DealAttachments.razor).
    People who can't edit records (Viewers) read everything and see no buttons. *@
 @if (_deal is { } deal)
 {
@@ -168,13 +166,10 @@
     /// <summary>The deal.</summary>
     [Parameter] public int Id { get; set; }
 
-
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
     // The stage a button posted: a DealStage's name.
     [SupplyParameterFromForm(FormName = "deal-action", Name = "stage")] private string? StagePost { get; set; }
-
-
 
     // The stages a deal moves through while it's open, in order.
     private static readonly DealStage[] Pipeline = [DealStage.Discovery, DealStage.Qualified, DealStage.Proposal, DealStage.Negotiation];
@@ -212,9 +207,8 @@
     };
     private List<FeedItem> _history = [];
     private bool _canEdit;
-    private string? _me;
 
-    // This tab's address: where the file dialogs open and come back to.
+    // The page's address: where the dialogs open and come back to.
     private string Here => $"deals/{Id}";
 
     // Edit opens the deal form over this tab.
@@ -229,13 +223,11 @@
         var now = Clock.Now(_workspace);
         _today = DateOnly.FromDateTime(now);
         var user = (await AuthState).User;
-        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
 
         _deal = await Db.Deals.AsNoTracking().Include(d => d.Company).Include(d => d.Contact).Include(d => d.Owner).FirstOrDefaultAsync(d => d.Id == Id);
         if (_deal is null)
         {
-            _deal = null;
             Navigation.NotFound();
             return;
         }
@@ -253,14 +245,7 @@
         if (_canEdit && Enum.TryParse<DealStage>(StagePost, out var to) && Enum.IsDefined(to)
             && await Db.Deals.FirstOrDefaultAsync(d => d.Id == Id) is { } deal && deal.Stage != to)
         {
-            var from = deal.Stage;
-            deal.Stage = to;
-            deal.Closed = to is DealStage.Won or DealStage.Lost ? _today : null;
-            // A stage change is its own line in the audit log, not an ordinary change.
-            Db.Auditing = false;
-            await Db.SaveChangesAsync();
-            Db.Auditing = true;
-            await Audit.RecordAsync(AuditActions.StageChanged, nameof(Deal), deal.Id.ToString(), deal.Name, [new AuditChange("Stage", from.ToString(), to.ToString())]);
+            await Audit.MoveAsync(deal, to, _today);
             switch (to)
             {
                 case DealStage.Won: Toasts.Success($"{deal.Name} · {_workspace!.Money(deal.Value)}", "Deal won"); break;
@@ -271,7 +256,6 @@
 
         Navigation.NavigateTo(Here);
     }
-
 
     // The timeline, newest first: what's been finished, the calls and meetings put on the calendar, each move to
     // another stage, then the day the deal was created. Who scheduled, moved or created comes from the audit log.

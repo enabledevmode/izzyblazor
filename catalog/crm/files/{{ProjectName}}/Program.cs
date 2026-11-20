@@ -24,6 +24,12 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
+// One upload of a deal's files at their largest (Data/DealAttachment.cs), with room for the form around them:
+// more than the server's usual 30 MB a request.
+builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = DealAttachment.MaxBytes * DealAttachment.MaxFiles + 1_000_000);
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+    options.MultipartBodyLengthLimit = DealAttachment.MaxBytes * DealAttachment.MaxFiles + 1_000_000);
+
 // Who can do what: the roles and their policies, in Security/Policies.cs.
 builder.Services.AddAuthorizationBuilder().AddAppPolicies();
 
@@ -55,6 +61,10 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager<AuditingSignInManager>()
     .AddDefaultTokenProviders();
+
+// A cookie is checked against its account on every request, not Identity's every 30 minutes: someone
+// deactivated, deleted or given another role is held to it on their next page.
+builder.Services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
 
 // Sends no mail. Swap in your own IEmailSender<ApplicationUser> to send invites and resets; in development
 // Settings & team offers each link in its toast.

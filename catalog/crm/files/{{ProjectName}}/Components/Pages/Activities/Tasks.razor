@@ -11,7 +11,7 @@
    done (Components/Activities/TaskCheck.razor) and it stays in sight, struck through, until you leave the page.
    Completed tasks (?status=completed) lists the ones you've finished, the latest first, where clearing a box
    reopens one. New task opens the activity form over the page, as a task
-   (Components/Activities/ActivityDialog.razor). The calendar is the same activities by week (Index.razor, /activities/week). *@
+   (Components/Activities/ActivityDialog.razor). The calendar is the same activities by week (Week.razor, /activities/week). *@
 <PageCrumbs><BreadcrumbItem>Activities</BreadcrumbItem></PageCrumbs>
 
 <Column Gap="6">
@@ -65,7 +65,7 @@
         }
         else if (_tasks.Count == 0)
         {
-            <Card><EmptyState Icon="Lucide.CircleCheck" Size="ControlSize.Sm" Title="You’re all caught up" Description="You have no open tasks." /></Card>
+            <Card><EmptyState TitleLevel="2" Icon="Lucide.CircleCheck" Size="ControlSize.Sm" Title="You’re all caught up" Description="You have no open tasks." /></Card>
         }
         else
         {
@@ -118,7 +118,7 @@
     {
         var user = (await AuthState).User;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
-        var me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var me = user.UserId();
         _today = Clock.Today(await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync());
 
         // Yours, with who each is with. A task just ticked or cleared here (?done=, from TaskCheck) stays where it was.

@@ -6,8 +6,9 @@ using {{RootNamespace}}.Data;
 namespace {{RootNamespace}}.Auditing;
 
 /// <summary>
-/// Identity's sign-in, with each password, two-factor and recovery-code sign-in written to the audit log, and the
-/// user's last sign-in kept. The account pages call SignInManager as they always do; Program.cs registers this one.
+/// Identity's sign-in, with each password, passkey, external, two-factor and recovery-code sign-in written to the
+/// audit log, and the user's last sign-in kept. The account pages call SignInManager as they always do; Program.cs
+/// registers this one.
 /// </summary>
 public sealed class AuditingSignInManager(
     UserManager<ApplicationUser> users,
@@ -24,12 +25,40 @@ public sealed class AuditingSignInManager(
     {
         if (await UserManager.FindByNameAsync(userName) is { } user)
             return await PasswordSignInAsync(user, password, isPersistent, lockoutOnFailure);
-        await audit.RecordAsync(AuditActions.SignInFailed, note: $"No account for {userName}.");
+        // Anyone can post any text here: the log keeps no more of it than an email address can be.
+        await audit.RecordAsync(AuditActions.SignInFailed, note: $"No account for {(userName.Length > 256 ? userName[..256] : userName)}.");
         return SignInResult.Failed;
     }
 
     public override async Task<SignInResult> PasswordSignInAsync(ApplicationUser user, string password, bool isPersistent, bool lockoutOnFailure) =>
         await RecordAsync(user, await base.PasswordSignInAsync(user, password, isPersistent, lockoutOnFailure), "password");
+
+    public override async Task<SignInResult> PasskeySignInAsync(string credentialJson)
+    {
+        _signingIn = null;
+        var result = await base.PasskeySignInAsync(credentialJson);
+        if (_signingIn is { } user) return await RecordAsync(user, result, "passkey");
+        await audit.RecordAsync(AuditActions.SignInFailed, note: "A passkey that isn't any account's.");
+        return result;
+    }
+
+    public override async Task<SignInResult> ExternalLoginSignInAsync(string loginProvider, string providerKey, bool isPersistent, bool bypassTwoFactor)
+    {
+        // No account for the login isn't a failed sign-in: the page offers to link one.
+        var user = await UserManager.FindByLoginAsync(loginProvider, providerKey);
+        var result = await base.ExternalLoginSignInAsync(loginProvider, providerKey, isPersistent, bypassTwoFactor);
+        return user is null ? result : await RecordAsync(user, result, $"{loginProvider} login");
+    }
+
+    // The account a passkey turned out to be, which PasskeySignInAsync doesn't hand back. A passkey sign-in
+    // comes straight here, so this is also where a deactivated or locked account is turned away.
+    ApplicationUser? _signingIn;
+
+    protected override async Task<SignInResult> SignInOrTwoFactorAsync(ApplicationUser user, bool isPersistent, string? loginProvider = null, bool bypassTwoFactor = false)
+    {
+        _signingIn = user;
+        return await PreSignInCheck(user) ?? await base.SignInOrTwoFactorAsync(user, isPersistent, loginProvider, bypassTwoFactor);
+    }
 
     public override async Task<SignInResult> TwoFactorAuthenticatorSignInAsync(string code, bool isPersistent, bool rememberClient)
     {

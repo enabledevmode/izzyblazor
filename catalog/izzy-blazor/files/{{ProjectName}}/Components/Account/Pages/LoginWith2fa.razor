@@ -7,6 +7,7 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
+@inject NavigationManager NavigationManager
 @inject ILogger<LoginWith2fa> Logger
 
 <PageTitle>Two-factor authentication</PageTitle>
@@ -21,7 +22,7 @@
         <Button Submit FullWidth>Sign in</Button>
     </Form>
     <AccountFoot>
-        Lost your device? <Anchor Href="@($"Account/LoginWithRecoveryCode?ReturnUrl={ReturnUrl}")">Use a recovery code</Anchor>
+        Lost your device? <Anchor Href="@(NavigationManager.GetUriWithQueryParameters("Account/LoginWithRecoveryCode", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Use a recovery code</Anchor>
     </AccountFoot>
 </AccountPanel>
 

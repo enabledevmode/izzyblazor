@@ -25,7 +25,7 @@
             <ToolbarButton Href="@Navigation.GetUriWithQueryParameter("dialog", MemberDialog.InviteId)" StartIcon="Lucide.Plus" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End" FloatBelow="Breakpoint.Sm">Invite member</ToolbarButton>
         </ToolbarContent>
         <NoMatchesContent>
-            <EmptyState Icon="Lucide.SearchX" Title="No matching members" Description="Try a different name, email address, or role. Your other members are still here." />
+            <EmptyState TitleLevel="2" Icon="Lucide.SearchX" Title="No matching members" Description="Try a different name, email address, or role. Your other members are still here." />
         </NoMatchesContent>
         <Columns>
             <PropertyColumn Property="u => u.Name" Title="Name" Sortable Context="member">
@@ -49,7 +49,7 @@
                 <RowAction Icon="Lucide.LockOpen" Label="Unlock" Form="member-action" Name="unlock" Value="@member.Id" Visible="member.Status == UserStatus.Locked" />
                 <RowAction Icon="Lucide.ShieldOff" Label="Reset two-factor" Form="member-action" Name="twofactor" Value="@member.Id" Visible="member.TwoFactor" />
                 <RowAction Icon="Lucide.UserCheck" Label="Reactivate" Form="member-action" Name="reactivate" Value="@member.Id" Visible="member.Status == UserStatus.Deactivated" />
-                <RowAction Icon="Lucide.UserX" Label="Deactivate" Href="@Navigation.GetUriWithQueryParameter("deactivate", member.Id)" Visible="member.Status != UserStatus.Deactivated && member.Id != _me" />
+                <RowAction Icon="Lucide.UserX" Label="Deactivate" Href="@Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = "deactivate", ["leaving"] = member.Id })" Visible="member.Status != UserStatus.Deactivated && member.Id != _me" />
                 <DeleteAction />
             </ActionColumn>
         </Columns>
@@ -65,17 +65,17 @@
 
 @if (_deactivating is { } leaving)
 {
-    <Dialog Open QueryKey="deactivate" Title="@($"Deactivate {leaving.Shown}?")" Size="DialogSize.Sm" CloseOnBackdrop="false" ShowCloseButton="false">
+    <Dialog Id="deactivate" Title="@($"Deactivate {leaving.Shown}?")" Size="DialogSize.Sm">
         <TextBlock>They can’t sign in until they’re reactivated. Nothing they did is lost.</TextBlock>
         <DialogFooter>
-            <Button Href="settings" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+            <DialogClose>Cancel</DialogClose>
             <Button Submit Form="member-action" Name="deactivate" Value="@leaving.Id" Accent="Accent.Danger">Deactivate</Button>
         </DialogFooter>
     </Dialog>
 }
 
 @code {
-    [SupplyParameterFromQuery(Name = "deactivate")] private string? DeactivateId { get; set; }
+    [SupplyParameterFromQuery(Name = "leaving")] private string? DeactivateId { get; set; }
     [SupplyParameterFromForm(FormName = "member-action", Name = "reset")] private string? ResetId { get; set; }
     [SupplyParameterFromForm(FormName = "member-action", Name = "unlock")] private string? UnlockId { get; set; }
     [SupplyParameterFromForm(FormName = "member-action", Name = "twofactor")] private string? TwoFactorId { get; set; }
@@ -145,7 +145,7 @@
             }
         }
         // Back to the list as it was, with no post to repeat on a reload.
-        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("deactivate", (string?)null));
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = null, ["leaving"] = null }));
     }
 
     private async Task DeleteAsync(DataGridDelete<UserRow> delete)

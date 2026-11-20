@@ -1,6 +1,7 @@
 @page "/Account/AccessDenied"
 @* Signed in, so the app shell: the sidebar and your account stay in reach. *@
 @layout {{RootNamespace}}.Components.Layout.MainLayout
+@attribute [Authorize]
 @inject UserManager<ApplicationUser> Users
 
 <PageTitle>Access denied</PageTitle>

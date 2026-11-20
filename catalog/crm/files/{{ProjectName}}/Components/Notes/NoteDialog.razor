@@ -26,6 +26,7 @@
                 <TextBlock Color="Color.Muted">Keep customer context where the whole team can find it.</TextBlock>
             }
             <TextField @bind-Value="Input.Title" Label="Title" autocomplete="off" />
+            @* A Grid, not the form's Columns: a dialog this narrow is under the width at which a form splits in two. *@
             <Grid Columns="@(new() { Base = 1, Sm = 2 })" Gap="4">
                 <Select @bind-Value="Input.ContactId" Label="Related contact" Items="_contactIds" ItemText="id => _contacts[id!.Value].Name"
                         ItemGroup="id => _contacts[id!.Value].Company" Placeholder="No one" />
@@ -72,9 +73,6 @@
 
     /// <summary>The activity a new note is written on: an activity's page.</summary>
     [Parameter] public int? Activity { get; set; }
-
-    /// <summary>Where to go once a note is deleted, for a page that showed only it. The page itself otherwise.</summary>
-    [Parameter] public string? AfterDelete { get; set; }
 
     [SupplyParameterFromQuery(Name = "dialog")] private string? Dialog { get; set; }
 
@@ -163,10 +161,10 @@
             (string.IsNullOrWhiteSpace(Input.Title) ? null : Input.Title.Trim(), Input.ContactId, Input.DealId, Input.Body!.Trim(), now);
         if (adding)
         {
-            saved.AuthorId = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            saved.AuthorId = (await AuthState).User.UserId();
             Db.Notes.Add(saved);
             // Writing about someone is being in touch with them.
-            if (saved.ContactId is { } id && await Db.Contacts.FirstOrDefaultAsync(c => c.Id == id) is { } about) about.LastActivity = now;
+            await Db.TouchContactAsync(saved.ContactId, now);
         }
 
         await Db.SaveChangesAsync();
@@ -184,15 +182,9 @@
             Toasts.Success("The note is gone for everyone.", "Note deleted");
         }
 
-        Navigation.NavigateTo(AfterDelete ?? Back);
+        Navigation.NavigateTo(Back);
     }
 
     // The page as it was: without the dialog and its note.
     private string Back => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = null, ["note"] = null });
-
-    private static void Fail(EditContext form, string field, string message)
-    {
-        new ValidationMessageStore(form).Add(form.Field(field), message);
-        form.NotifyValidationStateChanged();
-    }
 }

@@ -71,8 +71,8 @@
 
     [SupplyParameterFromQuery(Name = "dialog")] private string? Dialog { get; set; }
 
-    /// <summary>What a new one starts as, from a link: <c>&amp;type=call</c>. It wins over <see cref="Type"/>.</summary>
-    [SupplyParameterFromQuery(Name = "type")] private string? Asked { get; set; }
+    /// <summary>What a new one starts as, from a link: <c>&amp;as=call</c>. It wins over <see cref="Type"/>.</summary>
+    [SupplyParameterFromQuery(Name = "as")] private string? Asked { get; set; }
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
@@ -162,7 +162,7 @@
                 {
                     Type = Enum.TryParse<ActivityType>(Asked, ignoreCase: true, out var asked) && Enum.IsDefined(asked) ? asked : Type, ContactId = with, DealId = about, Reminder = 30,
                     Date = DateOnly.FromDateTime(next), StartTime = TimeOnly.FromDateTime(next),
-                    AssignedToId = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+                    AssignedToId = (await AuthState).User.UserId(),
                 };
             }
         }
@@ -196,7 +196,7 @@
         (saved.AssignedToId, saved.Reminder, saved.Location, saved.Agenda) = (Blank(Input.AssignedToId), Input.Reminder, Blank(Input.Location), Blank(Input.Agenda));
         if (adding)
         {
-            saved.CreatedById = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            saved.CreatedById = (await AuthState).User.UserId();
             Db.Activities.Add(saved);
         }
 
@@ -205,14 +205,6 @@
 
         if (adding) Toasts.Success($"{saved.Title} is on the calendar.", "Activity scheduled");
         else Toasts.Success($"{saved.Title} is up to date.", "Activity saved");
-        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("dialog", (string?)null));
-    }
-
-    private static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
-
-    private static void Fail(EditContext form, string field, string message)
-    {
-        new ValidationMessageStore(form).Add(form.Field(field), message);
-        form.NotifyValidationStateChanged();
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = null, ["as"] = null }));
     }
 }

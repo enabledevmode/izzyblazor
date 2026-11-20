@@ -12,6 +12,9 @@ public class DealAttachment
     /// <summary>The largest file taken, in bytes: what the upload says ("up to 10 MB").</summary>
     public const long MaxBytes = 10_000_000;
 
+    /// <summary>How many files one upload takes. Program.cs lets a request be large enough to hold them.</summary>
+    public const int MaxFiles = 10;
+
     public int Id { get; set; }
 
     public int DealId { get; set; }

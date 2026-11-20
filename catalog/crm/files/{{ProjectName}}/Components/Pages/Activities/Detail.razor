@@ -1,7 +1,6 @@
 @page "/activities/{Id:int}"
 @attribute [Authorize(Policy = Policies.ViewRecords)]
 @using Microsoft.EntityFrameworkCore
-@using System.ComponentModel.DataAnnotations
 @inject ApplicationDbContext Db
 @inject Audit Audit
 @inject NavigationManager Navigation
@@ -28,18 +27,19 @@
             <BreadcrumbItem>@activity.Title</BreadcrumbItem>
         </PageCrumbs>
         <PageHeader Title="@activity.Title" Badge="@Status(activity).Text" BadgeStatus="@Status(activity).Tone" Description="@Summary(activity)">
-            <PageHeaderActions>
+            @* On a phone the actions float in the corner, the main one nearest the thumb. *@
+            <PageHeaderActions FloatLabel="Activity actions">
                 @if (_canEdit)
                 {
-                    <Button Href="@EditHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil" VisibleFrom="Breakpoint.Sm">Edit activity</Button>
+                    <Button Href="@EditHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Pencil" FloatBelow="Breakpoint.Sm">Edit activity</Button>
                     @if (done)
                     {
-                        <Button Href="@FollowUpHref" StartIcon="Lucide.CalendarPlus" VisibleFrom="Breakpoint.Sm">Schedule follow-up</Button>
+                        <Button Href="@FollowUpHref" StartIcon="Lucide.CalendarPlus" FloatBelow="Breakpoint.Sm">Schedule follow-up</Button>
                     }
                     else
                     {
                         @* The main action until there's a call to join. *@
-                        <Button Submit Form="activity-action" StartIcon="Lucide.Check" VisibleFrom="Breakpoint.Sm"
+                        <Button Submit Form="activity-action" StartIcon="Lucide.Check" FloatBelow="Breakpoint.Sm"
                                 Variant="@(link is null ? ButtonVariant.Solid : ButtonVariant.Outline)" Accent="@(link is null ? Accent.Primary : Accent.Neutral)">Mark complete</Button>
                     }
                 }
@@ -149,19 +149,6 @@
 
     @if (_canEdit)
     {
-        @* On a phone the actions float in the corner, the main one nearest the thumb. *@
-        <SpeedDial Label="Activity actions" HiddenFrom="Breakpoint.Sm">
-            @if (done)
-            {
-                <SpeedDialAction Icon="Lucide.CalendarPlus" Label="Schedule follow-up" Href="@FollowUpHref" />
-            }
-            else
-            {
-                <SpeedDialAction Icon="Lucide.Check" Label="Mark complete" Submit Form="activity-action" />
-            }
-            <SpeedDialAction Icon="Lucide.Pencil" Label="Edit activity" Href="@EditHref" />
-        </SpeedDial>
-
         @* Mark complete posts this. *@
         <form id="activity-action" method="post" @formname="activity-action" @onsubmit="CompleteAsync">
             <AntiforgeryToken />
@@ -179,14 +166,11 @@
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-
-
     private Activity? _activity;
     private List<FeedItem> _notes = [];
     private Workspace? _workspace;
     private DateOnly _today;
     private bool _canEdit;
-    private string? _me;
 
     // This page's address: where the dialogs open and come back to.
     private string Here => $"activities/{Id}";
@@ -200,7 +184,6 @@
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync() ?? new Workspace();
         _today = Clock.Today(_workspace);
         var user = (await AuthState).User;
-        _me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
 
         _activity = await Db.Activities.AsNoTracking()
@@ -222,16 +205,14 @@
         if (_canEdit && await Db.Activities.FirstOrDefaultAsync(a => a.Id == Id && a.Completed == null) is { } activity)
         {
             activity.Completed = DateTime.UtcNow;
-            Db.Auditing = false;
-            await Db.SaveChangesAsync();
-            Db.Auditing = true;
+            await Db.TouchContactAsync(activity.ContactId, activity.Completed.Value);
+            await Db.SaveUnauditedAsync();
             await Audit.RecordAsync(AuditActions.Completed, nameof(Activity), activity.Id.ToString(), activity.Title, [new AuditChange("Status", null, "Completed")]);
             Toasts.Success(activity.Title, $"{activity.Type} completed");
         }
 
         Navigation.NavigateTo(Here);
     }
-
 
     // The badge beside the title: done, a task past its day, or still ahead.
     private (string Text, Status Tone) Status(Activity activity) =>

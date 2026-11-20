@@ -28,6 +28,23 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// <summary>Whether saves are written to the audit log; the seeder turns it off to write its own history.</summary>
     public bool Auditing { get; set; } = true;
 
+    /// <summary>
+    /// Saves without the audit log's own lines, for a change the caller records as one of its own (a stage
+    /// change, a completed activity).
+    /// </summary>
+    public async Task<int> SaveUnauditedAsync()
+    {
+        Auditing = false;
+        try { return await SaveChangesAsync(); }
+        finally { Auditing = true; }
+    }
+
+    /// <summary>Marks a contact as heard from at <paramref name="at"/> (UTC); the caller saves.</summary>
+    public async Task TouchContactAsync(int? contact, DateTime at)
+    {
+        if (contact is { } id && await Contacts.FirstOrDefaultAsync(c => c.Id == id) is { } about) about.LastActivity = at;
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

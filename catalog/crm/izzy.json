@@ -26,7 +26,8 @@
         "{{ProjectName}}/Components/Pages/Counter.*",
         "{{ProjectName}}/Components/Pages/Weather.*",
         "{{ProjectName}}/Components/Pages/Contact.*",
-        "{{ProjectName}}/Components/Pages/Auth.*"
+        "{{ProjectName}}/Components/Pages/Auth.*",
+        "{{ProjectName}}/Components/Account/Pages/Manage/DeletePersonalData.razor"
       ]
     }
   ]

@@ -13,7 +13,7 @@
 @* A section of the settings page: its header (with the On/Off state), the status slot, then a row
    per part with its action at the end; turning it off is set apart, last. *@
 <PageHeader Title="Two-factor authentication" TitleLevel="2" Size="ControlSize.Sm"
-            Description="Ask for a code from your phone at login, on top of your password.">
+            Description="Ask for a code from your phone when you sign in, on top of your password.">
     <PageHeaderActions>
         <Badge Status="@(is2faEnabled ? Status.Success : Status.Neutral)" Dot>@(is2faEnabled ? "On" : "Off")</Badge>
     </PageHeaderActions>
@@ -123,7 +123,7 @@ else
         await SignInManager.ForgetTwoFactorClientAsync();
 
         RedirectManager.RedirectToCurrentPageWithStatus(
-            "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2fa code.",
+            "This browser has been forgotten. The next time you sign in from it, you’ll be asked for your authenticator code.",
             HttpContext);
     }
 }

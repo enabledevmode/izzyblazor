@@ -28,12 +28,12 @@
     </PageHeader>
 
     <DataGrid id="companies" TItem="Company" ItemsProvider="FindAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Companies"
-              PageSize="25" InitialSort="name" Searchable SmallScreen="DataGridSmallScreen.HideColumns" Grow>
+              PageSize="25" InitialSort="name" Searchable SearchLabel="Search companies…" SmallScreen="DataGridSmallScreen.HideColumns" Grow>
         <ToolbarContent>
             <DataGridSearch />
         </ToolbarContent>
         <NoMatchesContent>
-            <EmptyState Icon="Lucide.SearchX" Title="No matching companies" Description="Try a different name, city, or owner. Your other companies are still here." />
+            <EmptyState TitleLevel="2" Icon="Lucide.SearchX" Title="No matching companies" Description="Try a different name, city, or owner. Your other companies are still here." />
         </NoMatchesContent>
         <Columns>
             <TemplateColumn Title="Company" SortKey="name" SortBy="c => c.Name" Sortable Context="company">

@@ -105,7 +105,7 @@
         _now = Clock.Now(_workspace);
         _today = DateOnly.FromDateTime(_now);
         var user = (await Auth.GetAuthenticationStateAsync()).User;
-        var me = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var me = user.UserId();
         _firstName = NameClaim.Shown(user)?.Split(' ', '@')[0];
 
         // The pipeline: every open deal, and those in the last two stages expected to close this month.
@@ -124,9 +124,10 @@
         _overdue = _tasks.Count(t => t.Completed is null && t.Start < start);
 
         // Your next meeting that hasn't ended.
-        _meeting = await Db.Activities.AsNoTracking().Include(a => a.Contact)
+        var meetings = await Db.Activities.AsNoTracking().Include(a => a.Contact)
             .Where(a => a.Type == ActivityType.Meeting && a.AssignedToId == me && a.Completed == null && a.Start >= start)
-            .OrderBy(a => a.Start).ToListAsync() is var meetings ? meetings.FirstOrDefault(m => m.End > _now) : null;
+            .OrderBy(a => a.Start).ToListAsync();
+        _meeting = meetings.FirstOrDefault(m => m.End > _now);
 
         // The last three things anyone did: activities finished, and deals moved to another stage (from the audit log).
         var nowUtc = DateTime.UtcNow;
