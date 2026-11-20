@@ -24,15 +24,17 @@
     </NotAuthorized>
     <Authorized>
 @*#endif *@
+@* The page's heading. On phones the list is hidden while a ticket is open, so it isn't the list's own. *@
+<VisuallyHidden As="h1">Inbox</VisuallyHidden>
 <Row Gap="0" Align="Align.Stretch" Height="Length.Full">
     <Column As="section" Gap="0" Height="Length.Full" Width="@ListWidth" Shrink="false" BorderEnd="@(new() { Md = 1 })" VisibleFrom="@(Chosen is null ? null : Breakpoint.Md)" aria-labelledby="inbox-heading">
         <Row Justify="Justify.Between" Align="Align.Center" PaddingX="3" MinHeight="Length.Rem(3.5)" BorderBottom="1">
-            <Heading Level="1" Size="TextSize.Md" id="inbox-heading">Inbox</Heading>
+            <Heading Level="2" Size="TextSize.Md" id="inbox-heading">Inbox</Heading>
             <TextBlock Size="TextSize.Sm" Color="Color.Muted">12 open</TextBlock>
         </Row>
         <Box Grow MinHeight="Length.Px(0)" Overflow="Overflow.Auto">
             <ListView Items="Ticket.Sample" ItemKey="t => t.Id.ToString()" Label="Tickets" ItemHref="@(t => $"tickets?id={t.Id}")"
-                      ItemCurrent="t => t == Chosen" ItemLabel="t => t.Subject" Context="ticket">
+                      ItemCurrent="t => t == Chosen" ItemLabel="Label" Context="ticket">
                 @{ var unread = ticket.Unread && ticket != Chosen; }
                 <Column Gap="1" Grow MinWidth="Length.Px(0)">
                     <Row Gap="2" Align="Align.Center">
@@ -53,7 +55,7 @@
     <Box Grow MinWidth="Length.Px(0)" Height="Length.Full" Overflow="Overflow.Auto" VisibleFrom="@(Chosen is null ? Breakpoint.Md : null)">
         @if (Chosen is { } chosen)
         {
-            <Column As="article" Gap="5" MaxWidth="Length.Px(760)" PaddingX="new() { Base = 4, Md = 8 }" PaddingY="new() { Base = 4, Md = 7 }" aria-labelledby="ticket-heading">
+            <Column As="article" Gap="5" MaxWidth="Length.Rem(47.5)" PaddingX="new() { Base = 4, Md = 8 }" PaddingY="new() { Base = 4, Md = 7 }" aria-labelledby="ticket-heading">
                 @* On phones the ticket is a screen of its own: a way back above it. *@
                 <Button Href="tickets" Variant="ButtonVariant.Ghost" StartIcon="Lucide.ArrowLeft" AlignSelf="Align.Start" HiddenFrom="Breakpoint.Md">Inbox</Button>
                 <Row Gap="3" Justify="Justify.Between" Align="Align.Start">
@@ -63,6 +65,7 @@
                             <IconButton Label="More actions" Icon="Lucide.Ellipsis" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="trigger" />
                         </Trigger>
                         <ChildContent>
+                            @* Sample items: give each an Href, or an OnClick on an interactive page. *@
                             <MenuItem Icon="Lucide.UserCheck">Assign to me</MenuItem>
                             <MenuItem Icon="Lucide.MailOpen">Mark as unread</MenuItem>
                             <MenuDivider />
@@ -71,13 +74,13 @@
                     </Menu>
                 </Row>
                 <Row Gap="3" Align="Align.Center">
-                    <Avatar Name="@chosen.From" />
+                    <Avatar Name="@chosen.From" Decorative />
                     <Column Gap="0" MinWidth="Length.Px(0)">
                         <TextBlock Size="TextSize.Sm" Weight="FontWeight.Semibold">@chosen.From</TextBlock>
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">@chosen.Email · @chosen.Sent</TextBlock>
                     </Column>
                 </Row>
-                <Column Gap="3" MaxWidth="Length.Px(640)">
+                <Column Gap="3" MaxWidth="Length.Rem(40)">
                     @foreach (var paragraph in chosen.Body)
                     {
                         <TextBlock LineHeight="LineHeight.Relaxed" KeepLines>@paragraph</TextBlock>
@@ -109,8 +112,11 @@
 
     private Ticket? Chosen => Ticket.Sample.FirstOrDefault(t => t.Id == Id);
 
+    // A row's link, named for screen readers: whether it's unread, who it's from and its subject.
+    private string Label(Ticket ticket) => (ticket.Unread && ticket != Chosen ? "Unread. " : "") + $"{ticket.From}: {ticket.Subject}";
+
     // The list is the whole screen on phones, and a column beside the ticket from 768px up.
-    private static readonly Responsive<Length> ListWidth = new() { Base = Length.Full, Md = Length.Px(340), Xl = Length.Px(380) };
+    private static readonly Responsive<Length> ListWidth = new() { Base = Length.Full, Md = Length.Rem(21.25), Xl = Length.Rem(23.75) };
 
     /// <summary>A support ticket: a row in the list, and what the panel beside it shows.</summary>
     private record Ticket(int Id, string From, string Email, string Subject, string Snippet, string Time, string Sent, bool Unread, string[] Body)

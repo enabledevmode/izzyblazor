@@ -103,7 +103,7 @@ public class Image : StyledComponentBase
         BuildImg(builder, 2, Src, DarkSrc is null ? cssClass : $"{cssClass} ib-image-on-light", style);
         if (DarkSrc is not null)
         {
-            BuildImg(builder, 20, DarkSrc, $"{cssClass} ib-image-on-dark", style);
+            BuildImg(builder, 20, DarkSrc, $"{cssClass} ib-image-on-dark", style, dark: true);
         }
 
         if (Caption is not null)
@@ -116,11 +116,12 @@ public class Image : StyledComponentBase
         }
     }
 
-    // One img. With DarkSrc there are two, and CSS shows the one for the scheme in use.
-    private void BuildImg(RenderTreeBuilder builder, int sequence, string src, string? cssClass, string? style)
+    // One img. With DarkSrc there are two, and CSS shows the one for the scheme in use; an id stays
+    // on the first only.
+    private void BuildImg(RenderTreeBuilder builder, int sequence, string src, string? cssClass, string? style, bool dark = false)
     {
         builder.OpenElement(sequence, "img");
-        builder.AddMultipleAttributes(sequence + 1, AdditionalAttributes);
+        builder.AddMultipleAttributes(sequence + 1, dark ? AdditionalAttributes?.Where(a => !a.Key.Equals("id", StringComparison.OrdinalIgnoreCase)) : AdditionalAttributes);
         builder.AddAttribute(sequence + 2, "src", src);
         builder.AddAttribute(sequence + 3, "alt", Alt);
         if (IntrinsicWidth is { } w)

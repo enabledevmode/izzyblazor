@@ -83,7 +83,20 @@ public readonly struct Responsive<T>
     }
 
     /// <summary>A single value that applies at every width.</summary>
-    public static implicit operator Responsive<T>(T value) => new() { Base = value };
+    public static implicit operator Responsive<T>(T value) => new(value);
+
+    private Responsive(T single)
+    {
+        _base = single;
+        _sm = _md = _lg = _xl = default!;
+        _set = 1 | 32;
+    }
+
+    /// <summary>
+    /// Whether this came from a single value (<c>Columns="3"</c>) rather than a map, for the few
+    /// parameters where a plain number means something a map's <see cref="Base"/> doesn't.
+    /// </summary>
+    internal bool IsSingleValue => (_set & 32) != 0;
 
     /// <inheritdoc />
     public override string ToString() =>

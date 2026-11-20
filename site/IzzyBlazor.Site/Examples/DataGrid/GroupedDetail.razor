@@ -12,7 +12,7 @@
         <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
     </Columns>
     <DetailTemplate>
-        <DescriptionList Columns="3" Size="ControlSize.Sm">
+        <DescriptionList Size="ControlSize.Sm">
             <DescriptionItem Term="Placed">@context.Date.ToString("MMMM d")</DescriptionItem>
             <DescriptionItem Term="Lines">@OrderLines.For(context.Number).Count</DescriptionItem>
             <DescriptionItem Term="Items">@OrderLines.For(context.Number).Sum(l => l.Quantity)</DescriptionItem>

@@ -18,9 +18,9 @@
 @*#else *@
 <Column Gap="new() { Base = 8, Md = 10 }" MaxWidth="Length.Rem(75)">
 @*#endif *@
-    <Card Overflow="Overflow.Hidden" aria-labelledby="welcome-title">
+    <Card Overflow="Overflow.Hidden">
         <CardBody Flush Class="welcome-opening" Gap="3" Align="Align.Start" Justify="Justify.Center"
-                  PaddingX="new() { Base = 5, Md = 10 }" PaddingY="new() { Base = 6, Md = 10 }" MinHeight="new() { Md = Length.Px(240) }">
+                  PaddingX="new() { Base = 5, Md = 10 }" PaddingY="new() { Base = 6, Md = 10 }" MinHeight="new() { Md = Length.Rem(15) }">
             <Image Src="img/izzyblazor-knob.svg" Alt="" Class="welcome-knob" Lazy="false" />
             <Image Src="img/izzyblazor-wordmark-light.svg" DarkSrc="img/izzyblazor-wordmark-dark.svg" Alt="IzzyBlazor" Class="welcome-wordmark" Lazy="false" />
             <Heading Level="1" id="welcome-title" Size="new() { Base = TextSize.Xl2, Md = TextSize.Xl4 }" Wrap="TextWrap.NoWrap">Your app is running.</Heading>
@@ -130,10 +130,7 @@
             @foreach (var command in Commands)
             {
                 <Column Gap="2">
-                    <Row Gap="2" Align="Align.Center" Bg="Color.FillSubtle" Border="1" Radius="Radius.Md" PaddingStart="3" PaddingEnd="1" MinHeight="Length.Px(44)">
-                        <TextBlock As="code" Family="FontFamily.Mono" Size="TextSize.Sm" Wrap="TextWrap.NoWrap" Grow><TextBlock As="span" Color="Color.Muted" aria-hidden="true">$ </TextBlock>@command.Text</TextBlock>
-                        <CopyButton Text="@command.Text" Label="Copy command" Size="ControlSize.Sm" />
-                    </Row>
+                    <Code Block Language="bash" CopyLabel="Copy command">@command.Text</Code>
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">@command.Does</TextBlock>
                 </Column>
             }
