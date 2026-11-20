@@ -35,9 +35,11 @@
     color: var(--ib-color-muted);
   }
 
+  /* The reading is the label's size, heavier: it's one line with the label and the band's name,
+     and never the size of a heading around the gauge. */
   .ib-lgauge-value {
     margin-inline-start: auto;
-    font-size: var(--ib-text-lg);
+    font-size: var(--ib-text-sm);
     font-weight: var(--ib-weight-semibold);
     font-variant-numeric: tabular-nums;
     line-height: 1;
