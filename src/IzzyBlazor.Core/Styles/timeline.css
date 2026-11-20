@@ -236,6 +236,25 @@
     grid-row: 1;
   }
 
+  /* Actions: a control at the end of the item's first line, centered on it, in a column of its
+     own (after the time's, with the time at the end). The rest keeps the first column. */
+  .ib-timeline-body:has(> .ib-timeline-actions) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--ib-space-2);
+    align-content: start;
+  }
+  .ib-timeline-body:has(> .ib-timeline-actions) > :not(.ib-timeline-actions) { grid-column: 1; }
+  .ib-timeline-time-end .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-time { grid-column: 2; }
+  .ib-timeline-time-end .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-content { grid-column: 1 / -1; }
+  .ib-timeline-actions {
+    display: flex;
+    grid-row: 1;
+    grid-column: 2;
+    margin-block: calc((1lh - var(--ib-control-h-sm)) / 2);
+  }
+  .ib-timeline-time-end .ib-timeline-actions { grid-column: 3; }
+
   /* Start: a column of times before the markers, each on its title's line. */
   .ib-timeline-time-start > .ib-timeline-item {
     grid-template-columns: var(--ib-timeline-time-w) var(--ib-timeline-line) minmax(0, 1fr);
