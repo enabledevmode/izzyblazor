@@ -1,8 +1,16 @@
 @page "/"
+@*#if (HeaderTitle) *@
+@using Microsoft.AspNetCore.Components.Sections
+@*#endif *@
 
 <PageTitle>Home</PageTitle>
 
 @*#if (ShellStarter) *@
+@*#if (HeaderTitle) *@
+@* The header shows the page's title (MainLayout's SectionOutlet). *@
+<SectionContent SectionName="page-title">Home</SectionContent>
+
+@*#endif *@
 @* The welcome page of a new app: it says the app runs, shows what it was made with and a few components in
    its theme, and points at what to do next. It's static, and it's one file: replace it with your own Home. *@
 @*#if (Preset == "Compact") *@
