@@ -57,8 +57,15 @@ internal static class ThemeColors
 public enum ThemeChartPalette
 {
     /// <summary>
-    /// The default: eight colors of one lightness, each 3:1 or more on the surface, with sets picked
-    /// for charts of two, three or four series.
+    /// The default: the brand color first, so a chart of one series is the app's color, then the
+    /// <see cref="Contrast"/> colors without the one nearest the brand, ordered to keep neighbors
+    /// apart. Charts of two, three or four series get sets that start at the brand too.
+    /// </summary>
+    Brand,
+
+    /// <summary>
+    /// Eight colors of one lightness whatever the brand, each 3:1 or more on the surface, with sets
+    /// picked for charts of two, three or four series.
     /// </summary>
     Contrast,
 
@@ -76,7 +83,8 @@ internal static class ChartPaletteNames
     {
         ThemeChartPalette.OkabeIto => "okabe-ito",
         ThemeChartPalette.Calm => "calm",
-        _ => "contrast",
+        ThemeChartPalette.Contrast => "contrast",
+        _ => "brand",
     };
 }
 

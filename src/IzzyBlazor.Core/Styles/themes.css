@@ -303,7 +303,7 @@
 
   /* Chart palettes (IzzyTheme's and ThemeScope's ChartPalette, or data-ib-chart-palette): which
      palette --ib-chart-1 to -8 and the two-, three- and four-series sets read (tokens.css).
-     Contrast is the default; Okabe-Ito and Calm have no sets of their own, so a chart of two to
+     Brand, the default, isn't here: its colors follow the brand. Okabe-Ito and Calm have no sets of their own, so a chart of two to
      four series takes their first colors. */
   [data-ib-chart-palette][data-ib-chart-palette][data-ib-chart-palette][data-ib-chart-palette="contrast"],
   :root:root:root:where(:has(> head > meta[name="ib-chart-palette"][content="contrast"])) {

@@ -10,7 +10,8 @@
     <IzzyTheme Preset="ThemePreset.Compact" Brand="#0a7d5a" BodyFont="Inter, sans-serif" />
 
     `Preset` sets density, shape and type; `Brand`, Gray, Radius, Density and the fonts override its
-    defaults; ChartPalette picks the charts' colors (Contrast, OkabeIto or Calm); ColorScheme is
+    defaults; ChartPalette picks the charts' colors (Brand, which starts at the brand color, or the
+    fixed Contrast, OkabeIto or Calm); ColorScheme is
     the default light or dark. `Brand` and Gray take a built-in name or a hex
     color. Everything is server-rendered (meta tags the theme CSS matches, and a small <style> block
     for hex colors and the fonts), so it's in place on first paint, needs no script and works in
@@ -147,6 +148,12 @@
         if (GrayColor.Hex is { } grayHex)
         {
             declarations.Add(GrayPalette.From(grayHex).ToCss());
+        }
+
+        // The charts' colors for this brand; tokens.css already has the default brand's.
+        if (BrandChartCss(app: true) is { } charts && charts != BrandChartPalette.Default)
+        {
+            declarations.Add(charts);
         }
 
         if (!string.IsNullOrWhiteSpace(BodyFont))

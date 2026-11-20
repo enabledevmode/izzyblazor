@@ -1744,8 +1744,8 @@
     // A waterfall's color for one item: a rise's, a fall's, or a total's (chart.css's ib-chart-up, -down, -total).
     private static string ItemColor(SeriesShape s, int index) => s.Bars.FirstOrDefault(b => b.Index == index)?.Change switch
     {
-        "up" => "var(--ib-chart-increase, var(--ib-chart-1))",
-        "down" => "var(--ib-chart-decrease, var(--ib-chart-6))",
+        "up" => "var(--ib-chart-increase, var(--ib-chart-contrast-1))",
+        "down" => "var(--ib-chart-decrease, var(--ib-chart-contrast-6))",
         "total" => s.Data.Color is { } c ? StyleValues.Raw(c, "color") : "var(--ib-color-neutral)",
         _ => SeriesColor(s),
     };
