@@ -20,7 +20,7 @@
 
 <AccountPanel Title="Finish registering" Description="@($"You've signed in with {ProviderDisplayName}. Choose the email to use here.")">
     <StatusMessage Message="@message" />
-    <Form Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" RequiredMark="RequiredMark.Optional">
+    <Form Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation">
         <TextField @bind-Value="Input.Email" AutoComplete="email" />
         <Button Submit FullWidth>Register</Button>
     </Form>
@@ -115,7 +115,7 @@
 @*#if (!Registration) *@
         // People can't make their own accounts here: they're invited, and add this sign-in from Manage
         // account once they're in.
-        RedirectManager.RedirectToWithStatus("Account/Login", $"Error: No account uses this {ProviderDisplayName} sign-in. Log in another way, then add it in Manage account.", HttpContext);
+        RedirectManager.RedirectToWithStatus("Account/Login", $"Error: No account uses this {ProviderDisplayName} sign-in. Sign in another way, then add it in Manage account.", HttpContext);
 @*#else *@
         // If the user does not have an account, then ask the user to create an account.
         if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))

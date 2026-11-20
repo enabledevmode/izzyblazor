@@ -169,14 +169,16 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
     }
 
     /// <summary>
-    /// The link that lets <paramref name="user"/> set a password: a reset, or for an invite their first, after
-    /// which their email counts as confirmed (Components/Account/Pages/ResetPassword.razor).
+    /// The link that lets <paramref name="user"/> set a password: for an invite, the page that accepts it
+    /// (Components/Account/Pages/AcceptInvitation.razor); otherwise the reset page. Both name the account and
+    /// carry its reset code.
     /// </summary>
     public async Task<string> SetPasswordLinkAsync(ApplicationUser user)
     {
         var code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(await users.GeneratePasswordResetTokenAsync(user)));
-        return navigation.GetUriWithQueryParameters(navigation.ToAbsoluteUri("Account/ResetPassword").AbsoluteUri,
-            new Dictionary<string, object?> { ["code"] = code });
+        var page = StatusOf(user) == UserStatus.Invited ? "Account/AcceptInvitation" : "Account/ResetPassword";
+        return navigation.GetUriWithQueryParameters(navigation.ToAbsoluteUri(page).AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = user.Id, ["code"] = code });
     }
 
     public async Task<string?> DeactivateAsync(ApplicationUser user, string? me)

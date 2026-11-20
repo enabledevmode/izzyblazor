@@ -16,7 +16,7 @@
 @*#endif *@
     @* One header for both nav layouts: the menu button (phones), the brand, the links (top bar),
        the color scheme and, at the end, the account control. On phones both layouts open a panel
-       under the header, with Log in and Register at its foot. *@
+       under the header, with Sign in and Register at its foot. *@
     <AppHeader>
         @*#if (SidebarNav && SampleContent) *@
         <SidebarToggle />
@@ -34,7 +34,7 @@
                 <AuthorizeView>
                     <NotAuthorized>
                         <Row Gap="2" Grow>
-                            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" Grow>Log in</Button>
+                            <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" Grow>Sign in</Button>
                             @*#if (Registration) *@
                             <Button Href="Account/Register" Size="ControlSize.Lg" Grow>Register</Button>
                             @*#endif *@
@@ -68,7 +68,7 @@
             <AuthorizeView>
                 <NotAuthorized>
                     <Row Gap="2" HiddenFrom="Breakpoint.Md">
-                        <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" Grow>Log in</Button>
+                        <Button Href="Account/Login" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" Grow>Sign in</Button>
                         @*#if (Registration) *@
                         <Button Href="Account/Register" Size="ControlSize.Lg" Grow>Register</Button>
                         @*#endif *@

@@ -12,16 +12,16 @@
 <PageTitle>Manage your external logins</PageTitle>
 
 <PageHeader Title="External logins" TitleLevel="2" Size="ControlSize.Sm"
-            Description="Services you can log in with instead of a password." />
+            Description="Services you can sign in with instead of a password." />
 <StatusMessage />
 @* Every provider is a row with its state and the one thing you can do to it: the linked ones
-   first, then the rest. Remove shows only while another way to log in remains, as in Microsoft's
+   first, then the rest. Remove shows only while another way to sign in remains, as in Microsoft's
    page. Provider icons are generic: no brand logos. *@
 <List Plain Dividers Gap="5">
     @foreach (var login in currentLogins ?? [])
     {
         var name = login.ProviderDisplayName ?? login.LoginProvider;
-        <ListItem Icon="Lucide.Globe" Description="@($"Linked. You can log in with {name}.")">
+        <ListItem Icon="Lucide.Globe" Description="@($"Linked. You can sign in with {name}.")">
             @name
             @if (showRemoveButton)
             {

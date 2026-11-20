@@ -1,0 +1,138 @@
+@page "/Account/AcceptInvitation"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.EntityFrameworkCore
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ApplicationDbContext Db
+@inject Audit Audit
+@inject IdentityRedirectManager RedirectManager
+@inject Microsoft.Extensions.Options.IOptions<IdentityOptions> IdentityOptionsAccessor
+
+<PageTitle>Accept invitation</PageTitle>
+
+@* Where an invitation's link lands (Admin/UserAdmin.cs makes it): who invited you and as what, then your name
+   and a password. Accepting sets both, counts the email as confirmed (the link reached its inbox) and signs
+   you in. A link that's been used goes to sign in; one that's expired says to ask for another. *@
+@if (_user is null)
+{
+    <AccountPanel Title="This invitation has expired" Description="Ask a workspace admin to send it again.">
+        <Button Href="Account/Login" FullWidth>Back to sign in</Button>
+    </AccountPanel>
+}
+else
+{
+    <AccountPanel Title="@($"Join {_workspace}")" Description="@(_inviter is null ? "You’re invited to work together." : $"{_inviter} invited you to work together.")">
+        <StatusMessage Message="@Message" />
+        <Column Gap="3">
+            <Divider />
+            <Row Gap="3" Align="Align.Center">
+                <Avatar Name="@(Input.Name is { Length: > 0 } name ? name : _user.Email)" Decorative />
+                <Stack Gap="0" Grow>
+                    <TextBlock>Invited as <strong>@_role</strong></TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@_user.Email</TextBlock>
+                </Stack>
+            </Row>
+            <Divider />
+        </Column>
+        <Form Model="Input" FormName="accept-invitation" OnValidSubmit="OnValidSubmitAsync">
+            <TextField @bind-Value="Input.Name" AutoComplete="name" />
+            <PasswordField @bind-Value="Input.Password" AutoComplete="new-password" Hint="@IdentityPasswordAttribute.Hint(IdentityOptionsAccessor.Value.Password)" />
+            <PasswordField @bind-Value="Input.ConfirmPassword" AutoComplete="new-password" />
+            <Button Submit FullWidth>Accept invitation</Button>
+        </Form>
+        <AccountFoot><BackToSignIn /></AccountFoot>
+    </AccountPanel>
+}
+
+@code {
+    private IEnumerable<IdentityError>? identityErrors;
+
+    // The invited account; null when the link doesn't work any more.
+    private ApplicationUser? _user;
+    private string? _code;
+    private string? _workspace;
+    private string? _role;
+
+    // Who sent the invitation, from the audit log.
+    private string? _inviter;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? UserId { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Code { get; set; }
+
+    private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserId is null || Code is null || await UserManager.FindByIdAsync(UserId) is not { } user) return;
+
+        // Already accepted: they have a password, so they sign in.
+        if (user.PasswordHash is not null)
+        {
+            RedirectManager.RedirectTo("Account/Login");
+            return;
+        }
+
+        try { _code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code)); }
+        catch (FormatException) { return; }
+        if (!await UserManager.VerifyUserTokenAsync(user, UserManager.Options.Tokens.PasswordResetTokenProvider, UserManager<ApplicationUser>.ResetPasswordTokenPurpose, _code)) return;
+
+        _user = user;
+        Input ??= new() { Name = user.Name ?? "" };
+        _workspace = await Db.Workspaces.AsNoTracking().Select(w => w.Name).FirstOrDefaultAsync();
+        _role = (await UserManager.GetRolesAsync(user)).FirstOrDefault();
+        _inviter = await Db.AuditEvents.AsNoTracking()
+            .Where(e => e.Action == AuditActions.Invited && e.EntityType == "User" && e.EntityId == user.Id && e.ActorName != null)
+            .OrderByDescending(e => e.Time).Select(e => e.ActorName).FirstOrDefaultAsync();
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        if (_user is null || _code is null) return;
+
+        var result = await UserManager.ResetPasswordAsync(_user, _code, Input.Password);
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            return;
+        }
+
+        _user.Name = Input.Name.Trim();
+        _user.EmailConfirmed = true;
+        _user.LastSignIn = DateTime.UtcNow;
+        await UserManager.UpdateAsync(_user);
+        await Audit.RecordAsync(AuditActions.Updated, "User", _user.Id, _user.Name, note: "Accepted the invitation.", actor: _user);
+        await SignInManager.SignInAsync(_user, isPersistent: false);
+        RedirectManager.RedirectTo("");
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "Enter your name.")]
+        [StringLength(100)]
+        [Display(Name = "Full name")]
+        public string Name { get; set; } = "";
+
+        [Required(ErrorMessage = "Create a password.")]
+        [StringLength(100)]
+        [IdentityPassword]
+        [DataType(DataType.Password)]
+        [Display(Name = "Create password")]
+        public string Password { get; set; } = "";
+
+        [Required(ErrorMessage = "Enter the password again.")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The two passwords don’t match.")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

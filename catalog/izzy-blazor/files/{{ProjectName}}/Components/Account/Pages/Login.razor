@@ -11,38 +11,35 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Log in</PageTitle>
+<PageTitle>Sign in</PageTitle>
 
-<AccountPanel Title="Log in" Description="Use your email and password, or a passkey.">
+<AccountPanel Title="Welcome back" Description="Sign in to your account.">
     <StatusMessage Message="@errorMessage" />
     <Column Gap="3">
-        <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login" RequiredMark="RequiredMark.Optional">
-            <TextField @bind-Value="Input.Email" AutoComplete="username webauthn" />
+        <Form EditContext="editContext" OnSubmit="LoginUser" FormName="login">
+            <TextField @bind-Value="Input.Email" Label="Email address" AutoComplete="username webauthn" />
             <PasswordField @bind-Value="Input.Password" AutoComplete="current-password" />
             <Row Justify="Justify.Between" Align="Align.Center" Wrap>
                 <Checkbox @bind-Value="Input.RememberMe" Label="Remember me" />
-                <TextBlock Size="TextSize.Sm"><Anchor Href="Account/ForgotPassword" Underline="AnchorUnderline.Hover">Forgot your password?</Anchor></TextBlock>
+                <TextBlock Size="TextSize.Sm"><Anchor Href="Account/ForgotPassword" Underline="AnchorUnderline.Hover">Forgot password?</Anchor></TextBlock>
             </Row>
-            <Button Submit FullWidth>Log in</Button>
+            <Button Submit FullWidth>Sign in</Button>
             @* The passkey button stays in the form: Microsoft's passkey-submit element posts it. *@
             <Column Gap="3" MarginTop="6">
                 <Divider Label="or" />
                 <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email"
-                               Accent="Accent.Neutral" StartIcon="Lucide.FingerprintPattern" FullWidth>Log in with a passkey</PasskeySubmit>
+                               Accent="Accent.Neutral" StartIcon="Lucide.FingerprintPattern" FullWidth>Sign in with a passkey</PasskeySubmit>
             </Column>
         </Form>
         <ExternalLoginPicker Divider="false" />
     </Column>
-    <Column Gap="1" MarginTop="6">
+    <AccountFoot>
         @*#if (Registration) *@
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-            New here? <Anchor Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Create an account</Anchor>
-        </TextBlock>
+        New here? <Anchor Href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Create an account</Anchor>
+        <br />
         @*#endif *@
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-            Didn't get the confirmation email? <Anchor Href="Account/ResendEmailConfirmation">Resend it</Anchor>
-        </TextBlock>
-    </Column>
+        Didn't get the confirmation email? <Anchor Href="Account/ResendEmailConfirmation">Resend it</Anchor>
+    </AccountFoot>
 </AccountPanel>
 
 @code {
@@ -116,7 +113,7 @@
         }
         else
         {
-            errorMessage = "Error: Invalid login attempt.";
+            errorMessage = "Error: That email and password don’t match. Check them and try again.";
         }
     }
 

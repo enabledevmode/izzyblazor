@@ -43,6 +43,11 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = true;
+        // A long password and no rules about what's in it (NIST SP 800-63B). The password fields' hint and
+        // their checks follow these (Components/Account/IdentityPasswordAttribute.cs).
+        options.Password.RequiredLength = 12;
+        options.Password.RequireDigit = options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = options.Password.RequireNonAlphanumeric = false;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
     .AddRoles<IdentityRole>()
@@ -51,7 +56,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager<AuditingSignInManager>()
     .AddDefaultTokenProviders();
 
-// Sends no mail: it logs each link. Swap in your own IEmailSender<ApplicationUser> to send invites and resets.
+// Sends no mail. Swap in your own IEmailSender<ApplicationUser> to send invites and resets; in development
+// Settings & team offers each link in its toast.
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 // The keys that protect sign-in cookies and form tokens, kept in the database, so every instance of the app
