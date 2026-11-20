@@ -1,0 +1,49 @@
+@page "/docs/writing-pages"
+
+<PageTitle>Writing pages</PageTitle>
+
+@* A sample article. Its headings list themselves in "On this page": in the shell's aside from 1280px up,
+   and in a collapsible under the lead below that. *@
+<Column Gap="4" MaxWidth="Length.Rem(45)">
+    <Breadcrumb>
+        <BreadcrumbItem TextOnly>Getting started</BreadcrumbItem>
+        <BreadcrumbItem>Writing pages</BreadcrumbItem>
+    </Breadcrumb>
+    <Heading Level="1" Size="TextSize.Xl3">Writing pages</Heading>
+    <TextBlock Size="TextSize.Lg" Color="Color.Muted">Every page in this site is a Razor file. This article shows how to add one, put it in the sidebar and link to it.</TextBlock>
+
+    <Collapsible Label="On this page" HiddenFrom="Breakpoint.Xl">
+        <OnThisPage HideTitle />
+    </Collapsible>
+
+    <Heading Level="2" Size="TextSize.Xl" MarginTop="4">Create a page</Heading>
+    <TextBlock LineHeight="LineHeight.Relaxed">Add a <Code>.razor</Code> file under <Code>Components/Pages/Docs</Code>. Its <Code>@@page</Code> line is its address; its first heading is its title.</TextBlock>
+    <Code Block Language="razor">@Sample</Code>
+
+    <Heading Level="2" Size="TextSize.Xl" MarginTop="4">Add it to the sidebar</Heading>
+    <TextBlock LineHeight="LineHeight.Relaxed">The sidebar lists sections and their pages. Add your page to a section in <Code>DocsNav.razor</Code>, in the order readers should meet it. A page that isn’t listed still works; it just can’t be found from the sidebar.</TextBlock>
+
+    <Heading Level="2" Size="TextSize.Xl" MarginTop="4">Link between pages</Heading>
+    <TextBlock LineHeight="LineHeight.Relaxed">Link with a plain address, like <Code>/docs/billing</Code>. The previous and next links at the end of each article follow the sidebar’s order, so you don’t write them.</TextBlock>
+
+    <Heading Level="2" Size="TextSize.Xl" MarginTop="4">Headings and “On this page”</Heading>
+    <TextBlock LineHeight="LineHeight.Relaxed">Each second-level heading appears in “On this page”. Keep them short: they are read as a list.</TextBlock>
+
+    <Heading Level="2" Size="TextSize.Xl" MarginTop="4">Publish</Heading>
+    <TextBlock LineHeight="LineHeight.Relaxed">Pages render on the server, so a new page is live as soon as you deploy.</TextBlock>
+
+    <DocsPager />
+</Column>
+
+<AppAside Width="Length.Rem(15)" Breakpoint="Breakpoint.Xl">
+    <OnThisPage />
+</AppAside>
+
+@code {
+    private const string Sample = """
+        @page "/docs/billing"
+
+        <h1>Billing</h1>
+        <p>How invoices are created and paid.</p>
+        """;
+}
