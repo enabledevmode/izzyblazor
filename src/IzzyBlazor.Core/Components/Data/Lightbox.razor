@@ -57,11 +57,15 @@
             {
                 <CarouselItem @key="item">
                     <figure class="ib-lightbox-figure">
-                        <img class="@(item.DarkSrc is null ? "ib-lightbox-img" : "ib-lightbox-img ib-lightbox-on-light")" src="@item.Src" alt="@item.Alt" loading="lazy" decoding="async" />
-                        @if (item.DarkSrc is { } dark)
-                        {
-                            <img class="ib-lightbox-img ib-lightbox-on-dark" src="@dark" alt="@item.Alt" loading="lazy" decoding="async" />
-                        }
+                        @* The stage has no size of its own: the image is placed inside it, so a tall
+                           image can't make its slide, and with it every slide, taller than the viewer. *@
+                        <div class="ib-lightbox-stage">
+                            <img class="@(item.DarkSrc is null ? "ib-lightbox-img" : "ib-lightbox-img ib-lightbox-on-light")" src="@item.Src" alt="@item.Alt" loading="lazy" decoding="async" />
+                            @if (item.DarkSrc is { } dark)
+                            {
+                                <img class="ib-lightbox-img ib-lightbox-on-dark" src="@dark" alt="@item.Alt" loading="lazy" decoding="async" />
+                            }
+                        </div>
                         @if (item.Caption is { Length: > 0 } caption)
                         {
                             <figcaption class="ib-lightbox-caption">@caption</figcaption>

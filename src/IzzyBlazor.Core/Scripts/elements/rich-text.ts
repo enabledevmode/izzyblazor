@@ -255,7 +255,13 @@ class RichText extends IzzyElement {
         tool.title = tool.title.replace("Ctrl+", "⌘");
         tool.setAttribute("aria-keyshortcuts", tool.getAttribute("aria-keyshortcuts")!.replaceAll("Control+", "Meta+"));
       }
-      for (const key of this.querySelectorAll<HTMLElement>("[data-ib-command] .ib-menu-shortcut")) key.textContent = key.textContent!.replace("Ctrl+", "⌘");
+      // Each key is an element: Ctrl becomes ⌘, and the "+" after it goes, as Macs write it.
+      for (const key of this.querySelectorAll<HTMLElement>("[data-ib-command] .ib-menu-shortcut > kbd:first-child")) {
+        if (key.textContent !== "Ctrl") continue;
+        key.textContent = "⌘";
+        const plus = key.nextElementSibling as HTMLElement | null;
+        if (plus?.classList.contains("ib-menu-key-plus")) plus.hidden = true;
+      }
     }
 
     // The label points at the textarea, which is hidden: a click on it focuses the text.

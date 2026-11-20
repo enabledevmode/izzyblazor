@@ -106,31 +106,50 @@
     background: rgb(255 255 255 / 0.16);
   }
 
-  /* The carousel fills the middle; each slide centers its image over its caption. */
+  /* The carousel fills the middle. Every level takes its height from the viewer, never from an
+     image: the track's one row is the space left, each slide fills it, and the image is placed
+     inside the stage, which has no size of its own. So a tall image (a phone's screenshot) is
+     scaled to fit, and can't stretch its slide past the viewer. */
   .ib-lightbox-slides {
     grid-template-rows: minmax(0, 1fr) auto;
     min-height: 0;
   }
 
   .ib-lightbox-slides > .ib-carousel-track {
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+    overflow-y: hidden;
     border-radius: 0;
+  }
+
+  .ib-lightbox-slides > .ib-carousel-track > .ib-carousel-item {
+    display: grid;
+    min-height: 0;
   }
 
   .ib-lightbox-figure {
     display: grid;
     grid-template-rows: minmax(0, 1fr) auto;
-    justify-items: center;
-    height: 100%;
+    min-width: 0;
+    min-height: 0;
     margin: 0;
     padding-inline: var(--ib-space-3);
   }
 
-  .ib-lightbox-img {
-    align-self: center;
-    max-width: 100%;
-    max-height: 100%;
+  .ib-lightbox-stage {
+    position: relative;
     min-height: 0;
-    object-fit: contain;
+  }
+
+  /* Centered in the stage at its own size, or scaled down to fit. */
+  .ib-lightbox-img {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    margin: auto;
   }
 
   .ib-lightbox-caption {

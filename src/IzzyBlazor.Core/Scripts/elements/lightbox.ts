@@ -16,6 +16,8 @@ class Lightbox extends IzzyElement {
   #dialog: HTMLDialogElement | null = null;
   #index = -1;
   #idle = 0;
+  // The item being opened, while the track is still being put in place; else -1.
+  #placing = -1;
 
   protected setup(signal: AbortSignal): void {
     const dialog = this.querySelector<HTMLDialogElement>(":scope > dialog.ib-lightbox-panel");
@@ -25,7 +27,8 @@ class Lightbox extends IzzyElement {
     this.addEventListener("click", (e) => this.#onClick(e), { signal });
     dialog.addEventListener("close", () => this.#closed(), { signal });
     dialog.addEventListener("iblayout", (e) => {
-      if (e.target !== this.#slides() || !dialog.open) return;
+      // While the viewer opens, the track may report where a browser put it back to: not a move.
+      if (e.target !== this.#slides() || !dialog.open || this.#placing >= 0) return;
       this.#at(parseInt((e as CustomEvent<{ layout: string }>).detail.layout, 10) || 0);
     }, { signal });
     dialog.addEventListener("keydown", (e) => this.#keys(e), { signal });
@@ -92,6 +95,22 @@ class Lightbox extends IzzyElement {
     this.#at(i);
     if (slides.goTo) slides.goTo(i, instant);
     else void customElements.whenDefined("ib-carousel").then(() => requestAnimationFrame(() => this.#index === i && slides.goTo?.(i, true)));
+    // As the viewer opens, its track has just been laid out again, and a browser may put it back
+    // where it last was (Safari re-snaps to the slide it showed before closing) after this move.
+    // So place it again on the next two frames; a move that's already there does nothing.
+    if (instant) {
+      this.#placing = i;
+      this.#place(i, 2);
+    }
+  }
+
+  #place(index: number, frames: number): void {
+    requestAnimationFrame(() => {
+      if (this.#placing !== index) return;
+      if (this.#dialog?.open) this.#slides()?.goTo?.(index, true);
+      if (frames > 1 && this.#dialog?.open) this.#place(index, frames - 1);
+      else this.#placing = -1;
+    });
   }
 
   // The item in view: the counter, the current thumbnail, and the report.
@@ -112,6 +131,7 @@ class Lightbox extends IzzyElement {
 
   #closed(): void {
     clearTimeout(this.#idle);
+    this.#placing = -1;
     this.#dialog?.removeAttribute("data-ib-idle");
     if (this.#index < 0) return;
     this.#index = -1;
