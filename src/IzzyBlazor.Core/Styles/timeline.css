@@ -307,6 +307,258 @@
     margin-block-start: 0;
   }
 
+  /* By width: a placement from a breakpoint up (TimePlacement's Sm, Md, Lg or Xl), and Below
+     under it when that's the base. These repeat the three placements' rules above, one copy for
+     each breakpoint: change both together. */
+  @media (width < 640px) {
+    .ib-timeline-time-below-to-sm .ib-timeline-time {
+      order: 1;
+      min-height: 0;
+      margin-block-start: var(--ib-space-1);
+      line-height: 1.25rem;
+    }
+  }
+  @media (width >= 640px) {
+    .ib-timeline-time-below-sm .ib-timeline-time {
+      order: 1;
+      min-height: 0;
+      margin-block-start: var(--ib-space-1);
+      line-height: 1.25rem;
+    }
+    .ib-timeline-time-end-sm .ib-timeline-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: var(--ib-space-3);
+      align-content: start;
+    }
+    .ib-timeline-time-end-sm .ib-timeline-time {
+      grid-column: 2;
+      grid-row: 1;
+      white-space: nowrap;
+    }
+    .ib-timeline-time-end-sm :is(.ib-timeline-head, .ib-timeline-content) {
+      grid-column: 1 / -1;
+    }
+    .ib-timeline-time-end-sm .ib-timeline-head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .ib-timeline-time-end-sm .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-time { grid-column: 2; }
+    .ib-timeline-time-end-sm .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-content { grid-column: 1 / -1; }
+    .ib-timeline-time-end-sm .ib-timeline-actions { grid-column: 3; }
+    .ib-timeline-time-start-sm > .ib-timeline-item {
+      grid-template-columns: var(--ib-timeline-time-w) var(--ib-timeline-line) minmax(0, 1fr);
+    }
+    .ib-timeline-time-start-sm > .ib-timeline-item:not(:last-child)::before {
+      inset-inline-start: calc(var(--ib-timeline-time-w) + var(--ib-space-3) + var(--ib-timeline-line) / 2 - 1px);
+    }
+    .ib-timeline-time-start-sm .ib-timeline-marker {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .ib-timeline-time-start-sm .ib-timeline-body {
+      display: contents;
+    }
+    .ib-timeline-time-start-sm .ib-timeline-time {
+      grid-column: 1;
+      grid-row: 1;
+      text-align: end;
+    }
+    .ib-timeline-time-start-sm :is(.ib-timeline-head, .ib-timeline-content) {
+      grid-column: 3;
+      min-width: 0;
+    }
+    .ib-timeline-time-start-sm .ib-timeline-head {
+      grid-row: 1;
+    }
+  }
+  @media (width < 768px) {
+    .ib-timeline-time-below-to-md .ib-timeline-time {
+      order: 1;
+      min-height: 0;
+      margin-block-start: var(--ib-space-1);
+      line-height: 1.25rem;
+    }
+  }
+  @media (width >= 768px) {
+    .ib-timeline-time-below-md .ib-timeline-time {
+      order: 1;
+      min-height: 0;
+      margin-block-start: var(--ib-space-1);
+      line-height: 1.25rem;
+    }
+    .ib-timeline-time-end-md .ib-timeline-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: var(--ib-space-3);
+      align-content: start;
+    }
+    .ib-timeline-time-end-md .ib-timeline-time {
+      grid-column: 2;
+      grid-row: 1;
+      white-space: nowrap;
+    }
+    .ib-timeline-time-end-md :is(.ib-timeline-head, .ib-timeline-content) {
+      grid-column: 1 / -1;
+    }
+    .ib-timeline-time-end-md .ib-timeline-head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .ib-timeline-time-end-md .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-time { grid-column: 2; }
+    .ib-timeline-time-end-md .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-content { grid-column: 1 / -1; }
+    .ib-timeline-time-end-md .ib-timeline-actions { grid-column: 3; }
+    .ib-timeline-time-start-md > .ib-timeline-item {
+      grid-template-columns: var(--ib-timeline-time-w) var(--ib-timeline-line) minmax(0, 1fr);
+    }
+    .ib-timeline-time-start-md > .ib-timeline-item:not(:last-child)::before {
+      inset-inline-start: calc(var(--ib-timeline-time-w) + var(--ib-space-3) + var(--ib-timeline-line) / 2 - 1px);
+    }
+    .ib-timeline-time-start-md .ib-timeline-marker {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .ib-timeline-time-start-md .ib-timeline-body {
+      display: contents;
+    }
+    .ib-timeline-time-start-md .ib-timeline-time {
+      grid-column: 1;
+      grid-row: 1;
+      text-align: end;
+    }
+    .ib-timeline-time-start-md :is(.ib-timeline-head, .ib-timeline-content) {
+      grid-column: 3;
+      min-width: 0;
+    }
+    .ib-timeline-time-start-md .ib-timeline-head {
+      grid-row: 1;
+    }
+  }
+  @media (width < 1024px) {
+    .ib-timeline-time-below-to-lg .ib-timeline-time {
+      order: 1;
+      min-height: 0;
+      margin-block-start: var(--ib-space-1);
+      line-height: 1.25rem;
+    }
+  }
+  @media (width >= 1024px) {
+    .ib-timeline-time-below-lg .ib-timeline-time {
+      order: 1;
+      min-height: 0;
+      margin-block-start: var(--ib-space-1);
+      line-height: 1.25rem;
+    }
+    .ib-timeline-time-end-lg .ib-timeline-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: var(--ib-space-3);
+      align-content: start;
+    }
+    .ib-timeline-time-end-lg .ib-timeline-time {
+      grid-column: 2;
+      grid-row: 1;
+      white-space: nowrap;
+    }
+    .ib-timeline-time-end-lg :is(.ib-timeline-head, .ib-timeline-content) {
+      grid-column: 1 / -1;
+    }
+    .ib-timeline-time-end-lg .ib-timeline-head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .ib-timeline-time-end-lg .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-time { grid-column: 2; }
+    .ib-timeline-time-end-lg .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-content { grid-column: 1 / -1; }
+    .ib-timeline-time-end-lg .ib-timeline-actions { grid-column: 3; }
+    .ib-timeline-time-start-lg > .ib-timeline-item {
+      grid-template-columns: var(--ib-timeline-time-w) var(--ib-timeline-line) minmax(0, 1fr);
+    }
+    .ib-timeline-time-start-lg > .ib-timeline-item:not(:last-child)::before {
+      inset-inline-start: calc(var(--ib-timeline-time-w) + var(--ib-space-3) + var(--ib-timeline-line) / 2 - 1px);
+    }
+    .ib-timeline-time-start-lg .ib-timeline-marker {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .ib-timeline-time-start-lg .ib-timeline-body {
+      display: contents;
+    }
+    .ib-timeline-time-start-lg .ib-timeline-time {
+      grid-column: 1;
+      grid-row: 1;
+      text-align: end;
+    }
+    .ib-timeline-time-start-lg :is(.ib-timeline-head, .ib-timeline-content) {
+      grid-column: 3;
+      min-width: 0;
+    }
+    .ib-timeline-time-start-lg .ib-timeline-head {
+      grid-row: 1;
+    }
+  }
+  @media (width < 1280px) {
+    .ib-timeline-time-below-to-xl .ib-timeline-time {
+      order: 1;
+      min-height: 0;
+      margin-block-start: var(--ib-space-1);
+      line-height: 1.25rem;
+    }
+  }
+  @media (width >= 1280px) {
+    .ib-timeline-time-below-xl .ib-timeline-time {
+      order: 1;
+      min-height: 0;
+      margin-block-start: var(--ib-space-1);
+      line-height: 1.25rem;
+    }
+    .ib-timeline-time-end-xl .ib-timeline-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: var(--ib-space-3);
+      align-content: start;
+    }
+    .ib-timeline-time-end-xl .ib-timeline-time {
+      grid-column: 2;
+      grid-row: 1;
+      white-space: nowrap;
+    }
+    .ib-timeline-time-end-xl :is(.ib-timeline-head, .ib-timeline-content) {
+      grid-column: 1 / -1;
+    }
+    .ib-timeline-time-end-xl .ib-timeline-head {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .ib-timeline-time-end-xl .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-time { grid-column: 2; }
+    .ib-timeline-time-end-xl .ib-timeline-body:has(> .ib-timeline-actions) > .ib-timeline-content { grid-column: 1 / -1; }
+    .ib-timeline-time-end-xl .ib-timeline-actions { grid-column: 3; }
+    .ib-timeline-time-start-xl > .ib-timeline-item {
+      grid-template-columns: var(--ib-timeline-time-w) var(--ib-timeline-line) minmax(0, 1fr);
+    }
+    .ib-timeline-time-start-xl > .ib-timeline-item:not(:last-child)::before {
+      inset-inline-start: calc(var(--ib-timeline-time-w) + var(--ib-space-3) + var(--ib-timeline-line) / 2 - 1px);
+    }
+    .ib-timeline-time-start-xl .ib-timeline-marker {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .ib-timeline-time-start-xl .ib-timeline-body {
+      display: contents;
+    }
+    .ib-timeline-time-start-xl .ib-timeline-time {
+      grid-column: 1;
+      grid-row: 1;
+      text-align: end;
+    }
+    .ib-timeline-time-start-xl :is(.ib-timeline-head, .ib-timeline-content) {
+      grid-column: 3;
+      min-width: 0;
+    }
+    .ib-timeline-time-start-xl .ib-timeline-head {
+      grid-row: 1;
+    }
+  }
+
   @media (forced-colors: active) {
     .ib-timeline-current > .ib-timeline-marker,
     .ib-timeline-done > .ib-timeline-marker,

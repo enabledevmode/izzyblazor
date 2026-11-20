@@ -5,6 +5,19 @@ namespace IzzyBlazor.Tests;
 public class TimelineTests : BunitContext
 {
     [Fact]
+    public void The_time_can_sit_below_on_a_phone_and_at_the_end_from_a_breakpoint()
+    {
+        var cut = Render<Timeline>(p => p
+            .Add(c => c.TimePlacement, new Responsive<TimelinePlacement> { Base = TimelinePlacement.Below, Sm = TimelinePlacement.End })
+            .AddChildContent<TimelineItem>(i => i.Add(c => c.Title, "Call logged").Add(c => c.Time, "Nov 14")));
+
+        var classes = cut.Find("ol, ul").ClassList;
+        Assert.Contains("ib-timeline-time-below-to-sm", classes);
+        Assert.Contains("ib-timeline-time-end-sm", classes);
+        Assert.DoesNotContain("ib-timeline-time-end", classes);
+    }
+
+    [Fact]
     public void Done_steps_avatars_and_the_time_read_in_order()
     {
         var timeline = Render<Timeline>(p => p
