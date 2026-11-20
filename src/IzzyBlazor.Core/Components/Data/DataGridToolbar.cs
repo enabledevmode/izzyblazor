@@ -166,7 +166,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
             return;
         }
 
-        var link = For is { Length: > 0 } id ? PartLinks.For(Services, typeof(IDataGridToolbar), id, GetType().Name)
+        var link = For is { Length: > 0 } ? PartLinks.For(Services, typeof(IDataGridToolbar), ForTarget.Id(For, GetType().Name), GetType().Name)
             : Host?.Parts(typeof(IDataGridToolbar))
             ?? throw new InvalidOperationException($"{GetType().Name} must be in a DataGrid's ToolbarContent, in a Tile or Card with a DataGrid, or name its grid with For.");
         if (!ReferenceEquals(link, _link))

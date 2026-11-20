@@ -21,6 +21,8 @@ public abstract class ChartButtonBase : IzzyComponentBase
     /// </summary>
     [Parameter] public string? For { get; set; }
 
+    private protected string? ForId => ForTarget.Id(For, GetType().Name);
+
     /// <summary>What it does, for the script: <c>download</c>, <c>reset</c>, <c>zoom-out</c>, <c>zoom-in</c> or <c>pause</c>.</summary>
     private protected abstract string Act { get; }
 
@@ -56,7 +58,7 @@ public abstract class ChartButtonBase : IzzyComponentBase
         builder.AddAttribute(4, "style", Style);
         builder.AddAttribute(5, "data-ib-script", true);
         builder.AddAttribute(6, "data-ib-chart-act", act);
-        builder.AddAttribute(7, "data-ib-chart-for", For);
+        builder.AddAttribute(7, "data-ib-chart-for", ForId);
         if (iconOnly)
         {
             builder.AddAttribute(8, "aria-label", label);
@@ -96,7 +98,7 @@ public sealed class ChartDownload : ChartButtonBase
     {
         Open(builder, Act, TextDefaults.ChartDownload, iconOnly: true);
         // Chart's own download handler (chart.ts) takes it: the chart's id, or empty to find it.
-        builder.AddAttribute(10, "data-ib-chart-download", For ?? "");
+        builder.AddAttribute(10, "data-ib-chart-download", ForId ?? "");
         builder.OpenComponent<Icon>(11);
         builder.AddComponentParameter(12, nameof(Icon.Purpose), IconPurpose.Export);
         builder.CloseComponent();

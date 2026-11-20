@@ -102,7 +102,7 @@ public abstract class SchedulerToolbarItem : ComponentBase, IToolbarItem, IDispo
             return;
         }
 
-        var link = For is { Length: > 0 } id ? PartLinks.For(Services, typeof(ISchedulerToolbar), id, GetType().Name)
+        var link = For is { Length: > 0 } ? PartLinks.For(Services, typeof(ISchedulerToolbar), ForTarget.Id(For, GetType().Name), GetType().Name)
             : Host?.Parts(typeof(ISchedulerToolbar))
             ?? throw new InvalidOperationException($"{GetType().Name} must be in a Scheduler's ToolbarContent, in a Tile or Card with a Scheduler, or name its Scheduler with For.");
         if (!ReferenceEquals(link, _link))

@@ -4,8 +4,9 @@
 
 @*
     A menu with no button, opened at the pointer by right-click, a long press, the menu key or
-    Shift+F10 anywhere in the element whose id is For, such as a file list or a canvas. Links,
-    fields and selected text keep the browser's menu, as does Shift+right-click.
+    Shift+F10 anywhere in the element For names, such as a file list or a canvas. For is an id,
+    or a CSS selector when it starts with "#", "." or "[", so one menu serves every card of a
+    kind. Links, fields and selected text keep the browser's menu, as does Shift+right-click.
 
     Right-click can't be seen, so its actions need another way in, such as a toolbar. For the
     usual case, a menu with a button that also opens by right-click, use Menu's ContextFor.
@@ -34,7 +35,11 @@
 @{ base.BuildRenderTree(__builder); }
 
 @code {
-    /// <summary>The id of the element whose right-click, long press, menu key or Shift+F10 opens the menu.</summary>
+    /// <summary>
+    /// The element whose right-click, long press, menu key or Shift+F10 opens the menu: its id, or
+    /// a CSS selector when it starts with <c>#</c>, <c>.</c> or <c>[</c>, such as <c>.file-card</c>
+    /// for every card of a list.
+    /// </summary>
     [Parameter, EditorRequired] public string For { get; set; } = "";
 
     /// <summary>The menu's name for screen readers, such as "Folder actions".</summary>
@@ -51,7 +56,7 @@
     {
         if (string.IsNullOrWhiteSpace(For))
         {
-            throw new InvalidOperationException("ContextMenu needs For: the id of the element whose right-click opens it.");
+            throw new InvalidOperationException("ContextMenu needs For: the id of the element whose right-click opens it, or a selector such as \".file-card\".");
         }
 
         if (string.IsNullOrWhiteSpace(Label))

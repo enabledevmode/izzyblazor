@@ -22,7 +22,7 @@ public class DialogTrigger : Button
     /// <inheritdoc />
     protected override IEnumerable<KeyValuePair<string, object>>? ExtraAttributes =>
     [
-        new("commandfor", For),
+        new("commandfor", ForTarget.Id(For, nameof(DialogTrigger))),
         new("command", "show-modal"),
         new("aria-haspopup", "dialog"),
     ];
@@ -69,7 +69,7 @@ public class DialogClose : Button
 
     private protected override bool CanBeLink => false;
 
-    private string Target => For ?? Dialog?.Id
+    private string Target => ForTarget.Id(For, nameof(DialogClose)) ?? Dialog?.Id
         ?? throw new InvalidOperationException("DialogClose must be inside a Dialog, or set For to the dialog's id.");
 
     // Inside another form there's no close form to submit, and submitting would send the outer form.
