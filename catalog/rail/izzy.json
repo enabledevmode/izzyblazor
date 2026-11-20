@@ -12,5 +12,9 @@
     "item": "izzy-blazor",
     "fixed": { "Starter": "Collapsible sidebar app", "Nav": "Sidebar", "Empty": "false" }
   },
-  "computed": { "HeaderTitle": "true" }
+  "computed": { "HeaderTitle": "true" },
+  // The account menu's items are only there with accounts.
+  "exclude": [
+    { "if": "!IndividualLocalAuth", "paths": ["{{ProjectName}}/Components/Layout/AccountMenuItems.razor"] }
+  ]
 }

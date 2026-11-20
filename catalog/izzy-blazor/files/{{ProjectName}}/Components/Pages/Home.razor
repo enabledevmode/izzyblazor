@@ -142,7 +142,11 @@
 
     <Row Gap="2" Align="Align.Start" BorderTop="1" PaddingTop="5">
         <Icon Name="Lucide.FileCode" Color="Color.Muted" />
+        @*#if (UseWebAssembly && InteractiveAtRoot) *@
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">To replace this page, edit <Code>{{ProjectName}}.Client/Pages/Home.razor</Code></TextBlock>
+        @*#else *@
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">To replace this page, edit <Code>Components/Pages/Home.razor</Code></TextBlock>
+        @*#endif *@
     </Row>
 </Column>
 
