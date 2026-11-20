@@ -43,7 +43,8 @@
 
         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
             <Card Title="Won and expected revenue" TitleLevel="2" TitleId="report-revenue">
-                <Chart Items="_months" Argument="m => m.Month" TitledBy="report-revenue" Stacking="ChartStacking.Normal" Legend="ChartLegend.Top" Height="Length.Rem(14)">
+                <Chart Items="_months" Argument="m => m.Month" TitledBy="report-revenue" Stacking="ChartStacking.Normal" Legend="ChartLegend.Top" Height="Length.Rem(14)"
+                       Palette="ChartPalette.Tints(Color.Primary)">
                     <ChartValueAxis Format="@_axis" />
                     <ChartBarSeries Value="m => m.Won" Name="Won" />
                     @* The top series labels each column with the month's total, past the stack's end. *@
@@ -59,7 +60,7 @@
                 <CardActions><Button Href="deals" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" EndIcon="Lucide.ArrowRight">View pipeline</Button></CardActions>
                 @if (_open.Count > 0)
                 {
-                    <Chart Items="_stages" Argument="s => s.Stage" TitledBy="report-stages" Orientation="Orientation.Horizontal" Height="Length.Rem(14)">
+                    <Chart Items="_stages" Argument="s => s.Stage" TitledBy="report-stages" Orientation="Orientation.Horizontal" Height="Length.Rem(14)" Palette="ChartPalette.Tints(Color.Primary)">
                         <ChartValueAxis HideLabels GridLines="false" />
                         <ChartBarSeries Value="s => s.Value" Name="Open value" LabelText="s => s.Label" />
                     </Chart>
@@ -162,7 +163,7 @@
             <Card Title="Won by source" TitleLevel="2" TitleId="report-sources">
                 @if (_sources.Count > 0)
                 {
-                    <Chart Items="_sources" Argument="s => s.Source" TitledBy="report-sources" Orientation="Orientation.Horizontal" Height="@Length.Rem(2.5 + 2.25 * _sources.Count)">
+                    <Chart Items="_sources" Argument="s => s.Source" TitledBy="report-sources" Orientation="Orientation.Horizontal" Height="@Length.Rem(2.5 + 2.25 * _sources.Count)" Palette="ChartPalette.Tints(Color.Primary)">
                         <ChartValueAxis HideLabels GridLines="false" />
                         <ChartBarSeries Value="s => s.Value" Name="Won" Labels="ChartLabels.Auto" LabelFormat="@_format" />
                     </Chart>
