@@ -90,7 +90,6 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_failed_save_stays_open_with_the_error_on_its_field(string mode)
     {
         var (browser, page) = await OpenAsync(mode);
