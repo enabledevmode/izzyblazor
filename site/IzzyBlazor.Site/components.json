@@ -83,7 +83,8 @@
         { "id": "page-header-status-badge", "title": "A status beside the title", "lead": "For a record's page, such as one invoice, set `Badge` to where it stands and `BadgeStatus` to its color. The badge sits beside the title and wraps under a long one." },
         { "id": "page-header-media", "title": "An avatar before the title", "lead": "For a person's or a company's page, put an `Avatar` in `PageHeaderMedia`. It sits before the title, centered on the text, on a phone too." },
         { "id": "page-header-float", "title": "Actions that float on a phone", "lead": "A page's main actions can leave the header on a phone and float in the screen's bottom corner, where the thumb reaches them. Set `FloatBelow` on each `Button`, which needs a `StartIcon`. One floats as a button; several share a speed dial, named by the actions' `FloatLabel`.", "height": 420, "page": true, "widthSwitch": true },
-        { "id": "page-header-sizes", "title": "Sizes", "lead": "`Size` sets the title's size: `Sm` for a section inside a page, `Md` (the default) for most pages, `Lg` for a page with little else on it, such as a sign-in form. For a header under the page's own h1, set `TitleLevel`." }
+        { "id": "page-header-sizes", "title": "Sizes", "lead": "`Size` sets the title's size: `Sm` for a section inside a page, `Md` (the default) for most pages, `Lg` for a page with little else on it, such as a sign-in form. For a header under the page's own h1, set `TitleLevel`." },
+        { "id": "page-header-centered", "title": "Centered", "lead": "A page that is one narrow column, such as a sign-in form, reads best with its header on the middle line. Set `Centered`. A logo or avatar in `PageHeaderMedia` moves above the title, and any actions go below the text." }
       ]
     },
 

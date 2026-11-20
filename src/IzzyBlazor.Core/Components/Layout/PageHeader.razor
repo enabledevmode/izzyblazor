@@ -82,6 +82,12 @@
     /// </summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
+    /// <summary>
+    /// Centers the title and description, with any <see cref="PageHeaderMedia"/> above them and any
+    /// <see cref="PageHeaderActions"/> below: for a page that is one narrow column, such as a sign-in form.
+    /// </summary>
+    [Parameter] public bool Centered { get; set; }
+
     private PartScope _scope = null!;
     private readonly PageFloats _floats = new();
 
@@ -115,6 +121,7 @@
         classes.Add("ib-page-header");
         classes.Add("ib-page-header-sm", Size == ControlSize.Sm);
         classes.Add("ib-page-header-lg", Size == ControlSize.Lg);
+        classes.Add("ib-page-header-center", Centered);
         base.BuildAttributes(classes, styles);
     }
 
