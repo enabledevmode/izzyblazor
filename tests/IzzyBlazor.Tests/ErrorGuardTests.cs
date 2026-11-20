@@ -54,6 +54,36 @@ public class ErrorGuardTests : BunitContext
         Assert.Contains("The report failed.", cut.Find("details").TextContent);
     }
 
+    [Fact]
+    public void A_static_page_rendered_again_after_a_failure_shows_what_the_guard_caught_before()
+    {
+        // The server renders a failed page a second time; the guard that caught the exception the
+        // first time shows its message without rendering its content again.
+        var replay = new Replay();
+        Services.AddSingleton<IErrorGuardReplay>(replay);
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var report = new Report { Broken = true };
+
+        Render<ErrorGuard>(p => p.AddChildContent<SalesReport>(r => r.Add(x => x.Report, report)));
+        Assert.Equal("The report failed.", replay.Caught[0].Message);
+
+        replay.Again = true;
+        report.Broken = false;
+        var again = Render<ErrorGuard>(p => p.Add(g => g.ShowDetails, true).AddChildContent<SalesReport>(r => r.Add(x => x.Report, report)));
+        Assert.Contains("Something went wrong", again.Find(".ib-error-guard .ib-alert").TextContent);
+        Assert.Contains("The report failed.", again.Find("details").TextContent);
+        Assert.Empty(again.FindAll("p"));
+    }
+
+    private sealed class Replay : IErrorGuardReplay
+    {
+        public Dictionary<int, Exception> Caught { get; } = [];
+        public bool Again { get; set; }
+        public int Join() => 0;
+        void IErrorGuardReplay.Caught(int index, Exception exception) => Caught[index] = exception;
+        public Exception? CaughtBefore(int index) => Again ? Caught.GetValueOrDefault(index) : null;
+    }
+
     private sealed class Report
     {
         public bool Broken { get; set; }
