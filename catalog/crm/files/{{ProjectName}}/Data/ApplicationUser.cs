@@ -13,4 +13,7 @@ public class ApplicationUser : IdentityUser
 
     /// <summary>The last time they signed in, in UTC; null if they never have (an invite not taken up).</summary>
     public DateTime? LastSignIn { get; set; }
+
+    /// <summary>What they aim to win each month, in the workspace's currency; null for someone who doesn't sell. Reports measures the team against it.</summary>
+    public decimal? MonthlyTarget { get; set; }
 }

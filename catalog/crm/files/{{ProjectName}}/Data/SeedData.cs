@@ -8,7 +8,7 @@ namespace {{RootNamespace}}.Data;
 /// <summary>
 /// Makes the database on first run (applying the migrations) and, while it has no users, fills it: the workspace,
 /// the roles and a team member for each, four companies and their people, the deals in the pipeline and those won
-/// over the last three months, this week's activities, a note, and the audit history behind them, so every page has
+/// and lost over the last three months, this week's activities, a note, and the audit history behind them, so every page has
 /// something to show. Dates are set around today. Delete Data/app.db to start again; remove the call in Program.cs
 /// to start empty.
 /// </summary>
@@ -62,6 +62,8 @@ public static class SeedData
         var jamie = await Person("Jamie Davis", "jamie", Roles.Admin, Utc(-90, 9));
         var alex = await Person("Alex Morgan", "alex", Roles.Manager, Utc(-80, 10));
         var taylor = await Person("Taylor Kim", "taylor", Roles.Viewer, Utc(-3, 10), invited: true);
+        // What each seller aims to win in a month: Reports sets the team against it.
+        (jamie.MonthlyTarget, alex.MonthlyTarget) = (20_000, 20_000);
 
         // Companies and their people.
         Company Account(string name, string site, ApplicationUser owner, CompanyStatus status, int added) =>
@@ -69,7 +71,7 @@ public static class SeedData
         var acme = Account("Acme Co.", "acme.example", jamie, CompanyStatus.Customer, -7);
         (acme.Industry, acme.Size, acme.City) = (Industry.DesignTechnology, CompanySize.UpTo50, "Brooklyn, New York");
         acme.Notes = "Expanding the marketing team. Website launch planned for January. Olivia coordinates proposals; Ethan signs off on operations.";
-        var brightside = Account("Brightside", "brightside.example", jamie, CompanyStatus.Prospect, -8);
+        var brightside = Account("Brightside", "brightside.example", jamie, CompanyStatus.Prospect, -20);
         var fieldwork = Account("Fieldwork", "fieldwork.example", alex, CompanyStatus.Prospect, -6);
         var evergreen = Account("Evergreen", "evergreen.example", jamie, CompanyStatus.Prospect, -9);
         db.Companies.AddRange(acme, brightside, fieldwork, evergreen);
@@ -87,11 +89,11 @@ public static class SeedData
         olivia.NextFollowUp = Day(2);
         olivia.Phone = "(212) 555-0148";
         olivia.Notes = "Prefers email for proposals and a short call for scope changes.\n\nBudget agreed in principle. Confirm the final decision-maker before closing.";
-        var marcus = Someone("Marcus", "Reed", brightside, ContactStatus.Lead, jamie, Utc(-1, 15), -8);
+        var marcus = Someone("Marcus", "Reed", brightside, ContactStatus.Lead, jamie, Utc(-1, 15), -20);
         var sofia = Someone("Sofia", "Patel", fieldwork, ContactStatus.Prospect, alex, Utc(-3, 14), -1);
         var ethan = Someone("Ethan", "Brooks", acme, ContactStatus.Customer, alex, Utc(-4, 11), -7, "Operations lead");
         var amara = Someone("Amara", "Okafor", evergreen, ContactStatus.Prospect, jamie, Utc(-5, 13), -9);
-        var leo = Someone("Leo", "Martinez", brightside, ContactStatus.Lead, alex, Utc(-7, 10), -8);
+        var leo = Someone("Leo", "Martinez", brightside, ContactStatus.Lead, alex, Utc(-7, 10), -20);
         db.Contacts.AddRange(olivia, marcus, sofia, ethan, amara, leo);
 
         // The pipeline, and what was won this month and the two before it.
@@ -106,25 +108,33 @@ public static class SeedData
         var identity = Opportunity("Brand identity", brightside, marcus, 8_500, DealStage.Qualified, 17);
         var portal = Opportunity("Customer portal", fieldwork, sofia, 24_000, DealStage.Discovery, 24, -5);
         var retainer = Opportunity("Quarterly retainer", evergreen, amara, 12_000, DealStage.Negotiation, 3, -9);
-        var landing = Opportunity("Campaign landing pages", brightside, leo, 6_000, DealStage.Proposal, 14);
+        // Two for Reports' Deals at risk: nothing has happened on the landing pages since they were proposed,
+        // and Brand identity (below) has no next step.
+        var landing = Opportunity("Campaign landing pages", brightside, leo, 6_000, DealStage.Proposal, 14, -16);
         var photography = Opportunity("Product photography", acme, olivia, 4_500, DealStage.Qualified, 21, -6);
+        (identity.Source, portal.Source, landing.Source, identity.OwnerId) = (DealSource.Website, DealSource.Outbound, DealSource.Website, alex.Id);
         db.Deals.AddRange(website, identity, portal, retainer, landing, photography);
 
         // Won on days in this month and the last two, whatever today is.
         var month = new DateOnly(today.Year, today.Month, 1);
-        Deal Won(string name, Company company, Contact contact, decimal value, int monthsAgo, int day)
+        Deal Won(string name, Company company, Contact contact, decimal value, int monthsAgo, int day, DealSource source = DealSource.Referral, ApplicationUser? owner = null, DealStage stage = DealStage.Won)
         {
             var closed = month.AddMonths(-monthsAgo).AddDays(day - 1);
             if (closed > today) closed = today;
-            var deal = Opportunity(name, company, contact, value, DealStage.Won, 0, 0);
-            (deal.ExpectedClose, deal.Closed, deal.Created) = (closed, closed, closed.AddDays(-30));
+            var deal = Opportunity(name, company, contact, value, stage, 0, 0);
+            (deal.ExpectedClose, deal.Closed, deal.Created, deal.Source) = (closed, closed, closed.AddDays(-30), source);
+            if (owner is not null) deal.OwnerId = owner.Id;
             return deal;
         }
+        Deal Lost(string name, Company company, Contact contact, decimal value, int monthsAgo, int day, DealSource source, ApplicationUser owner) =>
+            Won(name, company, contact, value, monthsAgo, day, source, owner, DealStage.Lost);
         db.Deals.AddRange(
-            Won("Brand guidelines", brightside, marcus, 12_000, 0, 3), Won("Launch campaign", acme, ethan, 9_000, 0, 6),
-            Won("Website audit", fieldwork, sofia, 5_500, 0, 9), Won("Annual report design", evergreen, amara, 14_000, 1, 8),
-            Won("Onboarding emails", acme, olivia, 8_500, 1, 21), Won("Trade show booth", brightside, leo, 11_000, 2, 11),
-            Won("Product one-pagers", evergreen, amara, 8_000, 2, 24));
+            Won("Brand guidelines", brightside, marcus, 12_000, 0, 3), Won("Launch campaign", acme, ethan, 9_000, 0, 6, DealSource.Website, alex),
+            Won("Website audit", fieldwork, sofia, 5_500, 0, 9, DealSource.Outbound, jamie), Won("Annual report design", evergreen, amara, 14_000, 1, 8),
+            Won("Onboarding emails", acme, olivia, 8_500, 1, 21, DealSource.ExistingCustomer, alex), Won("Trade show booth", brightside, leo, 11_000, 2, 11, DealSource.Outbound, alex),
+            Won("Product one-pagers", evergreen, amara, 8_000, 2, 24, DealSource.Website),
+            Lost("Packaging refresh", fieldwork, sofia, 7_000, 0, 4, DealSource.Outbound, alex), Lost("Event signage", evergreen, amara, 3_500, 0, 8, DealSource.Website, jamie),
+            Lost("Social media kit", brightside, leo, 5_000, 1, 15, DealSource.Outbound, alex));
 
         // This week: what's due, what's on the calendar, and what's been done.
         Activity Do(ActivityType type, string title, Contact? contact, Deal? deal, DateTime start, int minutes, ApplicationUser who, DateTime? done = null, string? agenda = null) =>
@@ -149,7 +159,7 @@ public static class SeedData
             Do(ActivityType.Task, "Follow up on website proposal", olivia, website, Local(-1, 9), 30, jamie),
             Do(ActivityType.Task, "Send discovery questions", sofia, null, Local(0, 11), 30, jamie),
             Do(ActivityType.Task, "Confirm retainer scope", amara, null, Local(0, 15), 30, jamie),
-            Do(ActivityType.Task, "Send brand questionnaire", marcus, identity, Local(0, 16), 30, jamie),
+            Do(ActivityType.Task, "Send brand questionnaire", marcus, null, Local(0, 16), 30, jamie),
             Do(ActivityType.Task, "Share landing page estimate", leo, landing, Local(0, 16, 30), 30, jamie),
             Do(ActivityType.Task, "Book product shoot dates", ethan, photography, Local(0, 17), 30, jamie),
             walkthrough,

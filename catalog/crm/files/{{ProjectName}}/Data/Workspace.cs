@@ -31,7 +31,10 @@ public class Workspace : IAudited
     public static IReadOnlyList<string> TimeZones { get; } = ["America/New_York", "America/Chicago"];
 
     /// <summary>An amount in the workspace's currency, in whole units: "$18,000".</summary>
-    public string Money(decimal amount) => (Currency switch { "GBP" => "£", "EUR" => "€", _ => "$" }) + amount.ToString("N0");
+    public string Money(decimal amount) => CurrencySymbol + amount.ToString("N0");
+
+    /// <summary>The currency's sign: "$".</summary>
+    public string CurrencySymbol => Currency switch { "GBP" => "£", "EUR" => "€", _ => "$" };
 
     string IAudited.AuditName => Name;
 }
