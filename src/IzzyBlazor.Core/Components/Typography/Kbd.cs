@@ -28,7 +28,7 @@ public class Kbd : LayoutItemBase
     /// </summary>
     [Parameter] public string? Keys { get; set; }
 
-    /// <summary>What's shown between the keys of a combination. Defaults to "+".</summary>
+    /// <summary>What's shown between the keys of a combination. Defaults to "+". Empty puts the keys side by side, as symbols are written: "⌘ K".</summary>
     [Parameter] public string Separator { get; set; } = "+";
 
     /// <summary>Splits a combination such as "Ctrl+Shift+P" or "Ctrl++" into its keys.</summary>
@@ -114,7 +114,8 @@ public class Kbd : LayoutItemBase
             var keys = SplitKeys(Keys);
             for (var k = 0; k < keys.Count; k++)
             {
-                if (k > 0)
+                // No separator, no element: the keys then sit one gap apart ("⌘ K"), not two.
+                if (k > 0 && Separator.Length > 0)
                 {
                     builder.OpenElement(5, "span");
                     builder.AddAttribute(6, "class", "ib-kbd-separator");
