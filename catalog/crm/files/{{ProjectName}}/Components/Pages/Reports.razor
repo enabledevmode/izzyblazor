@@ -38,7 +38,7 @@
         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
             <Card Title="Won and expected revenue" TitleLevel="2" TitleId="report-revenue">
                 <Chart Items="_months" Argument="m => m.Month" TitledBy="report-revenue" Stacking="ChartStacking.Normal" Legend="ChartLegend.Top" Height="Length.Rem(14)">
-                    <ChartValueAxis Format="@_axis" />
+                    <ChartValueAxis Format="@_format" />
                     <ChartBarSeries Value="m => m.Won" Name="Won" />
                     @* Expected is the same measure not yet won: the same color, lighter. It's the top series, so
                        it labels each column with the month's total, past the stack's end. *@
@@ -185,7 +185,7 @@
 
     private Workspace _workspace = new();
     private DateOnly _today;
-    private string _period = "month", _name = "", _short = "", _before = "", _targetName = "monthly", _format = "", _axis = "";
+    private string _period = "month", _name = "", _short = "", _before = "", _targetName = "monthly", _format = "";
     private List<Figure> _figures = [];
     private decimal _target;
     private List<Deal> _won = [], _open = [], _next = [];
@@ -216,7 +216,6 @@
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync() ?? new Workspace();
         _today = Clock.Today(_workspace);
         _format = _workspace.CurrencySymbol + "#,##0";
-        _axis = $"{_workspace.CurrencySymbol}#,##0,k;;{_workspace.CurrencySymbol}0";
 
         // The period: its first day, how many months it has, and what it and the one before are called.
         _period = Period is "quarter" or "year" ? Period : "month";
