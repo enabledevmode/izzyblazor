@@ -5,8 +5,9 @@
 @inject ToastService Toasts
 
 @* The note form, in a dialog over the page that asked for it: ?dialog=new-note writes one, ?dialog=edit-note
-   with &note=5 changes one, and ?dialog=delete-note&note=5 asks before deleting it. Put one on a page that has
-   such links (a feed's Add menu and its notes' menus: Components/Activities/ActivityFeed.razor):
+   with &note=5 changes one. It also deletes: a note's Delete posts DeleteForm with the note's id, after a
+   ConfirmDialog here has asked. Put one on a page that has such links (a feed's Add menu and its notes' menus:
+   Components/Activities/ActivityFeed.razor):
 
    <NoteDialog CanEdit="_canEdit" Contact="Id" />                        a contact: a new note is about them
    <NoteDialog CanEdit="_canEdit" Deal="Id" Contact="deal.ContactId" />  a deal: about it and its contact
@@ -42,22 +43,25 @@
     </Dialog>
 }
 
-@if (CanEdit && Opened == DeleteId && _doomed is not null)
+@if (CanEdit)
 {
-    <Dialog Id="@DeleteId" Title="Delete this note?" Size="DialogSize.Sm">
-        <Form Model="Delete" FormName="delete-note" OnValidSubmit="DeleteAsync">
-            <TextBlock Color="Color.Muted">@(_doomed.Title ?? _doomed.Opening)</TextBlock>
-            <DialogFooter>
-                <DialogClose>Cancel</DialogClose>
-                <Button Submit Accent="Accent.Danger">Delete</Button>
-            </DialogFooter>
-        </Form>
-    </Dialog>
+    @* A note's Delete posts this form (DeleteForm, with the note's id), once the one dialog for all of them
+       has asked: it's for everything with DeleteClass, and names the note by its data-confirm. *@
+    <form id="@DeleteForm" method="post" @formname="@DeleteForm" @onsubmit="DeleteAsync">
+        <AntiforgeryToken />
+    </form>
+    <ConfirmDialog For="@($".{DeleteClass}")" Title="Delete this note?" Message="{0}" ConfirmText="Delete" Accent="Accent.Danger" />
 }
 
 @code {
-    /// <summary>The dialogs' ids, for links: <c>?dialog=new-note</c>, <c>?dialog=edit-note&amp;note=5</c>, <c>?dialog=delete-note&amp;note=5</c>.</summary>
-    public const string NewId = "new-note", EditId = "edit-note", DeleteId = "delete-note";
+    /// <summary>The dialogs' ids, for links: <c>?dialog=new-note</c>, <c>?dialog=edit-note&amp;note=5</c>.</summary>
+    public const string NewId = "new-note", EditId = "edit-note";
+
+    /// <summary>
+    /// What a note's Delete needs: <c>Submit Form="@NoteDialog.DeleteForm" Name="note" Value="5"</c> to post, and
+    /// <c>Class="@NoteDialog.DeleteClass"</c> with <c>data-confirm</c> (the note's title) so it asks first.
+    /// </summary>
+    public const string DeleteForm = "delete-note", DeleteClass = "delete-note";
 
     /// <summary>Whether the reader can write and change notes (Policies.EditRecords). Without it there's no dialog.</summary>
     [Parameter] public bool CanEdit { get; set; }
@@ -76,7 +80,7 @@
 
     [SupplyParameterFromQuery(Name = "dialog")] private string? Dialog { get; set; }
 
-    /// <summary>The note the edit or delete dialog is about (?note=5).</summary>
+    /// <summary>The note the edit dialog is about (?note=5).</summary>
     [SupplyParameterFromQuery(Name = "note")] private int? NoteId { get; set; }
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
@@ -84,8 +88,8 @@
     // The note as the form shows it, and as it posts.
     [SupplyParameterFromForm(FormName = "note")] private NoteInput? Input { get; set; }
 
-    // The delete dialog has nothing to fill in.
-    private readonly object Delete = new();
+    // The note a Delete posted.
+    [SupplyParameterFromForm(FormName = DeleteForm, Name = "note")] private int? Doomed { get; set; }
 
     private sealed class NoteInput
     {
@@ -104,19 +108,13 @@
     private List<int?> _contactIds = [];
     private Dictionary<int, (string Name, string? Company)> _deals = [];
     private List<int?> _dealIds = [];
-    private Note? _doomed;
 
-    // Which dialog the address opens, if any: edit and delete need a note.
-    private string? Opened => Dialog == NewId ? NewId : Dialog is EditId or DeleteId && NoteId is not null ? Dialog : null;
+    // Which dialog the address opens, if any: edit needs a note.
+    private string? Opened => Dialog == NewId ? NewId : Dialog == EditId && NoteId is not null ? Dialog : null;
 
     protected override async Task OnParametersSetAsync()
     {
         if (!CanEdit || Opened is null) return;
-        if (Opened == DeleteId)
-        {
-            _doomed = await Db.Notes.AsNoTracking().FirstOrDefaultAsync(n => n.Id == NoteId);
-            return;
-        }
 
         // Under their companies, A to Z; those without a company last.
         _contacts = (await Db.Contacts.AsNoTracking().Include(c => c.Company).ToListAsync()).ToDictionary(c => c.Id, c => (c.Name, c.Company?.Name));
@@ -175,7 +173,7 @@
     private async Task DeleteAsync()
     {
         if (!CanEdit) return;
-        if (await Db.Notes.FirstOrDefaultAsync(n => n.Id == NoteId) is { } note)
+        if (await Db.Notes.FirstOrDefaultAsync(n => n.Id == Doomed) is { } note)
         {
             Db.Notes.Remove(note);
             await Db.SaveChangesAsync();

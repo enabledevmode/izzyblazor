@@ -7,7 +7,7 @@
 
 @* A deal's files, newest first: each name downloads the file (Program.cs, /deal-attachments/{id}). People who can
    edit records add some in a dialog (Add file: ?dialog=attach on the page's address) and remove one after a
-   question (?dialog=remove-file&file=5). Both post here and go back to the page, so a deal's page
+   question (a ConfirmDialog for every row's Remove). Both post here and go back to the page, so a deal's page
    shows them by writing:
 
    <DealAttachments Deal="Id" CanEdit="_canEdit" Href="@($"deals/{Id}")" Workspace="_workspace" Today="_today" /> *@
@@ -27,7 +27,8 @@
                 <ItemActions>
                     @if (CanEdit)
                     {
-                        <IconButton Href="@($"{Href}?dialog=remove-file&file={file.Id}")" Label="@($"Remove {file.FileName}")" Icon="Lucide.Trash"
+                        <IconButton Submit Form="remove-file" Name="file" Value="@file.Id.ToString()" Class="remove-file" data-confirm="@file.FileName"
+                                    Label="@($"Remove {file.FileName}")" Icon="Lucide.Trash"
                                     Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
                     }
                 </ItemActions>
@@ -53,18 +54,13 @@
     </Dialog>
 }
 
-@if (CanEdit && _files.FirstOrDefault(f => f.Id == FileId) is { } doomed)
+@if (CanEdit)
 {
-    <Dialog Id="remove-file" Title="Remove this file?" Size="DialogSize.Sm">
-        <Form Model="Remove" FormName="remove-file" OnValidSubmit="RemoveAsync">
-            <input type="hidden" name="Remove.Id" value="@doomed.Id" />
-            <TextBlock Color="Color.Muted">@doomed.FileName</TextBlock>
-            <DialogFooter>
-                <DialogClose>Cancel</DialogClose>
-                <Button Submit Accent="Accent.Danger">Remove</Button>
-            </DialogFooter>
-        </Form>
-    </Dialog>
+    @* A file's Remove posts this form with the file's id, once the one dialog for all of them has asked. *@
+    <form id="remove-file" method="post" @formname="remove-file" @onsubmit="RemoveAsync">
+        <AntiforgeryToken />
+    </form>
+    <ConfirmDialog For=".remove-file" Title="Remove this file?" Message="{0}" ConfirmText="Remove" Accent="Accent.Danger" />
 }
 
 @code {
@@ -85,23 +81,15 @@
 
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    /// <summary>The file the remove dialog is about (?file=5).</summary>
-    [SupplyParameterFromQuery(Name = "file")] private int? FileId { get; set; }
-
     // The upload form's model; the files themselves are read from the request.
     [SupplyParameterFromForm(FormName = "attach-file")] private Attach? Upload { get; set; }
 
     [CascadingParameter] private HttpContext? Http { get; set; }
 
-    // The file the remove dialog posted.
-    [SupplyParameterFromForm(FormName = "remove-file")] private FileRef? Remove { get; set; }
+    // The file a Remove button posted.
+    [SupplyParameterFromForm(FormName = "remove-file", Name = "file")] private int? Remove { get; set; }
 
     private sealed class Attach;
-
-    private sealed class FileRef
-    {
-        public int Id { get; set; }
-    }
 
     // A file as the list shows it: never its contents.
     private sealed record Listed(int Id, string FileName, long Size, DateTime Added);
@@ -112,7 +100,6 @@
     protected override async Task OnParametersSetAsync()
     {
         Upload ??= new();
-        Remove ??= new();
         _files = await Db.DealAttachments.AsNoTracking().Where(f => f.DealId == Deal).OrderByDescending(f => f.Added)
             .Select(f => new Listed(f.Id, f.FileName, f.Size, f.Added)).ToListAsync();
     }
@@ -155,7 +142,7 @@
     // Only a file of this deal.
     private async Task RemoveAsync()
     {
-        if (CanEdit && _files.FirstOrDefault(f => f.Id == Remove!.Id) is { } file)
+        if (CanEdit && _files.FirstOrDefault(f => f.Id == Remove) is { } file)
         {
             await Db.DealAttachments.Where(f => f.Id == file.Id).ExecuteDeleteAsync();
             await Audit.RecordAsync(AuditActions.Deleted, "Attachment", file.Id.ToString(), file.FileName);
