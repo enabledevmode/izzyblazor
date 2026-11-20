@@ -290,8 +290,9 @@
     border-top: 1px solid var(--ib-color-border);
   }
 
+  /* A flush section starts at the line: its list or table has its own space. */
   .ib-card-dividers > .ib-card-body > .ib-card-content ~ .ib-card-flush {
-    padding-inline: 0;
+    padding: 0;
   }
 
   /* A linked card: the title's link covers the card; actions and footer controls sit above it. */
