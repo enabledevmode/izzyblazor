@@ -12,6 +12,13 @@ public static class TemplateExport
 {
     static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
 
+    /// <summary>
+    /// An item's name in <c>dotnet new</c>: its id behind <c>izzy-</c>, such as <c>izzy-docs-site</c>. Short
+    /// names there are shared with every installed template pack, so a bare <c>crm</c> or <c>docs-site</c>
+    /// could be anyone's; <c>izzy new</c> takes the kind and the id (<c>izzy new kit crm</c>).
+    /// </summary>
+    public static string ShortName(string id) => id.StartsWith("izzy-", StringComparison.Ordinal) ? id : $"izzy-{id}";
+
     /// <summary>Writes <paramref name="item"/> to <paramref name="directory"/> as a template folder.</summary>
     public static void WriteTemplateFolder(ItemDefinition item, string directory)
     {
@@ -158,7 +165,7 @@ public static class TemplateExport
             ["classifications"] = new JsonArray("Web", "Blazor", "IzzyBlazor"),
             ["identity"] = $"IzzyBlazor.Templates.{manifest.Id}",
             ["name"] = manifest.Name,
-            ["shortName"] = manifest.Id,
+            ["shortName"] = ShortName(manifest.Id),
             ["preferNameDirectory"] = true,
             ["tags"] = new JsonObject { ["language"] = "C#", ["type"] = "project" },
             ["forms"] = new JsonObject

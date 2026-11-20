@@ -8,7 +8,7 @@ public sealed record Template(ItemDefinition Definition)
     /// <summary>The manifest, a kit's over its base.</summary>
     public ItemManifest Manifest => Definition.Manifest;
 
-    /// <summary>The id, as in <c>izzy new crm</c>, <c>dotnet new crm</c> and <c>/templates/crm</c>.</summary>
+    /// <summary>The id, as in <c>izzy new kit crm</c>, <c>dotnet new izzy-crm</c> and <c>/templates/crm</c>.</summary>
     public string Id => Manifest.Id;
 
     /// <summary>The name, such as "Izzy CRM".</summary>
@@ -85,7 +85,7 @@ public sealed class TemplateCatalog
     public static IReadOnlyList<TemplateScreen> Screens(Template template) =>
         ScreensById.GetValueOrDefault(template.Id) ?? [];
 
-    // Taken Nov 20, 2026 from `izzy new crm` running with its sample data, at 1440×900 and 375×812.
+    // Taken Nov 20, 2026 from `izzy new kit crm` running with its sample data, at 1440×900 and 375×812.
     private static readonly Dictionary<string, IReadOnlyList<TemplateScreen>> ScreensById = new(StringComparer.OrdinalIgnoreCase)
     {
         ["crm"] =

@@ -33,9 +33,9 @@
             </Row>
             <div class="site-lead">@_template.Manifest.Summary</div>
             <div class="site-block-command">
-                <Code Block Language="bash">@($"izzy new {_template.Id} -n MyApp")</Code>
+                <Code Block Language="bash">@($"{_template.Manifest.NewCommand()} -n MyApp")</Code>
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                    Or, with the <Anchor Href="docs/get-started/create-app">templates package</Anchor> installed: <code>dotnet new @_template.Id -n MyApp</code>
+                    Or, with the <Anchor Href="docs/get-started/create-app">templates package</Anchor> installed: <code>dotnet new @TemplateExport.ShortName(_template.Id) -n MyApp</code>
                 </TextBlock>
             </div>
         </Stack>
@@ -156,7 +156,7 @@
         {
             var option = _options.FirstOrDefault(p => p.Type == ParameterType.Choice && p.Choices.Any(c => c != p.Default));
             var flag = option is null ? "" : $" --{option.Option} {option.Choices.First(c => c != option.Default)}";
-            return $"izzy new {_template!.Id} -n MyApp{flag}";
+            return $"{_template!.Manifest.NewCommand()} -n MyApp{flag}";
         }
     }
 
