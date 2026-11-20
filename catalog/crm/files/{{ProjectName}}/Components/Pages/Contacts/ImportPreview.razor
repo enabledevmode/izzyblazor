@@ -1,0 +1,131 @@
+@page "/contacts/import/{Id:int}"
+@attribute [Authorize(Policy = Policies.EditRecords)]
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+@inject ToastService Toasts
+
+<PageTitle>Preview import</PageTitle>
+
+@* Import contacts, step two: what the uploaded file (Data/ContactImport.cs) would do, row by row, before it
+   does anything. The figures count the rows by result and the grid lists them, in the file's order; its Result
+   filter finds the ones left out. On a phone the grid keeps who and the result, and a row opens for the rest. Import posts the empty form at the end, which imports the file as it stands
+   against the contacts there are then, and goes to Contacts. Only the person who uploaded a file sees it. *@
+@if (_plan is { } plan && _import is { } import)
+{
+    var incoming = plan.Count(ImportResult.New) + plan.Count(ImportResult.Updated);
+    <Column Gap="6" MaxWidth="Length.Rem(48)">
+        <PageCrumbs Trail>
+            <BreadcrumbItem Href="contacts">Contacts</BreadcrumbItem>
+            <BreadcrumbItem Href="contacts/import">Import contacts</BreadcrumbItem>
+            <BreadcrumbItem>Preview</BreadcrumbItem>
+        </PageCrumbs>
+        <PageHeader Title="Preview import" Description="@($"{import.FileName} · {Count(plan.Rows.Count, "row")}")">
+            <PageHeaderActions>
+                <Button Href="contacts/import" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Choose another file</Button>
+                @if (incoming > 0)
+                {
+                    <Button Submit Form="import-run" StartIcon="Lucide.Upload">Import @Count(incoming, "contact")</Button>
+                }
+            </PageHeaderActions>
+        </PageHeader>
+
+        <Grid Columns="new() { Base = 1, Sm = 3 }" Gap="4">
+            <Card><Stat Label="New contacts" Value="@plan.Count(ImportResult.New).ToString("N0")" Description="@(plan.NewCompanies == 0 ? "No new companies" : Count(plan.NewCompanies, "new company", "new companies"))" /></Card>
+            <Card><Stat Label="Existing contacts" Value="@((plan.Count(ImportResult.Updated) + plan.Count(ImportResult.Skipped)).ToString("N0"))" Description="@(import.Match == ImportMatch.Update ? "Updated from the file" : "Skipped")" /></Card>
+            <Card><Stat Label="Rows left out" Value="@plan.Count(ImportResult.LeftOut).ToString("N0")" Description="@(plan.Count(ImportResult.LeftOut) == 0 ? "Every row can be read" : "Fix them in the file")" /></Card>
+        </Grid>
+
+        @if (incoming == 0)
+        {
+            var leftOut = plan.Count(ImportResult.LeftOut);
+            <Alert Status="Status.Warning" Title="Nothing to import">@(leftOut == plan.Rows.Count ? "Every row is missing something a contact needs. Fix the file and choose it again."
+                : leftOut == 0 ? "Everyone in this file is already a contact."
+                : "Everyone this file can add is already a contact.")</Alert>
+        }
+
+        <DataGrid TItem="ImportRow" Items="plan.Rows" ItemKey="r => r.Number.ToString()" RowLabel="@(r => $"Row {r.Number}")" Caption="Rows in the file"
+                  PageSize="25" SmallScreen="DataGridSmallScreen.HideColumns">
+            <ToolbarContent>
+                <DataGridFilter Column="result" />
+            </ToolbarContent>
+            <Columns>
+                <TemplateColumn Title="Contact" Context="row">
+                    <Stack Gap="0">
+                        <TextBlock Weight="FontWeight.Medium" Truncate>@(row.Name.Length > 0 ? row.Name : "No name")</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@(row.Email.Length > 0 ? row.Email : "No email address")</TextBlock>
+                    </Stack>
+                </TemplateColumn>
+                <TemplateColumn Title="Company" Context="row">
+                    @if (row.Company is not null)
+                    {
+                        <Stack Gap="0">
+                            <TextBlock Truncate>@row.Company</TextBlock>
+                            @if (row.NewCompany)
+                            {
+                                <TextBlock Size="TextSize.Sm" Color="Color.Muted">New company</TextBlock>
+                            }
+                        </Stack>
+                    }
+                </TemplateColumn>
+                <PropertyColumn Property="r => r.Number" Title="Row" Width="Length.Rem(4)" />
+                <PropertyColumn Property="r => r.Result" Priority="1" Filterable Context="row">
+                    <Stack Gap="1" Align="Align.Start">
+                        <Badge Status="Tone(row.Result)">@Names.Of(row.Result)</Badge>
+                        @if (row.Problem is not null)
+                        {
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@row.Problem</TextBlock>
+                        }
+                    </Stack>
+                </PropertyColumn>
+            </Columns>
+        </DataGrid>
+
+        <form id="import-run" method="post" @formname="import-run" @onsubmit="RunAsync">
+            <AntiforgeryToken />
+        </form>
+    </Column>
+}
+
+@code {
+    /// <summary>The upload's id.</summary>
+    [Parameter] public int Id { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private ContactImport? _import;
+    private ImportPlan? _plan;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Yours, and not imported yet: otherwise there's no such page.
+        var me = (await AuthState).User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        _import = await Db.ContactImports.FirstOrDefaultAsync(i => i.Id == Id && i.CreatedById == me);
+        if (_import is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        _plan = await _import.PlanAsync(Db);
+    }
+
+    private async Task RunAsync()
+    {
+        if (_import is null) return;
+        var done = await _import.RunAsync(Db);
+        var (added, updated) = (done.Count(ImportResult.New), done.Count(ImportResult.Updated));
+        Toasts.Success(updated == 0 ? $"{Count(added, "contact")} added." : added == 0 ? $"{Count(updated, "contact")} updated." : $"{added:N0} added, {updated:N0} updated.", "Contacts imported");
+        Navigation.NavigateTo("contacts");
+    }
+
+    private static Status Tone(ImportResult result) => result switch
+    {
+        ImportResult.New => Status.Success,
+        ImportResult.Updated => Status.Info,
+        ImportResult.LeftOut => Status.Warning,
+        _ => Status.Neutral,
+    };
+
+    private static string Count(int count, string one, string? many = null) => $"{count:N0} {(count == 1 ? one : many ?? one + "s")}";
+}
