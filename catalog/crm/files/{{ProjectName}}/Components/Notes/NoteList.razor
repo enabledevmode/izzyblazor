@@ -34,7 +34,7 @@
         @if (Notes.Count > 0)
         {
             <CardBody Flush>
-                <ListView Items="Notes" ItemKey="n => n.Id.ToString()" ItemLabel="Name" Label="Notes" Context="note">
+                <ListView Items="Notes" ItemKey="n => n.Id.ToString()" ItemLabel="Name" Label="Notes" ItemAlign="Align.Start" Context="note">
                     <ChildContent>
                         <Column Gap="1">
                             @if (note.Title is { Length: > 0 } title)
