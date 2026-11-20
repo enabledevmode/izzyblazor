@@ -100,6 +100,16 @@
     min-width: 0;
   }
 
+  /* Centered: one column on the middle line, the media above the text. After the media rule, whose
+     basis would be a height here. */
+  .ib-page-header-center {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .ib-page-header-center > .ib-page-header-text { flex: none; }
+
   .ib-page-header-title {
     margin: 0;
     font-family: var(--ib-font-heading);
