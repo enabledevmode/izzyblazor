@@ -10,8 +10,9 @@
     Lay the items out as you like inside it (a Grid, a Row). Counter shows "2 of 5"; Nav adds a
     dot or a small picture for each item under the image. DarkSrc on an item swaps in another
     image where the color scheme is dark. @bind-Index says which item is open, and opens or
-    closes the viewer from C#, on an interactive page. The controls fade when nothing moves for
-    HideControlsAfter, and come back with the pointer or a key.
+    closes the viewer from C#, on an interactive page. The next image fades in; Transition None
+    shows it at once. The controls fade when nothing moves for HideControlsAfter, and come back
+    with the pointer or a key. An image is shown at its own size, or scaled down to fit.
 
     Accessibility:
     - Each item is a link named by its image's Alt, which is required (or by its own content).
@@ -51,14 +52,16 @@
                 <Icon Purpose="IconPurpose.Close" />
             </button>
         </div>
-        <Carousel Label="@Label" Class="ib-lightbox-slides" Gap="0" Loop="Loop" Arrows="Arrows" Transition="Transition"
+        @* The slides are stacked, one shown at a time (the carousel's Fade), never a row that
+           scrolls: a scroller that is hidden and shown again can come back at an old position. *@
+        <Carousel Label="@Label" Class="@(Transition == LightboxTransition.None ? "ib-lightbox-slides ib-lightbox-instant" : "ib-lightbox-slides")" Loop="Loop" Arrows="Arrows" Transition="CarouselTransition.Fade"
                   Dots="@(Nav == LightboxNav.Dots ? CarouselDots.Below : CarouselDots.None)">
             @foreach (var item in items)
             {
                 <CarouselItem @key="item">
                     <figure class="ib-lightbox-figure">
-                        @* The stage has no size of its own: the image is placed inside it, so a tall
-                           image can't make its slide, and with it every slide, taller than the viewer. *@
+                        @* The stage has no size of its own, and the image fills it, drawn at its own
+                           size or scaled down to fit: an image can't change the size of its slide. *@
                         <div class="ib-lightbox-stage">
                             <img class="@(item.DarkSrc is null ? "ib-lightbox-img" : "ib-lightbox-img ib-lightbox-on-light")" src="@item.Src" alt="@item.Alt" loading="lazy" decoding="async" />
                             @if (item.DarkSrc is { } dark)
@@ -117,10 +120,10 @@
     [Parameter] public bool Arrows { get; set; } = true;
 
     /// <summary>
-    /// How one image gives way to the next: <see cref="CarouselTransition.Slide"/>, the default, or
-    /// <see cref="CarouselTransition.Fade"/>.
+    /// How one image gives way to the next: <see cref="LightboxTransition.Fade"/>, the default, or
+    /// <see cref="LightboxTransition.None"/> for no animation.
     /// </summary>
-    [Parameter] public CarouselTransition Transition { get; set; }
+    [Parameter] public LightboxTransition Transition { get; set; }
 
     /// <summary>Wraps from the last image to the first, and back.</summary>
     [Parameter] public bool Loop { get; set; }
