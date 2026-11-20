@@ -72,10 +72,9 @@
             <Card Title="@($"Team vs {_targetName} target")" TitleLevel="2" TitleId="report-team">
                 @if (_team.Count > 0)
                 {
-                    @* A bullet graph: what each person won as a bar, their target a tick across it, and behind it
-                       the ranges that say how far along they are (under half, most of the way, there). *@
-                    <BulletChart Items="_team" TitledBy="report-team" Label="p => p.Name" Value="p => p.Won" Target="p => p.Target"
-                                 Ranges="p => new[] { p.Target * 0.5, p.Target * 0.9 }" RangeLabels="@(["Under 50%", "50–90%", "90% or more"])" ValueFormat="@_format" />
+                    @* A bullet graph: what each person won as a bar, and their target a tick across its track. No
+                       ranges behind the bar: with everyone on one target they read as a second set of bars. *@
+                    <BulletChart Items="_team" TitledBy="report-team" Label="p => p.Name" Value="p => p.Won" Target="p => p.Target" ValueFormat="@_format" />
                 }
                 else
                 {
