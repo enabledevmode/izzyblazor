@@ -6,8 +6,8 @@
 @attribute [ModeSupport]
 
 @*
-    A column of a Kanban: the cards whose ColumnOf is its Value, under a header with its Title,
-    how many cards it holds and, with the board's ColumnSummary, a figure from them.
+    A column of a Kanban: the cards whose ColumnOf is its Value, under a header with its Title
+    and how many cards it holds and, with the board's ColumnSummary, a figure from them below it.
 
     Limit and MinItems are advisory, as on most boards: the count reads "6 / 5" and changes color
     when the column holds more than its Limit or fewer than its MinItems, and cards still move in
@@ -49,11 +49,11 @@ else
                 <span aria-hidden="true"><span class="ib-kanban-n">@count.ToString(CultureInfo.CurrentCulture)</span>@(Limit is { } limit ? $" / {limit.ToString(CultureInfo.CurrentCulture)}" : null)</span>
                 <span class="ib-visually-hidden ib-kanban-count-text">@CountText(count)</span>
             </span>
-            @if (summary is not null)
+            @if (Board.ReadOnly)
             {
-                <span class="ib-kanban-summary">@summary</span>
+                addHref = null;
             }
-            @if (addHref is null && !Board.OnAdd.HasDelegate && Board.Editable)
+            else if (addHref is null && !Board.OnAdd.HasDelegate && Board.Editable)
             {
                 addHref = Board.EditHref(Kanban<TItem>.NewKey, Value);
             }
@@ -62,7 +62,7 @@ else
                 <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
                             Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" Href="@addHref" />
             }
-            else if (Board.OnAdd.HasDelegate)
+            else if (Board.OnAdd.HasDelegate && !Board.ReadOnly)
             {
                 <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
                             Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" OnClick="() => Board.OnAdd.InvokeAsync(Value)" />
@@ -97,6 +97,11 @@ else
             </Menu>
         }
     </div>
+        @if (summary is not null)
+        {
+            @* Under the header, on a line of its own: a total can be long. *@
+            <div class="ib-kanban-summary">@summary</div>
+        }
         @if (Row is null)
         {
             @Cards(TitleText)

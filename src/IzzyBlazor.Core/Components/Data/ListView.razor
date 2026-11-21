@@ -385,7 +385,7 @@
     private bool Posts => Sortable && !Live && PostName is not null;
 
     // Moving on a static page without a Name: nothing could save a move, so no handles.
-    private bool NotMovable => !Live && PostName is null;
+    private bool NotMovable => (!Live && PostName is null) || (InGroup && Group!.Locked);
 
     // DragWholeItem with an ItemMenu: the moves go in each item's ⋯ menu, and there are no handles.
     private bool MovesInMenu => Sortable && !NotMovable && DragWholeItem && ItemMenu is not null;
@@ -529,7 +529,7 @@
                 throw new InvalidOperationException("A drop zone shows every item: leave out PageSize and PageSizeOptions.");
             }
 
-            if (NotMovable && !_warned)
+            if (NotMovable && !Group!.Locked && !_warned)
             {
                 _warned = true;
                 Services.GetService<ILoggerFactory>()?.CreateLogger<ListView<TItem>>().LogWarning(
@@ -807,10 +807,14 @@
     {
         var first = index == 0;
         var last = index == _items.Count - 1;
-        @MoveItem(new(ListMoveKind.Up, key), TextDefaults.MoveUp, Wraps ? "Alt+←" : "Alt+↑", first)
-        @MoveItem(new(ListMoveKind.Down, key), TextDefaults.MoveDown, Wraps ? "Alt+→" : "Alt+↓", last)
-        @MoveItem(new(ListMoveKind.Top, key), TextDefaults.MoveToTop, "Alt+Home", first)
-        @MoveItem(new(ListMoveKind.Bottom, key), TextDefaults.MoveToBottom, "Alt+End", last)
+        @* A zone whose items are sorted (a Kanban's SortBy) has no places to move to within it. *@
+        @if (!(InGroup && Group!.Sorted))
+        {
+            @MoveItem(new(ListMoveKind.Up, key), TextDefaults.MoveUp, Wraps ? "Alt+←" : "Alt+↑", first)
+            @MoveItem(new(ListMoveKind.Down, key), TextDefaults.MoveDown, Wraps ? "Alt+→" : "Alt+↓", last)
+            @MoveItem(new(ListMoveKind.Top, key), TextDefaults.MoveToTop, "Alt+Home", first)
+            @MoveItem(new(ListMoveKind.Bottom, key), TextDefaults.MoveToBottom, "Alt+End", last)
+        }
         @if (InGroup)
         {
             @ZoneMoves(_items[index], key)

@@ -219,6 +219,8 @@ public class KanbanTests : BunitContext
 
         // Sorted by title within each column.
         Assert.Equal(new[] { "Ada invoice", "Brian", "Zoe invoice" }, In(0));
+        // Sorted, a card has no place of its own in its column: its menu only moves it to another.
+        Assert.Empty(cut.FindAll("button[data-ib-move=up]"));
 
         cut.Find("input[type=search]").Input("INVOICE");
         Assert.Equal(new[] { "Ada invoice", "Zoe invoice" }, In(0));
@@ -232,6 +234,36 @@ public class KanbanTests : BunitContext
 
         cut.Find("input[type=search]").Input("");
         Assert.Equal(new[] { "Ada invoice", "Brian" }, In(0));
+    }
+
+    [Fact]
+    public void A_read_only_board_shows_the_cards_and_moves_nothing()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<Kanban<Job>>(p => p
+            .Add(k => k.Items, Cards())
+            .Add(k => k.ItemKey, j => j.Id)
+            .Add(k => k.ColumnOf, j => j.Status)
+            .Add(k => k.ItemText, j => j.Title)
+            .Add(k => k.ItemHref, j => "jobs/" + j.Id)
+            .Add(k => k.ReadOnly, true)
+            .Add(k => k.OnSave, (KanbanSave<Job> _) => { })
+            .Add(k => k.Columns, b =>
+            {
+                b.OpenComponent<KanbanColumn<Job>>(0);
+                b.AddAttribute(1, nameof(KanbanColumn<Job>.Value), "To do");
+                b.CloseComponent();
+                b.OpenComponent<KanbanColumn<Job>>(2);
+                b.AddAttribute(3, nameof(KanbanColumn<Job>.Value), "Done");
+                b.CloseComponent();
+            }));
+
+        Assert.Equal(3, cut.FindAll(".ib-kanban-card-text").Count);
+        Assert.Empty(cut.FindAll("li[data-ib-movable]"));
+        Assert.Empty(cut.FindAll("button[data-ib-move]"));
+        Assert.Empty(cut.FindAll(".ib-kanban-add"));
+        // A card's own link stays.
+        Assert.Equal("jobs/a", cut.Find("a.ib-listview-action").GetAttribute("href"));
     }
 
     private sealed class NoPosts : IFormValueMapper

@@ -4,12 +4,14 @@
 @inject ApplicationDbContext Db
 @inject IAuthorizationService Authorization
 @inject NavigationManager Navigation
+@inject Audit Audit
+@inject ToastService Toasts
 
 <PageTitle>Deal pipeline</PageTitle>
 
 @* Deal pipeline: every deal still open (not won, not lost), the one due to close soonest first. The grid searches,
-   filters by stage and by owner ("Me" for your own), sorts and pages in the database; the Stage filter also has Won and Lost, which lists those. The Board view isn't built yet, so its switch is there but
-   off. New deal opens the deal form over the list (Components/Deals/DealDialog.razor, ?dialog=new-deal). People
+   filters by stage and by owner ("Me" for your own), sorts and pages in the database; the Stage filter also has Won and Lost, which lists those. The Board view (?view=board) is the same open deals as a
+   column for each stage: dragging a deal to another stage, or its menu's Move to, changes its stage, as the deal's page does. A phone has the list only. New deal opens the deal form over the list (Components/Deals/DealDialog.razor, ?dialog=new-deal). People
    who can't edit records (Viewers) see the list alone. With no deals at all the page is its first-use state. *@
 <PageCrumbs><BreadcrumbItem>Deal pipeline</BreadcrumbItem></PageCrumbs>
 
@@ -53,14 +55,47 @@ else
         @* The view strip: the switch (a phone has the list only), then what the list covers. *@
         <Row Gap="3" Align="Align.Center" Wrap>
             <TabNav Label="Pipeline view" Variant="TabsVariant.Segmented" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Sm">
-                <TabLink Label="Board" Icon="Lucide.Kanban" Disabled />
-                <TabLink Href="deals" Label="List" Icon="Lucide.List" Current />
+                <TabLink Href="deals?view=board" Label="Board" Icon="Lucide.Kanban" Current="_board is not null" />
+                <TabLink Href="deals" Label="List" Icon="Lucide.List" Current="_board is null" />
             </TabNav>
             <Tag>Sales pipeline</Tag>
         </Row>
 
+        @if (_board is not null)
+        {
+            @* The board: a column for each stage still in the pipeline, each with its count and total, the deals due to
+               close soonest first. A move saves at once, on a static page too. People who can't edit records see it
+               without moving anything. A phone has the list below instead. *@
+            <Kanban TItem="Deal" Items="_board" ItemKey="d => d.Id.ToString()" ColumnOf="d => d.Stage.ToString()" ItemLabel="d => d.Name"
+                    ItemHref="@(d => $"deals/{d.Id}")" SortBy="d => d.ExpectedClose" ColumnSummary="@(deals => _workspace?.Money(deals.Sum(d => d.Value)))"
+                    OnMove="MoveAsync" ReadOnly="!_canEdit" EmptyText="No deals" Label="Deal pipeline" TitleLevel="2" VisibleFrom="Breakpoint.Sm" Context="deal">
+                <Columns>
+                    @foreach (var stage in Pipeline)
+                    {
+                        <KanbanColumn Value="@stage.ToString()" />
+                    }
+                </Columns>
+                <CardTemplate>
+                    <Stack Gap="1">
+                        <TextBlock Weight="FontWeight.Medium">@deal.Name</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@deal.Company?.Name</TextBlock>
+                        <TextBlock Size="TextSize.Md" Weight="FontWeight.Semibold" TabularNums>@_workspace?.Money(deal.Value)</TextBlock>
+                        <Row Gap="2" Align="Align.Center">
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Close @When.Date(deal.ExpectedClose, _today)</TextBlock>
+                            <Spacer />
+                            @if (deal.Owner is { } owner)
+                            {
+                                <Avatar Name="@(owner.Name ?? owner.Email)" Size="AvatarSize.Xs" />
+                            }
+                        </Row>
+                    </Stack>
+                </CardTemplate>
+            </Kanban>
+        }
+
         <DataGrid id="deals" TItem="Deal" ItemsProvider="FindAsync" ItemKey="d => d.Id.ToString()" RowLabel="d => d.Name" Caption="Deals"
-                  PageSize="25" InitialSort="close" Searchable SearchLabel="Search deals…" SmallScreen="DataGridSmallScreen.HideColumns" Grow>
+                  PageSize="25" InitialSort="close" Searchable SearchLabel="Search deals…" SmallScreen="DataGridSmallScreen.HideColumns" Grow
+                  HiddenFrom="@(_board is null ? (Breakpoint?)null : Breakpoint.Sm)">
             <ToolbarContent>
                 <DataGridSearch />
                 <DataGridFilter Column="stage" />
@@ -132,6 +167,15 @@ else
     // "6 open opportunities · $73,000 total value", under the title.
     private string _summary = "";
 
+    // ?view=board: the pipeline as a board. Anything else is the list.
+    [SupplyParameterFromQuery] private string? View { get; set; }
+
+    // The board's columns: the stages a deal is still open in.
+    private static readonly DealStage[] Pipeline = [DealStage.Discovery, DealStage.Qualified, DealStage.Proposal, DealStage.Negotiation];
+
+    // The board's deals, when it's the view shown.
+    private List<Deal>? _board;
+
     // Still in the pipeline: not won, not lost.
     private IQueryable<Deal> Open => Db.Deals.AsNoTracking().Where(d => d.Stage < DealStage.Won);
 
@@ -151,6 +195,25 @@ else
             1 => $"1 open opportunity · {_workspace?.Money(values[0])} total value",
             _ => $"{values.Count:N0} open opportunities · {_workspace?.Money(values.Sum())} total value",
         };
+        if (View == "board")
+            _board = await Open.Include(d => d.Company).Include(d => d.Owner).ToListAsync();
+    }
+
+    // A deal dragged to another stage, or moved there from its menu. Saved as the deal's page saves a stage
+    // change: one line of its own in the log. The post's stage is checked: it's what the browser sent.
+    private async Task MoveAsync(KanbanMoveEventArgs<Deal> move)
+    {
+        if (move.ToColumn == move.FromColumn) return;
+        if (!_canEdit || !Enum.TryParse<DealStage>(move.ToColumn, out var to) || !Pipeline.Contains(to)
+            || await Db.Deals.FirstOrDefaultAsync(d => d.Id == move.Item.Id) is not { IsOpen: true } deal)
+        {
+            move.Cancel = true;
+            return;
+        }
+
+        await Audit.MoveAsync(deal, to, _today);
+        move.Item.Stage = to;
+        Toasts.Success($"{deal.Name} is now in {to}.", "Stage changed");
     }
 
     // The grid's page of deals, from the database: the open ones, or those at the stage the filter names,

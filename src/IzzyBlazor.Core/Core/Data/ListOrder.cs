@@ -191,8 +191,11 @@ internal readonly record struct ListMoved(string Key, string? FromZone, int From
 /// and sort): which items, and in what order within a zone. The group still holds every item.
 /// </summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
-internal sealed class ZoneView<TItem>(Func<TItem, bool>? shows, Comparison<TItem>? order)
+internal sealed class ZoneView<TItem>(Func<TItem, bool>? shows, Comparison<TItem>? order, bool locked = false)
 {
+    /// <summary>Nothing moves: no handles, no drag, no moves in the menus.</summary>
+    public bool Locked { get; } = locked;
+
     public Func<TItem, bool>? Shows { get; } = shows;
 
     public Comparison<TItem>? Order { get; } = order;

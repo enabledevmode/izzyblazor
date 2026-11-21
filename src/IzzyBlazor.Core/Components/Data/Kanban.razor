@@ -153,6 +153,12 @@
     [Parameter] public RenderFragment<KanbanEditFormContext<TItem>>? EditDialogForm { get; set; }
 
     /// <summary>
+    /// Shows the board without letting anyone change it, such as to someone who may only look:
+    /// cards don't move, and there's no form, add button or column menu. Their links stay.
+    /// </summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>
     /// Puts a search box above the board that shows only the cards matching what's typed, in
     /// their text and description or in <see cref="SearchBy"/>. On a static page the search is in
     /// the page's address (<c>?q=…</c>) and applies on Enter.
@@ -248,7 +254,7 @@
     [Parameter] public RenderFragment<TItem>? ItemMenu { get; set; }
 
     /// <summary>
-    /// Text beside each column's count, from the column's cards, such as their total:
+    /// Text under each column's header, from the column's cards, such as their total:
     /// <c>cards =&gt; cards.Sum(d =&gt; d.Value).ToString("C0")</c>.
     /// </summary>
     [Parameter] public Func<IReadOnlyList<TItem>, string?>? ColumnSummary { get; set; }
@@ -299,7 +305,7 @@
     internal bool Live => WillBeInteractive;
 
     // Cards open a form: the generated one, or the app's own.
-    internal bool Editable => OnSave.HasDelegate || EditDialogForm is not null;
+    internal bool Editable => !ReadOnly && (OnSave.HasDelegate || EditDialogForm is not null);
 
     internal const string NewKey = "new";
 
@@ -406,9 +412,9 @@
         }
     }
 
-    internal bool ColumnsHaveMenu => OnColumnRename.HasDelegate || OnColumnDelete.HasDelegate || OnColumnMove.HasDelegate;
+    internal bool ColumnsHaveMenu => !ReadOnly && (OnColumnRename.HasDelegate || OnColumnDelete.HasDelegate || OnColumnMove.HasDelegate);
 
-    internal bool ColumnsHaveForm => OnColumnRename.HasDelegate || OnColumnDelete.HasDelegate;
+    internal bool ColumnsHaveForm => !ReadOnly && (OnColumnRename.HasDelegate || OnColumnDelete.HasDelegate);
 
     internal int ColumnIndex(string value) => _valueOrder.IndexOf(value);
 
@@ -482,7 +488,7 @@
     }
 
     // After the columns: opens the form for a new one.
-    private RenderFragment? AddColumnButton => !OnColumnAdd.HasDelegate ? null : __builder =>
+    private RenderFragment? AddColumnButton => ReadOnly || !OnColumnAdd.HasDelegate ? null : __builder =>
     {
         <div class="ib-kanban-new-column">
             <Button Href="@ColumnEditHref(NewKey)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="IconSet.Current.Get(IconPurpose.Plus)">@TextDefaults.KanbanAddColumn</Button>
@@ -567,13 +573,13 @@
     {
         var post = (KanbanPost)context.Model;
         // A column's menu: left:value or right:value.
-        if (post.ColumnMove?.Split(':', 2) is [var way and ("left" or "right"), var zone] && OnColumnMove.HasDelegate)
+        if (!ReadOnly && post.ColumnMove?.Split(':', 2) is [var way and ("left" or "right"), var zone] && OnColumnMove.HasDelegate)
         {
             await MoveColumnAsync(KanbanZone.Column(zone), way == "left" ? -1 : 1);
             return;
         }
 
-        if (post.MovedKey is not { } key || _group is null || Items is null)
+        if (ReadOnly || post.MovedKey is not { } key || _group is null || Items is null)
         {
             return;
         }
@@ -662,7 +668,7 @@
     private EditContext? _columnContext;
     private ValidationMessageStore? _columnMessages;
 
-    private string? CurrentColumnEdit => (OnColumnAdd.HasDelegate || ColumnsHaveForm) && !_ending ? Query(ColumnEditKey) : null;
+    private string? CurrentColumnEdit => !ReadOnly && (OnColumnAdd.HasDelegate || ColumnsHaveForm) && !_ending ? Query(ColumnEditKey) : null;
 
     private RenderFragment ColumnFormBinding(string key) => builder =>
     {
@@ -1108,6 +1114,8 @@
     private Func<TItem, IComparable?>? _sortedBy;
     private bool _sortedDown;
     private string? _searched;
+    private bool _viewBuilt;
+    private bool _locked;
 
     internal string SearchKey => QueryPrefix + "q";
 
@@ -1118,12 +1126,12 @@
     private void BuildView()
     {
         var search = CurrentSearch;
-        if (_view is not null && search == _searched && ReferenceEquals(SortBy, _sortedBy) && SortDescending == _sortedDown)
+        if (_viewBuilt && search == _searched && ReferenceEquals(SortBy, _sortedBy) && SortDescending == _sortedDown && ReadOnly == _locked)
         {
             return;
         }
 
-        (_searched, _sortedBy, _sortedDown) = (search, SortBy, SortDescending);
+        (_viewBuilt, _searched, _sortedBy, _sortedDown, _locked) = (true, search, SortBy, SortDescending, ReadOnly);
         Func<TItem, bool>? shows = search is null ? null : item =>
             (SearchBy is not null ? SearchBy(item) : $"{ItemText?.Invoke(item) ?? ItemLabel?.Invoke(item) ?? item?.ToString()} {ItemDescription?.Invoke(item)}")
                 ?.Contains(search, StringComparison.CurrentCultureIgnoreCase) == true;
@@ -1132,7 +1140,7 @@
             var compared = Comparer<IComparable?>.Default.Compare(by(a), by(b));
             return SortDescending ? -compared : compared;
         };
-        _view = shows is null && order is null ? null : new ZoneView<TItem>(shows, order);
+        _view = shows is null && order is null && !ReadOnly ? null : new ZoneView<TItem>(shows, order, ReadOnly);
     }
 
     private void OnSearch(ChangeEventArgs e)

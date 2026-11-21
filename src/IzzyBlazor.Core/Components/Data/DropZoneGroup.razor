@@ -107,7 +107,13 @@
     internal bool Posts => !Live && Name is not null;
 
     // On a static page without a Name, nothing could save a move.
-    internal bool NotMovable => !Live && Name is null;
+    internal bool NotMovable => Locked || (!Live && Name is null);
+
+    // What's around the group (a read-only Kanban) keeps every item where it is.
+    internal bool Locked => View?.Locked == true;
+
+    // What's around the group sorts each zone's items, so an item has no place of its own within one.
+    internal bool Sorted => View?.Order is not null;
 
     internal string KeysName => $"{Name}.Keys";
 
@@ -372,7 +378,7 @@
     private async Task MoveAsync(string key, Func<List<ListEntry<TItem>>, ListMoved?> move)
     {
         // One move at a time: one arriving while OnMove awaits would start from the old order.
-        if (_moving)
+        if (_moving || Locked)
         {
             return;
         }
