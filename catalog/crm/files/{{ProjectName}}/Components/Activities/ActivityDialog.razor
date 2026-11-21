@@ -15,14 +15,21 @@
    <ActivityDialog CanEdit="_canEdit" Type="ActivityType.Task" />   the task list: a new one starts as a task
    <ActivityDialog CanEdit="_canEdit" Activity="Id" />    an activity: edit
 
+   ?dialog=log-activity records one that has already happened, a call just made (&as=call): it's saved as done,
+   at the time given, and counts as being in touch with its contact.
+
    It saves and comes back to the page, without the ?dialog. A meeting, a call or a task: a task's date and time
    are when it's due. Times are the workspace's own (Workspace.TimeZone), as the calendar shows them. *@
 @if (CanEdit && Input is not null && Opened is not null)
 {
-    var adding = Opened == NewId;
-    <Dialog Id="@Opened" Title="@(adding ? "Schedule activity" : "Edit activity")" Size="DialogSize.Lg" CloseOnBackdrop="false">
+    var (adding, logging) = (Opened != EditId, Opened == LogId);
+    <Dialog Id="@Opened" Title="@(logging ? "Log activity" : adding ? "Schedule activity" : "Edit activity")" Size="DialogSize.Lg" CloseOnBackdrop="false">
         <Form Model="Input" FormName="activity" OnValidSubmit="SaveAsync">
-            @if (adding)
+            @if (logging)
+            {
+                <TextBlock Color="Color.Muted">Record a call or a meeting that has already happened.</TextBlock>
+            }
+            else if (adding)
             {
                 <TextBlock Color="Color.Muted">Put the next step on the calendar and link it to a relationship.</TextBlock>
             }
@@ -34,16 +41,19 @@
                 <Select @bind-Value="Input.DealId" Label="Related deal" Items="_dealIds" ItemText="id => _deals[id!.Value].Name"
                         ItemGroup="id => _deals[id!.Value].Company" Placeholder="No deal" />
             </Fieldset>
-            <Fieldset Label="Schedule" Description="@($"Times are shown in {_workspace?.TimeZone}.")" Columns="2">
+            <Fieldset Label="@(logging ? "When" : "Schedule")" Description="@($"Times are shown in {_workspace?.TimeZone}.")" Columns="2">
                 <DateField @bind-Value="Input.Date" Label="Date" />
                 <TimeField @bind-Value="Input.StartTime" Label="Start time" Step="TimeSpan.FromMinutes(15)" />
                 <Select @bind-Value="Input.Duration" Label="Duration" Items="_durations" ItemText="@(minutes => $"{minutes} minutes")" />
                 <Select @bind-Value="Input.AssignedToId" Label="Assigned to" Items="_teamIds" ItemText="id => _team[id!]" />
-                <Select @bind-Value="Input.Reminder" Label="Reminder" Items="Reminders" ItemText="Before" Placeholder="No reminder"
-                        Hint="@(Mailer.Sends ? "Emailed to whoever it’s assigned to." : "Emailed once email is set up.")" />
+                @if (!logging)
+                {
+                    <Select @bind-Value="Input.Reminder" Label="Reminder" Items="Reminders" ItemText="Before" Placeholder="No reminder"
+                            Hint="@(Mailer.Sends ? "Emailed to whoever it’s assigned to." : "Emailed once email is set up.")" />
+                }
                 <TextField @bind-Value="Input.Location" Label="Location or meeting link" autocomplete="off" />
             </Fieldset>
-            <TextArea @bind-Value="Input.Agenda" Label="Agenda" Placeholder="What should you cover?" Rows="4" />
+            <TextArea @bind-Value="Input.Agenda" Label="@(logging ? "What happened" : "Agenda")" Placeholder="@(logging ? "What was said, and what comes next?" : "What should you cover?")" Rows="4" />
             @* Editing, Delete is at the footer's other end: it asks first (the ConfirmDialog below). *@
             <DialogFooter Justify="@(adding ? Justify.End : Justify.Between)">
                 @if (!adding)
@@ -52,7 +62,7 @@
                 }
                 <Row Gap="2">
                     <DialogClose>Cancel</DialogClose>
-                    <Button Submit>@(adding ? "Save activity" : "Save changes")</Button>
+                    <Button Submit>@(logging ? "Log activity" : adding ? "Save activity" : "Save changes")</Button>
                 </Row>
             </DialogFooter>
         </Form>
@@ -71,8 +81,8 @@
 @code {
     /// <summary>The form the edit dialog's Delete posts, and the class the confirmation is for.</summary>
     public const string DeleteForm = "delete-activity";
-    /// <summary>The dialogs' ids, for links: <c>?dialog=new-activity</c>, <c>?dialog=edit-activity</c>.</summary>
-    public const string NewId = "new-activity", EditId = "edit-activity";
+    /// <summary>The dialogs' ids, for links: <c>?dialog=new-activity</c>, <c>?dialog=edit-activity</c>, <c>?dialog=log-activity</c>.</summary>
+    public const string NewId = "new-activity", EditId = "edit-activity", LogId = "log-activity";
 
     /// <summary>Whether the reader can schedule and edit (Policies.EditRecords). Without it there's no dialog.</summary>
     [Parameter] public bool CanEdit { get; set; }
@@ -142,8 +152,8 @@
     private List<int> _durations = [];
     private Workspace? _workspace;
 
-    // Which of the two the address opens, if either: edit only on a page with an activity.
-    private string? Opened => Dialog == NewId ? NewId : Dialog == EditId && Activity is not null ? EditId : null;
+    // Which of the three the address opens, if any: edit only on a page with an activity.
+    private string? Opened => Dialog is NewId or LogId ? Dialog : Dialog == EditId && Activity is not null ? EditId : null;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -175,12 +185,15 @@
             else
             {
                 var now = Clock.Now(_workspace);
-                var next = now.Date.AddMinutes(Math.Ceiling((now.TimeOfDay.TotalMinutes + 1) / 30) * 30);
+                // One being logged has just happened: a call, at the quarter hour before now, with no reminder.
+                var logging = Opened == LogId;
+                var next = logging ? now.Date.AddMinutes(Math.Floor(now.TimeOfDay.TotalMinutes / 15) * 15) : now.Date.AddMinutes(Math.Ceiling((now.TimeOfDay.TotalMinutes + 1) / 30) * 30);
                 var about = Deal is { } deal && _deals.ContainsKey(deal) ? Deal : null;
                 var with = Contact is { } person && _contacts.ContainsKey(person) ? Contact : about is { } chosen ? _deals[chosen].ContactId : null;
                 Input = new ActivityInput
                 {
-                    Type = Enum.TryParse<ActivityType>(Asked, ignoreCase: true, out var asked) && Enum.IsDefined(asked) ? asked : Type, ContactId = with, DealId = about, Reminder = 30,
+                    Type = Enum.TryParse<ActivityType>(Asked, ignoreCase: true, out var asked) && Enum.IsDefined(asked) ? asked : logging ? ActivityType.Call : Type,
+                    ContactId = with, DealId = about, Reminder = logging ? null : 30,
                     Date = DateOnly.FromDateTime(next), StartTime = TimeOnly.FromDateTime(next),
                     AssignedToId = (await AuthState).User.UserId(),
                 };
@@ -194,7 +207,7 @@
     private async Task SaveAsync(EditContext form)
     {
         if (!CanEdit || Input is null) return;
-        var adding = Opened == NewId;
+        var (adding, logging) = (Opened != EditId, Opened == LogId);
         var saved = adding ? new Data.Activity() : await Db.Activities.FirstOrDefaultAsync(a => a.Id == Activity);
         if (saved is null)
         {
@@ -221,12 +234,19 @@
         {
             saved.CreatedById = (await AuthState).User.UserId();
             Db.Activities.Add(saved);
+            // Logged, it's done already, and its contact has been heard from.
+            if (logging)
+            {
+                (saved.Completed, saved.Reminder) = (DateTime.UtcNow, null);
+                await Db.TouchContactAsync(saved.ContactId, saved.Completed.Value);
+            }
         }
 
         // The audit log records it as it saves (Auditing/AuditInterceptor.cs).
         await Db.SaveChangesAsync();
 
-        if (adding) Toasts.Success($"{saved.Title} is on the calendar.", "Activity scheduled");
+        if (logging) Toasts.Success($"{saved.Title} is in the timeline.", "Activity logged");
+        else if (adding) Toasts.Success($"{saved.Title} is on the calendar.", "Activity scheduled");
         else Toasts.Success($"{saved.Title} is up to date.", "Activity saved");
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = null, ["as"] = null }));
     }

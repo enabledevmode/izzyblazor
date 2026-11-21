@@ -30,6 +30,12 @@
                             <MenuItem Href="@Add(ActivityDialog.NewId, "call")" Icon="Icon(FeedKind.Call)">Call</MenuItem>
                             <MenuItem Href="@Add(ActivityDialog.NewId, "task")" Icon="Icon(FeedKind.Task)">Task</MenuItem>
                         </MenuGroup>
+                        @* What has already happened, in one step: it's saved as done. *@
+                        <MenuDivider />
+                        <MenuGroup Label="Log">
+                            <MenuItem Href="@Add(ActivityDialog.LogId, "call")" Icon="Icon(FeedKind.Call)">Call</MenuItem>
+                            <MenuItem Href="@Add(ActivityDialog.LogId, "meeting")" Icon="Icon(FeedKind.Meeting)">Meeting</MenuItem>
+                        </MenuGroup>
                     </ChildContent>
                 </Menu>
             }
