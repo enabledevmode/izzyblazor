@@ -23,7 +23,7 @@
     move: save the card's new column there. On a static page give the board a Name inside a form
     and pass the posted KanbanOrder back as Order; SubmitOnMove posts after every move.
 
-    ChildContent draws a card; without it ItemText and ItemDescription do. ItemHref makes a card a
+    CardTemplate draws a card; without it ItemText and ItemDescription do. ItemHref makes a card a
     link and ItemMenu adds items to its ⋯ menu. The columns share the board's width, none
     narrower than ColumnWidth, and the board scrolls sideways when they don't fit. On a narrow
     board one column shows at a time with the next one's edge beside it.
@@ -104,7 +104,7 @@
     [Parameter] public RenderFragment? Columns { get; set; }
 
     /// <summary>A card's content. Without it, <see cref="ItemText"/> and <see cref="ItemDescription"/> draw the card.</summary>
-    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+    [Parameter] public RenderFragment<TItem>? CardTemplate { get; set; }
 
     /// <summary>The default card's text. Defaults to the card's string form.</summary>
     [Parameter] public Func<TItem, string?>? ItemText { get; set; }
@@ -114,7 +114,7 @@
 
     /// <summary>
     /// Names a card for screen readers: in its link, its ⋯ button and the announcement of a move.
-    /// Defaults to <see cref="ItemText"/>, then the key; set it when <see cref="ChildContent"/> draws the card.
+    /// Defaults to <see cref="ItemText"/>, then the key; set it when <see cref="CardTemplate"/> draws the card.
     /// </summary>
     [Parameter] public Func<TItem, string>? ItemLabel { get; set; }
 

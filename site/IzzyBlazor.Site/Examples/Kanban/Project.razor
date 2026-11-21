@@ -49,7 +49,7 @@
                             <KanbanColumn @key="column.Id" Value="@column.Id" Title="@column.Name" Limit="column.Limit" />
                         }
                     </Columns>
-                    <ChildContent>
+                    <CardTemplate>
                         <Stack Gap="2">
                             <Tag Label="@card.Label" Status="StatusOf(card.Label)" Size="ControlSize.Sm" />
                             <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@card.Title</TextBlock>
@@ -60,7 +60,7 @@
                                 <Avatar Name="@card.Owner" Size="AvatarSize.Xs" />
                             </Row>
                         </Stack>
-                    </ChildContent>
+                    </CardTemplate>
                     <ItemMenu>
                         <MenuItem Icon="Lucide.ExternalLink" Href="@CardHref(card)" target="_blank">Open in a new tab</MenuItem>
                         @if (RendererInfo.IsInteractive)

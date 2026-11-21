@@ -167,7 +167,7 @@
                 builder.CloseElement();
             }
 
-            if (Board.ChildContent is { } content)
+            if (Board.CardTemplate is { } content)
             {
                 builder.AddContent(3, content(item));
                 return;

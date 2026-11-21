@@ -1,4 +1,4 @@
-@* A sales pipeline: ChildContent draws each deal, ItemLabel names it for screen readers, and
+@* A sales pipeline: CardTemplate draws each deal, ItemLabel names it for screen readers, and
    ColumnSummary totals each stage. *@
 <Stack Grow>
     <Form Model="this" FormName="kanban-cards">
@@ -11,7 +11,7 @@
                 <KanbanColumn Value="Proposal" />
                 <KanbanColumn Value="Negotiation" />
             </Columns>
-            <ChildContent>
+            <CardTemplate>
                 <Stack Gap="2">
                     <Stack Gap="0">
                         <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@deal.Name</TextBlock>
@@ -24,7 +24,7 @@
                         <Avatar Name="@deal.Owner" Size="AvatarSize.Xs" />
                     </Row>
                 </Stack>
-            </ChildContent>
+            </CardTemplate>
         </Kanban>
     </Form>
 </Stack>
