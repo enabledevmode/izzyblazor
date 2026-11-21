@@ -145,6 +145,51 @@ public class KanbanTests : BunitContext
         Assert.Equal("Cards: 1", Head("To do"));
     }
 
+    [Fact]
+    public void A_column_s_menu_moves_it_and_the_board_follows_the_page_s_list()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var columns = new List<string> { "To do", "In progress", "Done" };
+        KanbanColumnMoveEventArgs? moved = null;
+        var cut = Render<Kanban<Job>>(p => p
+            .Add(k => k.Items, Cards())
+            .Add(k => k.ItemKey, j => j.Id)
+            .Add(k => k.ColumnOf, j => j.Status)
+            .Add(k => k.ItemText, j => j.Title)
+            .Add(k => k.OnColumnMove, (KanbanColumnMoveEventArgs m) =>
+            {
+                moved = m;
+                columns.Remove(m.Column);
+                columns.Insert(m.ToIndex, m.Column);
+            })
+            .Add(k => k.Columns, b =>
+            {
+                // As a page's @foreach over its list, without @key.
+                foreach (var column in columns)
+                {
+                    b.OpenComponent<KanbanColumn<Job>>(0);
+                    b.AddAttribute(1, nameof(KanbanColumn<Job>.Value), column);
+                    b.CloseComponent();
+                }
+            }));
+
+        string[] Titles() => cut.FindAll(".ib-kanban-title").Select(t => t.TextContent).ToArray();
+        string[] In(string title) => cut.FindAll(".ib-kanban-column").Single(c => c.QuerySelector(".ib-kanban-title")!.TextContent == title)
+            .QuerySelectorAll(".ib-kanban-card-text").Select(c => c.TextContent).ToArray();
+
+        // To do is first, so only Move right is offered.
+        var first = cut.FindAll(".ib-kanban-column")[0].QuerySelectorAll(".ib-kanban-header [role=menuitem]");
+        Assert.Equal(new[] { "Move left", "Move right" }, first.Select(i => i.TextContent.Trim()));
+        Assert.True(first[0].HasAttribute("disabled") || first[0].GetAttribute("aria-disabled") == "true");
+
+        first[1].Click();
+
+        Assert.Equal(("To do", 0, 1), (moved!.Column, moved.FromIndex, moved.ToIndex));
+        Assert.Equal(new[] { "In progress", "To do", "Done" }, Titles());
+        Assert.Equal(new[] { "Ada", "Brian" }, In("To do"));
+        Assert.Equal(new[] { "Cleo" }, In("In progress"));
+    }
+
     private sealed class NoPosts : IFormValueMapper
     {
         public bool CanMap(Type valueType, string scopeName, string? formName) => false;

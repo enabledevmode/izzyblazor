@@ -55,8 +55,11 @@ internal sealed class KanbanPost
 
     public string[]? Collapsed { get; set; }
 
+    /// <summary>A column's menu on a static page: <c>left:value</c> or <c>right:value</c>, the value written as its zone.</summary>
+    public string? ColumnMove { get; set; }
+
     /// <summary>Whether it's a post, not the empty model of a page that was only loaded.</summary>
-    public bool Posted => Keys is not null || Move is not null;
+    public bool Posted => Keys is not null || Move is not null || ColumnMove is not null;
 
     /// <summary>The card that moved: the menu's, or the one the script moved.</summary>
     public string? MovedKey => ListMove.TryParse(Move, out var move) ? move.Key : string.IsNullOrEmpty(Dropped) ? null : Dropped;
@@ -166,6 +169,91 @@ public sealed class KanbanDelete<TItem>
         HasErrors = true;
         _error(message);
     }
+}
+
+/// <summary>
+/// A column a user added or renamed on a <see cref="Kanban{TItem}"/>, for its <c>OnColumnAdd</c>
+/// and <c>OnColumnRename</c>. With an error added, the form stays open and shows it.
+/// </summary>
+public sealed class KanbanColumnChange
+{
+    private readonly Action<string> _error;
+
+    internal KanbanColumnChange(string? column, string title, Action<string> error) => (Column, Title, _error) = (column, title, error);
+
+    /// <summary>The column's <c>Value</c>; null for a new column, whose value is yours to give.</summary>
+    public string? Column { get; }
+
+    /// <summary>The title the user typed.</summary>
+    public string Title { get; }
+
+    internal bool HasErrors { get; private set; }
+
+    /// <summary>Reports a problem, shown at the top of the form, which stays open.</summary>
+    public void AddError(string message)
+    {
+        HasErrors = true;
+        _error(message);
+    }
+}
+
+/// <summary>A column a user deleted on a <see cref="Kanban{TItem}"/>, for its <c>OnColumnDelete</c>. With an error added, the form stays open and shows it.</summary>
+public sealed class KanbanColumnDelete
+{
+    private readonly Action<string> _error;
+
+    internal KanbanColumnDelete(string column, Action<string> error) => (Column, _error) = (column, error);
+
+    /// <summary>The column's <c>Value</c>.</summary>
+    public string Column { get; }
+
+    internal bool HasErrors { get; private set; }
+
+    /// <summary>Reports why it can't be deleted (it still has cards, say), shown at the top of the form, which stays open.</summary>
+    public void AddError(string message)
+    {
+        HasErrors = true;
+        _error(message);
+    }
+}
+
+/// <summary>A column a user moved on a <see cref="Kanban{TItem}"/>, for its <c>OnColumnMove</c>: put it at <see cref="ToIndex"/> in your list of columns.</summary>
+public sealed class KanbanColumnMoveEventArgs
+{
+    /// <summary>The column's <c>Value</c>.</summary>
+    public required string Column { get; init; }
+
+    /// <summary>Its place before the move, from 0.</summary>
+    public required int FromIndex { get; init; }
+
+    /// <summary>Its place after the move, from 0.</summary>
+    public required int ToIndex { get; init; }
+}
+
+/// <summary>A <see cref="Kanban{TItem}"/>'s column form: what it posts, on a static page too.</summary>
+public sealed class KanbanColumnFields
+{
+    /// <summary>The title. Required.</summary>
+    [Required]
+    public string? Title { get; set; }
+
+    /// <summary>Set by the form's Delete button on a static page.</summary>
+    public bool Remove { get; set; }
+}
+
+/// <summary>Gets a static post of the column form. A part of its own for <c>FormMappingScope</c>.</summary>
+internal sealed class KanbanColumnBinding : ComponentBase
+{
+    internal const string FormName = "column";
+
+    internal const string Prefix = "ib-kanban-column";
+
+    [SupplyParameterFromForm(Name = Prefix)]
+    public KanbanColumnFields? Posted { get; set; }
+
+    [Parameter] public RenderFragment<KanbanColumnFields?>? ChildContent { get; set; }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, ChildContent, Posted);
 }
 
 /// <summary>What a <c>Kanban</c>'s <c>EditDialogForm</c> gets.</summary>

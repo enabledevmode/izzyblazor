@@ -1230,6 +1230,21 @@ public class IzzyText
     /// <summary>The label of the column field in a Kanban's form.</summary>
     public virtual string KanbanColumnField { get; set; } = "Column";
 
+    /// <summary>The button after a Kanban's columns that opens the form for a new one.</summary>
+    public virtual string KanbanAddColumn { get; set; } = "Add column";
+
+    /// <summary>The title of a Kanban's form for a column.</summary>
+    public virtual string KanbanEditColumnTitle { get; set; } = "Edit column";
+
+    /// <summary>The title of a Kanban's form for a new column.</summary>
+    public virtual string KanbanNewColumnTitle { get; set; } = "New column";
+
+    /// <summary>Shown in a Kanban's column form when its column has gone.</summary>
+    public virtual string KanbanColumnGone { get; set; } = "This column isn't there any more.";
+
+    /// <summary>Asked before a Kanban's form deletes a column.</summary>
+    public virtual string KanbanDeleteColumnTitle { get; set; } = "Delete this column?";
+
     /// <summary>The label of the lane field in a Kanban's form, on a board with lanes.</summary>
     public virtual string KanbanLaneField { get; set; } = "Lane";
 

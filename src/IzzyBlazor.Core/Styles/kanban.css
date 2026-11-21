@@ -80,27 +80,41 @@
     white-space: nowrap;
   }
 
+  /* What follows the count (the summary, the add button, the menu) sits at the header's end. */
+  .ib-kanban-header > .ib-kanban-count {
+    margin-inline-end: auto;
+  }
+
   .ib-kanban-column[data-ib-off] .ib-kanban-count {
     background-color: var(--ib-color-warning-soft);
     color: var(--ib-color-warning-text);
   }
 
-  /* The summary, then the add button, at the header's end. */
   .ib-kanban-summary {
     flex: none;
-    margin-inline-start: auto;
     color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
 
-  .ib-kanban-count + .ib-kanban-add {
-    margin-inline-start: auto;
+  .ib-kanban-header > :last-child:not(.ib-kanban-count, .ib-kanban-summary, .ib-kanban-title) {
+    margin-inline-end: calc(var(--ib-space-1) * -1);
   }
 
-  .ib-kanban-add {
-    margin-inline-end: calc(var(--ib-space-1) * -1);
+  /* Add column: after the last column, level with the headers; on a board with lanes, in a row
+     of its own above them. */
+  .ib-kanban-new-column {
+    flex: none;
+    align-self: flex-start;
+    /* Room for the button's focus ring inside the scrolling board. */
+    padding: var(--ib-space-3) 3px;
+    white-space: nowrap;
+  }
+
+  .ib-kanban-lanes > .ib-kanban-new-column {
+    align-self: flex-end;
+    padding-block: 3px 0;
   }
 
   .ib-kanban-toggle {
@@ -176,7 +190,7 @@
     writing-mode: vertical-rl;
   }
 
-  .ib-kanban-column[data-ib-collapsed] :is(.ib-kanban-summary, .ib-kanban-add, .ib-kanban-cards) {
+  .ib-kanban-column[data-ib-collapsed] :is(.ib-kanban-summary, .ib-kanban-add, .ib-kanban-cards, .ib-pop-root:has(> .ib-kanban-column-menu)) {
     display: none;
   }
 

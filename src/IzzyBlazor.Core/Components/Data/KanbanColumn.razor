@@ -67,7 +67,36 @@ else
                 <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
                             Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" OnClick="() => Board.OnAdd.InvokeAsync(Value)" />
             }
-        </div>
+            @if (Board.ColumnsHaveMenu)
+        {
+            var at = Board.ColumnIndex(Value!);
+            <Menu>
+                <Trigger Context="wire">
+                    <IconButton Icon="IconSet.Current.Get(IconPurpose.MoreHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.ItemMenu, TitleText)"
+                                Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-column-menu" @attributes="wire" />
+                </Trigger>
+                <ChildContent>
+                    @if (Board.ColumnsHaveForm)
+                    {
+                        <MenuItem Href="@Board.ColumnEditHref(Value!)">@TextDefaults.KanbanEdit</MenuItem>
+                    }
+                    @if (Board.OnColumnMove.HasDelegate)
+                    {
+                        @if (Board.Live)
+                        {
+                            <MenuItem Disabled="@(at <= 0)" OnClick="() => Board.MoveColumnAsync(Value!, -1)">@TextDefaults.MoveLeft</MenuItem>
+                            <MenuItem Disabled="@(at >= Board.ColumnCount - 1)" OnClick="() => Board.MoveColumnAsync(Value!, 1)">@TextDefaults.MoveRight</MenuItem>
+                        }
+                        else
+                        {
+                            <MenuItem Disabled="@(at <= 0)" Submit Name="@($"{KanbanPostBinding.Prefix}.ColumnMove")" Value="@($"left:{KanbanZone.Of(Value!)}")">@TextDefaults.MoveLeft</MenuItem>
+                            <MenuItem Disabled="@(at >= Board.ColumnCount - 1)" Submit Name="@($"{KanbanPostBinding.Prefix}.ColumnMove")" Value="@($"right:{KanbanZone.Of(Value!)}")">@TextDefaults.MoveRight</MenuItem>
+                        }
+                    }
+                </ChildContent>
+            </Menu>
+        }
+    </div>
         @if (Row is null)
         {
             @Cards(TitleText)
@@ -79,7 +108,7 @@ else
     // The column's cards in a list of their own: a zone of the board's group.
     private RenderFragment Cards(string label) => __builder =>
     {
-        <ListView TItem="TItem" Class="ib-kanban-cards" Zone="@_zone" Label="@label" Cards DragWholeItem="@(!Board.DragHandle)" Accepts="Accepts"
+        <ListView @key="_zone" TItem="TItem" Class="ib-kanban-cards" Zone="@_zone" Label="@label" Cards DragWholeItem="@(!Board.DragHandle)" Accepts="Accepts"
                   ItemLabel="@_itemLabel" ItemHref="_itemHref" OnItemClick="Board.OnItemClick" ItemCurrent="Board.ItemCurrent" ItemDisabled="Board.ItemDisabled"
                   EmptyText="@Board.EmptyText" Size="Board.Size" MaxHeight="Board.MaxHeight" ItemTemplate="_card" ItemMenu="_menu" />
     };
@@ -128,6 +157,7 @@ else
     [CascadingParameter] private KanbanRow? Row { get; set; }
 
     private bool IsCell => Row?.Lane is not null;
+    private string? _value;
 
     private readonly string _titleId = IdGenerator.Next("ib-kanban-title");
     private Kanban<TItem> Board => Kanban!;
@@ -242,11 +272,15 @@ else
             throw new InvalidOperationException("A KanbanColumn needs a Value, such as Value=\"Done\": the ColumnOf of the cards it shows.");
         }
 
+        // Drawn in the same place with another value (a list rendered without @key, after a move):
+        // its list of cards is made again as the new value's zone.
         var zone = KanbanZone.Of(Value, Row?.Lane?.Value);
-        if (_zone.Length > 0 && _zone != zone)
+        if (_value is not null && _value != Value && !IsCell)
         {
-            throw new InvalidOperationException("A KanbanColumn's Value can't change: give columns you render from a list an @key.");
+            Board.ColumnValueChanged(_value, Value);
         }
+
+        _value = Value;
 
         _zone = zone;
         if (Collapsed != _collapsedParam)

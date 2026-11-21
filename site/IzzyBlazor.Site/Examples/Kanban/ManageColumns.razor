@@ -1,0 +1,114 @@
+@* An ideas board whose columns are the team's to change: each column's ⋯ menu edits, moves or
+   deletes it, and Add column makes another. The page keeps the columns in a list of its own and
+   draws the board from it. *@
+<Stack Grow>
+    <Kanban TItem="Idea" Items="Ideas" ItemsChanged="Arranged" ItemKey="i => i.Id" ColumnOf="i => i.Column" ItemText="i => i.Title" OnMove="Moved"
+            OnColumnAdd="AddColumn" OnColumnRename="RenameColumn" OnColumnDelete="DeleteColumn" OnColumnMove="MoveColumn"
+            QueryPrefix="ideas-" ColumnWidth="Length.Rem(13)" Label="Ideas">
+        <Columns>
+            @foreach (var column in Stages)
+            {
+                <KanbanColumn Value="@column.Id" Title="@column.Title" />
+            }
+        </Columns>
+    </Kanban>
+</Stack>
+
+@code {
+    private sealed class Stage
+    {
+        public string Id { get; set; } = "";
+        public string Title { get; set; } = "";
+    }
+
+    private sealed class Idea(string id, string title, string column)
+    {
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+        public string Column { get; set; } = column;
+    }
+
+    // An app keeps its columns and cards in a database; this example keeps them in memory for
+    // everyone reading the page, and starts again past 6 columns.
+    private static readonly List<Stage> Stages = SeedStages();
+    private static readonly List<Idea> Ideas = SeedIdeas();
+
+    private static List<Stage> SeedStages() =>
+    [
+        new() { Id = "inbox", Title = "Inbox" }, new() { Id = "exploring", Title = "Exploring" }, new() { Id = "decided", Title = "Decided" },
+    ];
+
+    private static List<Idea> SeedIdeas() =>
+    [
+        new("1", "Referral credits", "inbox"),
+        new("2", "Annual billing discount", "inbox"),
+        new("3", "Team workspaces", "exploring"),
+        new("4", "Public roadmap", "decided"),
+    ];
+
+    private void AddColumn(KanbanColumnChange change)
+    {
+        lock (Stages)
+        {
+            if (Stages.Count >= 6)
+            {
+                Stages.Clear();
+                Stages.AddRange(SeedStages());
+                Ideas.Clear();
+                Ideas.AddRange(SeedIdeas());
+            }
+
+            Stages.Add(new() { Id = Guid.NewGuid().ToString("N")[..8], Title = change.Title });
+        }
+    }
+
+    private void RenameColumn(KanbanColumnChange change)
+    {
+        lock (Stages)
+        {
+            if (Stages.Find(s => s.Id == change.Column) is { } stage)
+            {
+                stage.Title = change.Title;
+            }
+        }
+    }
+
+    // A column with cards stays: the form says why.
+    private void DeleteColumn(KanbanColumnDelete delete)
+    {
+        lock (Stages)
+        {
+            if (Ideas.Any(i => i.Column == delete.Column))
+            {
+                delete.AddError("Move this column's cards to another column first.");
+                return;
+            }
+
+            Stages.RemoveAll(s => s.Id == delete.Column);
+        }
+    }
+
+    private void MoveColumn(KanbanColumnMoveEventArgs move)
+    {
+        lock (Stages)
+        {
+            if (Stages.Find(s => s.Id == move.Column) is { } stage)
+            {
+                Stages.Remove(stage);
+                Stages.Insert(Math.Clamp(move.ToIndex, 0, Stages.Count), stage);
+            }
+        }
+    }
+
+    private void Moved(KanbanMoveEventArgs<Idea> move) => move.Item.Column = move.ToColumn;
+
+    private void Arranged(IReadOnlyList<Idea> ideas)
+    {
+        lock (Stages)
+        {
+            var order = ideas.ToList();
+            Ideas.Clear();
+            Ideas.AddRange(order);
+        }
+    }
+}

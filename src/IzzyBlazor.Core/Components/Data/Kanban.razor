@@ -68,6 +68,19 @@
                 @Binding
             </FormMappingScope>
         }
+        @if (CurrentColumnEdit is { Length: > 0 } columnKey)
+        {
+            if (RendererInfo.IsInteractive)
+            {
+                @ColumnDialog(columnKey, null)
+            }
+            else
+            {
+                <FormMappingScope Name="@($"ib-kanban-column-{QueryPrefix}")">
+                    @ColumnFormBinding(columnKey)
+                </FormMappingScope>
+            }
+        }
         @if (CurrentEdit is { Length: > 0 } editKey)
         {
             @* The card's form, outside the board's own: a form can't hold another. *@
@@ -132,6 +145,26 @@
     /// <c>context.CloseAsync()</c> when it has saved, and put <c>autofocus</c> on its first field.
     /// </summary>
     [Parameter] public RenderFragment<KanbanEditFormContext<TItem>>? EditDialogForm { get; set; }
+
+    /// <summary>
+    /// Runs when the user adds a column, on a static page too: with it, an Add column button after
+    /// the columns opens a form for its title. Add the column to the list you render
+    /// <see cref="Columns"/> from, with a <c>Value</c> of your own.
+    /// </summary>
+    [Parameter, ModeSupport] public EventCallback<KanbanColumnChange> OnColumnAdd { get; set; }
+
+    /// <summary>Runs when the user renames a column: with it, each column's ⋯ menu has Edit, which opens a form for its title.</summary>
+    [Parameter, ModeSupport] public EventCallback<KanbanColumnChange> OnColumnRename { get; set; }
+
+    /// <summary>Runs when the user deletes a column: with it, the column's form has a Delete button, which asks first. Its cards are yours to move or delete.</summary>
+    [Parameter, ModeSupport] public EventCallback<KanbanColumnDelete> OnColumnDelete { get; set; }
+
+    /// <summary>
+    /// Runs when the user moves a column: with it, each column's ⋯ menu has Move left and Move
+    /// right. Put the column at <see cref="KanbanColumnMoveEventArgs.ToIndex"/> in the list you
+    /// render <see cref="Columns"/> from.
+    /// </summary>
+    [Parameter, ModeSupport] public EventCallback<KanbanColumnMoveEventArgs> OnColumnMove { get; set; }
 
     /// <summary>
     /// Sets this board's posts and its keys in the page's address apart, so several can share a
@@ -276,9 +309,11 @@
         if (LaneOf is null)
         {
             @Columns
+            @AddColumnButton
             return;
         }
 
+        @AddColumnButton
         <CascadingValue Value="_heads" IsFixed="true">
             <div class="ib-kanban-heads">@Columns</div>
         </CascadingValue>
@@ -328,15 +363,39 @@
     private string? NewLane() => LaneOf is null ? null : _laneList.Count > 0 ? _laneList[0].Value : "";
 
     private readonly List<KanbanColumn<TItem>> _columnList = [];
+    // The columns' values in the order shown: the order they arrived, then as the user moved them.
+    // The columns themselves stay in the order they were made, whether a move gave them each
+    // another value or (with @key) moved them.
+    private readonly List<string> _valueOrder = [];
 
-    /// <summary>The board's columns, in the order they arrived.</summary>
-    internal IReadOnlyList<KanbanColumn<TItem>> ColumnList => _columnList;
+    /// <summary>The board's columns, in the order shown.</summary>
+    internal IReadOnlyList<KanbanColumn<TItem>> ColumnList
+    {
+        get
+        {
+            _columnList.Sort((a, b) => _valueOrder.IndexOf(a.Value!).CompareTo(_valueOrder.IndexOf(b.Value!)));
+            return _columnList;
+        }
+    }
+
+    internal bool ColumnsHaveMenu => OnColumnRename.HasDelegate || OnColumnDelete.HasDelegate || OnColumnMove.HasDelegate;
+
+    internal bool ColumnsHaveForm => OnColumnRename.HasDelegate || OnColumnDelete.HasDelegate;
+
+    internal int ColumnIndex(string value) => _valueOrder.IndexOf(value);
+
+    internal int ColumnCount => _valueOrder.Count;
 
     internal void AddColumn(KanbanColumn<TItem> column)
     {
         if (!_columnList.Contains(column))
         {
             _columnList.Add(column);
+            if (!_valueOrder.Contains(column.Value!))
+            {
+                _valueOrder.Add(column.Value!);
+            }
+
             ColumnsArrived();
         }
     }
@@ -345,14 +404,67 @@
     {
         if (_columnList.Remove(column))
         {
+            _valueOrder.Remove(column.Value!);
             ColumnsArrived();
         }
     }
 
+    // A column drawn in the same place with another value (a list rendered without @key).
+    internal void ColumnValueChanged(string old, string value)
+    {
+        var at = _valueOrder.IndexOf(old);
+        if (_valueOrder.Contains(value))
+        {
+            return;
+        }
+
+        if (at >= 0)
+        {
+            _valueOrder[at] = value;
+        }
+        else
+        {
+            _valueOrder.Add(value);
+        }
+    }
+
+    // A column's menu: one place left or right.
+    internal async Task MoveColumnAsync(string value, int by)
+    {
+        var from = _valueOrder.IndexOf(value);
+        var to = from + by;
+        if (from < 0 || to < 0 || to >= _valueOrder.Count)
+        {
+            return;
+        }
+
+        _valueOrder.RemoveAt(from);
+        _valueOrder.Insert(to, value);
+        await OnColumnMove.InvokeAsync(new KanbanColumnMoveEventArgs { Column = value, FromIndex = from, ToIndex = to });
+        // Drawn again from the page's list, whether or not the page itself renders.
+        StateHasChanged();
+    }
+
+    internal string ColumnEditKey => QueryPrefix + "edit-column";
+
+    internal string ColumnEditHref(string key)
+    {
+        var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [ColumnEditKey] = key, [EditKey] = null, [ColumnKey] = null }));
+        return uri.AbsolutePath + uri.Query;
+    }
+
+    // After the columns: opens the form for a new one.
+    private RenderFragment? AddColumnButton => !OnColumnAdd.HasDelegate ? null : __builder =>
+    {
+        <div class="ib-kanban-new-column">
+            <Button Href="@ColumnEditHref(NewKey)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="IconSet.Current.Get(IconPurpose.Plus)">@TextDefaults.KanbanAddColumn</Button>
+        </div>
+    };
+
     // The open form lists the columns, which arrive after the board's first render.
     private void ColumnsArrived()
     {
-        if (CurrentEdit is not null)
+        if (CurrentEdit is not null || CurrentColumnEdit is not null)
         {
             _ = InvokeAsync(StateHasChanged);
         }
@@ -385,7 +497,7 @@
     {
         get
         {
-            var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditKey] = null, [ColumnKey] = null }));
+            var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditKey] = null, [ColumnKey] = null, [ColumnEditKey] = null }));
             return uri.AbsolutePath + uri.Query;
         }
     }
@@ -426,6 +538,13 @@
     private async Task PostedAsync(EditContext context)
     {
         var post = (KanbanPost)context.Model;
+        // A column's menu: left:value or right:value.
+        if (post.ColumnMove?.Split(':', 2) is [var way and ("left" or "right"), var zone] && OnColumnMove.HasDelegate)
+        {
+            await MoveColumnAsync(KanbanZone.Column(zone), way == "left" ? -1 : 1);
+            return;
+        }
+
         if (post.MovedKey is not { } key || _group is null || Items is null)
         {
             return;
@@ -507,6 +626,143 @@
 
     /// <inheritdoc />
     public void Dispose() => Navigation.LocationChanged -= Moved;
+
+    // ---- The column's form: its title, and Delete. ----
+
+    private string? _columnFor;
+    private KanbanColumnFields? _columnModel;
+    private EditContext? _columnContext;
+    private ValidationMessageStore? _columnMessages;
+
+    private string? CurrentColumnEdit => (OnColumnAdd.HasDelegate || ColumnsHaveForm) && !_ending ? Query(ColumnEditKey) : null;
+
+    private RenderFragment ColumnFormBinding(string key) => builder =>
+    {
+        builder.OpenComponent<KanbanColumnBinding>(0);
+        builder.AddComponentParameter(1, nameof(KanbanColumnBinding.ChildContent), (RenderFragment<KanbanColumnFields?>)(posted => ColumnDialog(key, posted)));
+        builder.CloseComponent();
+    };
+
+    private KanbanColumn<TItem>? ColumnNamed(string value) => _columnList.Find(c => c.Value == value);
+
+    private RenderFragment ColumnDialog(string key, KanbanColumnFields? posted) => __builder =>
+    {
+        var isNew = key == NewKey;
+        var column = isNew ? null : ColumnNamed(key);
+        if (_columnFor != key || _columnModel is null || (posted is not null && !ReferenceEquals(posted, _columnModel)))
+        {
+            _columnFor = key;
+            _columnModel = posted ?? new KanbanColumnFields { Title = column?.Title ?? column?.Value };
+            _columnContext = new EditContext(_columnModel);
+            _columnMessages = new ValidationMessageStore(_columnContext);
+        }
+        else if (!isNew && posted is null && _columnModel.Title is null && column is not null)
+        {
+            // The columns arrive after the board's first render.
+            _columnModel.Title = column.Title ?? column.Value;
+        }
+
+        var name = KanbanColumnBinding.Prefix;
+        var allowed = isNew ? OnColumnAdd.HasDelegate : ColumnsHaveForm;
+        <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@ColumnEditKey" Title="@(isNew ? TextDefaults.KanbanNewColumnTitle : TextDefaults.KanbanEditColumnTitle)" Size="DialogSize.Sm" CloseOnBackdrop="false">
+            @if (!allowed || (!isNew && column is null && _columnList.Count > 0))
+            {
+                <Alert Status="Status.Warning">@TextDefaults.KanbanColumnGone</Alert>
+            }
+            else
+            {
+                <Form EditContext="_columnContext" FormName="@(RendererInfo.IsInteractive ? null : KanbanColumnBinding.FormName)" OnSubmit="SubmitColumnAsync">
+                    <FormErrors />
+                    <TextField @bind-Value="_columnModel.Title" name="@($"{name}.Title")" Label="@TextDefaults.KanbanTitleField" ReadOnly="@(!isNew && !OnColumnRename.HasDelegate)" autofocus />
+                    <DialogFooter>
+                        @if (!isNew && OnColumnDelete.HasDelegate)
+                        {
+                            <ConfirmButton Title="@TextDefaults.KanbanDeleteColumnTitle" Message="@_columnModel.Title" ConfirmText="@TextDefaults.Delete"
+                                           Accent="Accent.Danger" Variant="ButtonVariant.Ghost" Class="ib-kanban-delete"
+                                           OnConfirm="DeleteColumnAsync" Name="@(RendererInfo.IsInteractive ? null : $"{name}.Remove")" Value="@(RendererInfo.IsInteractive ? null : "true")" formnovalidate>@TextDefaults.Delete</ConfirmButton>
+                        }
+                        @if (isNew || OnColumnRename.HasDelegate)
+                        {
+                            <Button Submit>@TextDefaults.Save</Button>
+                        }
+                    </DialogFooter>
+                </Form>
+            }
+        </Dialog>
+    };
+
+    private void ColumnError(string message)
+    {
+        _columnMessages?.Add(new FieldIdentifier(_columnModel!, ""), message);
+        _columnContext?.NotifyValidationStateChanged();
+    }
+
+    private async Task SubmitColumnAsync(EditContext context)
+    {
+        if (_columnModel is null || _columnMessages is null || _saving || _columnFor is not { } key)
+        {
+            return;
+        }
+
+        _columnMessages.Clear();
+        if (_columnModel.Remove)
+        {
+            await DeleteColumnAsync();
+            return;
+        }
+
+        if (!context.Validate())
+        {
+            return;
+        }
+
+        var isNew = key == NewKey;
+        if (!isNew && ColumnNamed(key) is null)
+        {
+            ColumnError(TextDefaults.KanbanColumnGone);
+            return;
+        }
+
+        var change = new KanbanColumnChange(isNew ? null : key, _columnModel.Title!.Trim(), ColumnError);
+        _saving = true;
+        try
+        {
+            await (isNew ? OnColumnAdd : OnColumnRename).InvokeAsync(change);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        if (!change.HasErrors)
+        {
+            EndEdit();
+        }
+    }
+
+    private async Task DeleteColumnAsync()
+    {
+        if (_columnFor is not { } key || key == NewKey || _saving || !OnColumnDelete.HasDelegate)
+        {
+            return;
+        }
+
+        var delete = new KanbanColumnDelete(key, ColumnError);
+        _saving = true;
+        try
+        {
+            await OnColumnDelete.InvokeAsync(delete);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        if (!delete.HasErrors)
+        {
+            EndEdit();
+        }
+    }
 
     // ---- The card's form: a card's, or a new one's. ----
 
@@ -790,6 +1046,7 @@
     private void EndEdit()
     {
         (_editFor, _editItem, _model, _context, _messages) = (null, default, null, null, null);
+        (_columnFor, _columnModel, _columnContext, _columnMessages) = (null, null, null, null);
         _ending = true;
         Navigation.NavigateTo(ClosedHref);
     }
