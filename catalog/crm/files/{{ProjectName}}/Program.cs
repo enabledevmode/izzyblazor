@@ -6,6 +6,7 @@ using {{RootNamespace}}.Auditing;
 using {{RootNamespace}}.Components;
 using {{RootNamespace}}.Components.Account;
 using {{RootNamespace}}.Data;
+using {{RootNamespace}}.Email;
 using {{RootNamespace}}.Security;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,9 +67,12 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 // deactivated, deleted or given another role is held to it on their next page.
 builder.Services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
 
-// Sends no mail. Swap in your own IEmailSender<ApplicationUser> to send invites and resets; in development
-// Settings & team offers each link in its toast.
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+// Invitations and password resets go by email once Email:Host and Email:From name an SMTP server (Email/Mailer.cs).
+// Until then nothing is sent, and Settings & team hands the admin each link to pass on.
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.AddSingleton<Mailer>();
+builder.Services.AddScoped<IdentityEmails>();
+builder.Services.AddScoped<IEmailSender<ApplicationUser>>(services => services.GetRequiredService<IdentityEmails>());
 
 // The keys that protect login cookies and form tokens, kept in the database, so every instance of the app
 // reads the others' and no request has to go back to the one that served the last.
@@ -79,6 +83,9 @@ var app = builder.Build();
 // Makes the database, the roles and the workspace, and on first run the first admin or, with Seed:SampleData on
 // (as it is in development), the sample team and its data (Data/Setup.cs).
 await app.SetupAsync();
+
+if (!app.Environment.IsDevelopment() && !app.Services.GetRequiredService<Mailer>().Sends)
+    app.Logger.LogWarning("No mail is set up, so invitations and password resets aren't emailed: set Email:Host and Email:From (Email/Mailer.cs).");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

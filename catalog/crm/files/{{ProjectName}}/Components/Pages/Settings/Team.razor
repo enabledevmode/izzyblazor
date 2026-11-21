@@ -4,7 +4,7 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject NavigationManager Navigation
 @inject ToastService Toasts
-@inject IWebHostEnvironment Environment
+@inject {{RootNamespace}}.Email.Mailer Mailer
 
 <PageTitle>Settings &amp; team</PageTitle>
 
@@ -109,9 +109,11 @@
             if (ResetId is not null)
             {
                 var invited = UserAdmin.StatusOf(user) == UserStatus.Invited;
-                var link = await Admin.SendPasswordResetAsync(user);
-                Toasts.Success(invited ? $"{name} will get the invitation again." : $"{name} will get an email with a link to set a new password.",
-                    invited ? "Invitation sent" : "Password reset sent", DevLink(link));
+                var (link, error) = await Admin.SendPasswordResetAsync(user);
+                if (error is not null) Toasts.Error(error, invited ? "Invitation not sent" : "Password reset not sent");
+                else if (!Mailer.Sends) Toasts.Success($"No email is set up: send {name} the link yourself.", invited ? "Invitation link made" : "Password reset link made", HandOver(link));
+                else Toasts.Success(invited ? $"{name} will get the invitation again." : $"{name} will get an email with a link to set a new password.",
+                    invited ? "Invitation sent" : "Password reset sent");
             }
             else if (UnlockId is not null)
             {
@@ -145,6 +147,6 @@
         else Toasts.Success($"{delete.Item.Shown} no longer has access.", "Member deleted");
     }
 
-    // In development no mail is sent (IdentityNoOpEmailSender), so the toast offers the link itself.
-    private ToastAction? DevLink(string? link) => Environment.IsDevelopment() && link is not null ? new("Open the link", link) : null;
+    // While no mail is set up (Email/Mailer.cs), the toast has the link itself, for the admin to copy and pass on.
+    private static ToastAction HandOver(string link) => new("The link", link);
 }

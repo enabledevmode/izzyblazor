@@ -4,7 +4,7 @@
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 @inject ToastService Toasts
-@inject IWebHostEnvironment Environment
+@inject {{RootNamespace}}.Email.Mailer Mailer
 
 @* The team member form, in a dialog over Settings & team: ?dialog=invite-member invites someone by email, and
    ?dialog=edit-member&member={id} changes a member's name, email, role or monthly target. Admin/UserAdmin.cs does
@@ -86,9 +86,9 @@
                 Fail(form, nameof(Input.Email), error);
                 return;
             }
-            // In development no mail is sent (IdentityNoOpEmailSender), so the toast offers the link itself.
-            Toasts.Success($"{Input.Email.Trim()} will get an email with a link to join. It expires in a day.", "Invitation created",
-                Environment.IsDevelopment() && link is not null ? new("Open the link", link) : null);
+            // While no mail is set up (Email/Mailer.cs), the toast has the link itself, for the admin to copy and pass on.
+            if (Mailer.Sends) Toasts.Success($"{Input.Email.Trim()} will get an email with a link to join. It expires in a day.", "Invitation created");
+            else Toasts.Success($"No email is set up: send {Input.Email.Trim()} the link yourself. It expires in a day.", "Invitation created", new("The link", link!));
         }
         else
         {

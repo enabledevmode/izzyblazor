@@ -1,12 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using {{RootNamespace}}.Auditing;
 using {{RootNamespace}}.Data;
+using {{RootNamespace}}.Email;
 using {{RootNamespace}}.Security;
 
 namespace {{RootNamespace}}.Admin;
@@ -56,8 +56,10 @@ public sealed class UserRow
 /// Admin can't be removed.
 /// </summary>
 public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbContext db, Audit audit,
-    IEmailSender<ApplicationUser> email, NavigationManager navigation)
+    IdentityEmails email, Mailer mailer, NavigationManager navigation)
 {
+    private const string NotSent = "The email couldn’t be sent. Check the email settings (the log has the reason), then try again.";
+
     private const string OnlyAdmin = "They're the only Admin. Give someone else the Admin role first.";
 
     public static UserStatus StatusOf(ApplicationUser user) =>
@@ -83,8 +85,9 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
     }
 
     /// <summary>
-    /// Makes an account with no password and emails a link to set one. Returns the link, which in development
-    /// (where no mail is sent) the page shows, or why it couldn't.
+    /// Makes an account with no password and emails a link to set one. Returns the link, which the page shows
+    /// while no mail is set up (<see cref="Mailer.Sends"/>), or why it couldn't: an invitation that can't be sent
+    /// leaves no account behind.
     /// </summary>
     public async Task<(string? Link, string? Error)> InviteAsync(UserRow row)
     {
@@ -96,7 +99,12 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         if (!made.Succeeded) return (null, string.Join(" ", made.Errors.Select(e => e.Description)));
         await users.AddToRoleAsync(user, row.Role.ToString());
         var link = await SetPasswordLinkAsync(user);
-        await email.SendPasswordResetLinkAsync(user, address, HtmlEncoder.Default.Encode(link));
+        if (!await email.InviteAsync(user, link) && mailer.Sends)
+        {
+            await users.DeleteAsync(user);
+            return (null, NotSent);
+        }
+
         await audit.RecordAsync(AuditActions.Invited, "User", user.Id, user.Name ?? address, [new("Role", null, row.Role.ToString())]);
         return (link, null);
     }
@@ -156,15 +164,18 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
         return null;
     }
 
-    /// <summary>Emails a link to set a new password; to someone invited, the invite again. Returns the link.</summary>
-    public async Task<string> SendPasswordResetAsync(ApplicationUser user)
+    /// <summary>
+    /// Emails a link to set a new password; to someone invited, the invite again. Returns the link, and why it
+    /// wasn't sent when mail is set up and it couldn't be.
+    /// </summary>
+    public async Task<(string Link, string? Error)> SendPasswordResetAsync(ApplicationUser user)
     {
         var invited = StatusOf(user) == UserStatus.Invited;
         var link = await SetPasswordLinkAsync(user);
-        await email.SendPasswordResetLinkAsync(user, user.Email!, HtmlEncoder.Default.Encode(link));
+        if (!(invited ? await email.InviteAsync(user, link) : await email.ResetAsync(user, link)) && mailer.Sends) return (link, NotSent);
         await audit.RecordAsync(invited ? AuditActions.Invited : AuditActions.PasswordResetSent, "User", user.Id, user.Name ?? user.Email,
             note: invited ? "Invite sent again." : null);
-        return link;
+        return (link, null);
     }
 
     /// <summary>
