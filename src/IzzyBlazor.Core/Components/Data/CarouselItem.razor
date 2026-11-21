@@ -23,6 +23,15 @@
     /// <summary>How long this slide shows with the carousel's Autoplay, in place of its Interval.</summary>
     [Parameter] public TimeSpan? Interval { get; set; }
 
+    /// <summary>
+    /// The slide's small picture in the row under the slides, with the carousel's
+    /// <c>Dots="CarouselDots.Thumbnails"</c>. Without one, the row shows the slide's number.
+    /// </summary>
+    [Parameter] public string? Thumbnail { get; set; }
+
+    /// <summary>The <see cref="Thumbnail"/> for the dark scheme.</summary>
+    [Parameter] public string? DarkThumbnail { get; set; }
+
     /// <summary>The slide's id.</summary>
     [Parameter] public string? Id { get; set; }
 

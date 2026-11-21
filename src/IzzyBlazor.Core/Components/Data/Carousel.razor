@@ -9,7 +9,8 @@
     The track is the browser's own scroller, snapping to each slide, so swiping, a trackpad and
     the arrow keys move it even with no script. ItemsPerView shows several slides at once, per
     breakpoint; the buttons then move a page and the dots count pages. Loop wraps from the last
-    slide to the first. @bind-Index follows the slide in view on an interactive page; a starting
+    slide to the first. Dots="CarouselDots.Thumbnails" replaces the dots with a row of small pictures,
+    one for each slide (CarouselItem's Thumbnail). @bind-Index follows the slide in view on an interactive page; a starting
     Index other than 0 is scrolled to when the script runs. Autoplay moves on a slide every
     Interval, with a button to stop it. Transition.Fade cross-fades one slide at a time: drag,
     swipe or scroll sideways to move it.
@@ -19,7 +20,8 @@
       slide is a group named "3 of 5", or by its own Label.
     - The previous and next buttons, then the slides, then the dots are in the Tab order. Slides
       out of view are inert, so Tab doesn't land on what can't be seen.
-    - The dots are buttons named "Slide 3", the one in view marked as current.
+    - The dots are buttons named "Slide 3", the one in view marked as current. Thumbnails are the
+      same buttons, each named by its slide's Label.
     - When a person moves the carousel, the slide they move to is announced.
     - Autoplay adds a button that stops and starts the rotation, first in the Tab order. Rotation
       pauses while the pointer is over the carousel and while the page is hidden, stops when
@@ -111,7 +113,8 @@
     /// <summary>
     /// Where the dots go, a dot for each slide (each page, with several in view):
     /// <see cref="CarouselDots.Auto"/>, the default, puts them on the slide when one shows at a
-    /// time and below when several do.
+    /// time and below when several do. <see cref="CarouselDots.Thumbnails"/> shows a small picture for
+    /// each slide in their place.
     /// </summary>
     [Parameter] public CarouselDots Dots { get; set; }
 
@@ -148,6 +151,8 @@
     private int _startIndex;
 
     /// <summary>The dot current on the first paint: the page the starting slide is on.</summary>
+    internal int StartIndex => _startIndex;
+
     internal int StartDot => Fade ? _startIndex : _startIndex / Math.Max(1, ItemsPerView.Base);
 
     internal bool Fade => Transition == CarouselTransition.Fade;

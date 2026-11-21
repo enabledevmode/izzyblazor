@@ -17,6 +17,13 @@ public enum CarouselDots
 
     /// <summary>No dots.</summary>
     None,
+
+    /// <summary>
+    /// Below the slides, a small picture for each slide in place of a dot: each
+    /// <see cref="CarouselItem"/>'s <see cref="CarouselItem.Thumbnail"/>. The row scrolls when it
+    /// doesn't fit, and keeps the current one in view.
+    /// </summary>
+    Thumbnails,
 }
 
 /// <summary>How a <see cref="Carousel"/>'s slides give way to each other.</summary>
@@ -85,6 +92,7 @@ internal sealed class CarouselContext(Carousel owner)
 /// <summary>
 /// A <see cref="Carousel"/>'s dots: a button per slide, rendered after the slides so it knows how
 /// many there are. With several slides in view, the script hides the dots past the last page.
+/// As thumbnails, there's one for each slide, named after it.
 /// </summary>
 internal sealed class CarouselDotList : ComponentBase, IDisposable
 {
@@ -104,9 +112,10 @@ internal sealed class CarouselDotList : ComponentBase, IDisposable
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var current = Context.Owner.StartDot;
+        var thumbnails = Context.Owner.Dots == CarouselDots.Thumbnails;
+        var current = thumbnails ? Context.Owner.StartIndex : Context.Owner.StartDot;
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", "ib-carousel-dots");
+        builder.AddAttribute(1, "class", thumbnails ? "ib-carousel-dots ib-carousel-thumbs" : "ib-carousel-dots");
         builder.AddAttribute(2, "data-ib-page-label", Text.SlidesRange);
         builder.AddAttribute(3, "hidden", Context.Count < 2);
         for (var i = 0; i < Context.Count; i++)
@@ -114,13 +123,40 @@ internal sealed class CarouselDotList : ComponentBase, IDisposable
             builder.OpenElement(4, "button");
             builder.SetKey(i);
             builder.AddAttribute(5, "type", "button");
-            builder.AddAttribute(6, "class", "ib-carousel-dot");
-            builder.AddAttribute(7, "aria-label", string.Format(Text.GoToSlide, i + 1));
+            var item = thumbnails ? Context.Items[i] : null;
+            builder.AddAttribute(6, "class", thumbnails ? "ib-carousel-dot ib-carousel-thumb" : "ib-carousel-dot");
+            builder.AddAttribute(7, "aria-label", item?.Label is { Length: > 0 } label ? label : string.Format(Text.GoToSlide, i + 1));
             builder.AddAttribute(8, "aria-controls", Context.Owner.TrackId);
             builder.AddAttribute(9, "aria-current", i == current ? "true" : null);
+            if (item?.Thumbnail is { Length: > 0 } src)
+            {
+                // The button has the name; the pictures are decoration.
+                Picture(builder, src, item.DarkThumbnail is null ? null : "ib-carousel-on-light");
+                if (item.DarkThumbnail is { } dark)
+                {
+                    Picture(builder, dark, "ib-carousel-on-dark");
+                }
+            }
+            else if (thumbnails)
+            {
+                // A slide with no picture shows its number.
+                builder.AddContent(10, i + 1);
+            }
+
             builder.CloseElement();
         }
 
+        builder.CloseElement();
+    }
+
+    private static void Picture(RenderTreeBuilder builder, string src, string? scheme)
+    {
+        builder.OpenElement(11, "img");
+        builder.AddAttribute(12, "class", scheme);
+        builder.AddAttribute(13, "src", src);
+        builder.AddAttribute(14, "alt", "");
+        builder.AddAttribute(15, "loading", "lazy");
+        builder.AddAttribute(16, "decoding", "async");
         builder.CloseElement();
     }
 

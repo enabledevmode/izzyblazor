@@ -1,0 +1,21 @@
+@* A small picture of each page under the slides, in place of the dots. *@
+<Carousel Label="Page screenshots" Dots="CarouselDots.Thumbnails" Loop Grow MaxWidth="Length.Rem(40)">
+    @foreach (var (name, title, alt) in _pages)
+    {
+        <CarouselItem Label="@title" Thumbnail="@($"img/blocks/{name}.webp")" DarkThumbnail="@($"img/blocks/{name}-dark.webp")">
+            <Image Src="@($"img/blocks/{name}.webp")" DarkSrc="@($"img/blocks/{name}-dark.webp")" Alt="@alt" Ratio="16 / 10.0" />
+        </CarouselItem>
+    }
+</Carousel>
+
+@code {
+    private readonly (string Name, string Title, string Alt)[] _pages =
+    [
+        ("hero", "Home", "The home page's opening section"),
+        ("features", "Features", "The features page"),
+        ("pricing", "Pricing", "The pricing page"),
+        ("articles", "Articles", "The articles page"),
+        ("contact", "Contact", "The contact page"),
+        ("legal", "Terms", "The terms page"),
+    ];
+}

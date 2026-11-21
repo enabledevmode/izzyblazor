@@ -45,11 +45,11 @@
             <Heading Level="2" id="screens">Screens</Heading>
             <TextBlock>@($"{_template.Name} running with its sample data. Choose a screen to see it full size.")</TextBlock>
             <Lightbox Label="@($"{_template.Name} screens")" Counter Nav="LightboxNav.Thumbnails" Loop Class="site-template-screens">
-                <Carousel Label="@($"{_template.Name} screens")" Loop Dots="CarouselDots.Below">
+                <Carousel Label="@($"{_template.Name} screens")" Loop Dots="CarouselDots.Thumbnails">
                     @foreach (var screen in _screens.Where(s => !s.Phone))
                     {
                         var path = Path(screen);
-                        <CarouselItem Label="@screen.Caption">
+                        <CarouselItem Label="@screen.Caption" Thumbnail="@($"{path}-thumb.webp")" DarkThumbnail="@($"{path}-dark-thumb.webp")">
                             <LightboxItem Src="@($"{path}.webp")" DarkSrc="@($"{path}-dark.webp")"
                                           Thumbnail="@($"{path}-thumb.webp")" DarkThumbnail="@($"{path}-dark-thumb.webp")"
                                           Alt="@screen.Alt" Caption="@screen.Caption" Class="site-template-screen">
@@ -60,7 +60,8 @@
                     }
                     @if (_screens.Any(s => s.Phone))
                     {
-                        <CarouselItem Label="On a phone">
+                        var phone = Path(_screens.First(s => s.Phone));
+                        <CarouselItem Label="On a phone" Thumbnail="@($"{phone}-thumb.webp")" DarkThumbnail="@($"{phone}-dark-thumb.webp")">
                             <Row Gap="4" Justify="Justify.Center" Class="site-template-phones">
                                 @foreach (var screen in _screens.Where(s => s.Phone))
                                 {

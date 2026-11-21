@@ -41,6 +41,23 @@ public class CarouselRenderTests : BunitContext
     }
 
     [Fact]
+    public void Thumbnails_are_a_picture_per_slide_named_by_the_slide()
+    {
+        var cut = Render<Carousel>(p => p
+            .Add(c => c.Label, "Screens")
+            .Add(c => c.Dots, CarouselDots.Thumbnails)
+            .AddChildContent<CarouselItem>(item => item.Add(x => x.Label, "Contacts").Add(x => x.Thumbnail, "contacts.webp").Add(x => x.DarkThumbnail, "contacts-dark.webp"))
+            .AddChildContent<CarouselItem>(item => item.Add(x => x.Thumbnail, "deals.webp")));
+
+        var thumbs = cut.FindAll(".ib-carousel-thumbs > .ib-carousel-thumb");
+        Assert.Equal(["Contacts", "Slide 2"], thumbs.Select(t => t.GetAttribute("aria-label")));
+        Assert.Equal(["true", null], thumbs.Select(t => t.GetAttribute("aria-current")));
+        // One picture for each scheme, both decoration: the button has the name.
+        Assert.Equal(["contacts.webp", "contacts-dark.webp"], thumbs[0].QuerySelectorAll("img").Select(i => i.GetAttribute("src")));
+        Assert.All(cut.FindAll(".ib-carousel-thumb img"), i => Assert.Equal("", i.GetAttribute("alt")));
+    }
+
+    [Fact]
     public void Previous_starts_off_on_the_first_slide_unless_it_loops()
     {
         Assert.Equal("true", Trips().Find(".ib-carousel-prev").GetAttribute("aria-disabled"));

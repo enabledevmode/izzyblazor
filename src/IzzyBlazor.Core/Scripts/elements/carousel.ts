@@ -125,6 +125,10 @@ class Carousel extends IzzyElement {
     return this.querySelector<HTMLElement>(":scope > .ib-carousel-dots");
   }
 
+  #thumbs(dots: HTMLElement): boolean {
+    return dots.classList.contains("ib-carousel-thumbs");
+  }
+
   // Slides in view at once, from the CSS (ItemsPerView per breakpoint).
   #per(count: number): number {
     if (this.#fade) return 1;
@@ -178,7 +182,8 @@ class Carousel extends IzzyElement {
     const dots = this.#dots();
     if (dot && dot.parentElement === dots) {
       const count = this.#slides().length;
-      this.#go([...dots.children].indexOf(dot) * this.#per(count));
+      // A thumbnail is its slide; a dot is a page of them.
+      this.#go([...dots.children].indexOf(dot) * (this.#thumbs(dots) ? 1 : this.#per(count)));
     }
   }
 
@@ -262,7 +267,21 @@ class Carousel extends IzzyElement {
     next?.setAttribute("aria-disabled", String(!scrolls || (atEnd && !this.#loop)));
 
     const dots = this.#dots();
-    if (dots) {
+    if (dots && this.#thumbs(dots)) {
+      // One for each slide, the first in view current and kept in sight: the row scrolls, not the page.
+      dots.hidden = count < 2;
+      [...dots.children].forEach((thumb, i) => {
+        const el = thumb as HTMLElement;
+        if (i !== index) {
+          el.removeAttribute("aria-current");
+          return;
+        }
+        el.setAttribute("aria-current", "true");
+        const row = dots.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        dots.scrollBy({ left: r.left - row.left - (row.width - r.width) / 2, behavior: "instant" });
+      });
+    } else if (dots) {
       const pages = Math.ceil(count / per);
       const page = atEnd ? pages - 1 : Math.floor(index / per);
       dots.hidden = pages < 2;
