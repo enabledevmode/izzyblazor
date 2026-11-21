@@ -16,13 +16,15 @@ public sealed class Catalog
     /// </summary>
     public static Catalog Load(string freeRoot, string? proRoot = null)
     {
-        var items = new SortedDictionary<string, ItemDefinition>(StringComparer.Ordinal);
+        // Ids are found whatever their case ("CRM", "crm"); two items can't differ by case alone.
+        var items = new SortedDictionary<string, ItemDefinition>(StringComparer.OrdinalIgnoreCase);
         foreach (var folder in Folders(freeRoot))
         {
             var item = Read(folder);
             if (item.Manifest.Tier == ItemTier.Pro)
                 throw new GenerationException($"{item.Manifest.Id} is a Pro item in the free catalogue; Pro items live in the Pro catalogue.");
-            items[item.Manifest.Id] = item;
+            if (!items.TryAdd(item.Manifest.Id, item))
+                throw new GenerationException($"Two items are named {item.Manifest.Id}; ids differ by more than case.");
         }
         if (proRoot is not null)
         {
@@ -52,7 +54,7 @@ public sealed class Catalog
         return new Catalog { Items = items };
     }
 
-    /// <summary>The item with this id.</summary>
+    /// <summary>The item with this id, in any case.</summary>
     public ItemDefinition this[string id] =>
         Items.TryGetValue(id, out var item) ? item : throw new GenerationException($"No item \"{id}\". Items: {string.Join(", ", Items.Keys)}.");
 

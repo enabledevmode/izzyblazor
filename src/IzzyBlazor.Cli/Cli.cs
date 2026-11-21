@@ -154,8 +154,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     int Add(Args args)
     {
         // izzy add crud <Model>: the one item with a word after its id.
-        var crud = args.Words.Count == 3 && args.Words[1] == "crud";
-        if (args.Words is [_, "crud"]) throw new UsageException("Usage: izzy add crud <Model>, such as izzy add crud Customer.");
+        var isCrud = args.Words.Count > 1 && args.Words[1].Equals("crud", StringComparison.OrdinalIgnoreCase);
+        var crud = args.Words.Count == 3 && isCrud;
+        if (args.Words.Count == 2 && isCrud) throw new UsageException("Usage: izzy add crud <Model>, such as izzy add crud Customer.");
         var item = crud ? Catalog["crud"] : Item(args, "izzy add <item>");
         if (item.Manifest.Kind == ItemKind.Setup) throw new UsageException("IzzyBlazor's setup runs with izzy init.");
         if (item.Manifest.Kind.MakesProject())

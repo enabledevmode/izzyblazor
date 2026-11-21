@@ -25,10 +25,11 @@ public sealed class CliTests : IDisposable
     [Fact]
     public void A_new_app_takes_a_hero_once_and_records_both()
     {
-        Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Acme", "--no-restore").Exit);
+        // Ids are found in any case, and recorded as the catalogue writes them.
+        Assert.Equal(0, Izzy(_work, "new", "starter", "Blazor", "-n", "Acme", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
 
-        var preview = Izzy(app, "add", "hero", "--layout", "Split", "--dry-run", "--json");
+        var preview = Izzy(app, "add", "Hero", "--layout", "Split", "--dry-run", "--json");
         Assert.Equal(0, preview.Exit);
         var json = JsonNode.Parse(preview.Out)!;
         Assert.False((bool)json["written"]!);
