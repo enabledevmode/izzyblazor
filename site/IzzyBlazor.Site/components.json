@@ -653,11 +653,7 @@
         { "id": "split-button-in-group", "title": "In a row of buttons" },
         { "id": "split-button-states", "title": "States" },
         { "id": "split-button-panel-width", "title": "Where the menu opens" },
-        { "id": "split-button-on-click", "title": "Handling click events",
-          "notes": {
-            "noscript": "OnClick and the switches work only on interactive pages: nothing happens here.",
-            "static": "OnClick and the switches work only on interactive pages: nothing happens here. See Interactive."
-          } }
+        { "id": "split-button-on-click", "title": "Handling click events", "modes": ["interactive"] }
       ]
     },
 
@@ -1991,12 +1987,7 @@
       "examples": [
         { "id": "pagination-usage", "title": "Pages in the URL", "lead": "Each page is a link that sets `?page=`, so paging survives a reload and can be shared. Set `TotalItems` and `PageSize`, or `PageCount`, and read the page with `[SupplyParameterFromQuery]`." },
         { "id": "pagination-sizes", "title": "Sizes and how many pages show", "lead": "To match buttons and fields, set `Size`. `Siblings` sets how many pages show on each side of the current one, and `Boundaries` how many always show at each end." },
-        { "id": "pagination-bound", "title": "Bound to C#", "lead": "On interactive pages, `@bind-Page` pages in C#, with buttons in place of links.",
-          "notes": {
-            "noscript": "The pages are links that set ?page=, and the page reloads.",
-            "static": "The pages are links that set ?page=, and the page reads it as it loads.",
-            "interactive": "The pages are buttons that update C# through @bind-Page, and the URL stays as it is."
-          } }
+        { "id": "pagination-bound", "title": "Bound to C#", "lead": "On interactive pages, `@bind-Page` pages in C#, with buttons in place of links, and the URL stays as it is.", "modes": ["interactive"] }
       ]
     },
 
@@ -3497,12 +3488,7 @@
         { "id": "accordion-exclusive", "title": "One open at a time", "lead": "To keep one item open at a time, set `Exclusive`: opening another closes it. The browser does this, so it works with JavaScript off. To stop an item opening, set `Disabled`." },
         { "id": "accordion-content", "title": "Rich headers and content", "lead": "For a title with more than text, such as a badge, use an `AccordionHeader`. The content is a column with a gap, so text, buttons and lists need no wrapper." },
         { "id": "accordion-sizes", "title": "Sizes", "lead": "To scale the titles and spacing together, set `Size`: `Sm` for sidebars and dense pages, `Lg` for FAQ pages." },
-        { "id": "accordion-bound", "title": "Binding the open state", "lead": "To know in C# whether an `AccordionItem` is open, and to open it from C#, bind `@bind-Open`.",
-          "notes": {
-            "noscript": "The item opens and closes; C# isn't told.",
-            "static": "The item opens and closes, but there's no circuit, so C# still isn't told.",
-            "interactive": "@bind-Open tells C# each time the item opens or closes."
-          } },
+        { "id": "accordion-bound", "title": "Binding the open state", "lead": "To know in C# whether an `AccordionItem` is open, and to open it from C#, bind `@bind-Open`.", "modes": ["interactive"] },
         { "id": "accordion-settings", "title": "Forms in sections",
           "notes": {
             "noscript": "Saving posts the form, and the page reloads. The section that posted opens again, saved or with errors, because the page sets its Open; any other section the user opened closes.",
