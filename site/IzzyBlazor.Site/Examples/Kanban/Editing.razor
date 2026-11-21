@@ -1,0 +1,76 @@
+@* Feature requests: open a card to change or delete it, or add one from a column's header. The
+   page saves what the form sends, on a static page too. *@
+<Stack Grow>
+    <Kanban TItem="Request" Items="Store" ItemsChanged="Arranged" ItemKey="r => r.Id.ToString()" ColumnOf="r => r.Status"
+            ItemText="r => r.Title" ItemDescription="r => r.Notes" OnSave="Save" OnDelete="Delete" OnMove="Moved"
+            QueryPrefix="requests-" Label="Feature requests">
+        <Columns>
+            <KanbanColumn Value="New" />
+            <KanbanColumn Value="Planned" />
+            <KanbanColumn Value="Shipped" />
+        </Columns>
+    </Kanban>
+</Stack>
+
+@code {
+    private sealed class Request
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string? Notes { get; set; }
+        public string Status { get; set; } = "New";
+    }
+
+    // An app keeps its cards in a database; this example keeps them in memory for everyone
+    // reading the page, and starts again past 30.
+    private static readonly List<Request> Store = Seed();
+
+    private static List<Request> Seed() =>
+    [
+        new() { Id = 1, Title = "Export invoices as PDF", Notes = "Asked for by three accounting teams.", Status = "New" },
+        new() { Id = 2, Title = "Dark mode for the mobile app", Status = "New" },
+        new() { Id = 3, Title = "Single sign-on with Okta", Notes = "Needed for the enterprise plan.", Status = "Planned" },
+        new() { Id = 4, Title = "Bulk edit for contacts", Status = "Planned" },
+        new() { Id = 5, Title = "Weekly summary email", Notes = "Sent on Mondays at 8:00.", Status = "Shipped" },
+    ];
+
+    private void Save(KanbanSave<Request> save)
+    {
+        lock (Store)
+        {
+            if (save.IsNew && Store.Count >= 30)
+            {
+                Store.Clear();
+                Store.AddRange(Seed());
+            }
+
+            var request = save.Item ?? new Request { Id = Store.Count == 0 ? 1 : Store.Max(r => r.Id) + 1 };
+            (request.Title, request.Notes, request.Status) = (save.Title, save.Description, save.Column);
+            if (save.IsNew)
+            {
+                Store.Add(request);
+            }
+        }
+    }
+
+    private void Delete(KanbanDelete<Request> delete)
+    {
+        lock (Store)
+        {
+            Store.Remove(delete.Item);
+        }
+    }
+
+    private void Moved(KanbanMoveEventArgs<Request> move) => move.Item.Status = move.ToColumn;
+
+    // The cards in their new order, after a move.
+    private void Arranged(IReadOnlyList<Request> requests)
+    {
+        lock (Store)
+        {
+            var order = requests.ToList();
+            Store.Clear();
+            Store.AddRange(order);
+        }
+    }
+}

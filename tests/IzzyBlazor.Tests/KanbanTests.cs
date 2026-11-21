@@ -69,6 +69,31 @@ public class KanbanTests : BunitContext
         Assert.Equal("Cards: 1", Count(cut, "To do"));
     }
 
+    [Fact]
+    public void A_card_opens_the_form_which_saves_its_title_and_column()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<KanbanProbe>(p => p.Add(b => b.Cards, Cards()));
+
+        // With OnSave a card is a link to its form, and each header's add button to a new card's.
+        var link = Column(cut, "To do").QuerySelector("a.ib-listview-action")!;
+        Assert.Contains("card=a", link.GetAttribute("href"));
+        Assert.Contains("card=new&column=Done", Column(cut, "Done").QuerySelector("a.ib-kanban-add")!.GetAttribute("href"));
+
+        Services.GetRequiredService<NavigationManager>().NavigateTo(link.GetAttribute("href")!);
+        cut.Render();
+        Assert.Equal("Ada", cut.Find("input[name='ib-kanban-edit.Title']").GetAttribute("value"));
+
+        cut.Find("input[name='ib-kanban-edit.Title']").Change("Ada Lovelace");
+        cut.Find("select[name='ib-kanban-edit.Column']").Change("Done");
+        cut.Find("form.ib-form").Submit();
+
+        var save = cut.Instance.Save;
+        Assert.NotNull(save);
+        Assert.Equal((false, "Ada", "Ada Lovelace", "Done"), (save!.IsNew, save.Item!.Title, save.Title, save.Column));
+        Assert.Empty(cut.FindAll("dialog[open]"));
+    }
+
     private sealed class NoPosts : IFormValueMapper
     {
         public bool CanMap(Type valueType, string scopeName, string? formName) => false;

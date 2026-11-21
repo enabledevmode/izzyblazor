@@ -1212,6 +1212,30 @@ public class IzzyText
     /// <summary>The add button in a Kanban column's header: "Add a card to Review". {0} is the column's title.</summary>
     public virtual string KanbanAddCard { get; set; } = "Add a card to {0}";
 
+    /// <summary>The item in a Kanban card's menu that opens its form.</summary>
+    public virtual string KanbanEdit { get; set; } = "Edit";
+
+    /// <summary>The title of a Kanban's form for a card.</summary>
+    public virtual string KanbanEditTitle { get; set; } = "Edit card";
+
+    /// <summary>The title of a Kanban's form for a new card.</summary>
+    public virtual string KanbanNewTitle { get; set; } = "New card";
+
+    /// <summary>The label of the title field in a Kanban's form.</summary>
+    public virtual string KanbanTitleField { get; set; } = "Title";
+
+    /// <summary>The label of the description field in a Kanban's form.</summary>
+    public virtual string KanbanDescriptionField { get; set; } = "Description";
+
+    /// <summary>The label of the column field in a Kanban's form.</summary>
+    public virtual string KanbanColumnField { get; set; } = "Column";
+
+    /// <summary>Shown in a Kanban's form when its card has gone.</summary>
+    public virtual string KanbanGone { get; set; } = "This card isn't there any more.";
+
+    /// <summary>Asked before a Kanban's form deletes a card.</summary>
+    public virtual string KanbanDeleteTitle { get; set; } = "Delete this card?";
+
     // Navigation and layout
 
     /// <summary>Breadcrumb's name.</summary>

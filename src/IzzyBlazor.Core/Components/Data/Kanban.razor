@@ -1,7 +1,9 @@
 @namespace IzzyBlazor
 @typeparam TItem
 @inherits IzzyComponentBase
+@implements IDisposable
 @using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @attribute [ModeSupport]
 
@@ -65,6 +67,24 @@
                 @Binding
             </FormMappingScope>
         }
+        @if (CurrentEdit is { Length: > 0 } editKey)
+        {
+            @* The card's form, outside the board's own: a form can't hold another. *@
+            if (EditDialogForm is not null)
+            {
+                @OwnDialog(editKey)
+            }
+            else if (RendererInfo.IsInteractive)
+            {
+                @EditDialog(editKey, null)
+            }
+            else
+            {
+                <FormMappingScope Name="@($"ib-kanban-edit-{QueryPrefix}")">
+                    @EditBinding(editKey)
+                </FormMappingScope>
+            }
+        }
     </CascadingValue>
 </ib-kanban>
 
@@ -92,8 +112,29 @@
     [Parameter, ModeSupport] public EventCallback<KanbanMoveEventArgs<TItem>> OnMove { get; set; }
 
     /// <summary>
-    /// Sets this board's posts apart, so several can share a page: give each its own, such as
-    /// <c>QueryPrefix="orders-"</c>. None by default.
+    /// Saves a card from the board's form, new or changed, on a static page too (the form posts).
+    /// With it, a card opens the form in a dialog (<c>?card=42</c>), its menu has Edit, and each
+    /// column's header has an add button. The form has a title, the column and, with
+    /// <see cref="ItemDescription"/>, a description: set them on the card from the save.
+    /// <c>save.AddError</c> keeps the form open with a message.
+    /// </summary>
+    [Parameter, ModeSupport] public EventCallback<KanbanSave<TItem>> OnSave { get; set; }
+
+    /// <summary>Deletes a card: with it, the generated form has a Delete button. Not with an <see cref="EditDialogForm"/>, whose form deletes.</summary>
+    [Parameter, ModeSupport] public EventCallback<KanbanDelete<TItem>> OnDelete { get; set; }
+
+    /// <summary>
+    /// Your own form in the card's dialog, in place of the generated one, for the fields your
+    /// cards have. The board opens the dialog as before (a card, its menu's Edit, a column's add
+    /// button) and closes it; the form, its model and its <c>[SupplyParameterFromForm]</c> are
+    /// yours. The context has the card (none for a new one) and its column; call
+    /// <c>context.CloseAsync()</c> when it has saved, and put <c>autofocus</c> on its first field.
+    /// </summary>
+    [Parameter] public RenderFragment<KanbanEditFormContext<TItem>>? EditDialogForm { get; set; }
+
+    /// <summary>
+    /// Sets this board's posts and its keys in the page's address apart, so several can share a
+    /// page: <c>QueryPrefix="orders-"</c> uses <c>?orders-card=42</c>. None by default (<c>?card=…</c>).
     /// </summary>
     [Parameter] public string QueryPrefix { get; set; } = "";
 
@@ -184,6 +225,78 @@
 
     // Interactive (or prerendering for it): C# applies the moves and the collapsing.
     internal bool Live => WillBeInteractive;
+
+    // Cards open a form: the generated one, or the app's own.
+    internal bool Editable => OnSave.HasDelegate || EditDialogForm is not null;
+
+    internal const string NewKey = "new";
+
+    internal string EditKey => QueryPrefix + "card";
+
+    internal string ColumnKey => QueryPrefix + "column";
+
+    private readonly List<KanbanColumn<TItem>> _columnList = [];
+
+    /// <summary>The board's columns, in the order they arrived.</summary>
+    internal IReadOnlyList<KanbanColumn<TItem>> ColumnList => _columnList;
+
+    internal void AddColumn(KanbanColumn<TItem> column)
+    {
+        if (!_columnList.Contains(column))
+        {
+            _columnList.Add(column);
+            ColumnsArrived();
+        }
+    }
+
+    internal void RemoveColumn(KanbanColumn<TItem> column)
+    {
+        if (_columnList.Remove(column))
+        {
+            ColumnsArrived();
+        }
+    }
+
+    // The open form lists the columns, which arrive after the board's first render.
+    private void ColumnsArrived()
+    {
+        if (CurrentEdit is not null)
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    internal string? Query(string key)
+    {
+        var query = new Uri(Navigation.Uri).Query.TrimStart('?');
+        foreach (var part in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var pair = part.Split('=', 2);
+            if (Uri.UnescapeDataString(pair[0].Replace('+', ' ')) == key)
+            {
+                return pair.Length > 1 ? Uri.UnescapeDataString(pair[1].Replace('+', ' ')) : "";
+            }
+        }
+
+        return null;
+    }
+
+    // This page with the form open for a card, or (with a column) for a new one there.
+    internal string EditHref(string key, string? column = null)
+    {
+        var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditKey] = key, [ColumnKey] = column }));
+        return uri.AbsolutePath + uri.Query;
+    }
+
+    // This page with the form closed.
+    internal string ClosedHref
+    {
+        get
+        {
+            var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditKey] = null, [ColumnKey] = null }));
+            return uri.AbsolutePath + uri.Query;
+        }
+    }
 
     // On a static page, the form's model when nothing was posted.
     internal KanbanPost Post { get; } = new();
@@ -283,7 +396,288 @@
     }
 
     /// <inheritdoc />
-    protected override void OnInitialized() => _zoneOf = item => KanbanZone.Of(ColumnOf!(item));
+    protected override void OnInitialized()
+    {
+        _zoneOf = item => KanbanZone.Of(ColumnOf!(item));
+        if (RendererInfo.IsInteractive)
+        {
+            Navigation.LocationChanged += Moved;
+        }
+    }
+
+    // Interactive: the address changed (a card's link, Back, or a save): the form opens or closes.
+    private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        _ending = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= Moved;
+
+    // ---- The card's form: a card's, or a new one's. ----
+
+    private string? _editFor;
+    private TItem? _editItem;
+    private KanbanEditFields? _model;
+    private EditContext? _context;
+    private ValidationMessageStore? _messages;
+    private bool _saving;
+    private bool _ending;
+
+    private string? CurrentEdit => Editable && !_ending ? Query(EditKey) : null;
+
+    private TItem? Find(string key)
+    {
+        foreach (var item in Items ?? [])
+        {
+            if (ItemKey!(item) == key)
+            {
+                return item;
+            }
+        }
+
+        return default;
+    }
+
+    // A new card's column: the one whose add button opened the form, if the board has it, else the
+    // first. Before the columns have arrived (the first render), the one asked for.
+    private string NewColumn()
+    {
+        var asked = Query(ColumnKey);
+        if (ColumnList.Count == 0)
+        {
+            return asked ?? "";
+        }
+
+        foreach (var column in ColumnList)
+        {
+            if (column.Value == asked)
+            {
+                return asked!;
+            }
+        }
+
+        return ColumnList.Count > 0 ? ColumnList[0].Value! : "";
+    }
+
+    private RenderFragment EditBinding(string key) => builder =>
+    {
+        builder.OpenComponent<KanbanEditBinding>(0);
+        builder.AddComponentParameter(1, nameof(KanbanEditBinding.ChildContent), (RenderFragment<KanbanEditFields?>)(posted => EditDialog(key, posted)));
+        builder.CloseComponent();
+    };
+
+    // The app's own form in the dialog: the board opens and closes it, the form is the app's.
+    private RenderFragment OwnDialog(string key) => __builder =>
+    {
+        var isNew = key == NewKey;
+        var item = isNew ? default : Find(key);
+        <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@EditKey" Title="@(isNew ? TextDefaults.KanbanNewTitle : TextDefaults.KanbanEditTitle)" Size="DialogSize.Md" CloseOnBackdrop="false">
+            @if (!isNew && item is null)
+            {
+                <Alert Status="Status.Warning">@TextDefaults.KanbanGone</Alert>
+            }
+            else
+            {
+                @EditDialogForm!(new KanbanEditFormContext<TItem>(item, isNew, isNew ? NewColumn() : ColumnOf!(item!), () =>
+                {
+                    EndEdit();
+                    return Task.CompletedTask;
+                }))
+            }
+        </Dialog>
+    };
+
+    // The form's model: the card's values, a new card's column, or what was posted.
+    private void SyncEdit(string key, KanbanEditFields? posted)
+    {
+        // The same form drawn again (after a save's errors, or any render): it keeps its model and messages.
+        if (_editFor == key && _model is not null && (posted is null || ReferenceEquals(posted, _model)))
+        {
+            return;
+        }
+
+        _editFor = key;
+        _editItem = key == NewKey ? default : Find(key);
+        if (posted is not null)
+        {
+            _model = posted;
+        }
+        else if (key == NewKey)
+        {
+            _model = new KanbanEditFields { Column = NewColumn() };
+        }
+        else if (_editItem is { } item)
+        {
+            _model = new KanbanEditFields
+            {
+                Title = ItemText?.Invoke(item) ?? ItemLabel?.Invoke(item) ?? item.ToString(),
+                Description = ItemDescription?.Invoke(item),
+                Column = ColumnOf!(item),
+            };
+        }
+        else
+        {
+            _model = null;
+        }
+
+        _context = _model is null ? null : new EditContext(_model);
+        _messages = _context is null ? null : new ValidationMessageStore(_context);
+    }
+
+    private RenderFragment EditDialog(string key, KanbanEditFields? posted) => __builder =>
+    {
+        SyncEdit(key, posted);
+        var isNew = key == NewKey;
+        var name = KanbanEditBinding.Prefix;
+        // A column the board doesn't have (asked for in the address, or none): a new card's default.
+        if (isNew && _model is not null && ColumnList.Count > 0 && !ColumnList.Any(c => c.Value == _model.Column))
+        {
+            _model.Column = NewColumn();
+        }
+
+        <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@EditKey" Title="@(isNew ? TextDefaults.KanbanNewTitle : TextDefaults.KanbanEditTitle)" Size="DialogSize.Md" CloseOnBackdrop="false">
+            @if (_model is null || _context is null)
+            {
+                <Alert Status="Status.Warning">@TextDefaults.KanbanGone</Alert>
+            }
+            else
+            {
+                <Form EditContext="_context" FormName="@(RendererInfo.IsInteractive ? null : KanbanEditBinding.FormName)" OnSubmit="SubmitAsync">
+                    <FormErrors />
+                    <TextField @bind-Value="_model.Title" name="@($"{name}.Title")" Label="@TextDefaults.KanbanTitleField" autofocus />
+                    @if (ColumnList.Count > 0)
+                    {
+                        <Select TValue="string" @bind-Value="_model.Column" name="@($"{name}.Column")" Label="@TextDefaults.KanbanColumnField"
+                                Items="@ColumnList.Select(c => c.Value!)" ItemText="@ColumnTitle" />
+                    }
+                    @if (ItemDescription is not null)
+                    {
+                        <TextArea @bind-Value="_model.Description" name="@($"{name}.Description")" Label="@TextDefaults.KanbanDescriptionField" />
+                    }
+                    <DialogFooter>
+                        @if (!isNew && OnDelete.HasDelegate && _editItem is not null)
+                        {
+                            @* Asks first: the footer has no Cancel beside it to pause on. *@
+                            <ConfirmButton Title="@TextDefaults.KanbanDeleteTitle" Message="@_model.Title" ConfirmText="@TextDefaults.Delete"
+                                           Accent="Accent.Danger" Variant="ButtonVariant.Ghost" Class="ib-kanban-delete"
+                                           OnConfirm="DeleteAsync" Name="@(RendererInfo.IsInteractive ? null : $"{name}.Remove")" Value="@(RendererInfo.IsInteractive ? null : "true")" formnovalidate>@TextDefaults.Delete</ConfirmButton>
+                        }
+                        <Button Submit>@TextDefaults.Save</Button>
+                    </DialogFooter>
+                </Form>
+            }
+        </Dialog>
+    };
+
+    private string ColumnTitle(string value)
+    {
+        foreach (var column in ColumnList)
+        {
+            if (column.Value == value)
+            {
+                return column.Title ?? value;
+            }
+        }
+
+        return value;
+    }
+
+    private void OnDialogChanged(bool open)
+    {
+        if (!open)
+        {
+            EndEdit();
+        }
+    }
+
+    private async Task SubmitAsync(EditContext context)
+    {
+        if (_model is null || _messages is null || _saving)
+        {
+            return;
+        }
+
+        _messages.Clear();
+        if (_model.Remove)
+        {
+            await DeleteAsync();
+            return;
+        }
+
+        if (!context.Validate())
+        {
+            return;
+        }
+
+        var isNew = _editFor == NewKey;
+        if (!isNew && _editItem is null)
+        {
+            Error(TextDefaults.KanbanGone);
+            return;
+        }
+
+        // The column is a field of the form, so on a static page it's what the browser sent.
+        if (!ColumnList.Any(c => c.Value == _model.Column))
+        {
+            _model.Column = isNew ? NewColumn() : ColumnOf!(_editItem!);
+        }
+
+        var save = new KanbanSave<TItem>(_editItem, isNew, _model, Error);
+        _saving = true;
+        try
+        {
+            await OnSave.InvokeAsync(save);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        if (!save.HasErrors)
+        {
+            EndEdit();
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (_editItem is not { } item || _saving)
+        {
+            return;
+        }
+
+        var delete = new KanbanDelete<TItem>(item, Error);
+        _saving = true;
+        try
+        {
+            await OnDelete.InvokeAsync(delete);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
+        if (!delete.HasErrors)
+        {
+            EndEdit();
+        }
+    }
+
+    private void Error(string message)
+    {
+        _messages?.Add(new FieldIdentifier(_model!, ""), message);
+        _context?.NotifyValidationStateChanged();
+    }
+
+    // Closes the form: the address without its keys (on a static page, the post's answer is a redirect there).
+    private void EndEdit()
+    {
+        (_editFor, _editItem, _model, _context, _messages) = (null, default, null, null, null);
+        _ending = true;
+        Navigation.NavigateTo(ClosedHref);
+    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -296,6 +690,11 @@
         if (TitleLevel is < 2 or > 6)
         {
             throw new InvalidOperationException("Kanban's TitleLevel is 2 to 6.");
+        }
+
+        if (EditDialogForm is not null && OnDelete.HasDelegate)
+        {
+            throw new InvalidOperationException("A Kanban with an EditDialogForm deletes in that form, so OnDelete (the generated form's Delete button) has nothing to do; leave it out.");
         }
 
         (_class, _style) = BuildRootAttributes();

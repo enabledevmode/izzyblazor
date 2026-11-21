@@ -46,6 +46,10 @@
         {
             <span class="ib-kanban-summary">@summary</span>
         }
+        @if (addHref is null && !Board.OnAdd.HasDelegate && Board.Editable)
+        {
+            addHref = Board.EditHref(Kanban<TItem>.NewKey, Value);
+        }
         @if (addHref is not null)
         {
             <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
@@ -58,7 +62,7 @@
         }
     </div>
     <ListView TItem="TItem" Class="ib-kanban-cards" Zone="@_zone" Label="@TitleText" Cards DragWholeItem="@(!Board.DragHandle)" Accepts="Accepts"
-              ItemLabel="@_itemLabel" ItemHref="Board.ItemHref" OnItemClick="Board.OnItemClick" ItemCurrent="Board.ItemCurrent" ItemDisabled="Board.ItemDisabled"
+              ItemLabel="@_itemLabel" ItemHref="_itemHref" OnItemClick="Board.OnItemClick" ItemCurrent="Board.ItemCurrent" ItemDisabled="Board.ItemDisabled"
               EmptyText="@Board.EmptyText" Size="Board.Size" MaxHeight="Board.MaxHeight" ItemTemplate="_card" ItemMenu="_menu" />
 </section>
 
@@ -114,6 +118,7 @@
     private RenderFragment<TItem> _card = default!;
     private RenderFragment<TItem> _menu = default!;
     private Func<TItem, string> _itemLabel = default!;
+    private Func<TItem, string?>? _itemHref;
 
     private string TitleText => Title ?? Value ?? "";
 
@@ -155,7 +160,18 @@
 
         _collapsed = _collapsedParam = Collapsed;
         _itemLabel = item => Board.ItemLabel?.Invoke(item) ?? Board.ItemText?.Invoke(item) ?? Board.ItemKey!(item);
-        _menu = item => Board.ItemMenu?.Invoke(item) ?? (_ => { });
+        _menu = item => builder =>
+        {
+            if (Board.Editable)
+            {
+                builder.OpenComponent<MenuItem>(0);
+                builder.AddComponentParameter(1, nameof(MenuItem.Href), Board.EditHref(Board.ItemKey!(item)));
+                builder.AddComponentParameter(2, nameof(MenuItem.ChildContent), (RenderFragment)(b => b.AddContent(0, TextDefaults.KanbanEdit)));
+                builder.CloseComponent();
+            }
+
+            builder.AddContent(3, Board.ItemMenu?.Invoke(item));
+        };
         _card = item => builder =>
         {
             if (Board.ItemAccent?.Invoke(item) is { } accent)
@@ -185,6 +201,7 @@
             }
         };
 
+        Board.AddColumn(this);
         // The group tells its zones when the items or a move changed them; the header counts too.
         Group.Changed += GroupChanged;
         _subscribed = true;
@@ -209,6 +226,8 @@
             _collapsed = _collapsedParam = Collapsed;
         }
 
+        // A card opens its own page or runs the app's click; else, on a board with a form, the form.
+        _itemHref = Board.ItemHref ?? (Board.Editable && !Board.OnItemClick.HasDelegate ? item => Board.EditHref(Board.ItemKey!(item)) : null);
         (_class, _style) = BuildRootAttributes();
         _items = Group!.ItemsIn(_zone);
     }
@@ -231,6 +250,7 @@
         if (_subscribed)
         {
             Group!.Changed -= GroupChanged;
+            Board.RemoveColumn(this);
         }
     }
 }

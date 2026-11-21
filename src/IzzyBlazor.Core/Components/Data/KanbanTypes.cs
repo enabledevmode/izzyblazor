@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
@@ -72,6 +73,122 @@ internal sealed class KanbanPostBinding : ComponentBase
     public KanbanPost? Posted { get; set; }
 
     [Parameter] public RenderFragment<KanbanPost?>? ChildContent { get; set; }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, ChildContent, Posted);
+}
+
+/// <summary>A <see cref="Kanban{TItem}"/>'s card form: what it posts, on a static page too.</summary>
+public sealed class KanbanEditFields
+{
+    /// <summary>The title. Required.</summary>
+    [Required]
+    public string? Title { get; set; }
+
+    /// <summary>The description, when the board has an <c>ItemDescription</c>.</summary>
+    public string? Description { get; set; }
+
+    /// <summary>The column: a <see cref="KanbanColumn{TItem}"/>'s <c>Value</c>.</summary>
+    public string? Column { get; set; }
+
+    /// <summary>Set by the form's Delete button on a static page.</summary>
+    public bool Remove { get; set; }
+}
+
+/// <summary>
+/// A save from a <see cref="Kanban{TItem}"/>'s form, for its <c>OnSave</c>: the form's values, and
+/// the card they're for (none for a new one). With no errors added, the form closes; with errors,
+/// it stays open and shows them.
+/// </summary>
+/// <typeparam name="TItem">The type of the cards.</typeparam>
+public sealed class KanbanSave<TItem>
+{
+    private readonly Action<string> _error;
+
+    internal KanbanSave(TItem? item, bool isNew, KanbanEditFields fields, Action<string> error) =>
+        (Item, IsNew, Fields, _error) = (item, isNew, fields, error);
+
+    /// <summary>The card being edited, or the default for a new one.</summary>
+    public TItem? Item { get; }
+
+    /// <summary>Whether it's a new card.</summary>
+    public bool IsNew { get; }
+
+    /// <summary>The form's values.</summary>
+    public KanbanEditFields Fields { get; }
+
+    /// <summary>The title.</summary>
+    public string Title => Fields.Title ?? "";
+
+    /// <summary>The description, when the board has one.</summary>
+    public string? Description => Fields.Description;
+
+    /// <summary>The column: one of the board's, by its <c>Value</c>.</summary>
+    public string Column => Fields.Column ?? "";
+
+    internal bool HasErrors { get; private set; }
+
+    /// <summary>Reports a problem with the save, shown at the top of the form, which stays open.</summary>
+    public void AddError(string message)
+    {
+        HasErrors = true;
+        _error(message);
+    }
+}
+
+/// <summary>A delete from a <see cref="Kanban{TItem}"/>'s form, for its <c>OnDelete</c>. With an error added, the form stays open and shows it.</summary>
+/// <typeparam name="TItem">The type of the cards.</typeparam>
+public sealed class KanbanDelete<TItem>
+{
+    private readonly Action<string> _error;
+
+    internal KanbanDelete(TItem item, Action<string> error) => (Item, _error) = (item, error);
+
+    /// <summary>The card to delete.</summary>
+    public TItem Item { get; }
+
+    internal bool HasErrors { get; private set; }
+
+    /// <summary>Reports why it can't be deleted, shown at the top of the form, which stays open.</summary>
+    public void AddError(string message)
+    {
+        HasErrors = true;
+        _error(message);
+    }
+}
+
+/// <summary>What a <c>Kanban</c>'s <c>EditDialogForm</c> gets.</summary>
+/// <typeparam name="TItem">The type of the cards.</typeparam>
+public sealed class KanbanEditFormContext<TItem>
+{
+    private readonly Func<Task> _close;
+
+    internal KanbanEditFormContext(TItem? item, bool isNew, string column, Func<Task> close) =>
+        (Item, IsNew, Column, _close) = (item, isNew, column, close);
+
+    /// <summary>The card as the board has it, which isn't a copy, or the default for a new one.</summary>
+    public TItem? Item { get; }
+
+    /// <summary>Whether it's a new card.</summary>
+    public bool IsNew { get; }
+
+    /// <summary>The card's column, or for a new card the column whose add button opened the form.</summary>
+    public string Column { get; }
+
+    /// <summary>Closes the dialog, once your form has saved.</summary>
+    public Task CloseAsync() => _close();
+}
+
+/// <summary>Gets a static post of the card form. A part of its own for <c>FormMappingScope</c>.</summary>
+internal sealed class KanbanEditBinding : ComponentBase
+{
+    internal const string FormName = "edit";
+
+    internal const string Prefix = "ib-kanban-edit";
+
+    [SupplyParameterFromForm(Name = Prefix)]
+    public KanbanEditFields? Posted { get; set; }
+
+    [Parameter] public RenderFragment<KanbanEditFields?>? ChildContent { get; set; }
 
     protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, ChildContent, Posted);
 }

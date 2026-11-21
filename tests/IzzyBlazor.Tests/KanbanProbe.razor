@@ -1,5 +1,5 @@
 @* A board of three columns for KanbanTests: In progress has a limit of 1. *@
-<Kanban TItem="Job" Items="Cards" ItemKey="c => c.Id" ColumnOf="c => c.Status" ItemText="c => c.Title" OnMove="Moved">
+<Kanban TItem="Job" Items="Cards" ItemKey="c => c.Id" ColumnOf="c => c.Status" ItemText="c => c.Title" OnMove="Moved" OnSave="Saved">
     <Columns>
         <KanbanColumn Value="To do" />
         <KanbanColumn Value="In progress" Limit="1" />
@@ -18,6 +18,10 @@
     [Parameter] public IReadOnlyList<Job> Cards { get; set; } = [];
 
     public List<KanbanMoveEventArgs<Job>> Moves { get; } = [];
+
+    public KanbanSave<Job>? Save { get; private set; }
+
+    private void Saved(KanbanSave<Job> save) => Save = save;
 
     private void Moved(KanbanMoveEventArgs<Job> move)
     {
