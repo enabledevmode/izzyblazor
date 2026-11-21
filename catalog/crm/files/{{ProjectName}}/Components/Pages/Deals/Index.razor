@@ -8,7 +8,7 @@
 <PageTitle>Deal pipeline</PageTitle>
 
 @* Deal pipeline: every deal still open (not won, not lost), the one due to close soonest first. The grid searches,
-   filters by stage, sorts and pages in the database; the Stage filter also has Won and Lost, which lists those. The Board view isn't built yet, so its switch is there but
+   filters by stage and by owner ("Me" for your own), sorts and pages in the database; the Stage filter also has Won and Lost, which lists those. The Board view isn't built yet, so its switch is there but
    off. New deal opens the deal form over the list (Components/Deals/DealDialog.razor, ?dialog=new-deal). People
    who can't edit records (Viewers) see the list alone. With no deals at all the page is its first-use state. *@
 <PageCrumbs><BreadcrumbItem>Deal pipeline</BreadcrumbItem></PageCrumbs>
@@ -55,7 +55,7 @@ else
                 <TabLink Label="Board" Icon="Lucide.Kanban" Disabled />
                 <TabLink Href="deals" Label="List" Icon="Lucide.List" Current />
             </TabNav>
-            <Tag>Sales pipeline · All owners</Tag>
+            <Tag>Sales pipeline</Tag>
         </Row>
 
         <DataGrid id="deals" TItem="Deal" ItemsProvider="FindAsync" ItemKey="d => d.Id.ToString()" RowLabel="d => d.Name" Caption="Deals"
@@ -63,6 +63,7 @@ else
             <ToolbarContent>
                 <DataGridSearch />
                 <DataGridFilter Column="stage" />
+                <DataGridFilter Column="owner" />
             </ToolbarContent>
             <EmptyContent>
                 <EmptyState TitleLevel="2" Icon="Lucide.Columns3" Title="No open deals" Description="Every deal so far is won or lost: choose Won or Lost under Stage to see them." />
@@ -94,6 +95,14 @@ else
                 @* SQLite keeps decimals as text, so it sorts them as numbers. *@
                 <TemplateColumn Title="Value" SortKey="value" SortBy="d => (double)d.Value" Sortable Align="CellAlign.End" Width="Length.Rem(8)" Priority="1" Context="deal">
                     @_workspace?.Money(deal.Value)
+                </TemplateColumn>
+                <TemplateColumn Title="Owner" SortKey="owner" SortBy="d => d.Owner!.Name" FilterBy="d => d.OwnerId" Sortable Filterable
+                                FilterText="@(values => values[0] is { } id && _team.TryGetValue(id, out var name) ? (id == _me ? "Me" : name) : "")" Priority="3" Context="deal">
+                    <FilterTemplate Context="filter">
+                        <Select TValue="string" Label="Owner" HideLabel Items="_teamIds" ItemText="@(id => id == _me ? "Me" : _team[id])" Placeholder="All owners"
+                                Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
+                    </FilterTemplate>
+                    <ChildContent>@deal.Owner?.Name</ChildContent>
                 </TemplateColumn>
                 <PropertyColumn Property="d => d.ExpectedClose" Title="Expected close" SortKey="close" Width="Length.Rem(10.5)" Sortable Context="deal">
                     @(deal.Closed is { } closed ? $"Closed {When.Date(closed, _today)}" : When.Date(deal.ExpectedClose, _today))
@@ -128,6 +137,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, Policies.EditRecords)).Succeeded;
+        await LoadTeamAsync((await AuthState).User);
         _none = !await Db.Deals.AnyAsync();
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
         _today = DateOnly.FromDateTime(Clock.Now(_workspace));
@@ -142,14 +152,35 @@ else
         };
     }
 
-    // The grid's page of deals, from the database: the open ones, or those at the stage the filter names (its
-    // only filter), which can be Won or Lost. Its search looks in deal and company names.
+    // The grid's page of deals, from the database: the open ones, or those at the stage the filter names,
+    // which can be Won or Lost. Its search looks in deal and company names.
     private async ValueTask<DataResult<Deal>> FindAsync(DataRequest<Deal> request)
     {
-        IQueryable<Deal> query = (request.Filter is null ? Open : Db.Deals.AsNoTracking()).Include(d => d.Company);
+        IQueryable<Deal> query = (Names(request.Filter, "stage") ? Db.Deals.AsNoTracking() : Open).Include(d => d.Company).Include(d => d.Owner);
         // Lower case on both sides, so "acme" finds Acme Co.'s deals in any database.
         if (request.Search?.Trim().ToLower() is { Length: > 0 } search)
             query = query.Where(d => d.Name.ToLower().Contains(search) || d.Company!.Name.ToLower().Contains(search));
         return await (request with { Search = null }).ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+    }
+
+    // Whether a filter has a condition on the column with this key.
+    private static bool Names(Filter? filter, string field) => filter switch
+    {
+        FieldFilter condition => condition.Field == field,
+        FilterGroup group => group.Filters.Any(part => Names(part, field)),
+        NotFilter not => Names(not.Filter, field),
+        _ => false,
+    };
+
+    // The Owner filter's choices: you, then the rest of the team by name.
+    private string? _me;
+    private Dictionary<string, string> _team = [];
+    private List<string> _teamIds = [];
+
+    private async Task LoadTeamAsync(System.Security.Claims.ClaimsPrincipal user)
+    {
+        _me = user.UserId();
+        _team = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
+        _teamIds = [.. _team.OrderBy(u => u.Key != _me).ThenBy(u => u.Value).Select(u => u.Key)];
     }
 }

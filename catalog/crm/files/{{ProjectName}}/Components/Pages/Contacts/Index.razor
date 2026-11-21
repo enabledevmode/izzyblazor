@@ -57,6 +57,7 @@ else
             <ToolbarContent>
                 <DataGridSearch />
                 <DataGridFilter Column="status" />
+                <DataGridFilter Column="owner" />
             </ToolbarContent>
             <NoMatchesContent>
                 <EmptyState TitleLevel="2" Icon="Lucide.SearchX" Title="No matching contacts" Description="Try a different name, company, or email address. Your other contacts are still here." />
@@ -77,8 +78,13 @@ else
                 <PropertyColumn Property="c => c.Status" Width="Length.Rem(7)" Priority="1" Sortable Filterable Context="contact">
                     <Badge Status="Tones.Of(contact.Status)">@contact.Status</Badge>
                 </PropertyColumn>
-                <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" Sortable Context="contact">
-                    @contact.Owner?.Name
+                <TemplateColumn Title="Owner" SortKey="owner" SortBy="c => c.Owner!.Name" FilterBy="c => c.OwnerId" Sortable Filterable
+                                FilterText="@(values => values[0] is { } id && _team.TryGetValue(id, out var name) ? (id == _me ? "Me" : name) : "")" Context="contact">
+                    <FilterTemplate Context="filter">
+                        <Select TValue="string" Label="Owner" HideLabel Items="_teamIds" ItemText="@(id => id == _me ? "Me" : _team[id])" Placeholder="All owners"
+                                Value="@filter.Value" ValueChanged="filter.SetAsync" ValueExpression="() => filter.Value" @attributes="filter.Attributes" />
+                    </FilterTemplate>
+                    <ChildContent>@contact.Owner?.Name</ChildContent>
                 </TemplateColumn>
                 <PropertyColumn Property="c => c.LastActivity" Title="Last activity" Width="Length.Rem(9)" Sortable Context="contact">
                     @(contact.LastActivity is { } at ? When.Day(DateOnly.FromDateTime(When.Local(at, _workspace)), _today) : null)
@@ -105,6 +111,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, Policies.EditRecords)).Succeeded;
+        await LoadTeamAsync((await AuthState).User);
         _none = !await Db.Contacts.AnyAsync();
         _workspace = await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync();
         _today = DateOnly.FromDateTime(Clock.Now(_workspace));
@@ -120,5 +127,17 @@ else
             query = query.Where(c => (c.FirstName + " " + c.LastName).ToLower().Contains(search) || (c.Email != null && c.Email.ToLower().Contains(search)) || c.Company!.Name.ToLower().Contains(search));
         }
         return await (request with { Search = null }).ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+    }
+
+    // The Owner filter's choices: you, then the rest of the team by name.
+    private string? _me;
+    private Dictionary<string, string> _team = [];
+    private List<string> _teamIds = [];
+
+    private async Task LoadTeamAsync(System.Security.Claims.ClaimsPrincipal user)
+    {
+        _me = user.UserId();
+        _team = (await Db.Users.AsNoTracking().ToListAsync()).ToDictionary(u => u.Id, u => u.Name ?? u.Email ?? "");
+        _teamIds = [.. _team.OrderBy(u => u.Key != _me).ThenBy(u => u.Value).Select(u => u.Key)];
     }
 }
