@@ -1,0 +1,76 @@
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext Db
+@inject NavigationManager Navigation
+
+@* Whose activities a page lists, kept in the address (?who=): yours with none, "all" for everyone's, "none" for
+   those assigned to no one, or a team member's id. Each choice is a link to the page it's on. The page narrows
+   its own query with Of:
+
+   <AssigneeMenu />
+   var listed = AssigneeMenu.Of(Db.Activities, Who, me);   Who: [SupplyParameterFromQuery] *@
+<Menu>
+    <Trigger>
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.User" EndIcon="Lucide.ChevronDown" @attributes="context">@Shown</Button>
+    </Trigger>
+    <ChildContent>
+        <MenuItem Href="@Link(null)" Checked="@(Chosen is null)">Assigned to me</MenuItem>
+        <MenuItem Href="@Link(All)" Checked="@(Chosen == All)">Everyone</MenuItem>
+        <MenuItem Href="@Link(None)" Checked="@(Chosen == None)">Unassigned</MenuItem>
+        @if (_others.Count > 0)
+        {
+            <MenuDivider />
+            <MenuGroup Label="Assigned to">
+                @foreach (var (id, name) in _others)
+                {
+                    <MenuItem Href="@Link(id)" Checked="@(Chosen == id)">@name</MenuItem>
+                }
+            </MenuGroup>
+        }
+    </ChildContent>
+</Menu>
+
+@code {
+    /// <summary>The address's values for everyone's and for no one's.</summary>
+    public const string All = "all", None = "none";
+
+    [SupplyParameterFromQuery] private string? Who { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    // The rest of the team, by name.
+    private List<(string Id, string Name)> _others = [];
+
+    // The choice in the address, when it's one the menu offers.
+    private string? Chosen => Who is All or None || _others.Any(o => o.Id == Who) ? Who : null;
+
+    private string Shown => Chosen switch
+    {
+        null => "Assigned to me",
+        All => "Everyone",
+        None => "Unassigned",
+        var id => _others.First(o => o.Id == id).Name,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var me = (await AuthState).User.UserId();
+        _others = (await Db.Users.AsNoTracking().Where(u => u.Id != me).ToListAsync())
+            .Select(u => (u.Id, Name: u.Name ?? u.Email ?? "")).OrderBy(u => u.Name).ToList();
+    }
+
+    // The page as it is, for another choice: without the tasks just ticked, which belong to this list.
+    private string Link(string? who) =>
+        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["who"] = who, ["done"] = null });
+
+    /// <summary>
+    /// <paramref name="activities"/> narrowed to what <paramref name="who"/> (the address's ?who=) asks for:
+    /// those of <paramref name="me"/> with none.
+    /// </summary>
+    public static IQueryable<Activity> Of(IQueryable<Activity> activities, string? who, string? me) => who switch
+    {
+        null or "" => activities.Where(a => a.AssignedToId == me),
+        All => activities,
+        None => activities.Where(a => a.AssignedToId == null),
+        _ => activities.Where(a => a.AssignedToId == who),
+    };
+}

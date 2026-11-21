@@ -8,7 +8,8 @@
 
 <PageTitle>Week · Activities</PageTitle>
 
-@* Activities: your calendar. The meetings, calls and tasks assigned to you, on the working week; the Scheduler's
+@* Activities: your calendar. The meetings, calls and tasks assigned to you (or, from the menu in the view strip,
+   everyone's, a team member's or those assigned to no one: Components/Activities/AssigneeMenu.razor), on the working week; the Scheduler's
    toolbar goes to other weeks and views (a day, a month, a list), and keeps both in the address. Each one links
    to its own page (Detail.razor). The database is asked only for the days shown. Tasks is the same activities as a list
    (Tasks.razor), and is where Activities opens. Schedule activity opens the activity form over the page
@@ -31,16 +32,22 @@
         }
     </PageHeader>
 
-    <TabNav Label="Activities view" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
-        <TabLink Href="activities" Label="Tasks" Icon="Lucide.List" />
-        <TabLink Href="activities/week" Label="Week" Icon="Lucide.CalendarDays" Current />
-    </TabNav>
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <TabNav Label="Activities view" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
+            <TabLink Href="activities" Label="Tasks" Icon="Lucide.List" />
+            <TabLink Href="activities/week" Label="Week" Icon="Lucide.CalendarDays" Current />
+        </TabNav>
+        <AssigneeMenu />
+    </Row>
 
     <Card Title="@Period" TitleLevel="2" Grow>
-        <CardActions><Badge Accent="Accent.Primary">Your calendar</Badge></CardActions>
+        @if (string.IsNullOrEmpty(Who))
+        {
+            <CardActions><Badge Accent="Accent.Primary">Your calendar</Badge></CardActions>
+        }
         <CardBody Flush>
             <Scheduler TItem="Activity" Items="Mine" Start="a => a.Start" End="a => a.Start.AddMinutes(a.Duration)" Title="a => a.Title" Detail="With"
-                       ItemHref="@(a => $"activities/{a.Id}")" View="SchedulerView.WorkWeek" Date="_today" Label="Your calendar" Grow />
+                       ItemHref="@(a => $"activities/{a.Id}")" View="SchedulerView.WorkWeek" Date="_today" Label="@(string.IsNullOrEmpty(Who) ? "Your calendar" : "Calendar")" Grow />
         </CardBody>
     </Card>
 </Column>
@@ -56,15 +63,18 @@
     /// <summary>The day the Scheduler is on, which it keeps in the address: "2026-11-23" (today when there's none).</summary>
     [SupplyParameterFromQuery] private string? Date { get; set; }
 
+    /// <summary>Whose activities: yours with none (Components/Activities/AssigneeMenu.razor).</summary>
+    [SupplyParameterFromQuery] private string? Who { get; set; }
+
     // Who may schedule: the EditRecords policy.
     private bool _canEdit;
     private string? _me;
     private DateOnly _today;
 
-    // Everything assigned to you, done or not, with who it's with. The Scheduler adds the days to the query.
-    private IQueryable<Activity> Mine => Db.Activities.AsNoTracking()
-        .Include(a => a.Contact!.Company).Include(a => a.Deal!.Company)
-        .Where(a => a.AssignedToId == _me);
+    // Everything assigned to you (or to whom the address asks for), done or not, with who it's with. The
+    // Scheduler adds the days to the query.
+    private IQueryable<Activity> Mine => AssigneeMenu.Of(Db.Activities.AsNoTracking(), Who, _me)
+        .Include(a => a.Contact!.Company).Include(a => a.Deal!.Company);
 
     protected override async Task OnInitializedAsync()
     {
