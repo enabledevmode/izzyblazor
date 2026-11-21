@@ -422,6 +422,27 @@ public static class SiteApp
             return Results.Text(file.Css, "text/css");
         });
         // The search dialog's results as you type (site.js): the same markup the header renders.
+        // The components sidebar's order (DocsNav's toggle): kept in a cookie the sidebar reads as it
+        // renders, so it arrives in the reader's order. A post, not a link, so crawlers don't follow it.
+        app.MapPost("/docs/components/order", async (HttpContext context) =>
+        {
+            var form = await context.Request.ReadFormAsync();
+            var options = new CookieOptions
+            {
+                Path = context.Request.PathBase.HasValue ? context.Request.PathBase.Value + "/" : "/",
+                MaxAge = TimeSpan.FromDays(365),
+                SameSite = SameSiteMode.Lax,
+                IsEssential = true,
+            };
+            if (form["az"].Contains("true")) context.Response.Cookies.Append(Components.Layout.DocsNav.OrderCookie, "az", options);
+            else context.Response.Cookies.Delete(Components.Layout.DocsNav.OrderCookie, options);
+
+            // Back to the page it was posted from, when that's a path on this site.
+            var back = form["return"].ToString();
+            var local = back.StartsWith('/') && !back.StartsWith("//", StringComparison.Ordinal) && !back.StartsWith("/\\", StringComparison.Ordinal);
+            return Results.LocalRedirect(local ? back : "/docs/components");
+        }).DisableAntiforgery();
+
         app.MapGet("/search/results", (string? q, HttpContext context) =>
         {
             context.Response.Headers.CacheControl = "public, max-age=300";

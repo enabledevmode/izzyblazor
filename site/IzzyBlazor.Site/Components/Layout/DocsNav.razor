@@ -10,6 +10,57 @@
    category's heading. All of it shows, so a page is found without opening anything; a component
    with topics is a group of its own, open on its pages. *@
 
+@if (_area == DocsArea.Components)
+{
+    @* "All components" and, beside it, the list's order: by group, or every component A to Z. The
+       link is a list of its own, so the toggle sits next to it and not inside it. *@
+    <Row Gap="1" Align="Align.Center">
+        <NavMenu Grow MinWidth="Length.Px(0)">
+            <NavItem Href="docs/components" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All" Current="@(_group is null ? null : false)">All components</NavItem>
+        </NavMenu>
+        <form method="post" action="docs/components/order" data-enhance>
+            <input type="hidden" name="return" value="@_here" />
+            <ToggleButton name="az" @bind-Value="_az" Label="List A to Z" Icon="Lucide.ArrowDownAZ" IconOnly Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" SubmitOnChange />
+        </form>
+    </Row>
+    <NavMenu>
+        @if (_az)
+        {
+            @foreach (var entry in AtoZ)
+            {
+                @if (entry.Component is { } component)
+                {
+                    @ComponentItem(component)
+                }
+                else
+                {
+                    <NavItem Disabled Badge="Roadmap">@entry.Name</NavItem>
+                }
+            }
+        }
+        else
+        {
+            @foreach (var category in Registry.Categories)
+            {
+                @* Each heading links to the components page showing its group alone. *@
+                var anchor = Registry.CategoryAnchor(category);
+                <NavLabel Icon="@Pictogram.Lookup(Registry.CategoryIcon(category))" Href="@($"docs/components?group={anchor}")" Current="@(_group == anchor)">@category</NavLabel>
+                @* A preview isn't listed, but on its own pages it needs its topics. *@
+                @foreach (var component in Registry.InCategory(category).Concat(_current is { Preview: true } && _current.Category == category ? [_current] : []))
+                {
+                    @ComponentItem(component)
+                }
+                @* Planned, not built yet: shown, not a link. *@
+                @foreach (var planned in Registry.Roadmap.Where(r => r.Category == category))
+                {
+                    <NavItem Disabled Badge="Roadmap">@planned.Name</NavItem>
+                }
+            }
+        }
+    </NavMenu>
+}
+else
+{
 <NavMenu>
     @if (_area == DocsArea.Blocks)
     {
@@ -49,39 +100,6 @@
             }
         }
     }
-    else if (_area == DocsArea.Components)
-    {
-        <NavItem Href="docs/components" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All" Current="@(_group is null ? null : false)">All components</NavItem>
-        @foreach (var category in Registry.Categories)
-        {
-            @* Each heading links to the components page showing its group alone. *@
-            var anchor = Registry.CategoryAnchor(category);
-            <NavLabel Icon="@Pictogram.Lookup(Registry.CategoryIcon(category))" Href="@($"docs/components?group={anchor}")" Current="@(_group == anchor)">@category</NavLabel>
-            @* A preview isn't listed, but on its own pages it needs its topics. *@
-            @foreach (var component in Registry.InCategory(category).Concat(_current is { Preview: true } && _current.Category == category ? [_current] : []))
-            {
-                @if (component.Topics.Count > 0)
-                {
-                    <NavGroup Label="@component.DisplayName" Open="@(component == _current)">
-                        <NavItem Href="@Registry.OverviewHref(component)" Match="NavLinkMatch.All">Overview</NavItem>
-                        @foreach (var topic in component.Topics)
-                        {
-                            <NavItem Href="@Registry.TopicHref(component, topic)">@topic.Title</NavItem>
-                        }
-                    </NavGroup>
-                }
-                else
-                {
-                    <NavItem Href="@Registry.OverviewHref(component)">@component.DisplayName</NavItem>
-                }
-            }
-            @* Planned, not built yet: shown, not a link. *@
-            @foreach (var planned in Registry.Roadmap.Where(r => r.Category == category))
-            {
-                <NavItem Disabled Badge="Roadmap">@planned.Name</NavItem>
-            }
-        }
-    }
     else
     {
         <NavItem Href="docs" Icon="Lucide.BookOpen" Match="NavLinkMatch.All">Overview</NavItem>
@@ -101,8 +119,43 @@
 
     }
 </NavMenu>
+}
 
 @code {
+    /// <summary>The cookie that keeps the components list A to Z ("az"); without it, by group.</summary>
+    public const string OrderCookie = "ib-docs-order";
+
+    [CascadingParameter] private HttpContext? Http { get; set; }
+
+    // The components list's order, and this page's path for the toggle's way back.
+    private bool _az;
+    private string _here = "/";
+
+    private IEnumerable<(string Name, RegistryComponent? Component)> AtoZ => Registry.Components
+        .Concat(_current is { Preview: true } ? [_current] : [])
+        .Select(c => (c.DisplayName, (RegistryComponent?)c))
+        .Concat(Registry.Roadmap.Select(r => (r.Name, (RegistryComponent?)null)))
+        .OrderBy(e => e.Item1, StringComparer.OrdinalIgnoreCase);
+
+    // A component's row: a group of its own when it has topics, open on its pages.
+    private RenderFragment ComponentItem(RegistryComponent component) => __builder =>
+    {
+        @if (component.Topics.Count > 0)
+        {
+            <NavGroup Label="@component.DisplayName" Open="@(component == _current)">
+                <NavItem Href="@Registry.OverviewHref(component)" Match="NavLinkMatch.All">Overview</NavItem>
+                @foreach (var topic in component.Topics)
+                {
+                    <NavItem Href="@Registry.TopicHref(component, topic)">@topic.Title</NavItem>
+                }
+            </NavGroup>
+        }
+        else
+        {
+            <NavItem Href="@Registry.OverviewHref(component)">@component.DisplayName</NavItem>
+        }
+    };
+
     private RegistryComponent? _current;
     private DocsArea _area;
 
@@ -126,6 +179,8 @@
     {
         // docs/components/{id}[/api, /{topic}]
         _area = AreaOf(Navigation);
+        _az = Http?.Request.Cookies[OrderCookie] == "az";
+        _here = new Uri(Navigation.Uri).PathAndQuery;
         _current = Parts(Navigation) is ["docs", "components", var id, ..] ? Registry.ById(id) : null;
         _group = Parts(Navigation) is ["docs", "components"]
             && QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query).TryGetValue("group", out var group)
