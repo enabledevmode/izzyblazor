@@ -1,4 +1,4 @@
-// Sidebar app: the izzy-blazor starter's sidebar layout as a shell of its own, with the welcome page as its
+// Sidebar app: the blazor starter's sidebar layout as a shell of its own, with the welcome page as its
 // Home and no sample pages. Design: artifacts/izzyblazor-handoff-starters.md (ST1).
 {
   "id": "sidebar",
@@ -7,7 +7,7 @@
   "category": "Starters",
   "summary": "An app shell with a header and a sidebar that becomes a drawer on phones.",
   "base": {
-    "item": "izzy-blazor",
+    "item": "blazor",
     "fixed": { "Starter": "Sidebar app", "Nav": "Sidebar", "Empty": "false" }
   }
 }

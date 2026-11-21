@@ -14,12 +14,9 @@ public static class TemplateExport
 
     /// <summary>
     /// An item's name in <c>dotnet new</c>: its kind and its id, such as <c>starter-sidebar</c> or
-    /// <c>kit-crm</c>, so it reads as <c>izzy new starter sidebar</c> does. The Hello World starter keeps
-    /// its own id, <c>izzy-blazor</c>, beside Microsoft's <c>blazor</c>.
+    /// <c>kit-crm</c>, so it reads as <c>izzy new starter sidebar</c> does.
     /// </summary>
-    public static string ShortName(ItemManifest manifest) => manifest.Id.StartsWith("izzy-", StringComparison.Ordinal)
-        ? manifest.Id
-        : $"{manifest.Kind.ToString().ToLowerInvariant()}-{manifest.Id}";
+    public static string ShortName(ItemManifest manifest) => $"{manifest.Kind.ToString().ToLowerInvariant()}-{manifest.Id}";
 
     /// <summary>Writes <paramref name="item"/> to <paramref name="directory"/> as a template folder.</summary>
     public static void WriteTemplateFolder(ItemDefinition item, string directory)

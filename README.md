@@ -53,7 +53,7 @@ Start a new app from the starter, Microsoft's Blazor Web App rebuilt with IzzyBl
 
 ```bash
 dotnet new install IzzyBlazor.Templates@<version>
-dotnet new izzy-blazor -n MyApp
+dotnet new starter-blazor -n MyApp
 ```
 
 To set up IzzyBlazor in an app you have (a Blazor Web App, or an MVC or Razor Pages app), run `izzy init` in it:

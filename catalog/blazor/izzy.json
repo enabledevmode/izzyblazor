@@ -7,7 +7,7 @@
 // commented where it is: Passkeys renames on its own page and deletes through a form (Microsoft's field
 // named Action clobbers form.action), and ConfirmEmailChange says when the user name didn't change.
 {
-  "id": "izzy-blazor",
+  "id": "blazor",
   "name": "IzzyBlazor App",
   "kind": "starter",
   "category": "Starters",

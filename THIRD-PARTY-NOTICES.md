@@ -216,7 +216,7 @@ subject to the following conditions:
 
 ## ASP.NET Core project templates (.NET Foundation)
 
-The `izzy-blazor` starter (catalog/izzy-blazor, shipped in IzzyBlazor.Templates) is ported from Microsoft's
+The `blazor` starter (catalog/blazor, shipped in IzzyBlazor.Templates) is ported from Microsoft's
 Blazor Web App template in ASP.NET Core (https://github.com/dotnet/aspnetcore): its options, project layout,
 Program.cs, launch settings and pages, redrawn with IzzyBlazor's components.
 

@@ -24,7 +24,7 @@
   "checks": [
     {
       "file": "Program.cs", "pattern": "^(?![\\s\\S]*AddIdentityCookies)",
-      "message": "This app has no login (ASP.NET Core Identity), so nothing sends people to /Account/AccessDenied, and Switch account posts to an Account/Logout that isn't there. Start from izzy new starter izzy-blazor --auth Individual."
+      "message": "This app has no login (ASP.NET Core Identity), so nothing sends people to /Account/AccessDenied, and Switch account posts to an Account/Logout that isn't there. Start from izzy new starter blazor --auth Individual."
     }
   ]
 }

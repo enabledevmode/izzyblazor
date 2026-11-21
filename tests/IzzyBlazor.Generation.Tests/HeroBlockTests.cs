@@ -3,7 +3,7 @@ using IzzyBlazor.Generation;
 namespace IzzyBlazor.Generation.Tests;
 
 /// <summary>
-/// The phase 1 gate for blocks: izzy add hero into a project izzy-blazor made. It writes the component, places
+/// The phase 1 gate for blocks: izzy add hero into a project blazor made. It writes the component, places
 /// it on Home and imports its folder, warns that Home already has an h1, changes nothing when run again, and
 /// the project builds.
 /// </summary>
@@ -15,7 +15,7 @@ public sealed class HeroBlockTests : IDisposable
     [Fact]
     public async Task The_hero_goes_into_a_new_app_once_and_it_builds()
     {
-        ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("izzy-blazor"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme")), _work);
+        ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("blazor"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme")), _work);
         var hero = ProjectBuild.Item("hero");
         var settings = new Dictionary<string, string> { ["Layout"] = "Split", ["Eyebrow"] = "New in 2.0" };
 

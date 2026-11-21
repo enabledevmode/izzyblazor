@@ -24,7 +24,7 @@ public static partial class Setup
         var xml = XDocument.Load(csproj);
         var sdk = xml.Root?.Attribute("Sdk")?.Value ?? "";
         if (sdk.Contains("BlazorWebAssembly", StringComparison.OrdinalIgnoreCase))
-            throw new GenerationException($"{project.Name} is a standalone Blazor WebAssembly app. IzzyBlazor needs a server, where the theme and the components that read cookies render: make a Blazor Web App with WebAssembly pages instead (izzy new starter izzy-blazor --interactivity WebAssembly).");
+            throw new GenerationException($"{project.Name} is a standalone Blazor WebAssembly app. IzzyBlazor needs a server, where the theme and the components that read cookies render: make a Blazor Web App with WebAssembly pages instead (izzy new starter blazor --interactivity WebAssembly).");
         if (!sdk.Contains("Microsoft.NET.Sdk.Web", StringComparison.OrdinalIgnoreCase))
             throw new GenerationException($"{project.Name} isn't an ASP.NET Core app (its project's SDK is {(sdk.Length > 0 ? sdk : "none")}). IzzyBlazor goes in a Blazor Web App, or an MVC or Razor Pages app.");
         // Only a framework named here, and below 10, is refused: one set in Directory.Build.props or a property isn't known.

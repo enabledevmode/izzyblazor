@@ -14,7 +14,7 @@ internal static class ProjectBuild
     /// <summary>A catalogue item from /catalog, through the catalogue so a kit is over its base.</summary>
     public static ItemDefinition Item(string id) => Catalog.Load(Path.Combine(RepoRoot, "catalog"))[id];
 
-    /// <summary>The settings for izzy-blazor with its ports and GUID given, so nothing is random.</summary>
+    /// <summary>The settings for blazor with its ports and GUID given, so nothing is random.</summary>
     public static Dictionary<string, string> StarterSettings(string settings = "")
     {
         var values = settings.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Split('=')).ToDictionary(s => s[0], s => s[1]);

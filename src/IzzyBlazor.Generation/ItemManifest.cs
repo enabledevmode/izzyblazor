@@ -6,7 +6,7 @@ namespace IzzyBlazor.Generation;
 /// <summary>What an item is and how it's generated: the contents of its <c>izzy.json</c>.</summary>
 public sealed class ItemManifest
 {
-    /// <summary>The id the CLI and <c>dotnet new</c> know it by, such as <c>izzy-blazor</c>.</summary>
+    /// <summary>The id the CLI and <c>dotnet new</c> know it by, such as <c>blazor</c>.</summary>
     public required string Id { get; init; }
 
     /// <summary>The name shown in lists and forms.</summary>
@@ -62,7 +62,7 @@ public sealed class ItemManifest
     public string? Restore { get; init; }
 
     /// <summary>
-    /// The item a kit is made over (<c>"base": { "item": "izzy-blazor", "fixed": { … }, "defaults": { … } }</c>):
+    /// The item a kit is made over (<c>"base": { "item": "blazor", "fixed": { … }, "defaults": { … } }</c>):
     /// its files, settings and rules come first, and the kit's own files replace any at the same path.
     /// <see cref="Catalog.Load"/> makes the merged item; a manifest read alone still has it.
     /// </summary>
@@ -184,7 +184,7 @@ public static class ItemKinds
 }
 
 /// <summary>The item a kit is made over.</summary>
-/// <param name="Item">Its id, such as <c>izzy-blazor</c>.</param>
+/// <param name="Item">Its id, such as <c>blazor</c>.</param>
 /// <param name="Fixed">Its settings the kit fixes, by name, as text: they aren't the kit's settings.</param>
 /// <param name="Defaults">Its settings the kit gives other defaults, such as a denser preset.</param>
 public sealed record BaseSpec(string Item, IReadOnlyDictionary<string, string> Fixed, IReadOnlyDictionary<string, string> Defaults);

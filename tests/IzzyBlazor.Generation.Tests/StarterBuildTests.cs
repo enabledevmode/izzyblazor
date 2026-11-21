@@ -3,7 +3,7 @@ using IzzyBlazor.Generation;
 namespace IzzyBlazor.Generation.Tests;
 
 /// <summary>
-/// The other half of the phase 1 gate: what izzy-blazor makes builds. Five projects cover its layouts: the
+/// The other half of the phase 1 gate: what blazor makes builds. Five projects cover its layouts: the
 /// default (Server, pages static by default); the default with Individual accounts; static with a Main method
 /// and accounts, whose Counter answers by request; Auto with every page interactive (the layout and pages in
 /// the .Client project) and accounts in LocalDB, under a name that needs a safe namespace; and a top bar with
@@ -28,7 +28,7 @@ public sealed class StarterBuildTests : IDisposable
     [MemberData(nameof(Cases))]
     public async Task The_starter_builds(string name, string settings)
     {
-        var changes = Generator.Generate(ProjectBuild.Item("izzy-blazor"), ProjectBuild.StarterSettings(settings), ProjectInfo.ForNewProject(name));
+        var changes = Generator.Generate(ProjectBuild.Item("blazor"), ProjectBuild.StarterSettings(settings), ProjectInfo.ForNewProject(name));
         ChangesetWriter.Apply(changes, _work);
         ProjectBuild.PointAtRepo(_work);
         await ProjectBuild.BuildAsync(_work, $"{name} {settings}");
@@ -38,7 +38,7 @@ public sealed class StarterBuildTests : IDisposable
     /// The shells with files of their own, each in the settings that reach the most of them: accounts for the
     /// sidebar's foot and the inbox's prompt, and every page interactive in WebAssembly for the pages that
     /// move to the .Client project. rail also without accounts, the default.
-    /// The sidebar and top navigation shells are izzy-blazor's own layouts.
+    /// The sidebar and top navigation shells are blazor's own layouts.
     /// </summary>
     public static TheoryData<string, string> Shells() => new()
     {

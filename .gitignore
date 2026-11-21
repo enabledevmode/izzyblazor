@@ -3,7 +3,7 @@ obj/
 node_modules/
 .vs/
 .vscode/
-# A starter's own files (izzy-blazor --mcp writes .vscode/mcp.json)
+# A starter's own files (blazor --mcp writes .vscode/mcp.json)
 !catalog/*/files/.vscode/
 .idea/
 *.user

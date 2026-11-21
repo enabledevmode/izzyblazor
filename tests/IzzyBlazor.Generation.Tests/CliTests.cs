@@ -25,7 +25,7 @@ public sealed class CliTests : IDisposable
     [Fact]
     public void A_new_app_takes_a_hero_once_and_records_both()
     {
-        Assert.Equal(0, Izzy(_work, "new", "starter", "izzy-blazor", "-n", "Acme", "--no-restore").Exit);
+        Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Acme", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
 
         var preview = Izzy(app, "add", "hero", "--layout", "Split", "--dry-run", "--json");
@@ -51,7 +51,7 @@ public sealed class CliTests : IDisposable
         Assert.Equal(3, Izzy(app, "add", "features", "--layout", "Rows").Exit);
 
         var items = JsonNode.Parse(File.ReadAllText(Path.Combine(app, ".izzy", "items.json")))!["items"]!.AsArray();
-        Assert.Equal(["izzy-blazor", "hero", "features"], items.Select(i => (string)i!["id"]!));
+        Assert.Equal(["blazor", "hero", "features"], items.Select(i => (string)i!["id"]!));
         Assert.Equal("Split", (string)items[1]!["settings"]!["Layout"]!);
     }
 
@@ -59,7 +59,7 @@ public sealed class CliTests : IDisposable
     [Fact]
     public void At_a_line_the_hero_goes_there_instead_of_Home()
     {
-        Assert.Equal(0, Izzy(_work, "new", "starter", "izzy-blazor", "-n", "Acme", "--no-restore").Exit);
+        Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Acme", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
         var home = File.ReadAllText(Path.Combine(app, "Components", "Pages", "Home.razor"));
 
@@ -81,7 +81,7 @@ public sealed class CliTests : IDisposable
         var izzy = Path.Combine(tools, OperatingSystem.IsWindows() ? "izzy.exe" : "izzy");
         Assert.Contains("hero", await Run(_work, izzy, "list"));
         // Dot files ship too: --mcp writes .mcp.json from the catalogue.
-        await Run(_work, izzy, "new", "starter", "izzy-blazor", "-n", "App", "--mcp", "--no-restore");
+        await Run(_work, izzy, "new", "starter", "blazor", "-n", "App", "--mcp", "--no-restore");
         Assert.True(File.Exists(Path.Combine(_work, "App", ".mcp.json")));
     }
 

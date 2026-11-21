@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- izzy-blazor is ported from Microsoft's template (MIT); its notice ships with the package. -->
+    <!-- blazor is ported from Microsoft's template (MIT); its notice ships with the package. -->
     <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
     <None Include="$(RepoRoot)docs/nuget-readme-templates.md" Pack="true" PackagePath="\README.md" Visible="false" />
     <None Include="$(RepoRoot)brand/nuget/icon.png" Pack="true" PackagePath="\" Visible="false" />

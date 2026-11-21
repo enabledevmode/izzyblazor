@@ -4,7 +4,7 @@ The `izzy` command makes new IzzyBlazor apps and adds blocks and pages to the ap
 
 ```sh
 dotnet tool install -g IzzyBlazor.Cli
-izzy new starter izzy-blazor -n MyApp
+izzy new starter blazor -n MyApp
 cd MyApp
 izzy add hero --layout Split
 ```

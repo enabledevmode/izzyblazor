@@ -2,7 +2,7 @@
 
 `dotnet new` templates for [IzzyBlazor](https://izzyblazor.com), the Blazor component library built for static server-side rendering first.
 
-`izzy-blazor` is Microsoft's Blazor Web App (`dotnet new blazor`) rebuilt with IzzyBlazor's components and theme. It has the same options, names and defaults, in every render mode. With `--auth Individual`, ASP.NET Core Identity's account pages keep Microsoft's code and are drawn with IzzyBlazor.
+`starter-blazor` is Microsoft's Blazor Web App (`dotnet new blazor`) rebuilt with IzzyBlazor's components and theme. It has the same options, names and defaults, in every render mode. With `--auth Individual`, ASP.NET Core Identity's account pages keep Microsoft's code and are drawn with IzzyBlazor.
 
 ## Install
 
@@ -15,7 +15,7 @@ dotnet new install IzzyBlazor.Templates@<version>
 ## Create an app
 
 ```bash
-dotnet new izzy-blazor -n MyApp
+dotnet new starter-blazor -n MyApp
 ```
 
 Microsoft's options work as they do in `dotnet new blazor`:
@@ -39,7 +39,7 @@ IzzyBlazor adds:
 | `--shell Tinted\|Inset\|Flat\|Canvas` | How the app shell looks. |
 | `--mcp` | Connects AI assistants (Claude Code, VS Code, Visual Studio, Cursor) to IzzyBlazor's docs server. |
 
-Run `dotnet new izzy-blazor --help` for every option.
+Run `dotnet new starter-blazor --help` for every option.
 
 ## Documentation
 
@@ -49,6 +49,6 @@ Run `dotnet new izzy-blazor --help` for every option.
 
 ## License
 
-MIT. `izzy-blazor` is ported from Microsoft's Blazor Web App template (MIT, dotnet/aspnetcore); see THIRD-PARTY-NOTICES.md in the package.
+MIT. `starter-blazor` is ported from Microsoft's Blazor Web App template (MIT, dotnet/aspnetcore); see THIRD-PARTY-NOTICES.md in the package.
 
 IzzyBlazor is an independent project and is not affiliated with Microsoft.

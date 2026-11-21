@@ -1,5 +1,5 @@
 // Collapsible sidebar app: a sidebar the full height of the window, with the brand at its top and the account at
-// its foot, that collapses to an icon rail; the header beside it holds the page's title. Made over izzy-blazor,
+// its foot, that collapses to an icon rail; the header beside it holds the page's title. Made over the blazor starter,
 // with the welcome page as its Home. Design: artifacts/izzyblazor-handoff-starters.md (ST3).
 {
   "id": "rail",
@@ -9,7 +9,7 @@
   "summary": "An app shell with a full-height sidebar that collapses to an icon rail, the brand at its top and the account at its foot.",
   "components": ["SidebarAccount", "SidebarToggle", "Tooltip"],
   "base": {
-    "item": "izzy-blazor",
+    "item": "blazor",
     "fixed": { "Starter": "Collapsible sidebar app", "Nav": "Sidebar", "Empty": "false" }
   },
   "computed": { "HeaderTitle": "true" },

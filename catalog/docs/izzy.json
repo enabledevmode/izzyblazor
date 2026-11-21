@@ -1,6 +1,6 @@
 // Docs site: one flat surface with a sidebar of sections, an article column, and the article's headings in an
 // aside ("On this page") from 1280px up. It has one sample article, Writing pages, which says how to add
-// more. Made over izzy-blazor, with the welcome page as its Home. Design:
+// more. Made over the blazor starter, with the welcome page as its Home. Design:
 // artifacts/izzyblazor-handoff-starters.md (ST4).
 {
   "id": "docs",
@@ -10,7 +10,7 @@
   "summary": "A documentation site: a sidebar of sections, an article column, the article's headings beside it, and previous and next links.",
   "components": ["AppAside", "Breadcrumb", "OnThisPage", "PrevNext", "SidebarToggle"],
   "base": {
-    "item": "izzy-blazor",
+    "item": "blazor",
     "fixed": { "Starter": "Docs site", "Nav": "Sidebar", "Empty": "false", "Shell": "Flat", "ContentWidth": "Auto" }
   },
   // Log in is the only account button in the header: a docs site's readers rarely register.

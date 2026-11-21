@@ -16,7 +16,7 @@ public sealed class ClientProjectTests : IDisposable
     [Fact]
     public async Task Blocks_go_where_the_pages_are_and_the_app_builds()
     {
-        ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("izzy-blazor"),
+        ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("blazor"),
             ProjectBuild.StarterSettings("Interactivity=Auto;AllInteractive=true"), ProjectInfo.ForNewProject("Acme")), _work);
         // Found from either project.
         var project = ProjectInfo.FromProject(Path.Combine(_work, "Acme.Client", "Acme.Client.csproj"));

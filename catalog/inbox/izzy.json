@@ -1,6 +1,6 @@
 // List and detail app: a shell that fills the window, with a sidebar of views, a list of tickets and the chosen
 // ticket beside it, each scrolling on its own; on phones the list and the ticket are two screens. Made over
-// izzy-blazor, with the welcome page as its Home. Design: artifacts/izzyblazor-handoff-starters.md (ST5).
+// blazor, with the welcome page as its Home. Design: artifacts/izzyblazor-handoff-starters.md (ST5).
 {
   "id": "inbox",
   "name": "List and detail app",
@@ -9,7 +9,7 @@
   "summary": "An app that fills the window: a sidebar of views, a list, and the chosen item beside it. On phones the list and the item are two screens.",
   "components": ["EmptyState", "ListView", "Menu", "SidebarToggle"],
   "base": {
-    "item": "izzy-blazor",
+    "item": "blazor",
     "fixed": { "Starter": "List and detail app", "Nav": "Sidebar", "Empty": "false", "ContentWidth": "Auto" }
   },
   // The shell, with Blazor's error bar, is ShellLayout here; MainLayout only pads a page inside it.

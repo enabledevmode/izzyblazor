@@ -1,8 +1,8 @@
 @page "/docs/get-started/create-app"
 @inject ApiMetadata Api
 
-@* A new app from the izzy-blazor starter (catalog/izzy-blazor, published as IzzyBlazor.Templates). The
-   options are the starter's, as izzy describe izzy-blazor lists them. *@
+@* A new app from the blazor starter (catalog/blazor, published as IzzyBlazor.Templates). The
+   options are the starter's, as izzy describe blazor lists them. *@
 
 <ArticlePage Section="get-started" Slug="create-app">
     <Lead>
@@ -61,10 +61,10 @@
             </Columns>
         </Table>
         <TextBlock>To create a dense admin app with links across the top, run:</TextBlock>
-        <Code Block Language="bash">dotnet new izzy-blazor -n Admin --preset Compact --brand teal --nav Top</Code>
+        <Code Block Language="bash">dotnet new starter-blazor -n Admin --preset Compact --brand teal --nav Top</Code>
         <TextBlock>
             To see the other options, such as <Code>--no-https</Code> and <Code>--use-program-main</Code>, run
-            <Code>dotnet new izzy-blazor --help</Code>. To change the theme later, set it on <Code>IzzyTheme</Code>. See
+            <Code>dotnet new starter-blazor --help</Code>. To change the theme later, set it on <Code>IzzyTheme</Code>. See
             <Anchor Href="docs/theming/themes">Themes and presets</Anchor>.
         </TextBlock>
 
@@ -74,7 +74,7 @@
             <Anchor Href="blocks">blocks</Anchor> to the app afterwards, install the CLI. See
             <Anchor Href="docs/cli/overview">The izzy CLI</Anchor>.
         </TextBlock>
-        <Code Block Language="bash">izzy new starter izzy-blazor -n MyApp</Code>
+        <Code Block Language="bash">izzy new starter blazor -n MyApp</Code>
         <TextBlock>
             To start from a working app instead, such as a CRM, see <Anchor Href="templates">Templates</Anchor>.
         </TextBlock>
@@ -94,7 +94,7 @@
     private string Install => $"dotnet new install IzzyBlazor.Templates@{Api.Version}";
 
     private const string Create = """
-        dotnet new izzy-blazor -n MyApp
+        dotnet new starter-blazor -n MyApp
         cd MyApp
         dotnet run
         """;

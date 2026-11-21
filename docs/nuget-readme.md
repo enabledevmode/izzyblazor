@@ -32,7 +32,7 @@ Every page starts as working HTML: before IzzyBlazor's script loads, and while a
 
 ## Getting started
 
-For a new app, start from the starter (`dotnet new izzy-blazor`, in the IzzyBlazor.Templates package); in an app you have, run `izzy init` (the IzzyBlazor.Cli tool). See [Get started](https://izzyblazor.com/docs/get-started). To set it up by hand, install the package in your server project:
+For a new app, start from the starter (`dotnet new starter-blazor`, in the IzzyBlazor.Templates package); in an app you have, run `izzy init` (the IzzyBlazor.Cli tool). See [Get started](https://izzyblazor.com/docs/get-started). To set it up by hand, install the package in your server project:
 
 ```bash
 dotnet add package IzzyBlazor --prerelease
