@@ -8,7 +8,7 @@
 
 <PageTitle>@(_company?.Name ?? "Company")</PageTitle>
 
-@* A company: its people, its open deals, and what the team has done with them. Its sections are tabs with an
+@* A company: its people, its deals (open, then won and lost), and what the team has done with them. Its sections are tabs with an
    address each (/companies/3, /companies/3/deals, /activity), so each loads only its own data, can be linked to,
    and Back works. Above them: who looks after the account, what's open in the pipeline and what's next on the
    calendar. Beside every section: the company's details and background (Edit opens the company form over the
@@ -87,6 +87,19 @@
                                 }
                             </CardBody>
                         </Card>
+                        @* Won and lost, the latest first. *@
+                        @if (_closed.Count > 0)
+                        {
+                            <Card Title="Closed deals" TitleLevel="2">
+                                <CardBody Flush>
+                                    <ListView Items="_closed" ItemKey="d => d.Id.ToString()" Label="Closed deals"
+                                              ItemText="d => d.Name" ItemHref="@(d => $"deals/{d.Id}")"
+                                              ItemDescription="@(d => $"{d.Stage} · Closed {When.Date(d.Closed ?? d.ExpectedClose, _today)}")" Context="deal">
+                                        <ItemActions><TextBlock As="span" Weight="FontWeight.Semibold" TabularNums>@_workspace!.Money(deal.Value)</TextBlock></ItemActions>
+                                    </ListView>
+                                </CardBody>
+                            </Card>
+                        }
                         break;
 
                     case "activity":
@@ -173,6 +186,9 @@
     private Company? _company;
     private Activity? _next;
     private List<Deal> _open = [];
+
+    // The Deals tab's won and lost deals.
+    private List<Deal> _closed = [];
     private List<Contact> _people = [];
     private List<FeedItem> _history = [];
     private bool _canEdit;
@@ -207,6 +223,9 @@
             .Where(d => d.CompanyId == Id && d.Stage != DealStage.Won && d.Stage != DealStage.Lost).OrderBy(d => d.ExpectedClose).ToListAsync();
         _next = await Theirs(Db.Activities.AsNoTracking())
             .Where(a => a.Completed == null && a.Start >= now).OrderBy(a => a.Start).FirstOrDefaultAsync();
+        if (Section == "deals")
+            _closed = await Db.Deals.AsNoTracking()
+                .Where(d => d.CompanyId == Id && (d.Stage == DealStage.Won || d.Stage == DealStage.Lost)).OrderByDescending(d => d.Closed).ToListAsync();
 
         switch (Section)
         {

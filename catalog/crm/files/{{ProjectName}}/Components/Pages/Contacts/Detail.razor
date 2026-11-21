@@ -69,13 +69,13 @@
                         {
                             <ListView Items="_deals" ItemKey="d => d.Id.ToString()" Label="@($"Deals with {contact.FirstName}")" Bordered
                                       ItemText="d => d.Name" ItemHref="@(d => $"deals/{d.Id}")"
-                                      ItemDescription="@(d => $"{_workspace!.Money(d.Value)} · Expected {When.Date(d.ExpectedClose, _today)}")" Context="deal">
+                                      ItemDescription="@(d => $"{_workspace!.Money(d.Value)} · {(d.IsOpen ? "Expected" : "Closed")} {When.Date(d.Closed ?? d.ExpectedClose, _today)}")" Context="deal">
                                 <ItemActions><Badge Status="Tones.Of(deal.Stage)">@deal.Stage</Badge></ItemActions>
                             </ListView>
                         }
                         else
                         {
-                            <Card><EmptyState TitleLevel="2" Icon="Lucide.Handshake" Size="ControlSize.Sm" Title="No open deals" Description="@($"Deals with {contact.FirstName} show here.")" /></Card>
+                            <Card><EmptyState TitleLevel="2" Icon="Lucide.Handshake" Size="ControlSize.Sm" Title="No deals" Description="@($"Deals with {contact.FirstName} show here.")" /></Card>
                         }
                         break;
 
@@ -233,8 +233,9 @@
                 await LoadHistoryAsync(_contact);
                 break;
             case "deals":
-                _deals = await Db.Deals.AsNoTracking()
-                    .Where(d => d.ContactId == Id && d.Stage != DealStage.Won && d.Stage != DealStage.Lost).OrderBy(d => d.ExpectedClose).ToListAsync();
+                // The open ones by when they should close, then won and lost, the latest first.
+                var deals = await Db.Deals.AsNoTracking().Where(d => d.ContactId == Id).ToListAsync();
+                _deals = [.. deals.Where(d => d.IsOpen).OrderBy(d => d.ExpectedClose), .. deals.Where(d => !d.IsOpen).OrderByDescending(d => d.Closed)];
                 break;
             case "tasks":
                 // Their open tasks, and those just ticked (?done=, from TaskCheck), which stay in sight.
