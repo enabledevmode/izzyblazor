@@ -1,0 +1,82 @@
+@page "/docs/cli/templates"
+
+@* izzy new starter|kit <id>: starters and kits, the name and folder, options, --dry-run, and the same
+   templates in dotnet new (Cli.cs New, TemplateExport.ShortName). *@
+
+<ArticlePage Section="cli" Slug="templates">
+    <Lead>
+        A template is a whole app to start from. <Code>izzy new</Code> creates the app in a new folder, with the name
+        and options you give it. To browse the templates, see <Anchor Href="templates">Templates</Anchor>, where each
+        one has a picture and its options.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Starters and kits</Heading>
+        <List Gap="2">
+            <ListItem>
+                <strong>A starter</strong> is an app's shell: the layout, the theme, a home page, and account pages when
+                you ask for them. Use one when you'll build the pages yourself.
+            </ListItem>
+            <ListItem>
+                <strong>A kit</strong> is a working app built on a starter, with its pages, data and sample records. Use
+                one when your app is close to it, such as a CRM.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Create an app</Heading>
+        <TextBlock>Run <Code>izzy new</Code> with the kind, the template's name, and a name for your app:</TextBlock>
+        <Code Block Language="bash">@Starter</Code>
+        <Code Block Language="bash">@Kit</Code>
+        <TextBlock>
+            izzy creates a folder named after the app. To put the app somewhere else, add <Code>-o</Code> with the folder.
+            Then run the app:
+        </TextBlock>
+        <Code Block Language="bash">@Run</Code>
+        <TextBlock>
+            To list the templates, run <Code>izzy list --kind starter</Code> or <Code>izzy list --kind kit</Code>.
+        </TextBlock>
+
+        <Heading Level="2">Options</Heading>
+        <TextBlock>
+            Each template has options for its render modes, accounts and theme. Add them to the command:
+        </TextBlock>
+        <Code Block Language="bash">izzy new starter topnav -n Admin --auth Individual --preset Compact --brand teal</Code>
+        <TextBlock>
+            To list a template's options, run <Code>izzy describe</Code> with its name, such as
+            <Code>izzy describe topnav</Code>. A kit decides some of its starter's options for you, so it lists fewer.
+            The starters' options are explained in <Anchor Href="docs/get-started/create-app">Create an app</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">See the files first</Heading>
+        <TextBlock>
+            To list the files a template would create without creating them, add <Code>--dry-run</Code>. For the same
+            list as data, add <Code>--json</Code>.
+        </TextBlock>
+        <TextBlock>
+            If the folder already has a file with different content, izzy stops and writes nothing. To replace the
+            file, add <Code>--overwrite</Code>.
+        </TextBlock>
+
+        <Heading Level="2">With dotnet new</Heading>
+        <TextBlock>
+            Every starter and kit is also a <Code>dotnet new</Code> template, with the same options. Its name there is
+            <Code>izzy-</Code> and the template's name:
+        </TextBlock>
+        <Code Block Language="bash">@DotnetNew</Code>
+        <TextBlock>
+            To install the templates package, see <Anchor Href="docs/get-started/create-app">Create an app</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/cli/blocks">Blocks</Anchor>: add a hero, pricing or a sign-up form to a page.</ListItem>
+            <ListItem><Anchor Href="docs/cli/crud">CRUD pages</Anchor>: create a page to display, add, edit and delete a model's records.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Starter = "izzy new starter sidebar -n MyApp";
+    private const string Kit = "izzy new kit crm -n MyApp";
+    private const string Run = "cd MyApp\ndotnet run";
+    private const string DotnetNew = "dotnet new izzy-sidebar -n MyApp\ndotnet new izzy-crm -n MyApp";
+}
