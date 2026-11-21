@@ -28,6 +28,8 @@ public static class Articles
         [
             new("overview", "CLI overview", "SquareTerminal",
                 "Install izzy, and add blocks and pages to your app as code you own."),
+            new("templates", "Templates", "AppWindow",
+                "Create an app from a starter or an app kit, with its name, folder and options."),
             new("blocks", "Blocks", "LayoutTemplate",
                 "Add a hero, pricing or a sign-up form, and place it on a page or at a line."),
             new("crud", "CRUD pages", "Table2",
