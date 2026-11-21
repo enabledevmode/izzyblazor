@@ -94,6 +94,12 @@
     [Parameter, ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
     public EventCallback<bool> CollapsedChanged { get; set; }
 
+    /// <summary>
+    /// With the splitter's <see cref="Splitter.OnePaneBelow"/>, the pane that shows below that
+    /// width. Mark one; with none marked, the first pane shows.
+    /// </summary>
+    [Parameter] public bool Current { get; set; }
+
     /// <summary>Lets the bars beside the pane move it. Defaults to true.</summary>
     [Parameter] public bool Resizable { get; set; } = true;
 
@@ -166,6 +172,7 @@
         var size = _size;
         classes.Add("ib-split-pane");
         classes.Add("ib-split-fill", size is null);
+        classes.Add("ib-split-current", Current);
         if (size is not null) styles.AddVar("pane-size", size);
         if (Min is { } min) styles.AddVar("pane-min", min.Css);
         if (Max is { } max) styles.AddVar("pane-max", max.Css);

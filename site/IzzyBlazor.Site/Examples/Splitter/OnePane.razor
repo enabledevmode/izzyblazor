@@ -1,0 +1,50 @@
+@inject NavigationManager Navigation
+
+@* Orders and the chosen order. Below 768px one pane shows: the list, then the order with a link back. *@
+<Splitter OnePaneBelow="Breakpoint.Md" Height="Length.Rem(20)" Border="1" Radius="Radius.Md" Grow>
+    <SplitterPane Label="Orders" Size="Length.Rem(16)" Min="Length.Rem(12)" Current="@(Chosen is null)">
+        <ListView Items="_orders" ItemKey="o => o.Number" Label="Orders" ItemHref="@(o => Navigation.GetUriWithQueryParameter("order", o.Number))"
+                  ItemCurrent="o => o == Chosen" Context="order">
+            <Column Gap="1" Grow>
+                <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@order.Number</TextBlock>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@order.Customer</TextBlock>
+            </Column>
+        </ListView>
+    </SplitterPane>
+    <SplitterPane Label="Order" Current="@(Chosen is not null)">
+        @if (Chosen is { } chosen)
+        {
+            <Column Gap="3" Padding="4">
+                <Button Href="@Navigation.GetUriWithQueryParameter("order", (string?)null)" Variant="ButtonVariant.Ghost" StartIcon="Lucide.ArrowLeft" AlignSelf="Align.Start" HiddenFrom="Breakpoint.Md">Orders</Button>
+                <Heading Level="3" Size="TextSize.Lg">@chosen.Number</Heading>
+                <DescriptionList>
+                    <DescriptionItem Term="Customer">@chosen.Customer</DescriptionItem>
+                    <DescriptionItem Term="Total">@chosen.Total.ToString("C")</DescriptionItem>
+                    <DescriptionItem Term="Status">@chosen.Status</DescriptionItem>
+                </DescriptionList>
+            </Column>
+        }
+        else
+        {
+            <Center Height="Length.Full" Padding="4">
+                <EmptyState Icon="Lucide.Package" Title="No order chosen" TitleLevel="3" Description="Choose an order from the list." />
+            </Center>
+        }
+    </SplitterPane>
+</Splitter>
+
+@code {
+    [SupplyParameterFromQuery(Name = "order")] private string? Number { get; set; }
+
+    private Order? Chosen => _orders.FirstOrDefault(o => o.Number == Number);
+
+    private readonly Order[] _orders =
+    [
+        new("SO-2041", "Northwind Traders", 1280.00m, "Shipped"),
+        new("SO-2042", "Lumen Studio", 349.50m, "Packing"),
+        new("SO-2043", "Weber & Sons", 96.00m, "Awaiting payment"),
+        new("SO-2044", "Fieldwork Co.", 2140.75m, "Delivered"),
+    ];
+
+    private record Order(string Number, string Customer, decimal Total, string Status);
+}

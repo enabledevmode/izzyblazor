@@ -28,6 +28,22 @@ public class SplitterRenderTests : BunitContext
         .AddChildContent<SplitterPane>(pane => pane.Add(x => x.Id, "message").Add(x => x.Resizable, false)));
 
     [Fact]
+    public void OnePaneBelow_marks_the_breakpoint_and_the_current_pane()
+    {
+        var cut = Render<Splitter>(p => p
+            .Add(s => s.OnePaneBelow, Breakpoint.Md)
+            .AddChildContent<SplitterPane>(pane => pane.Add(x => x.Id, "list").Add(x => x.Size, Length.Rem(20)))
+            .AddChildContent<SplitterPane>(pane => pane.Add(x => x.Id, "detail").Add(x => x.Current, true)));
+
+        Assert.Contains("ib-splitter-one-md", cut.Find("ib-splitter").ClassName);
+        Assert.Contains("splitter-one.css", cut.Find("ib-splitter > link").GetAttribute("href"));
+        Assert.DoesNotContain("ib-split-current", cut.Find("#list").ClassName);
+        Assert.Contains("ib-split-current", cut.Find("#detail").ClassName);
+        // The list keeps its size for when the window widens.
+        Assert.Contains("--ib-pane-size:20rem", cut.Find("#list").GetAttribute("style"));
+    }
+
+    [Fact]
     public void Panes_get_their_sizes_on_the_server_and_each_bar_resizes_the_pane_before_it()
     {
         var cut = Mail();

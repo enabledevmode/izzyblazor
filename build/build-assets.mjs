@@ -335,6 +335,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "tabs-edit.css"),
   },
   {
+    // A sheet of its own, linked by a Splitter with OnePaneBelow.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "splitter-one.css")],
+    outfile: join(lib, "wwwroot", "splitter-one.css"),
+  },
+  {
     // A sheet of its own, linked by a DataGrid's column picker.
     ...common,
     sourcemap: false,

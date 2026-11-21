@@ -5,8 +5,9 @@
 
 @* A list and the chosen item beside it. The ticket is in the address (?id=), so choosing one is a link:
    it works on a static page, and the browser's Back returns to the list. From 768px up the list and the
-   ticket sit side by side and scroll on their own; below that they are two screens, the list until a
-   ticket is chosen. *@
+   ticket are a Splitter's two panes: each scrolls on its own, the bar between them resizes the list,
+   and LayoutKey keeps the size each person leaves. Below 768px (OnePaneBelow) they are two screens:
+   the pane marked Current shows, the list until a ticket is chosen. *@
 @*#if (IndividualLocalAuth) *@
 <AuthorizeView>
     <NotAuthorized>
@@ -26,8 +27,9 @@
 @*#endif *@
 @* The page's heading. On phones the list is hidden while a ticket is open, so it isn't the list's own. *@
 <VisuallyHidden As="h1">Inbox</VisuallyHidden>
-<Row Gap="0" Align="Align.Stretch" Height="Length.Full">
-    <Column As="section" Gap="0" Height="Length.Full" Width="@ListWidth" Shrink="false" BorderEnd="@(new() { Md = 1 })" VisibleFrom="@(Chosen is null ? null : Breakpoint.Md)" aria-labelledby="inbox-heading">
+<Splitter Height="Length.Full" OnePaneBelow="Breakpoint.Md" LayoutKey="inbox">
+    <SplitterPane Label="Inbox" Size="Length.Rem(23.75)" Min="Length.Rem(16)" Max="Length.Rem(32)" Current="@(Chosen is null)" role="region" aria-labelledby="inbox-heading">
+    <Column Gap="0" Height="Length.Full">
         <Row Justify="Justify.Between" Align="Align.Center" PaddingX="3" MinHeight="Length.Rem(3.5)" BorderBottom="1">
             <Heading Level="2" Size="TextSize.Md" id="inbox-heading">Inbox</Heading>
             <TextBlock Size="TextSize.Sm" Color="Color.Muted">12 open</TextBlock>
@@ -51,8 +53,9 @@
             </ListView>
         </Box>
     </Column>
+    </SplitterPane>
 
-    <Box Grow MinWidth="Length.Px(0)" Height="Length.Full" Overflow="Overflow.Auto" VisibleFrom="@(Chosen is null ? Breakpoint.Md : null)">
+    <SplitterPane Label="Ticket" Current="@(Chosen is not null)">
         @if (Chosen is { } chosen)
         {
             <Column As="article" Gap="5" MaxWidth="Length.Rem(47.5)" PaddingX="new() { Base = 4, Md = 8 }" PaddingY="new() { Base = 4, Md = 7 }" aria-labelledby="ticket-heading">
@@ -99,8 +102,8 @@
                 <EmptyState Icon="Lucide.Inbox" Title="No ticket chosen" TitleLevel="2" Description="Choose a ticket from the list to read it here." />
             </Center>
         }
-    </Box>
-</Row>
+    </SplitterPane>
+</Splitter>
 @*#if (IndividualLocalAuth) *@
     </Authorized>
 </AuthorizeView>
@@ -114,9 +117,6 @@
 
     // A row's link, named for screen readers: whether it's unread, who it's from and its subject.
     private string Label(Ticket ticket) => (ticket.Unread && ticket != Chosen ? "Unread. " : "") + $"{ticket.From}: {ticket.Subject}";
-
-    // The list is the whole screen on phones, and a column beside the ticket from 768px up.
-    private static readonly Responsive<Length> ListWidth = new() { Base = Length.Full, Md = Length.Rem(21.25), Xl = Length.Rem(23.75) };
 
     /// <summary>A support ticket: a row in the list, and what the panel beside it shows.</summary>
     private record Ticket(int Id, string From, string Email, string Subject, string Snippet, string Time, string Sent, bool Unread, string[] Body)

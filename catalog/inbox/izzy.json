@@ -7,7 +7,7 @@
   "kind": "starter",
   "category": "Starters",
   "summary": "An app that fills the window: a sidebar of views, a list, and the chosen item beside it. On phones the list and the item are two screens.",
-  "components": ["EmptyState", "ListView", "Menu", "SidebarToggle"],
+  "components": ["EmptyState", "ListView", "Menu", "SidebarToggle", "Splitter"],
   "base": {
     "item": "blazor",
     "fixed": { "Starter": "List and detail app", "Nav": "Sidebar", "Empty": "false", "ContentWidth": "Auto" }
