@@ -100,7 +100,7 @@ public sealed class TemplateCatalog
             new("reports", "Reports", "The sales overview: charts of the pipeline and the team's results"),
             new("team", "Settings and team", "Settings and team: the workspace's members and their roles"),
             new("audit-log", "Audit log", "The audit log: who changed what, newest first"),
-            new("sign-in", "Sign in", "The sign-in page"),
+            new("sign-in", "Log in", "The log-in page"),
             new("phone-dashboard", "My day on a phone", "My day at a phone's width", Phone: true),
             new("phone-pipeline", "Deal pipeline on a phone", "The deal pipeline at a phone's width", Phone: true),
             new("phone-contact", "A contact on a phone", "A contact's page at a phone's width", Phone: true),

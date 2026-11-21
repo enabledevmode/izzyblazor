@@ -1,0 +1,38 @@
+@page "/docs/{Slug}"
+@inject NavigationManager Navigation
+
+<PageTitle>@_page?.Title</PageTitle>
+
+@* Where the sidebar's articles go until they are written. A page with its own address
+   (@@page "/docs/installation") takes over from this one; delete this file when every article in DocsNav
+   has a page. An address that isn't in the sidebar is not found. *@
+@if (_page is not null)
+{
+    <Column Gap="4" MaxWidth="Length.Rem(45)">
+        <Breadcrumb>
+            <BreadcrumbItem TextOnly>@_section</BreadcrumbItem>
+            <BreadcrumbItem>@_page.Title</BreadcrumbItem>
+        </Breadcrumb>
+        <Heading Level="1" Size="TextSize.Xl3">@_page.Title</Heading>
+        <TextBlock Size="TextSize.Lg" Color="Color.Muted">Nothing here yet. This article is a placeholder for one of your own.</TextBlock>
+        <TextBlock LineHeight="LineHeight.Relaxed"><Anchor Href="docs/writing-pages">Writing pages</Anchor> shows how to add it.</TextBlock>
+
+        <DocsPager />
+    </Column>
+}
+
+@code {
+    private string? _section;
+    private DocsNav.DocsPage? _page;
+
+    [Parameter] public string Slug { get; set; } = "";
+
+    protected override void OnParametersSet()
+    {
+        var href = $"docs/{Slug}";
+        var section = DocsNav.Sections.FirstOrDefault(s => s.Pages.Any(p => string.Equals(p.Href, href, StringComparison.OrdinalIgnoreCase)));
+        _section = section?.Title;
+        _page = section?.Pages.First(p => string.Equals(p.Href, href, StringComparison.OrdinalIgnoreCase));
+        if (_page is null) Navigation.NotFound();
+    }
+}

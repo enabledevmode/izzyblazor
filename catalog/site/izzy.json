@@ -11,5 +11,8 @@
   "base": {
     "item": "izzy-blazor",
     "fixed": { "Starter": "Content site", "Nav": "Top", "Empty": "false", "Shell": "Flat", "ContentWidth": "72" }
-  }
+  },
+  "rename": [
+    { "if": "UseWebAssembly && InteractiveAtRoot", "paths": { "{{ProjectName}}/Components/Pages/Placeholder.razor": "./{{ProjectName}}.Client/Pages/Placeholder.razor" } }
+  ]
 }

@@ -1,0 +1,39 @@
+@page "/tickets/{Slug}"
+@inject NavigationManager Navigation
+
+<PageTitle>@_title</PageTitle>
+
+@* Where the sidebar's other views go until they have pages of their own. A page with its own address
+   (@@page "/tickets/waiting") takes over from this one; delete this file when none of the views is left.
+   Any other address is not found. *@
+@if (_title is not null)
+{
+    <Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" MarginTop="new() { Base = 0, Md = 12 }">
+        <EmptyState Size="ControlSize.Lg" Icon="Lucide.FilePlus" TitleLevel="1" Title="@_title"
+                    Description="Nothing here yet. This view is a placeholder for a page of your own.">
+            <EmptyStateActions>
+                <Button Href="tickets" Width="new() { Base = Length.Percent(100), Sm = Length.Auto }" MinWidth="Length.Rem(12.5)">Go to the inbox</Button>
+            </EmptyStateActions>
+        </EmptyState>
+    </Container>
+}
+
+@code {
+    // The views in ShellLayout's sidebar that have no page yet.
+    private static readonly Dictionary<string, string> Titles = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["assigned"] = "Assigned to me",
+        ["waiting"] = "Waiting",
+        ["done"] = "Done",
+    };
+
+    private string? _title;
+
+    [Parameter] public string Slug { get; set; } = "";
+
+    protected override void OnParametersSet()
+    {
+        _title = Titles.GetValueOrDefault(Slug);
+        if (_title is null) Navigation.NotFound();
+    }
+}
