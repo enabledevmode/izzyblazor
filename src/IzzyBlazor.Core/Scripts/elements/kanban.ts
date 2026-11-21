@@ -37,7 +37,8 @@ class Kanban extends IzzyElement {
   }
 
   private count(): void {
-    for (const column of this.querySelectorAll<HTMLElement>(".ib-kanban-column")) {
+    // Not a board with lanes, whose headers count every lane's cells: the post that follows a move redraws them.
+    for (const column of this.querySelectorAll<HTMLElement>(".ib-kanban-column:not(.ib-kanban-head)")) {
       const n = column.querySelectorAll(".ib-kanban-cards .ib-listview-list > .ib-sortable-item").length;
       const shown = column.querySelector<HTMLElement>(".ib-kanban-n");
       const text = n.toLocaleString(document.documentElement.lang || undefined);

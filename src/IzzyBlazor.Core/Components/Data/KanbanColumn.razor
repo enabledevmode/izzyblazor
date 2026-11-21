@@ -282,7 +282,7 @@ else
         var zone = KanbanZone.Of(Value, Row?.Lane?.Value);
         if (_value is not null && _value != Value && !IsCell)
         {
-            Board.ColumnValueChanged(_value, Value);
+            Board.ColumnValueChanged();
         }
 
         _value = Value;
@@ -293,8 +293,7 @@ else
             _collapsed = _collapsedParam = Collapsed;
         }
 
-        // A card opens its own page or runs the app's click; else, on a board with a form, the form.
-        _itemHref = Board.ItemHref ?? (Board.Editable && !Board.OnItemClick.HasDelegate ? item => Board.EditHref(Board.ItemKey!(item)) : null);
+        SetItemHref();
         (_class, _style) = BuildRootAttributes();
         _items = Counted();
     }
@@ -321,8 +320,14 @@ else
         return all;
     }
 
+    // A card opens its own page or runs the app's click; else, on a board with a form, the form.
+    // Read again when the board changes, as it may have become read-only or lost its form.
+    private void SetItemHref() =>
+        _itemHref = Board.ItemHref ?? (Board.Editable && !Board.OnItemClick.HasDelegate ? item => Board.EditHref(Board.ItemKey!(item)) : null);
+
     private void GroupChanged() => _ = InvokeAsync(() =>
     {
+        SetItemHref();
         _items = Counted();
         StateHasChanged();
     });

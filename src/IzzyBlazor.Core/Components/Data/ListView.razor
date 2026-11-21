@@ -139,7 +139,8 @@
                              data-ib-group="@(InGroup ? Group!.GroupId : null)" data-ib-zone="@(InGroup ? Zone : null)"
                              data-ib-zone-label="@(InGroup ? ZoneLabel : null)"
                              data-ib-max="@(InGroup && MaxItems is { } max ? max.ToString(CultureInfo.InvariantCulture) : null)"
-                             data-ib-moved-zone="@(InGroup ? TextDefaults.MovedToZone : null)"
+                             data-ib-moved-zone="@(InGroup ? (Group!.Sorted ? TextDefaults.MovedToZoneOnly : TextDefaults.MovedToZone) : null)"
+                             data-ib-sorted="@(InGroup && Group!.Sorted ? "" : null)"
                              data-ib-whole="@(DragWholeItem ? "" : null)"
                              data-ib-moved="@TextDefaults.MovedTo"
                              data-ib-cancelled="@(Live ? TextDefaults.MoveCancelled : null)">

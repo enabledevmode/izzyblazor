@@ -1,7 +1,7 @@
 @* Feature requests: open a card to change or delete it, or add one from a column's header. The
    page saves what the form sends, on a static page too. *@
 <Stack Grow>
-    <Kanban TItem="Request" Items="Store" ItemsChanged="Arranged" ItemKey="r => r.Id.ToString()" ColumnOf="r => r.Status"
+    <Kanban TItem="Request" Items="Shown()" ItemsChanged="Arranged" ItemKey="r => r.Id.ToString()" ColumnOf="r => r.Status"
             ItemText="r => r.Title" ItemDescription="r => r.Notes" OnSave="Save" OnDelete="Delete" OnMove="Moved"
             QueryPrefix="requests-" Label="Feature requests">
         <Columns>
@@ -22,8 +22,20 @@
     }
 
     // An app keeps its cards in a database; this example keeps them in memory for everyone
-    // reading the page, and starts again past 30.
+    // reading the page, and starts again past 30 or when the last one is deleted.
     private static readonly List<Request> Store = Seed();
+
+    // A copy to draw from, as someone else's save may change the list meanwhile.
+    private static List<Request> Shown()
+    {
+        lock (Store)
+        {
+            return [.. Store];
+        }
+    }
+
+    // What anyone types shows to everyone, so it's kept short.
+    private static string? Short(string? text, int length) => text is { Length: > 0 } ? text[..Math.Min(text.Length, length)] : text;
 
     private static List<Request> Seed() =>
     [
@@ -45,7 +57,7 @@
             }
 
             var request = save.Item ?? new Request { Id = Store.Count == 0 ? 1 : Store.Max(r => r.Id) + 1 };
-            (request.Title, request.Notes, request.Status) = (save.Title, save.Description, save.Column);
+            (request.Title, request.Notes, request.Status) = (Short(save.Title, 60)!, Short(save.Description, 140), save.Column);
             if (save.IsNew)
             {
                 Store.Add(request);
@@ -58,6 +70,10 @@
         lock (Store)
         {
             Store.Remove(delete.Item);
+            if (Store.Count == 0)
+            {
+                Store.AddRange(Seed());
+            }
         }
     }
 

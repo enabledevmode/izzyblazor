@@ -239,6 +239,7 @@ class Sortable extends IzzyElement {
       event,
       delay: fromItem && event.pointerType !== "mouse" ? LONG_PRESS : 0,
       wrap: this.classList.contains("ib-sortable-horizontal"),
+      fixed: this.hasAttribute("data-ib-sorted"),
       targets: this.dataset.ibGroup ? () => this.targetsFor(item) : undefined,
       refusing: this.dataset.ibGroup ? () => this.refusingFor(item) : undefined,
       home: this.dataset.ibGroup ? this.dropArea() : undefined,

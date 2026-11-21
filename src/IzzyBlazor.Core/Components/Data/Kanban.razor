@@ -73,6 +73,11 @@
                 @Binding
             </FormMappingScope>
         }
+        @if (_cancelledSay is not null)
+        {
+            @* A posted move the page refused: the script said it moved, and the card is back. *@
+            <div class="ib-visually-hidden" role="status">@_cancelledSay</div>
+        }
         @if (CurrentColumnEdit is { Length: > 0 } columnKey)
         {
             if (RendererInfo.IsInteractive)
@@ -355,18 +360,24 @@
         @foreach (var lane in _laneList)
         {
             var each = lane;
-            <section @key="each" class="ib-kanban-lane" aria-labelledby="@each.TitleId" data-ib-collapsed="@(Collapsible && each.IsCollapsed ? "" : null)">
+            var folded = Collapsible && (!Live && Posted is { } post ? post.IsLaneCollapsed(each.Value!) : each.IsCollapsed);
+            <section @key="each" class="ib-kanban-lane" aria-labelledby="@each.TitleId" data-ib-collapsed="@(folded ? "" : null)">
                 <div class="ib-kanban-lane-header">
                     @if (Collapsible)
                     {
                         <IconButton Icon="IconSet.Current.Get(IconPurpose.ChevronDown)" Label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.KanbanColumnCards, each.TitleText)"
                                     Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-toggle"
-                                    aria-expanded="@(each.IsCollapsed ? "false" : "true")" OnClick="() => each.ToggleAsync()" />
+                                    aria-expanded="@(folded ? "false" : "true")" OnClick="() => each.ToggleAsync()" />
+                        @if (!Live)
+                        {
+                            <input type="hidden" class="ib-kanban-collapsed" name="@($"{KanbanPostBinding.Prefix}.CollapsedLanes")" value="@each.Value" disabled="@(!folded)" />
+                        }
                     }
                     @LaneTitle(each)
                     @LaneCount(each)
                 </div>
-                <CascadingValue Value="each.Row" IsFixed="true">
+                @* Keyed by the lane's value: drawn in the same place with another, its cells are made again as that lane's. *@
+                <CascadingValue @key="each.Value" Value="each.Row" IsFixed="true">
                     <div class="ib-kanban-cells">@Columns</div>
                 </CascadingValue>
             </section>
@@ -396,19 +407,35 @@
     // On a board with lanes, a new card's: the first lane.
     private string? NewLane() => LaneOf is null ? null : _laneList.Count > 0 ? _laneList[0].Value : "";
 
+    // The columns, in the order they were made.
     private readonly List<KanbanColumn<TItem>> _columnList = [];
     // The columns' values in the order shown: the order they arrived, then as the user moved them.
-    // The columns themselves stay in the order they were made, whether a move gave them each
-    // another value or (with @key) moved them.
-    private readonly List<string> _valueOrder = [];
+    private List<string> _valueOrder = [];
+    // A column was drawn again with another value: the page renders its list without @key, so the
+    // columns are in the page's order as they were made, and that order is read again.
+    private bool _reorder;
+
+    private List<string> ValueOrder
+    {
+        get
+        {
+            if (_reorder)
+            {
+                _reorder = false;
+                _valueOrder = _columnList.Select(c => c.Value!).Distinct().ToList();
+            }
+
+            return _valueOrder;
+        }
+    }
 
     /// <summary>The board's columns, in the order shown.</summary>
     internal IReadOnlyList<KanbanColumn<TItem>> ColumnList
     {
         get
         {
-            _columnList.Sort((a, b) => _valueOrder.IndexOf(a.Value!).CompareTo(_valueOrder.IndexOf(b.Value!)));
-            return _columnList;
+            var order = ValueOrder;
+            return _columnList.OrderBy(c => order.IndexOf(c.Value!)).ToList();
         }
     }
 
@@ -416,9 +443,9 @@
 
     internal bool ColumnsHaveForm => !ReadOnly && (OnColumnRename.HasDelegate || OnColumnDelete.HasDelegate);
 
-    internal int ColumnIndex(string value) => _valueOrder.IndexOf(value);
+    internal int ColumnIndex(string value) => ValueOrder.IndexOf(value);
 
-    internal int ColumnCount => _valueOrder.Count;
+    internal int ColumnCount => ValueOrder.Count;
 
     internal void AddColumn(KanbanColumn<TItem> column)
     {
@@ -438,42 +465,31 @@
     {
         if (_columnList.Remove(column))
         {
-            _valueOrder.Remove(column.Value!);
+            if (!_columnList.Exists(c => c.Value == column.Value))
+            {
+                _valueOrder.Remove(column.Value!);
+            }
+
             ColumnsArrived();
         }
     }
 
     // A column drawn in the same place with another value (a list rendered without @key).
-    internal void ColumnValueChanged(string old, string value)
-    {
-        var at = _valueOrder.IndexOf(old);
-        if (_valueOrder.Contains(value))
-        {
-            return;
-        }
-
-        if (at >= 0)
-        {
-            _valueOrder[at] = value;
-        }
-        else
-        {
-            _valueOrder.Add(value);
-        }
-    }
+    internal void ColumnValueChanged() => _reorder = true;
 
     // A column's menu: one place left or right.
     internal async Task MoveColumnAsync(string value, int by)
     {
-        var from = _valueOrder.IndexOf(value);
+        var order = ValueOrder;
+        var from = order.IndexOf(value);
         var to = from + by;
-        if (from < 0 || to < 0 || to >= _valueOrder.Count)
+        if (from < 0 || to < 0 || to >= order.Count)
         {
             return;
         }
 
-        _valueOrder.RemoveAt(from);
-        _valueOrder.Insert(to, value);
+        order.RemoveAt(from);
+        order.Insert(to, value);
         await OnColumnMove.InvokeAsync(new KanbanColumnMoveEventArgs { Column = value, FromIndex = from, ToIndex = to });
         // Drawn again from the page's list, whether or not the page itself renders.
         StateHasChanged();
@@ -481,9 +497,18 @@
 
     internal string ColumnEditKey => QueryPrefix + "edit-column";
 
-    internal string ColumnEditHref(string key)
+    // A new column's form has a key of its own, as a column's value can be anything ("new").
+    internal string ColumnAddKey => QueryPrefix + "add-column";
+
+    // In the board's own state, the new column's form.
+    private const string NewColumn_ = "\u0001new";
+
+    internal string ColumnEditHref(string? value)
     {
-        var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [ColumnEditKey] = key, [EditKey] = null, [ColumnKey] = null }));
+        var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            [ColumnEditKey] = value, [ColumnAddKey] = value is null ? "1" : null, [EditKey] = null, [ColumnKey] = null,
+        }));
         return uri.AbsolutePath + uri.Query;
     }
 
@@ -491,7 +516,7 @@
     private RenderFragment? AddColumnButton => ReadOnly || !OnColumnAdd.HasDelegate ? null : __builder =>
     {
         <div class="ib-kanban-new-column">
-            <Button Href="@ColumnEditHref(NewKey)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="IconSet.Current.Get(IconPurpose.Plus)">@TextDefaults.KanbanAddColumn</Button>
+            <Button Href="@ColumnEditHref(null)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="IconSet.Current.Get(IconPurpose.Plus)">@TextDefaults.KanbanAddColumn</Button>
         </div>
     };
 
@@ -531,7 +556,7 @@
     {
         get
         {
-            var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditKey] = null, [ColumnKey] = null, [ColumnEditKey] = null }));
+            var uri = new Uri(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditKey] = null, [ColumnKey] = null, [ColumnEditKey] = null, [ColumnAddKey] = null }));
             return uri.AbsolutePath + uri.Query;
         }
     }
@@ -545,6 +570,7 @@
     private DropZoneGroup<TItem>? _group;
     // A posted move OnMove cancelled: the board shows the cards where they were.
     private bool _cancelled;
+    private string? _cancelledSay;
 
     private RenderFragment Binding => builder =>
     {
@@ -600,25 +626,43 @@
             return;
         }
 
+        // What the interactive page refuses, a post doesn't get either: a disabled card, or one in
+        // a column the board doesn't show.
         var item = items[at];
         var from = _zoneOf(item);
-        var fromIndex = 0;
-        for (var i = 0; i < at; i++)
+        if (ItemDisabled?.Invoke(item) == true || !_group.HasZone(from))
         {
-            if (_zoneOf(items[i]) == from)
+            return;
+        }
+
+        // Places are among the cards shown (searched, sorted), as on an interactive page.
+        var shown = new List<TItem>();
+        foreach (var other in items)
+        {
+            if (_zoneOf(other) == from && _view?.Shows?.Invoke(other) != false)
             {
-                fromIndex++;
+                shown.Add(other);
             }
         }
 
-        if (place.Zone == from && place.Index == fromIndex)
+        if (_view?.Order is { } order)
+        {
+            var sorted = shown.Select((card, index) => (card, index)).ToList();
+            sorted.Sort((a, b) => order(a.card, b.card) is var c and not 0 ? c : a.index.CompareTo(b.index));
+            shown = sorted.ConvertAll(x => x.card);
+        }
+
+        var fromIndex = shown.FindIndex(card => ItemKey!(card) == key);
+        var toIndex = _group.ShownIndex(item, place.Zone);
+        // Nothing moved; or within a sorted column, where a card has no place of its own.
+        if (place.Zone == from && (toIndex == fromIndex || _view?.Order is not null))
         {
             return;
         }
 
         var args = new KanbanMoveEventArgs<TItem>
         {
-            Item = item, Key = key, FromIndex = fromIndex, ToIndex = place.Index,
+            Item = item, Key = key, FromIndex = fromIndex, ToIndex = toIndex,
             FromColumn = KanbanZone.Column(from), ToColumn = KanbanZone.Column(place.Zone),
             FromLane = KanbanZone.Lane(from), ToLane = KanbanZone.Lane(place.Zone),
         };
@@ -628,6 +672,7 @@
         if (args.Cancel)
         {
             _cancelled = true;
+            _cancelledSay = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveCancelled, ItemLabel?.Invoke(item) ?? ItemText?.Invoke(item) ?? key);
             return;
         }
 
@@ -655,6 +700,17 @@
     private void Moved(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
         _ending = false;
+        // A form the address no longer names (Back) keeps nothing: opened again, it reads the card again.
+        if (Query(EditKey) != _editFor)
+        {
+            (_editFor, _editItem, _model, _context, _messages) = (null, default, null, null, null);
+        }
+
+        if (CurrentColumnEdit != _columnFor)
+        {
+            (_columnFor, _columnModel, _columnContext, _columnMessages) = (null, null, null, null);
+        }
+
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -668,7 +724,9 @@
     private EditContext? _columnContext;
     private ValidationMessageStore? _columnMessages;
 
-    private string? CurrentColumnEdit => !ReadOnly && (OnColumnAdd.HasDelegate || ColumnsHaveForm) && !_ending ? Query(ColumnEditKey) : null;
+    private string? CurrentColumnEdit => ReadOnly || _ending ? null
+        : OnColumnAdd.HasDelegate && Query(ColumnAddKey) is not null ? NewColumn_
+        : ColumnsHaveForm ? Query(ColumnEditKey) : null;
 
     private RenderFragment ColumnFormBinding(string key) => builder =>
     {
@@ -677,11 +735,11 @@
         builder.CloseComponent();
     };
 
-    private KanbanColumn<TItem>? ColumnNamed(string value) => _columnList.Find(c => c.Value == value);
+    private KanbanColumn<TItem>? ColumnNamed(string? value) => _columnList.Find(c => c.Value == value);
 
     private RenderFragment ColumnDialog(string key, KanbanColumnFields? posted) => __builder =>
     {
-        var isNew = key == NewKey;
+        var isNew = key == NewColumn_;
         var column = isNew ? null : ColumnNamed(key);
         if (_columnFor != key || _columnModel is null || (posted is not null && !ReferenceEquals(posted, _columnModel)))
         {
@@ -698,7 +756,7 @@
 
         var name = KanbanColumnBinding.Prefix;
         var allowed = isNew ? OnColumnAdd.HasDelegate : ColumnsHaveForm;
-        <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@ColumnEditKey" Title="@(isNew ? TextDefaults.KanbanNewColumnTitle : TextDefaults.KanbanEditColumnTitle)" Size="DialogSize.Sm" CloseOnBackdrop="false">
+        <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@(isNew ? ColumnAddKey : ColumnEditKey)" Title="@(isNew ? TextDefaults.KanbanNewColumnTitle : TextDefaults.KanbanEditColumnTitle)" Size="DialogSize.Sm" CloseOnBackdrop="false">
             @if (!allowed || (!isNew && column is null && _columnList.Count > 0))
             {
                 <Alert Status="Status.Warning">@TextDefaults.KanbanColumnGone</Alert>
@@ -750,7 +808,7 @@
             return;
         }
 
-        var isNew = key == NewKey;
+        var isNew = key == NewColumn_;
         if (!isNew && ColumnNamed(key) is null)
         {
             ColumnError(TextDefaults.KanbanColumnGone);
@@ -776,7 +834,7 @@
 
     private async Task DeleteColumnAsync()
     {
-        if (_columnFor is not { } key || key == NewKey || _saving || !OnColumnDelete.HasDelegate)
+        if (_columnFor is not { } key || key == NewColumn_ || _saving || !OnColumnDelete.HasDelegate)
         {
             return;
         }
@@ -1020,6 +1078,13 @@
             _model.Column = isNew ? NewColumn() : ColumnOf!(_editItem!);
         }
 
+        // A column that doesn't take the card, as a drag there is refused.
+        if (!isNew && _model.Column != ColumnOf!(_editItem!) && ColumnNamed(_model.Column) is { Accepts: { } accepts } refusing && !accepts(_editItem!))
+        {
+            Error(string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.KanbanColumnRefuses, refusing.Title ?? refusing.Value));
+            return;
+        }
+
         if (LaneOf is null)
         {
             _model.Lane = null;
@@ -1171,7 +1236,7 @@
                     {
                         var pair = part.Split('=', 2);
                         var name = Uri.UnescapeDataString(pair[0].Replace('+', ' '));
-                        if (name != SearchKey && name != EditKey && name != ColumnKey && name != ColumnEditKey)
+                        if (name != SearchKey && name != EditKey && name != ColumnKey && name != ColumnEditKey && name != ColumnAddKey)
                         {
                             <input type="hidden" name="@name" value="@(pair.Length > 1 ? Uri.UnescapeDataString(pair[1].Replace('+', ' ')) : "")" />
                         }

@@ -115,6 +115,36 @@
     // What's around the group sorts each zone's items, so an item has no place of its own within one.
     internal bool Sorted => View?.Order is not null;
 
+    internal bool HasZone(string zone) => ZoneNamed(zone) is not null;
+
+    // Where an item is among the items a zone shows (searched, sorted), or would be once it's there.
+    internal int ShownIndex(TItem item, string zone)
+    {
+        var shown = ItemsIn(zone);
+        var key = KeyOf(item);
+        for (var i = 0; i < shown.Count; i++)
+        {
+            if (KeyOf(shown[i]) == key)
+            {
+                return i;
+            }
+        }
+
+        if (View?.Order is not { } order)
+        {
+            return shown.Count;
+        }
+
+        // Not there yet: after the items that sort before it, or the same.
+        var at = 0;
+        while (at < shown.Count && order(shown[at], item) <= 0)
+        {
+            at++;
+        }
+
+        return at;
+    }
+
     internal string KeysName => $"{Name}.Keys";
 
     internal string ZonesName => $"{Name}.Zones";
@@ -403,6 +433,19 @@
                 return;
             }
 
+            // Sorted zones: an item has no place of its own in its zone, and in another it takes its
+            // sorted place, not the one it was dropped at.
+            if (Sorted)
+            {
+                if (moved.ToZone == moved.FromZone)
+                {
+                    RefreshZones();
+                    return;
+                }
+
+                moved = moved with { FromIndex = ShownIndex(item, moved.FromZone!), ToIndex = ShownIndex(item, moved.ToZone!) };
+            }
+
             var args = new ListMoveEventArgs<TItem>
             {
                 Item = item, Key = key, FromIndex = moved.FromIndex, ToIndex = moved.ToIndex, FromZone = moved.FromZone, ToZone = moved.ToZone,
@@ -441,9 +484,11 @@
             _movedOrder = entries.ConvertAll(e => e.Key);
             _byZone = null;
             var count = ItemsIn(moved.ToZone!).Count;
+            // Its place among the items the zone shows.
+            var place = ShownIndex(item, moved.ToZone!) + 1;
             to.Announce(moved.ToZone == moved.FromZone
-                ? string.Format(CultureInfo.CurrentCulture, TextDefaults.MovedTo, to.LabelOf(item), moved.ToIndex + 1, count)
-                : string.Format(CultureInfo.CurrentCulture, TextDefaults.MovedToZone, to.LabelOf(item), to.ZoneLabel, moved.ToIndex + 1, count));
+                ? string.Format(CultureInfo.CurrentCulture, TextDefaults.MovedTo, to.LabelOf(item), place, count)
+                : string.Format(CultureInfo.CurrentCulture, TextDefaults.MovedToZone, to.LabelOf(item), to.ZoneLabel, place, count));
             if (moved.ToZone != moved.FromZone)
             {
                 from.Announce(null);

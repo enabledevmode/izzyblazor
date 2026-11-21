@@ -2,11 +2,11 @@
    deletes it, and Add column makes another. The page keeps the columns in a list of its own and
    draws the board from it. *@
 <Stack Grow>
-    <Kanban TItem="Idea" Items="Ideas" ItemsChanged="Arranged" ItemKey="i => i.Id" ColumnOf="i => i.Column" ItemText="i => i.Title" OnMove="Moved"
+    <Kanban TItem="Idea" Items="Shown()" ItemsChanged="Arranged" ItemKey="i => i.Id" ColumnOf="i => i.Column" ItemText="i => i.Title" OnMove="Moved"
             OnColumnAdd="AddColumn" OnColumnRename="RenameColumn" OnColumnDelete="DeleteColumn" OnColumnMove="MoveColumn"
             QueryPrefix="ideas-" ColumnWidth="Length.Rem(13)" Label="Ideas">
         <Columns>
-            @foreach (var column in Stages)
+            @foreach (var column in ShownStages())
             {
                 <KanbanColumn Value="@column.Id" Title="@column.Title" />
             }
@@ -33,6 +33,26 @@
     private static readonly List<Stage> Stages = SeedStages();
     private static readonly List<Idea> Ideas = SeedIdeas();
 
+    // Copies to draw from, as someone else's change may alter the lists meanwhile.
+    private static List<Idea> Shown()
+    {
+        lock (Stages)
+        {
+            return [.. Ideas];
+        }
+    }
+
+    private static List<Stage> ShownStages()
+    {
+        lock (Stages)
+        {
+            return [.. Stages];
+        }
+    }
+
+    // What anyone types shows to everyone, so it's kept short.
+    private static string Short(string text) => text[..Math.Min(text.Length, 30)];
+
     private static List<Stage> SeedStages() =>
     [
         new() { Id = "inbox", Title = "Inbox" }, new() { Id = "exploring", Title = "Exploring" }, new() { Id = "decided", Title = "Decided" },
@@ -58,7 +78,7 @@
                 Ideas.AddRange(SeedIdeas());
             }
 
-            Stages.Add(new() { Id = Guid.NewGuid().ToString("N")[..8], Title = change.Title });
+            Stages.Add(new() { Id = Guid.NewGuid().ToString("N")[..8], Title = Short(change.Title) });
         }
     }
 
@@ -68,7 +88,7 @@
         {
             if (Stages.Find(s => s.Id == change.Column) is { } stage)
             {
-                stage.Title = change.Title;
+                stage.Title = Short(change.Title);
             }
         }
     }
@@ -85,6 +105,10 @@
             }
 
             Stages.RemoveAll(s => s.Id == delete.Column);
+            if (Stages.Count == 0)
+            {
+                Stages.AddRange(SeedStages());
+            }
         }
     }
 

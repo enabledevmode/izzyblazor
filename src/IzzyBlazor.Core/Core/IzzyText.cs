@@ -1158,6 +1158,9 @@ public class IzzyText
     /// <summary>Announced after a move between zones: "Moved Ada to Done, position 1 of 2".</summary>
     public virtual string MovedToZone { get; set; } = "Moved {0} to {1}, position {2} of {3}";
 
+    /// <summary>Announced after a move to a zone whose items are sorted, where the place isn't the one dropped at: "Moved Ada to Done".</summary>
+    public virtual string MovedToZoneOnly { get; set; } = "Moved {0} to {1}";
+
     /// <summary>Announced when a move is cancelled: "Ada wasn't moved".</summary>
     public virtual string MoveCancelled { get; set; } = "{0} wasn't moved";
 
@@ -1250,6 +1253,9 @@ public class IzzyText
 
     /// <summary>A Kanban cell's name, on a board with lanes: "Review, Design team". {0} is the column's title and {1} the lane's.</summary>
     public virtual string KanbanCellName { get; set; } = "{0}, {1}";
+
+    /// <summary>Shown in a Kanban's form when the column chosen doesn't accept the card: "This card can't go in Done." {0} is the column's title.</summary>
+    public virtual string KanbanColumnRefuses { get; set; } = "This card can't go in {0}.";
 
     /// <summary>Shown in a Kanban's form when its card has gone.</summary>
     public virtual string KanbanGone { get; set; } = "This card isn't there any more.";

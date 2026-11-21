@@ -64,7 +64,11 @@ internal sealed class KanbanPost
     /// <summary>The card that moved: the menu's, or the one the script moved.</summary>
     public string? MovedKey => ListMove.TryParse(Move, out var move) ? move.Key : string.IsNullOrEmpty(Dropped) ? null : Dropped;
 
+    public string[]? CollapsedLanes { get; set; }
+
     public bool IsCollapsed(string column) => Collapsed is not null && Array.IndexOf(Collapsed, KanbanZone.Of(column)) >= 0;
+
+    public bool IsLaneCollapsed(string lane) => CollapsedLanes is not null && Array.IndexOf(CollapsedLanes, lane) >= 0;
 
     public ListOrder ToListOrder() => _list ??= new ListOrder { Keys = Keys, Zones = Zones, Move = Move, Dropped = Dropped };
 }

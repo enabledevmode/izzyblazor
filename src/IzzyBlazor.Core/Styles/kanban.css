@@ -198,9 +198,14 @@
     rotate: -90deg;
   }
 
+  /* Reading down the strip, cut short when long (its length is the inline size once it's turned). */
   .ib-kanban-column[data-ib-collapsed] .ib-kanban-title {
-    max-block-size: 16rem;
+    max-inline-size: 16rem;
     writing-mode: vertical-rl;
+  }
+
+  .ib-kanban-column[data-ib-collapsed] .ib-kanban-header > .ib-kanban-count {
+    margin-inline-end: 0;
   }
 
   .ib-kanban-column[data-ib-collapsed] :is(.ib-kanban-summary, .ib-kanban-add, .ib-kanban-cards, .ib-pop-root:has(> .ib-kanban-column-menu)) {
@@ -215,6 +220,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--ib-space-3);
+    /* Room for the focus ring of the first row's buttons inside the scrolling box. */
+    padding-block-start: 3px;
     overflow-x: auto;
     overscroll-behavior-x: contain;
   }

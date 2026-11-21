@@ -12,7 +12,7 @@
 @* Deal pipeline: every deal still open (not won, not lost), the one due to close soonest first. The grid searches,
    filters by stage and by owner ("Me" for your own), sorts and pages in the database; the Stage filter also has Won and Lost, which lists those. The Board view (?view=board) is the same open deals as a
    column for each stage: dragging a deal to another stage, or its menu's Move to, changes its stage, as the deal's page does. A phone has the list only. New deal opens the deal form over the list (Components/Deals/DealDialog.razor, ?dialog=new-deal). People
-   who can't edit records (Viewers) see the list alone. With no deals at all the page is its first-use state. *@
+   who can't edit records (Viewers) see both views and change nothing: no New deal, and a board whose deals stay put. With no deals at all the page is its first-use state. *@
 <PageCrumbs><BreadcrumbItem>Deal pipeline</BreadcrumbItem></PageCrumbs>
 
 @if (_none)

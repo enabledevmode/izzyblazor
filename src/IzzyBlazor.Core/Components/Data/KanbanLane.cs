@@ -16,6 +16,7 @@ public sealed class KanbanLane : ComponentBase, IDisposable
     private bool _added;
     private KanbanRow? _row;
     private string? _titleShown;
+    private string? _valueShown;
 
     /// <summary>The lane's value: it shows the cards whose <c>LaneOf</c> is this, and a card moved here takes it.</summary>
     [Parameter, EditorRequired] public string? Value { get; set; }
@@ -68,8 +69,8 @@ public sealed class KanbanLane : ComponentBase, IDisposable
 
         // Told only of what it shows, so the board's own render (which sets this lane's
         // parameters again) doesn't ask for another.
-        var changed = TitleText != _titleShown;
-        _titleShown = TitleText;
+        var changed = TitleText != _titleShown || Value != _valueShown;
+        (_titleShown, _valueShown) = (TitleText, Value);
         if (Collapsed != _collapsedParam)
         {
             _collapsed = _collapsedParam = Collapsed;

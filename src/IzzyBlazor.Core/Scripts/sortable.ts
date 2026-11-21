@@ -46,6 +46,8 @@ export interface SortOptions {
   targets?: () => DropTarget[];
   /** Zones that won't take it (they refuse it, or are full): over one, the drop does nothing. */
   refusing?: () => HTMLElement[];
+  /** Its own list is sorted: the item has no other place in it, so only another zone takes it. */
+  fixed?: boolean;
   /** With targets, its own zone's box: over none of the zones, the drop does nothing. */
   home?: HTMLElement;
   /**
@@ -100,7 +102,7 @@ export function trackDrag(options: SortOptions): void {
   // In a zone that scrolls its own items (a board's column), the item leaves the list's flow so
   // the scrolling box doesn't clip it over the other zones: where it started, the inline styles
   // it had, and how far it has been moved. The items after it are held down by its space.
-  let floated: { left: number; top: number; styles: string | null; dx: number; dy: number } | null = null;
+  let floated: { left: number; top: number; styles: string | null; dx: number; dy: number; minHeight: string } | null = null;
   let lift = 0;
   // Each zone's own scrolling box, found when the drag begins: the dragged item's offset would
   // make a box that only scrolls sideways look as if it scrolled down too.
@@ -198,7 +200,10 @@ export function trackDrag(options: SortOptions): void {
   // placed from (the window, or an ancestor that contains it), update moves it by what it measures.
   const float = () => {
     const box = item.getBoundingClientRect();
-    floated = { left: box.left, top: box.top, styles: item.getAttribute("style"), dx: 0, dy: 0 };
+    // The list keeps its height without it, so its zone (and a board as tall as its tallest
+    // column) doesn't shrink under the pointer.
+    floated = { left: box.left, top: box.top, styles: item.getAttribute("style"), dx: 0, dy: 0, minHeight: list.style.minHeight };
+    list.style.minHeight = `${list.getBoundingClientRect().height}px`;
     Object.assign(item.style, {
       position: "fixed", left: "0", top: "0", width: `${box.width}px`, height: `${box.height}px`, margin: "0", boxSizing: "border-box", zIndex: "50",
     });
@@ -221,7 +226,8 @@ export function trackDrag(options: SortOptions): void {
     }
     zoneMarked?.removeAttribute("data-ib-drop");
     zoneMarked = null;
-    target = targets.find((t) => within(t.area, x, y));
+    // A zone scrolled out of the box that scrolls them sideways takes nothing, though its box is under the pointer.
+    target = sideScroller && !within(sideScroller, x, y) ? undefined : targets.find((t) => within(t.area, x, y));
     if (receiving && receiving !== target?.list) closeSpace();
     const refused = !target && (refusing.some((area) => within(area, x, y)) || (!!options.home && !within(options.home, x, y)));
     item.toggleAttribute("data-ib-refused", refused);
@@ -243,6 +249,13 @@ export function trackDrag(options: SortOptions): void {
     }
     if (wrap) {
       slideGrid();
+      return;
+    }
+
+    // A sorted list: the item has no other place in it.
+    if (options.fixed) {
+      items.forEach((_, i) => i !== from && shift(i, 0));
+      to = from;
       return;
     }
 
@@ -374,6 +387,7 @@ export function trackDrag(options: SortOptions): void {
       if (floated) {
         if (floated.styles === null) item.removeAttribute("style");
         else item.setAttribute("style", floated.styles);
+        list.style.minHeight = floated.minHeight;
       }
       for (const unit of units) for (const el of unit) el.style.transform = "";
       for (const el of units[from]) el.classList.remove("ib-sortable-dragging");
@@ -491,7 +505,8 @@ function scrollParent(el: Element): Element | null {
 
 /** Whether a zone's list is inside a box of its own that scrolls, within its drop zone group. */
 function scrollsWithin(list: Element): boolean {
-  const stop = list.closest(".ib-dropzone-group");
+  // The group too: a board scrolls its columns sideways, which clips them at its other edges as well.
+  const stop = list.closest(".ib-dropzone-group")?.parentElement ?? null;
   for (let node = list.parentElement; node && node !== stop; node = node.parentElement) {
     const style = getComputedStyle(node);
     if ([style.overflowX, style.overflowY].some((o) => o === "auto" || o === "scroll")) return true;
