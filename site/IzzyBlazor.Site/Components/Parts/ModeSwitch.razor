@@ -46,7 +46,7 @@
                 <MenuRadioGroup Label="Examples run" Value="@_mode">
                     @foreach (var mode in Choices)
                     {
-                        <MenuItem Value="@mode" Href="@Href(mode)" Icon="@Icon(mode)" data-mode="@mode" data-enhance-nav="@EnhanceNav(mode)">
+                        <MenuItem Value="@mode" Href="@Href(mode)" data-mode="@mode" data-enhance-nav="@EnhanceNav(mode)">
                             <Stack Gap="0">
                                 <span>@ModeChip.Name(mode)</span>
                                 <TextBlock Size="TextSize.Xs" Color="Color.Muted">@Meaning(mode)</TextBlock>

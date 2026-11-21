@@ -2,7 +2,7 @@
 @attribute [FollowsModeSwitch]
 
 @* Render modes: the terms every page uses (static, interactive, circuit, IzzyBlazor's script, with
-   JavaScript off), one example under its own mode switch, choosing a render mode, mode support on
+   JavaScript off), one example in the mode picked in the header, choosing a render mode, mode support on
    component pages, state on static pages, and CacheView on .NET 11 (tested Nov 10, 2026). From docs/nuget-readme.md, components.md, the
    [ModeSupport] metadata and Scripts/index.ts (the script Blazor loads on every page). *@
 
@@ -49,7 +49,7 @@
         </TextBlock>
 
         <Heading Level="2">One component in each render mode</Heading>
-        <TextBlock>Switch the render mode to see the same tabs on static pages and on interactive pages:</TextBlock>
+        <TextBlock>Pick Static or Interactive from the menu in the header to see the same tabs on a static page and on an interactive page:</TextBlock>
         <ExampleViewer Example="tabs-usage" />
         <TextBlock>
             The table shows what a few components do in each case. Each column adds to the one before it, so a static page

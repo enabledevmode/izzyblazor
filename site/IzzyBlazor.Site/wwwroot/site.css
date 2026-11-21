@@ -656,8 +656,8 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .site-inherit { font-size: var(--ib-text-sm); }
 
 /*
- * The example viewer: one row (Preview · Code tabs at the left; "Always Live" and any width or
- * mode switch at the right), then a box holding only the preview or the code, then the example's
+ * The example viewer: one row (Preview · Code tabs at the left; "Always Interactive" or the mode it
+ * runs in, and any width switch, at the right), then a box holding only the preview or the code, then the example's
  * note for its mode. An example with no source has no tabs: the row has its title. The preview
  * renders in the page, in the page's mode (ExampleViewer).
  */
