@@ -35,7 +35,7 @@
             <div class="site-block-command">
                 <Code Block Language="bash">@($"{_template.Manifest.NewCommand()} -n MyApp")</Code>
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                    Or, with the <Anchor Href="docs/get-started/create-app">templates package</Anchor> installed: <code>dotnet new @TemplateExport.ShortName(_template.Id) -n MyApp</code>
+                    Or, with the <Anchor Href="docs/get-started/create-app">templates package</Anchor> installed: <code>dotnet new @TemplateExport.ShortName(_template.Manifest) -n MyApp</code>
                 </TextBlock>
             </div>
         </Stack>
