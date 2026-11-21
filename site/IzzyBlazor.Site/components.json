@@ -3448,7 +3448,7 @@
     },
 
     {
-      "id": "carousel", "icon": "GalleryHorizontal", "name": "Carousel", "category": "Navigation", "summary": "Shows slides in a row that swipes and scrolls a slide at a time.", "keywords": ["slider", "slideshow", "gallery", "swiper"],
+      "id": "carousel", "icon": "GalleryHorizontal", "name": "Carousel", "category": "Display", "summary": "Shows slides in a row that swipes and scrolls a slide at a time.", "keywords": ["slider", "slideshow", "gallery", "swiper"],
       "parts": ["CarouselItem"],
       "features": [
         { "feature": "Slides that swipe and scroll a slide at a time, several at once per breakpoint" },
