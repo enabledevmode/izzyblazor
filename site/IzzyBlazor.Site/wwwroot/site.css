@@ -1019,14 +1019,20 @@ html:has(> body > .frame) body { margin: 0; }
   border-radius: var(--ib-radius-lg);
   background: var(--ib-color-fill-subtle);
 }
+/* A demo frame keeps color-scheme: normal for its own page, so a light-dark() token used on the
+   frame itself would take its light half on a dark site: a white border. These two are registered
+   colors, resolved on the root in the site's scheme, and inherited as plain colors. */
+@property --site-frame-border { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --site-frame-surface { syntax: "<color>"; inherits: true; initial-value: transparent; }
+:root { --site-frame-border: var(--ib-color-border); --site-frame-surface: var(--ib-color-surface); }
 .site-block-frame {
   display: block;
   width: 390px;
   max-width: 100%;
   height: 760px;
-  border: 1px solid var(--ib-color-border);
+  border: 1px solid var(--site-frame-border);
   border-radius: var(--ib-radius-lg);
-  background: var(--ib-color-surface);
+  background: var(--site-frame-surface);
   color-scheme: normal;
 }
 .frame-block { padding: var(--ib-space-6) var(--ib-space-4); }
@@ -1052,9 +1058,9 @@ html:has(> body > .frame) body { margin: 0; }
   display: block;
   width: 100%;
   height: 680px;
-  border: 1px solid var(--ib-color-border);
+  border: 1px solid var(--site-frame-border);
   border-radius: var(--ib-radius-lg);
-  background: var(--ib-color-surface);
+  background: var(--site-frame-surface);
   color-scheme: normal;
 }
 
