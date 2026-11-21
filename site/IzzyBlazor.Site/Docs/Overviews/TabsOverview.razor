@@ -1,12 +1,12 @@
 @inject ApiMetadata Api
 @* Tabs' Overview, written by hand after Button's: picking a tab previewed in each mode, the looks,
-   vertical tabs, the tab in the address, tabs in a form and panel padding.
+   vertical tabs, the tab in the address and bound to C#, tabs in a form and panel padding.
    Parts, Accessibility and See also come from the doc comments and components.json. *@
 
 <TextBlock>Tabs are a row of labels over panels of content, such as a record's details and its history; the user picks a tab to show its panel. They switch <Anchor Href="docs/common/render-modes">with JavaScript off</Anchor> too. For sections the user opens one by one, see <Anchor Href="docs/components/accordion">Accordion</Anchor>.</TextBlock>
 
 <Heading Level="2">Picking a tab</Heading>
-<TextBlock>The selected tab is the one whose panel shows. To set the tab that opens first, set <Code>Selected</Code>. On interactive pages, to follow the selected tab from C#, bind it with <Code>@@bind-Selected</Code>.</TextBlock>
+<TextBlock>The selected tab is the one whose panel shows. To set the tab that opens first, set <Code>Selected</Code>.</TextBlock>
 <ExampleViewer Example="tabs-usage" />
 <TextBlock>A tab's value is its <Code>Value</Code>, or its label in lower case with dashes, such as <Code>billing-history</Code>.</TextBlock>
 <TextBlock>Every panel renders with the page, and picking a tab only shows another panel. Switching is instant, and it keeps what the user typed. Content that's slow to build or rarely opened is better on a page of its own, behind a <Anchor Href="docs/components/tab-nav">TabNav</Anchor> link.</TextBlock>
@@ -26,6 +26,10 @@
 <Heading Level="2">In the URL</Heading>
 <TextBlock>Tabs can keep the selected tab in the URL, so a link to <Code>?tab=billing</Code> opens Billing, and a copied URL keeps the tab. Set <Code>QueryKey</Code>. The URL overrides <Code>Selected</Code>.</TextBlock>
 <ExampleViewer Example="tabs-url" />
+
+<Heading Level="2">Binding the selected tab</Heading>
+<TextBlock>On interactive pages, C# can follow the selected tab and select one itself. Bind it with <Code>@@bind-Selected</Code>: C# gets each tab's <Code>Value</Code>.</TextBlock>
+<ExampleViewer Example="tabs-bound" />
 
 <Heading Level="2">Closing and adding tabs</Heading>
 <TextBlock>Closable tabs suit documents the user opens and closes, such as invoices in an editor. Handle <Code>OnClose</Code> to put a close button on each tab, and remove the tab from your list there. Handle <Code>OnAdd</Code> to show an add button after the tabs.</TextBlock>
