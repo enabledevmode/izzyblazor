@@ -127,6 +127,9 @@ app.MapGet("/deal-attachments/{id:int}", async (int id, ApplicationDbContext db,
     return Results.File(file.Data, file.ContentType, file.FileName);
 }).RequireAuthorization(Policies.ViewRecords);
 
+// Contacts, companies and deals as CSV files (Data/Export.cs).
+app.MapExports();
+
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 

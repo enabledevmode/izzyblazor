@@ -42,14 +42,16 @@ else
     @* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
     <Column Gap="6" Grow>
         <PageHeader Title="Contacts" Description="The people behind your relationships.">
-            @* On a phone the two float in the corner, behind one button. *@
+            @* Export is a file of every contact (Data/Export.cs), for anyone. On a phone the two that add float in the
+               corner, behind one button. *@
+            <PageHeaderActions FloatLabel="Add contacts">
+                <Button Href="contacts/export" download Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Download" VisibleFrom="Breakpoint.Sm">Export</Button>
             @if (_canEdit)
             {
-                <PageHeaderActions FloatLabel="Add contacts">
                     <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ImportDialog.IdOf(ImportKind.Contacts))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Upload" FloatBelow="Breakpoint.Sm">Import contacts</Button>
                     <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ContactDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Add contact</Button>
-                </PageHeaderActions>
             }
+            </PageHeaderActions>
         </PageHeader>
 
         <DataGrid id="contacts" TItem="Contact" ItemsProvider="FindAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Contacts"

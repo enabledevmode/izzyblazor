@@ -40,13 +40,14 @@ else
     @* A list page: it fills the main area, so the grid scrolls its rows under its header and its pages stay in view. *@
     <Column Gap="6" Grow>
         <PageHeader Title="Deal pipeline" Description="@_summary">
-            @* On a phone it floats in the corner. *@
-            @if (_canEdit)
-            {
-                <PageHeaderActions>
+            @* Export is a file of every deal, open or closed (Data/Export.cs), for anyone. On a phone New deal floats in the corner. *@
+            <PageHeaderActions>
+                <Button Href="deals/export" download Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Download" VisibleFrom="Breakpoint.Sm">Export</Button>
+                @if (_canEdit)
+                {
                     <Button Href="@Navigation.GetUriWithQueryParameter("dialog", DealDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">New deal</Button>
-                </PageHeaderActions>
-            }
+                }
+            </PageHeaderActions>
         </PageHeader>
 
         @* The view strip: the switch (a phone has the list only), then what the list covers. *@

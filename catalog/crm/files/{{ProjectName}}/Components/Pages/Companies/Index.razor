@@ -18,13 +18,15 @@
 <Column Gap="6" Grow>
     <PageHeader Title="Companies" Description="A shared view of every account.">
         @* On a phone the two float in the corner, behind one button. *@
+        @* Export is a file of every company (Data/Export.cs), for anyone; a phone has the adding buttons only, floating in the corner. *@
+        <PageHeaderActions FloatLabel="Add companies">
+            <Button Href="companies/export" download Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Download" VisibleFrom="Breakpoint.Sm">Export</Button>
         @if (_canEdit)
         {
-            <PageHeaderActions FloatLabel="Add companies">
                 <Button Href="@Navigation.GetUriWithQueryParameter("dialog", ImportDialog.IdOf(ImportKind.Companies))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Upload" FloatBelow="Breakpoint.Sm">Import companies</Button>
                 <Button Href="@Navigation.GetUriWithQueryParameter("dialog", CompanyDialog.NewId)" StartIcon="Lucide.Plus" FloatBelow="Breakpoint.Sm">Add company</Button>
-            </PageHeaderActions>
         }
+        </PageHeaderActions>
     </PageHeader>
 
     <DataGrid id="companies" TItem="Company" ItemsProvider="FindAsync" ItemKey="c => c.Id.ToString()" RowLabel="c => c.Name" Caption="Companies"
