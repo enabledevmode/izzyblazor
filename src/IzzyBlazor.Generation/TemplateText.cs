@@ -40,14 +40,145 @@ internal static partial class TemplateText
     public static IEnumerable<string> BinaryExtensions => Binary;
 
     /// <summary>Applies the conditions for this file's type, then replaces each <c>{{Token}}</c>.</summary>
-    public static string Apply(string path, string text, IReadOnlyDictionary<string, object> values, IReadOnlyDictionary<string, string> tokens)
+    /// <remarks>
+    /// <paramref name="written"/> names the tokens whose values a person wrote (a headline, an address): each is
+    /// escaped for the place it lands in, so a quote, an ampersand or an @ in it stays text.
+    /// </remarks>
+    public static string Apply(string path, string text, IReadOnlyDictionary<string, object> values, IReadOnlyDictionary<string, string> tokens, IReadOnlySet<string>? written = null)
     {
         if (Directives.TryGetValue(Path.GetExtension(path), out var directive))
         {
             if (text.Contains("#each", StringComparison.Ordinal)) text = ExpandLoops(path, text, directive, values);
             text = ApplyConditions(path, text, directive, values);
         }
-        return ReplaceTokens(text, tokens);
+        return ReplaceTokens(path, text, tokens, written);
+    }
+
+    /// <summary>
+    /// Replaces each <c>{{Token}}</c> in text that goes into the file at <paramref name="path"/>. A written
+    /// value is escaped by where it lands: text and attribute values in Razor markup (entities, which Razor
+    /// decodes for components too), and string literals in C# and JSON. Anywhere else (a type or member name,
+    /// a route) it goes in as it is. A written value is never read for tokens itself.
+    /// </summary>
+    public static string ReplaceTokens(string path, string text, IReadOnlyDictionary<string, string> tokens, IReadOnlySet<string>? written)
+    {
+        if (written is null || written.Count == 0 || !text.Contains("{{", StringComparison.Ordinal)) return ReplaceTokens(text, tokens);
+        text = ReplaceTokens(text, tokens.Where(t => !written.Contains(t.Key)).ToDictionary(t => t.Key, t => t.Value, StringComparer.Ordinal));
+        var extension = Path.GetExtension(path).ToLowerInvariant();
+        var razor = extension is ".razor" or ".cshtml";
+        var code = extension is ".cs" or ".json";
+        // A component's C# comes last in our templates: from @code on, the file is C#.
+        var codeFrom = razor && CodeBlock().Match(text) is { Success: true } block ? block.Index : int.MaxValue;
+        return Token().Replace(text, match =>
+        {
+            var name = match.Groups[1].Value;
+            if (!written.Contains(name) || !tokens.TryGetValue(name, out var value)) return match.Value;
+            if (!razor && !code) return value;
+            var lineStart = match.Index == 0 ? 0 : text.LastIndexOf('\n', match.Index - 1) + 1;
+            var before = text.AsSpan(lineStart, match.Index - lineStart);
+            if (code || match.Index > codeFrom || DirectiveLine().IsMatch(before))
+                return InString(before, out var interpolated) ? CSharpString(value, interpolated) : value;
+            return Attribute(before) switch
+            {
+                Place.Literal => Markup(value, attribute: true),
+                Place.Expression => value,
+                Place.ExpressionString => CSharpString(value, interpolated: false),
+                _ => Markup(value, attribute: false),
+            };
+        });
+    }
+
+    enum Place { Text, Literal, Expression, ExpressionString }
+
+    // Where the end of this line's start is: in an attribute's quoted value or not; and for a value that is C#
+    // (Title="@(...)"), whether that's inside a string of its own.
+    static Place Attribute(ReadOnlySpan<char> before)
+    {
+        var place = Place.Text;
+        var quote = '\0';
+        var depth = 0;
+        for (var i = 0; i < before.Length; i++)
+        {
+            var c = before[i];
+            switch (place)
+            {
+                case Place.Text:
+                    if (c is not ('"' or '\'')) break;
+                    var j = i - 1;
+                    while (j >= 0 && before[j] == ' ') j--;
+                    if (j < 0 || before[j] != '=') break;
+                    quote = c;
+                    depth = 0;
+                    place = i + 1 < before.Length && before[i + 1] == '@' ? Place.Expression : Place.Literal;
+                    break;
+                case Place.Literal:
+                    if (c == quote) place = Place.Text;
+                    break;
+                case Place.Expression:
+                    if (c == '(') depth++;
+                    else if (c == ')') depth--;
+                    else if (c == '"' && depth > 0) place = Place.ExpressionString;
+                    else if (c == quote && depth <= 0) place = Place.Text;
+                    break;
+                case Place.ExpressionString:
+                    if (c == '\\') i++;
+                    else if (c == '"') place = Place.Expression;
+                    break;
+            }
+        }
+        return place;
+    }
+
+    // Whether the line so far ends inside a "string"; verbatim and raw strings are left alone.
+    static bool InString(ReadOnlySpan<char> before, out bool interpolated)
+    {
+        var inside = false;
+        interpolated = false;
+        for (var i = 0; i < before.Length; i++)
+        {
+            var c = before[i];
+            if (inside)
+            {
+                if (c == '\\') i++;
+                else if (c == '"') inside = false;
+            }
+            else if (c == '/' && i + 1 < before.Length && before[i + 1] == '/') return false;
+            else if (c == '"')
+            {
+                if (i + 2 < before.Length && before[i + 1] == '"' && before[i + 2] == '"') return false;
+                if (i > 0 && before[i - 1] == '@') return false;
+                inside = true;
+                interpolated = i > 0 && before[i - 1] == '$';
+            }
+        }
+        return inside;
+    }
+
+    static string CSharpString(string value, bool interpolated)
+    {
+        var text = new StringBuilder(value.Length + 8);
+        foreach (var c in value)
+            text.Append(c switch
+            {
+                '\\' => "\\\\", '"' => "\\\"", '\n' => "\\n", '\r' => "\\r", '\t' => "\\t",
+                '{' when interpolated => "{{", '}' when interpolated => "}}",
+                _ => c.ToString(),
+            });
+        return text.ToString();
+    }
+
+    // @ as an entity: @@ isn't read in a component's attribute, and the entity works in both places.
+    static string Markup(string value, bool attribute)
+    {
+        var text = new StringBuilder(value.Length + 8);
+        foreach (var c in value)
+            text.Append(c switch
+            {
+                '&' => "&amp;", '<' => "&lt;", '>' => "&gt;", '@' => "&#64;",
+                '"' when attribute => "&quot;", '\'' when attribute => "&#39;",
+                _ => c.ToString(),
+            });
+        return text.ToString();
     }
 
     public static string ReplaceTokens(string text, IReadOnlyDictionary<string, string> tokens)
@@ -193,6 +324,15 @@ internal static partial class TemplateText
             start = end + 1;
         }
     }
+
+    [GeneratedRegex(@"\{\{(\w+)\}\}")]
+    private static partial Regex Token();
+
+    [GeneratedRegex(@"^[ \t]*@(code|functions)\b", RegexOptions.Multiline)]
+    private static partial Regex CodeBlock();
+
+    [GeneratedRegex(@"^\s*@(page|attribute|inject|using|layout|inherits|implements|typeparam|namespace)\b")]
+    private static partial Regex DirectiveLine();
 
     [GeneratedRegex(@"^\(?\s*(?<n>\w+)\s+in\s+(?<l>[\w.]+)\s*\)?$")]
     private static partial Regex LoopHead();

@@ -70,6 +70,22 @@ public sealed class CliTests : IDisposable
         Assert.Contains("Components/Pages/Counter.razor already has a level-1 heading", added.Error);
     }
 
+    // Words a person writes can hold quotes, an ampersand or an @: they stay text in markup and in C# strings.
+    [Fact]
+    public void A_setting_s_words_are_escaped_where_they_land()
+    {
+        Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Acme", "--no-restore").Exit);
+        var app = Path.Combine(_work, "Acme");
+
+        Assert.Equal(0, Izzy(app, "add", "hero", "--eyebrow", "Say \"hi\" @you", "--headline", "Fast & <simple>").Exit);
+        var hero = File.ReadAllText(Path.Combine(app, "Components", "Blocks", "Hero.razor"));
+        Assert.Contains("Label=\"Say &quot;hi&quot; &#64;you\"", hero);
+        Assert.Contains(">Fast &amp; &lt;simple&gt;</Heading>", hero);
+
+        Assert.Equal(0, Izzy(app, "add", "articles", "--link-base", "a\"b/").Exit);
+        Assert.Contains("new(\"a\\\"b/blog/", File.ReadAllText(Path.Combine(app, "Components", "Blocks", "Articles.razor")));
+    }
+
     [Fact]
     public async Task The_packed_tool_installs_and_carries_the_catalogue()
     {

@@ -39,6 +39,10 @@ public static class Generator
         var values = Resolve(manifest, settings, Facts(project));
         if (!item.IncludesPro) RefusePro(manifest, values);
         var tokens = Tokens(manifest, values, project);
+        // What a person wrote, as opposed to a name we check or a value the item fixes: escaped where it lands.
+        var typed = manifest.Parameters
+            .Where(p => p.Type == ParameterType.Text && p.Pattern is null && !manifest.Fixed.ContainsKey(p.Name))
+            .Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
         var server = manifest.Server.Select(g => new Glob(TemplateText.ReplaceTokens(g, tokens))).ToList();
         string InApp(string path) => ToApp(path, project, server);
 
@@ -62,7 +66,7 @@ public static class Generator
                 creates.Add(new FileCreate(target, null, bytes));
                 continue;
             }
-            creates.Add(new FileCreate(target, TemplateText.Apply(path, Text(path, bytes), values, tokens), null));
+            creates.Add(new FileCreate(target, TemplateText.Apply(path, Text(path, bytes), values, tokens, typed), null));
         }
         creates.Sort((a, b) => string.CompareOrdinal(a.Path, b.Path));
 
@@ -83,8 +87,8 @@ public static class Generator
             var path = TemplateText.ReplaceTokens(written.File, tokens);
             if (path.Length > 0) path = InApp(path);
             var text = written.TextFrom is { } from
-                ? TemplateText.Apply(from, Text(from, item.Files[from]), values, tokens)
-                : TemplateText.ReplaceTokens(written.Text, tokens);
+                ? TemplateText.Apply(from, Text(from, item.Files[from]), values, tokens, typed)
+                : TemplateText.ReplaceTokens(path, written.Text, tokens, typed);
             // A block that belongs to a layout (a footer) has no page of its own unless one is named.
             if (written.Place && at is null && path.Length == 0)
             {
