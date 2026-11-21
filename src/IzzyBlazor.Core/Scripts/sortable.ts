@@ -102,7 +102,8 @@ export function trackDrag(options: SortOptions): void {
   // it had, and how far it has been moved. The items after it are held down by its space.
   let floated: { left: number; top: number; styles: string | null; dx: number; dy: number } | null = null;
   let lift = 0;
-  // Each zone's own scrolling box, found when the pointer first comes over it.
+  // Each zone's own scrolling box, found when the drag begins: the dragged item's offset would
+  // make a box that only scrolls sideways look as if it scrolled down too.
   const scrollers = new Map<Element, Element | null>();
   let frame = 0;
   let held = 0;
@@ -147,6 +148,7 @@ export function trackDrag(options: SortOptions): void {
     }
     refusing = options.refusing?.() ?? [];
     for (const t of targets) {
+      scrollers.set(t.list, scrollParent(t.list));
       const tb = t.list.getBoundingClientRect();
       const els = [...t.list.children].filter((el): el is HTMLElement => el instanceof HTMLElement && !el.hidden);
       const style = getComputedStyle(t.list);
@@ -322,10 +324,7 @@ export function trackDrag(options: SortOptions): void {
     }
     // Over another zone, that zone's own scrolling box; else this list's.
     let vertical = scroller;
-    if (target) {
-      if (!scrollers.has(target.list)) scrollers.set(target.list, scrollParent(target.list));
-      vertical = scrollers.get(target.list) ?? null;
-    }
+    if (target) vertical = scrollers.get(target.list) ?? null;
     const area = vertical === document.scrollingElement || !vertical
       ? { top: 0, bottom: window.innerHeight }
       : vertical.getBoundingClientRect();

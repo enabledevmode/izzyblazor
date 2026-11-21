@@ -2,24 +2,19 @@
    when a column is outside its numbers. ItemAccent marks each ticket's priority, which its second
    line also says. *@
 <Stack Grow>
-    <Form Model="this" FormName="kanban-limits">
-        <Kanban TItem="Ticket" @bind-Items="_tickets" ItemKey="t => t.Id" ColumnOf="t => t.Status" ItemText="t => t.Title"
-                ItemDescription="@(t => $"{t.Priority} priority")" ItemAccent="t => AccentOf(t.Priority)"
-                OnMove="Moved" Name="tickets" Order="Order" SubmitOnMove Label="Support tickets">
-            <Columns>
-                <KanbanColumn Value="Open" />
-                <KanbanColumn Value="In progress" Limit="3" />
-                <KanbanColumn Value="Review" MinItems="1" />
-                <KanbanColumn Value="Closed" />
-            </Columns>
-        </Kanban>
-    </Form>
+    <Kanban TItem="Ticket" @bind-Items="_tickets" ItemKey="t => t.Id" ColumnOf="t => t.Status" ItemText="t => t.Title"
+            ItemDescription="@(t => $"{t.Priority} priority")" ItemAccent="t => AccentOf(t.Priority)"
+            OnMove="Moved" QueryPrefix="tickets-" Label="Support tickets">
+        <Columns>
+            <KanbanColumn Value="Open" />
+            <KanbanColumn Value="In progress" Limit="3" />
+            <KanbanColumn Value="Review" MinItems="1" />
+            <KanbanColumn Value="Closed" />
+        </Columns>
+    </Kanban>
 </Stack>
 
 @code {
-    [SupplyParameterFromForm(FormName = "kanban-limits", Name = "tickets")]
-    private KanbanOrder? Order { get; set; }
-
     private IReadOnlyList<Ticket> _tickets =
     [
         new("1", "Invoices show the wrong tax rate", "High", "Open"),

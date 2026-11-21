@@ -26,6 +26,9 @@ public sealed class ListOrder
     /// <summary>The move a handle's menu posted, such as <c>up:42</c>; null when the form's own submit posted.</summary>
     public string? Move { get; set; }
 
+    /// <summary>In a group of zones, the key of the item the script moved last (a drag, or its menu with script), when the group posts after each move.</summary>
+    public string? Dropped { get; set; }
+
     /// <summary>The items in the posted order, with the posted move applied.</summary>
     /// <param name="items">The items, in the order they had before the post.</param>
     /// <param name="key">The list's <c>ItemKey</c>.</param>

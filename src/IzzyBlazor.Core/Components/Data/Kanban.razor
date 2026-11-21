@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @typeparam TItem
 @inherits IzzyComponentBase
+@using Microsoft.AspNetCore.Components.Forms
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @attribute [ModeSupport]
 
@@ -19,9 +20,9 @@
     </Kanban>
 
     A card drags to another place or column from anywhere on it, and its ⋯ menu has the same
-    moves, with every column under "Move to". On an interactive page OnMove runs before each
-    move: save the card's new column there. On a static page give the board a Name inside a form
-    and pass the posted KanbanOrder back as Order; SubmitOnMove posts after every move.
+    moves, with every column under "Move to". OnMove runs with each move, on a static page too,
+    where the board posts a form of its own: save the card's new column there. Don't put the
+    board inside another form.
 
     CardTemplate draws a card; without it ItemText and ItemDescription do. ItemHref makes a card a
     link and ItemMenu adds items to its ⋯ menu. The columns share the board's width, none
@@ -51,10 +52,19 @@
 <ib-kanban @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@(Label ?? TextDefaults.KanbanName)"
            data-ib-interactive="@(WillBeInteractive ? "" : null)" data-ib-count="@TextDefaults.KanbanCount" data-ib-count-limit="@TextDefaults.KanbanCountOfLimit">
     <CascadingValue Value="this" IsFixed="true">
-        <DropZoneGroup TItem="TItem" Class="ib-kanban-columns" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" ItemsChanged="ItemsChanged" OnMove="MovedAsync"
-                       Name="@Name" Order="@Order?.ToListOrder()" SubmitOnMove="SubmitOnMove">
-            @Columns
-        </DropZoneGroup>
+        @if (Live)
+        {
+            <DropZoneGroup TItem="TItem" Class="ib-kanban-columns" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" ItemsChanged="ItemsChanged" OnMove="MovedAsync">
+                @Columns
+            </DropZoneGroup>
+        }
+        else
+        {
+            @* Named for this board, so that a post reaches only its own form. *@
+            <FormMappingScope Name="@($"ib-kanban-{QueryPrefix}")">
+                @Binding
+            </FormMappingScope>
+        }
     </CascadingValue>
 </ib-kanban>
 
@@ -71,34 +81,21 @@
     /// </summary>
     [Parameter, EditorRequired] public Func<TItem, string>? ColumnOf { get; set; }
 
-    /// <summary>Runs with every card in its new order after a move, on interactive pages; use <c>@bind-Items</c>.</summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
+    /// <summary>Runs with every card in its new order after a move; use <c>@bind-Items</c>.</summary>
+    [Parameter, ModeSupport] public EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
 
     /// <summary>
-    /// Runs before a move changes the board, on interactive pages: set the card's column from
-    /// <see cref="KanbanMoveEventArgs{TItem}.ToColumn"/> and save it here, or set
-    /// <see cref="KanbanMoveEventArgs{TItem}.Cancel"/> to keep the card where it was.
+    /// Runs with each move, before the board changes, on a static page too (the board posts):
+    /// set the card's column from <see cref="KanbanMoveEventArgs{TItem}.ToColumn"/> and save it
+    /// here, or set <see cref="KanbanMoveEventArgs{TItem}.Cancel"/> to keep the card where it was.
     /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<KanbanMoveEventArgs<TItem>> OnMove { get; set; }
+    [Parameter, ModeSupport] public EventCallback<KanbanMoveEventArgs<TItem>> OnMove { get; set; }
 
     /// <summary>
-    /// On a static page, the prefix of the fields the board posts, bound as a
-    /// <see cref="KanbanOrder"/>. Without it, a static page's cards don't move.
+    /// Sets this board's posts apart, so several can share a page: give each its own, such as
+    /// <c>QueryPrefix="orders-"</c>. None by default.
     /// </summary>
-    [Parameter] public string? Name { get; set; }
-
-    /// <summary>On a static page, what the form posted: the board shows the posted places with the move applied.</summary>
-    [Parameter] public KanbanOrder? Order { get; set; }
-
-    /// <summary>
-    /// On a static page with script, posts the form after each move, for pages that save every
-    /// move. Otherwise moves stay in the page until the form is submitted. With JavaScript off,
-    /// each move from a card's menu posts anyway.
-    /// </summary>
-    [Parameter, ModeSupport(Interactive = ModeLevel.None)]
-    public bool SubmitOnMove { get; set; }
+    [Parameter] public string QueryPrefix { get; set; } = "";
 
     /// <summary>The <see cref="KanbanColumn{TItem}"/>s, in the order shown.</summary>
     [Parameter] public RenderFragment? Columns { get; set; }
@@ -139,8 +136,7 @@
 
     /// <summary>
     /// Text beside each column's count, from the column's cards, such as their total:
-    /// <c>cards =&gt; cards.Sum(d =&gt; d.Value).ToString("C0")</c>. On a static page it's as of the
-    /// last time the page loaded, so use <see cref="SubmitOnMove"/> with it.
+    /// <c>cards =&gt; cards.Sum(d =&gt; d.Value).ToString("C0")</c>.
     /// </summary>
     [Parameter] public Func<IReadOnlyList<TItem>, string?>? ColumnSummary { get; set; }
 
@@ -188,6 +184,96 @@
 
     // Interactive (or prerendering for it): C# applies the moves and the collapsing.
     internal bool Live => WillBeInteractive;
+
+    // On a static page, the form's model when nothing was posted.
+    internal KanbanPost Post { get; } = new();
+
+    // On a static page, what the board's form posted, if it did.
+    internal KanbanPost? Posted { get; private set; }
+
+    private DropZoneGroup<TItem>? _group;
+    // A posted move OnMove cancelled: the board shows the cards where they were.
+    private bool _cancelled;
+
+    private RenderFragment Binding => builder =>
+    {
+        builder.OpenComponent<KanbanPostBinding>(0);
+        builder.AddComponentParameter(1, nameof(KanbanPostBinding.ChildContent), (RenderFragment<KanbanPost?>)(posted => StaticBoard(posted)));
+        builder.CloseComponent();
+    };
+
+    // A static page: the board in a form of its own, which every move posts. It shows what was
+    // posted, so a page with nowhere to save still keeps the move.
+    private RenderFragment StaticBoard(KanbanPost? posted) => __builder =>
+    {
+        var post = posted ?? Post;
+        Posted = post.Posted ? post : null;
+        <EditForm Model="post" FormName="@KanbanPostBinding.FormName" OnSubmit="PostedAsync" Enhance class="ib-kanban-form">
+            <DropZoneGroup TItem="TItem" Class="ib-kanban-columns" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" Name="@KanbanPostBinding.Prefix"
+                           Order="@(Posted is null || _cancelled ? null : post.ToListOrder())" SubmitOnMove @ref="_group">
+                @Columns
+            </DropZoneGroup>
+        </EditForm>
+    };
+
+    // A static page's post: the card that moved (the menu's, or the one the script dropped), from
+    // where the cards say it was to where the posted board has it.
+    private async Task PostedAsync(EditContext context)
+    {
+        var post = (KanbanPost)context.Model;
+        if (post.MovedKey is not { } key || _group is null || Items is null)
+        {
+            return;
+        }
+
+        var items = Items as IReadOnlyList<TItem> ?? Items.ToList();
+        var at = -1;
+        for (var i = 0; i < items.Count; i++)
+        {
+            if (ItemKey!(items[i]) == key)
+            {
+                at = i;
+                break;
+            }
+        }
+
+        if (at < 0 || _group.PlaceOf(key) is not { } place)
+        {
+            return;
+        }
+
+        var item = items[at];
+        var from = _zoneOf(item);
+        var fromIndex = 0;
+        for (var i = 0; i < at; i++)
+        {
+            if (_zoneOf(items[i]) == from)
+            {
+                fromIndex++;
+            }
+        }
+
+        if (place.Zone == from && place.Index == fromIndex)
+        {
+            return;
+        }
+
+        var args = new KanbanMoveEventArgs<TItem>
+        {
+            Item = item, Key = key, FromIndex = fromIndex, ToIndex = place.Index,
+            FromColumn = KanbanZone.Column(from), ToColumn = KanbanZone.Column(place.Zone),
+        };
+        // The order as posted, before the handler changes the cards.
+        var arranged = _group.Arranged();
+        await OnMove.InvokeAsync(args);
+        if (args.Cancel)
+        {
+            _cancelled = true;
+            return;
+        }
+
+        await ItemsChanged.InvokeAsync(arranged);
+    }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

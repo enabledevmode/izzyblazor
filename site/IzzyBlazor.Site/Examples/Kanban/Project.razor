@@ -1,8 +1,8 @@
 @* A team's board. A card drags from anywhere on it (a long press on touch) and opens beside the
    board on a click (ItemHref). Its ⋯ menu has Assign to me, Archive and the moves under Move. In
-   progress should hold three at most. Every move saves: on a static page the form posts after
-   each one (SubmitOnMove) and Save stores it; on an interactive one OnMove does. So a card's link,
-   which loads the page again, shows the board as it was left. *@
+   progress should hold three at most. Every move saves in OnMove, on a static page too, so a
+   card's link, which loads the page again, shows the board as it was left. The menu's own items
+   post a form beside the board on a static page (form="board-actions"), as the board has its own. *@
 @inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Http
 <AppShell>
@@ -13,12 +13,12 @@
     </AppHeader>
 
     <AppMain>
-        <Form Model="this" FormName="kanban-project" OnValidSubmit="Save">
-            <Stack Gap="5" Padding="new() { Base = 4, Md = 6 }">
+        <Stack Gap="5" Padding="new() { Base = 4, Md = 6 }">
+            <Form Model="this" FormName="kanban-project" OnValidSubmit="Acted" id="board-actions">
                 <Row Gap="3" Align="Align.Center" Wrap>
                     <Stack Gap="0">
                         <Heading Level="1" Size="TextSize.Xl2">Spring conference</Heading>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Board.Count cards · @Board.Count(p => p.Column == "done") done</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_cards.Count cards · @_cards.Count(c => c.Column == "done") done</TextBlock>
                     </Stack>
                     <Spacer />
                     @if (_archived.Count > 0)
@@ -39,61 +39,61 @@
                         }
                     </AvatarGroup>
                 </Row>
+            </Form>
 
-                <Kanban TItem="KanbanCard" @bind-Items="_cards" ItemKey="c => c.Id" ColumnOf="c => c.Column" OnMove="Moved"
-                        Name="board" Order="Order" SubmitOnMove ItemLabel="c => c.Title" ItemHref="c => CardHref(c)" ItemCurrent="c => c.Id == Opened"
-                        EmptyText="No cards" Size="ControlSize.Sm" ColumnWidth="Length.Rem(15)" MaxHeight="Length.Rem(20)" Label="Spring conference" TitleLevel="2" Context="card">
-                    <Columns>
-                        @foreach (var column in Columns)
-                        {
-                            <KanbanColumn @key="column.Id" Value="@column.Id" Title="@column.Name" Limit="column.Limit" />
-                        }
-                    </Columns>
-                    <CardTemplate>
-                        <Stack Gap="2">
-                            <Tag Label="@card.Label" Status="StatusOf(card.Label)" Size="ControlSize.Sm" />
-                            <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@card.Title</TextBlock>
-                            <Row Gap="2" Align="Align.Center">
-                                <Icon Name="Lucide.Calendar" Size="IconSize.Sm" Color="Color.Muted" />
-                                <TextBlock Size="TextSize.Xs" Color="Color.Muted">@card.Due</TextBlock>
-                                <Spacer />
-                                <Avatar Name="@card.Owner" Size="AvatarSize.Xs" />
-                            </Row>
-                        </Stack>
-                    </CardTemplate>
-                    <ItemMenu>
-                        <MenuItem Icon="Lucide.ExternalLink" Href="@CardHref(card)" target="_blank">Open in a new tab</MenuItem>
-                        @if (RendererInfo.IsInteractive)
-                        {
-                            <MenuItem Icon="Lucide.UserCheck" Disabled="card.Owner == Me" OnClick="() => card.Owner = Me">Assign to me</MenuItem>
-                            <MenuDivider />
-                            <MenuItem Icon="Lucide.Archive" Accent="Accent.Danger" OnClick="() => Archive(card.Id)">Archive</MenuItem>
-                        }
-                        else
-                        {
-                            <MenuItem Icon="Lucide.UserCheck" Disabled="card.Owner == Me" Submit Name="act" Value="@($"assign:{card.Id}")">Assign to me</MenuItem>
-                            <MenuDivider />
-                            <MenuItem Icon="Lucide.Archive" Accent="Accent.Danger" Submit Name="act" Value="@($"archive:{card.Id}")">Archive</MenuItem>
-                        }
-                    </ItemMenu>
-                </Kanban>
-            </Stack>
-        </Form>
+            <Kanban TItem="KanbanCard" Items="_cards" ItemsChanged="Arranged" ItemKey="c => c.Id" ColumnOf="c => c.Column" OnMove="Moved"
+                    ItemLabel="c => c.Title" ItemHref="c => CardHref(c)" ItemCurrent="c => c.Id == Opened"
+                    EmptyText="No cards" Size="ControlSize.Sm" ColumnWidth="Length.Rem(15)" MaxHeight="Length.Rem(20)" Label="Spring conference" TitleLevel="2" Context="card">
+                <Columns>
+                    @foreach (var column in Columns)
+                    {
+                        <KanbanColumn @key="column.Id" Value="@column.Id" Title="@column.Name" Limit="column.Limit" />
+                    }
+                </Columns>
+                <CardTemplate>
+                    <Stack Gap="2">
+                        <Tag Label="@card.Label" Status="StatusOf(card.Label)" Size="ControlSize.Sm" />
+                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@card.Title</TextBlock>
+                        <Row Gap="2" Align="Align.Center">
+                            <Icon Name="Lucide.Calendar" Size="IconSize.Sm" Color="Color.Muted" />
+                            <TextBlock Size="TextSize.Xs" Color="Color.Muted">@card.Due</TextBlock>
+                            <Spacer />
+                            <Avatar Name="@card.Owner" Size="AvatarSize.Xs" />
+                        </Row>
+                    </Stack>
+                </CardTemplate>
+                <ItemMenu>
+                    <MenuItem Icon="Lucide.ExternalLink" Href="@CardHref(card)" target="_blank">Open in a new tab</MenuItem>
+                    @if (RendererInfo.IsInteractive)
+                    {
+                        <MenuItem Icon="Lucide.UserCheck" Disabled="card.Owner == Me" OnClick="() => card.Owner = Me">Assign to me</MenuItem>
+                        <MenuDivider />
+                        <MenuItem Icon="Lucide.Archive" Accent="Accent.Danger" OnClick="() => Archive(card.Id)">Archive</MenuItem>
+                    }
+                    else
+                    {
+                        <MenuItem Icon="Lucide.UserCheck" Disabled="card.Owner == Me" Submit Name="act" Value="@($"assign:{card.Id}")" form="board-actions">Assign to me</MenuItem>
+                        <MenuDivider />
+                        <MenuItem Icon="Lucide.Archive" Accent="Accent.Danger" Submit Name="act" Value="@($"archive:{card.Id}")" form="board-actions">Archive</MenuItem>
+                    }
+                </ItemMenu>
+            </Kanban>
+        </Stack>
 
         <AppAside Width="Length.Rem(20)" Breakpoint="Breakpoint.Lg" SmallScreen="AsideSmallScreen.Below" Label="Card" Padding="new() { Base = 4, Md = 5 }">
-            @if (Board.FirstOrDefault(p => p.Item.Id == Opened) is { Item: not null } shown)
+            @if (_cards.FirstOrDefault(c => c.Id == Opened) is { } shown)
             {
                 <Stack Gap="4">
                     <Stack Gap="2" Align="Align.Start">
-                        <Tag Label="@shown.Item.Label" Status="StatusOf(shown.Item.Label)" Size="ControlSize.Sm" />
-                        <Heading Level="2" Size="TextSize.Lg">@shown.Item.Title</Heading>
+                        <Tag Label="@shown.Label" Status="StatusOf(shown.Label)" Size="ControlSize.Sm" />
+                        <Heading Level="2" Size="TextSize.Lg">@shown.Title</Heading>
                     </Stack>
                     <DescriptionList>
                         <DescriptionItem Term="Column">@Columns.FirstOrDefault(c => c.Id == shown.Column)?.Name</DescriptionItem>
-                        <DescriptionItem Term="Owner">@shown.Item.Owner</DescriptionItem>
-                        <DescriptionItem Term="Due">@shown.Item.Due</DescriptionItem>
+                        <DescriptionItem Term="Owner">@shown.Owner</DescriptionItem>
+                        <DescriptionItem Term="Due">@shown.Due</DescriptionItem>
                     </DescriptionList>
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@shown.Item.Notes</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@shown.Notes</TextBlock>
                 </Stack>
             }
             else
@@ -107,29 +107,26 @@
 @code {
     [SupplyParameterFromQuery(Name = "card")] private string? Opened { get; set; }
 
-    [SupplyParameterFromForm(FormName = "kanban-project", Name = "board")]
-    private KanbanOrder? Order { get; set; }
-
     // A menu item or button that posted: assign:{id}, archive:{id} or restore.
     [SupplyParameterFromForm(FormName = "kanban-project", Name = "act")]
     private string? Act { get; set; }
 
     private const string Me = "Grace Hopper";
 
-    // The board as shown and saved: the posted order and columns on a static page (checked, as
-    // they're user input), else the cards.
-    private IReadOnlyList<KanbanPlace<KanbanCard>> Board => Order is null
-        ? _cards.Select(c => new KanbanPlace<KanbanCard>(c, c.Column, 0)).ToList()
-        : Checked(Order.Arrange(_cards, c => c.Id, c => c.Column));
-
     private string CardHref(KanbanCard card) => Navigation.GetUriWithQueryParameter("card", card.Id);
 
-    // An interactive page: the card takes its new column here, where an app would save it.
+    // The card takes its new column here, where an app would save it.
     private void Moved(KanbanMoveEventArgs<KanbanCard> move) => move.Item.Column = move.ToColumn;
 
-    // A static page: a move posts the board, a menu item its act. An app would save Order.Arrange
-    // to its database here.
-    private void Save()
+    // The cards in their new order, after a move.
+    private void Arranged(IReadOnlyList<KanbanCard> cards)
+    {
+        _cards = cards;
+        Store();
+    }
+
+    // A static page: a menu item or Restore posted its act.
+    private void Acted()
     {
         switch (Act?.Split(':', 2))
         {
@@ -144,7 +141,7 @@
                 break;
         }
 
-        Store(Board);
+        Store();
     }
 
     private void Archive(string id)
@@ -162,10 +159,6 @@
         _cards = [.. _cards, .. _archived];
         _archived = [];
     }
-
-    // A posted column the board doesn't have goes to Backlog.
-    private static IReadOnlyList<KanbanPlace<KanbanCard>> Checked(IReadOnlyList<KanbanPlace<KanbanCard>> places) =>
-        places.Select(p => Columns.Any(c => c.Id == p.Column) ? p : p with { Column = "backlog" }).ToList();
 
     private static Status StatusOf(string label) => label switch
     {
@@ -216,14 +209,14 @@
         }
     }
 
-    private void Store(IEnumerable<KanbanPlace<KanbanCard>> board)
+    private void Store()
     {
         if (!Stores || HttpContext!.Response.HasStarted)
         {
             return;
         }
 
-        var saved = new Saved(board.Select(p => new SavedCard(p.Item.Id, p.Column, p.Item.Owner)).ToList());
+        var saved = new Saved(_cards.Select(c => new SavedCard(c.Id, c.Column, c.Owner)).ToList());
         HttpContext.Response.Cookies.Append(Cookie, System.Text.Json.JsonSerializer.Serialize(saved),
             new() { HttpOnly = true, SameSite = SameSiteMode.Lax, MaxAge = TimeSpan.FromDays(1) });
     }

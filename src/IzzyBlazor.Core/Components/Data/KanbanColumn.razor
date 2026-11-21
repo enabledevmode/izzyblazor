@@ -28,9 +28,9 @@
             <IconButton Icon="IconSet.Current.Get(IconPurpose.ChevronDown)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanColumnCards, TitleText)"
                         Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-toggle"
                         aria-expanded="@(IsCollapsed ? "false" : "true")" OnClick="ToggleAsync" />
-            @if (Board.Name is not null && !Board.Live)
+            @if (!Board.Live)
             {
-                <input type="hidden" class="ib-kanban-collapsed" name="@($"{Board.Name}.Collapsed")" value="@_zone" disabled="@(!IsCollapsed)" />
+                <input type="hidden" class="ib-kanban-collapsed" name="@($"{KanbanPostBinding.Prefix}.Collapsed")" value="@_zone" disabled="@(!IsCollapsed)" />
             }
         }
         @if (Accent is not null)
@@ -88,8 +88,7 @@
 
     /// <summary>
     /// With the board's <c>Collapsible</c>, whether the column is collapsed to a strip. Bind it on
-    /// an interactive page to keep it; on a static page the board posts it in its
-    /// <see cref="KanbanOrder"/>.
+    /// an interactive page to keep it; on a static page it lasts until the page is loaded again.
     /// </summary>
     [Parameter] public bool Collapsed { get; set; }
 
@@ -119,7 +118,7 @@
     private string TitleText => Title ?? Value ?? "";
 
     // The board posted it (static), else what the user or the parameter last set.
-    private bool IsCollapsed => Board.Collapsible && (!Board.Live && Board.Order is { Collapsed: not null } order ? order.IsCollapsed(Value!) : _collapsed);
+    private bool IsCollapsed => Board.Collapsible && (!Board.Live && Board.Posted is { } post ? post.IsCollapsed(Value!) : _collapsed);
 
     private bool Off(int count) => (Limit is { } limit && count > limit) || (MinItems is { } min && count < min);
 

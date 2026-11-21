@@ -23,6 +23,11 @@
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @if (Posts)
+    {
+        @* The script writes the moved item's key here before the form posts. *@
+        <input type="hidden" name="@($"{Name}.Dropped")" data-ib-dropped />
+    }
     <CascadingValue Value="this" IsFixed="true">@ChildContent</CascadingValue>
 </div>
 
@@ -211,6 +216,49 @@
         }
 
         return _byZone.TryGetValue(zone, out var items) ? items : [];
+    }
+
+    /// <summary>Where the arrangement shown has an item: its zone and its place among that zone's items.</summary>
+    internal ListPlace<TItem>? PlaceOf(string key)
+    {
+        Arrange();
+        var index = 0;
+        string? zone = null;
+        foreach (var entry in _entries!)
+        {
+            if (entry.Key == key)
+            {
+                zone = entry.Zone;
+                break;
+            }
+        }
+
+        if (zone is null)
+        {
+            return null;
+        }
+
+        foreach (var entry in _entries!)
+        {
+            if (entry.Key == key)
+            {
+                return new(entry.Item, zone, index);
+            }
+
+            if (entry.Zone == zone)
+            {
+                index++;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Every item in the order shown.</summary>
+    internal IReadOnlyList<TItem> Arranged()
+    {
+        Arrange();
+        return _entries!.ConvertAll(e => e.Item);
     }
 
     /// <summary>Whether a zone takes the item: its Accepts, and room under its MaxItems unless the item is in it already.</summary>

@@ -355,7 +355,7 @@ class Sortable extends IzzyElement {
       .replace("{1}", zone.dataset.ibZoneLabel ?? name)
       .replace("{2}", String(index + 1))
       .replace("{3}", String(zone.items().length)));
-    if (this.hasAttribute("data-ib-submit")) list.closest("form")?.requestSubmit();
+    this.submitMove(item, list);
   }
 
   /** Every item's "Move to" entries in the group: none to a zone that's full. */
@@ -386,7 +386,15 @@ class Sortable extends IzzyElement {
     if (focus || hadFocus) handle?.focus();
     this.refreshEnds();
     this.announce(item, to, items.length);
-    if (this.hasAttribute("data-ib-submit")) list.closest("form")?.requestSubmit();
+    this.submitMove(item, list);
+  }
+
+  /** With data-ib-submit, posts the form after a move; a group's form says which item moved. */
+  private submitMove(item: HTMLElement, list: HTMLElement): void {
+    if (!this.hasAttribute("data-ib-submit")) return;
+    const dropped = this.closest(".ib-dropzone-group")?.querySelector<HTMLInputElement>(":scope > input[data-ib-dropped]");
+    if (dropped) dropped.value = item.dataset.ibKey ?? "";
+    list.closest("form")?.requestSubmit();
   }
 
   /** Each item's menu: no moving up from the top or down from the bottom. */
