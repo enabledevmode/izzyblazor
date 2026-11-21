@@ -42,15 +42,33 @@
                 <TextField @bind-Value="Input.Location" Label="Location or meeting link" autocomplete="off" />
             </Fieldset>
             <TextArea @bind-Value="Input.Agenda" Label="Agenda" Placeholder="What should you cover?" Rows="4" />
-            <DialogFooter>
-                <DialogClose>Cancel</DialogClose>
-                <Button Submit>@(adding ? "Save activity" : "Save changes")</Button>
+            @* Editing, Delete is at the footer's other end: it asks first (the ConfirmDialog below). *@
+            <DialogFooter Justify="@(adding ? Justify.End : Justify.Between)">
+                @if (!adding)
+                {
+                    <Button Submit Form="@DeleteForm" Variant="ButtonVariant.Ghost" Accent="Accent.Danger" StartIcon="Lucide.Trash" Class="@DeleteForm" data-confirm="@Input.Title">Delete</Button>
+                }
+                <Row Gap="2">
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Submit>@(adding ? "Save activity" : "Save changes")</Button>
+                </Row>
             </DialogFooter>
         </Form>
     </Dialog>
 }
 
+@if (CanEdit && Opened == EditId)
+{
+    @* Delete posts this form, once the dialog has asked. *@
+    <form id="@DeleteForm" method="post" @formname="@DeleteForm" @onsubmit="DeleteAsync">
+        <AntiforgeryToken />
+    </form>
+    <ConfirmDialog For="@($".{DeleteForm}")" Title="Delete {0}?" Message="This can’t be undone." ConfirmText="Delete" Accent="Accent.Danger" />
+}
+
 @code {
+    /// <summary>The form the edit dialog's Delete posts, and the class the confirmation is for.</summary>
+    public const string DeleteForm = "delete-activity";
     /// <summary>The dialogs' ids, for links: <c>?dialog=new-activity</c>, <c>?dialog=edit-activity</c>.</summary>
     public const string NewId = "new-activity", EditId = "edit-activity";
 
@@ -206,5 +224,18 @@
         if (adding) Toasts.Success($"{saved.Title} is on the calendar.", "Activity scheduled");
         else Toasts.Success($"{saved.Title} is up to date.", "Activity saved");
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["dialog"] = null, ["as"] = null }));
+    }
+
+    // Deletes the page's activity and what goes with it (Data/Deleting.cs), then shows the list.
+    private async Task DeleteAsync()
+    {
+        if (!CanEdit) return;
+        if (await Db.Activities.FirstOrDefaultAsync(r => r.Id == Activity) is { } doomed)
+        {
+            await Db.DeleteAsync(doomed);
+            Toasts.Success($"{doomed.Title} is off the calendar.", "Activity deleted");
+        }
+
+        Navigation.NavigateTo("activities");
     }
 }

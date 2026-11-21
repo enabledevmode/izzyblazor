@@ -41,15 +41,33 @@
             <Select @bind-Value="Input.OwnerId" Label="Account owner" Items="_ownerIds" ItemText="id => _owners[id!]" />
             <Select @bind-Value="Input.Status" Label="Status" />
             <TextArea @bind-Value="Input.Notes" Label="Background" Placeholder="Goals, preferences, or background…" ColSpan="GridSpan.Full" />
-            <DialogFooter>
-                <DialogClose>Cancel</DialogClose>
-                <Button Submit>@(adding ? "Create company" : "Save changes")</Button>
+            @* Editing, Delete is at the footer's other end: it asks first (the ConfirmDialog below). *@
+            <DialogFooter Justify="@(adding ? Justify.End : Justify.Between)">
+                @if (!adding)
+                {
+                    <Button Submit Form="@DeleteForm" Variant="ButtonVariant.Ghost" Accent="Accent.Danger" StartIcon="Lucide.Trash" Class="@(_deals > 0 ? null : DeleteForm)" data-confirm="@Input.Name">Delete</Button>
+                }
+                <Row Gap="2">
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Submit>@(adding ? "Create company" : "Save changes")</Button>
+                </Row>
             </DialogFooter>
         </Form>
     </Dialog>
 }
 
+@if (CanEdit && Opened == EditId)
+{
+    @* Delete posts this form, once the dialog has asked. *@
+    <form id="@DeleteForm" method="post" @formname="@DeleteForm" @onsubmit="DeleteAsync">
+        <AntiforgeryToken />
+    </form>
+    <ConfirmDialog For="@($".{DeleteForm}")" Title="Delete {0}?" Message="Its notes go too. Its people stay, with no company. This can’t be undone." ConfirmText="Delete" Accent="Accent.Danger" />
+}
+
 @code {
+    /// <summary>The form the edit dialog's Delete posts, and the class the confirmation is for.</summary>
+    public const string DeleteForm = "delete-company";
     /// <summary>The dialogs' ids, for links: <c>?dialog=new-company</c>, <c>?dialog=edit-company</c>.</summary>
     public const string NewId = "new-company", EditId = "edit-company";
 
@@ -73,6 +91,9 @@
     private string? _logoSrc;
     private bool _removeLogo;
 
+    // How many deals the company has: with any, Delete says why not in place of asking.
+    private int _deals;
+
     // The choice of owner: every team member, by name.
     private Dictionary<string, string> _owners = [];
     private List<string?> _ownerIds = [];
@@ -87,6 +108,7 @@
         _ownerIds = _owners.OrderBy(o => o.Value).Select(o => (string?)o.Key).ToList();
         var current = Opened == EditId ? await Db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == Company) : null;
         _logoSrc = current?.LogoSrc;
+        if (current is not null) _deals = await Db.DealsOfAsync(current.Id);
 
         // A post brings the form's own values; otherwise the company as it is, or a new one: yours, a prospect,
         // with the first of each list chosen.
@@ -162,5 +184,26 @@
         if (adding) Toasts.Success($"{saved.Name} is in your companies.", "Company created");
         else Toasts.Success($"{saved.Name} is up to date.", "Company saved");
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("dialog", (string?)null));
+    }
+
+    // Deletes the page's company and what goes with it (Data/Deleting.cs), then shows the list.
+    private async Task DeleteAsync()
+    {
+        if (!CanEdit) return;
+        // A company with deals stays: they'd have no company.
+        if (Company is { } id && await Db.DealsOfAsync(id) is > 0 and var deals)
+        {
+            Toasts.Error(deals == 1 ? "Delete its deal first, or move it to another company." : $"Delete its {deals} deals first, or move them to another company.", "This company has deals");
+            Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("dialog", (string?)null));
+            return;
+        }
+
+        if (await Db.Companies.FirstOrDefaultAsync(r => r.Id == Company) is { } doomed)
+        {
+            await Db.DeleteAsync(doomed);
+            Toasts.Success($"{doomed.Name} is out of your companies.", "Company deleted");
+        }
+
+        Navigation.NavigateTo("companies");
     }
 }

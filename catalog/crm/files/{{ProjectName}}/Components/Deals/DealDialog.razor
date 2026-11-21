@@ -42,15 +42,33 @@
                 <Select @bind-Value="Input.Source" Label="Source" Placeholder="Not recorded" />
             </Fieldset>
             <TextArea @bind-Value="Input.Scope" Label="Scope and next steps" Placeholder="What is included, and what needs to happen next?" Rows="4" />
-            <DialogFooter>
-                <DialogClose>Cancel</DialogClose>
-                <Button Submit>@(adding ? "Create deal" : "Save changes")</Button>
+            @* Editing, Delete is at the footer's other end: it asks first (the ConfirmDialog below). *@
+            <DialogFooter Justify="@(adding ? Justify.End : Justify.Between)">
+                @if (!adding)
+                {
+                    <Button Submit Form="@DeleteForm" Variant="ButtonVariant.Ghost" Accent="Accent.Danger" StartIcon="Lucide.Trash" Class="@DeleteForm" data-confirm="@Input.Name">Delete</Button>
+                }
+                <Row Gap="2">
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Submit>@(adding ? "Create deal" : "Save changes")</Button>
+                </Row>
             </DialogFooter>
         </Form>
     </Dialog>
 }
 
+@if (CanEdit && Opened == EditId)
+{
+    @* Delete posts this form, once the dialog has asked. *@
+    <form id="@DeleteForm" method="post" @formname="@DeleteForm" @onsubmit="DeleteAsync">
+        <AntiforgeryToken />
+    </form>
+    <ConfirmDialog For="@($".{DeleteForm}")" Title="Delete {0}?" Message="Its files go too, with the notes and activities about it alone. This can’t be undone." ConfirmText="Delete" Accent="Accent.Danger" />
+}
+
 @code {
+    /// <summary>The form the edit dialog's Delete posts, and the class the confirmation is for.</summary>
+    public const string DeleteForm = "delete-deal";
     /// <summary>The dialogs' ids, for links: <c>?dialog=new-deal</c>, <c>?dialog=edit-deal</c>.</summary>
     public const string NewId = "new-deal", EditId = "edit-deal";
 
@@ -211,4 +229,17 @@
 
     // Without the database's trailing ".0": 18000, not 18000.0.
     private static decimal Plain(decimal value) => value % 1 == 0 ? decimal.Truncate(value) : value;
+
+    // Deletes the page's deal and what goes with it (Data/Deleting.cs), then shows the pipeline.
+    private async Task DeleteAsync()
+    {
+        if (!CanEdit) return;
+        if (await Db.Deals.FirstOrDefaultAsync(r => r.Id == Deal) is { } doomed)
+        {
+            await Db.DeleteAsync(doomed);
+            Toasts.Success($"{doomed.Name} is gone for everyone.", "Deal deleted");
+        }
+
+        Navigation.NavigateTo("deals");
+    }
 }

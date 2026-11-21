@@ -34,15 +34,33 @@
             <Select @bind-Value="Input.Source" Label="Lead source" />
             <DateField @bind-Value="Input.NextFollowUp" Label="Next follow-up" />
             <TextArea @bind-Value="Input.Notes" Label="Background" Placeholder="Helpful context about this person…" ColSpan="GridSpan.Full" />
-            <DialogFooter>
-                <DialogClose>Cancel</DialogClose>
-                <Button Submit>@(adding ? "Create contact" : "Save changes")</Button>
+            @* Editing, Delete is at the footer's other end: it asks first (the ConfirmDialog below). *@
+            <DialogFooter Justify="@(adding ? Justify.End : Justify.Between)">
+                @if (!adding)
+                {
+                    <Button Submit Form="@DeleteForm" Variant="ButtonVariant.Ghost" Accent="Accent.Danger" StartIcon="Lucide.Trash" Class="@DeleteForm" data-confirm="@Input.Name">Delete</Button>
+                }
+                <Row Gap="2">
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Submit>@(adding ? "Create contact" : "Save changes")</Button>
+                </Row>
             </DialogFooter>
         </Form>
     </Dialog>
 }
 
+@if (CanEdit && Opened == EditId)
+{
+    @* Delete posts this form, once the dialog has asked. *@
+    <form id="@DeleteForm" method="post" @formname="@DeleteForm" @onsubmit="DeleteAsync">
+        <AntiforgeryToken />
+    </form>
+    <ConfirmDialog For="@($".{DeleteForm}")" Title="Delete {0}?" Message="Notes and activities about them alone go too. Their deals stay. This can’t be undone." ConfirmText="Delete" Accent="Accent.Danger" />
+}
+
 @code {
+    /// <summary>The form the edit dialog's Delete posts, and the class the confirmation is for.</summary>
+    public const string DeleteForm = "delete-contact";
     /// <summary>The dialogs' ids, for links: <c>?dialog=new-contact</c>, <c>?dialog=edit-contact</c>.</summary>
     public const string NewId = "new-contact", EditId = "edit-contact";
 
@@ -133,5 +151,18 @@
         if (adding) Toasts.Success($"{saved.Name} is in your contacts.", "Contact created");
         else Toasts.Success($"{saved.Name} is up to date.", "Contact saved");
         Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("dialog", (string?)null));
+    }
+
+    // Deletes the page's contact and what goes with it (Data/Deleting.cs), then shows the list.
+    private async Task DeleteAsync()
+    {
+        if (!CanEdit) return;
+        if (await Db.Contacts.FirstOrDefaultAsync(r => r.Id == Contact) is { } doomed)
+        {
+            await Db.DeleteAsync(doomed);
+            Toasts.Success($"{doomed.Name} is out of your contacts.", "Contact deleted");
+        }
+
+        Navigation.NavigateTo("contacts");
     }
 }
