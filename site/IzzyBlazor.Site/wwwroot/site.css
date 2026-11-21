@@ -1064,6 +1064,10 @@ html:has(> body > .frame) body { margin: 0; }
   color-scheme: normal;
 }
 
-/* Templates: a kit's screenshots are links with a hairline, so a light shot shows on a light page. */
+/* Templates: a kit's screenshots are one carousel, a screen at a time. Each is a link with a
+   hairline, so a light shot shows on a light page. The phone screens share the last slide, at the
+   height of the others. */
 .site-template-screens { margin-block: var(--ib-space-4) var(--ib-space-8); }
-.site-template-screen { border: 1px solid var(--ib-color-border); }
+.site-template-screen { display: block; border: 1px solid var(--ib-color-border); overflow: hidden; }
+.site-template-phones { aspect-ratio: 16 / 10; }
+.site-template-phones .site-template-screen { height: 100%; aspect-ratio: 375 / 812; }
