@@ -776,17 +776,14 @@ html:has(.frame-no-scrollbar) { scrollbar-width: none; }
 .ex-widths a { text-decoration: none; }
 
 /*
- * The page's mode switch (ModeSwitch): segmented link Tabs, then a line on what the current mode
- * means. In the right column on wide screens, at the top of the content below that,
- * and in an example's row on a page that is one example. Hidden on pages with no example.
+ * The page's mode switch (ModeSwitch): a label and segmented link Tabs. At the top right of a
+ * component page, opposite its name (under it where they don't fit on a line), and in an example's
+ * row on a page that is one example. Hidden on pages with no example.
  */
-.site-modeswitch { display: flex; flex-direction: column; gap: var(--ib-space-2); }
+.site-modeswitch { display: flex; align-items: center; gap: var(--ib-space-3); }
 .site-modeswitch-label { font-size: var(--ib-text-sm); font-weight: 600; }
-.site-modeswitch-text { margin: 0; }
-.site-modeswitch-aside { margin-block-end: var(--ib-space-6); }
-.site-modeswitch-top { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: var(--ib-space-3); }
-.site-modeswitch-top .site-modeswitch-text { flex-basis: 100%; }
-body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display: none; }
+.site-modeswitch-head { margin-inline-start: auto; }
+body:not(:has(.ex)) .site-modeswitch-head { display: none; }
 
 /* The docs home: concepts, and the library by category. */
 .site-concept-title { margin: 0; }
@@ -802,9 +799,6 @@ body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display:
 .site-box-title { margin: 0; }
 .site-box-title a { color: var(--ib-color-on-surface); }
 .site-box-count { margin-inline-start: var(--ib-space-1); font-weight: 400; color: var(--ib-color-muted); font-size: var(--ib-text-sm); }
-/* One place at a time: the right column shows from 1024px (AppAside's breakpoint). */
-@media (width >= 1536px) { .site-modeswitch-top { display: none; } }
-@media (width < 1536px) { .site-modeswitch-aside { display: none; } }
 
 /* A demo's frame: a page of its own, scrolling inside its window. */
 /* The library's surface behind a demo, as an app would have (the frame has the library's grays). */

@@ -418,8 +418,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("docs/components/button?mode=nope", "nope", "static")]
     public async Task A_page_opens_in_the_linked_then_remembered_mode(string path, string? cookie, string expected)
     {
-        // ?mode= (a link can open a page in Off), then the cookie, then Static. Both copies of the
-        // switch mark it.
+        // ?mode= (a link can open a page in Off), then the cookie, then Static. The switch marks it.
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
         if (cookie is not null)
         {
@@ -429,7 +428,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         var html = await (await site.Client.SendAsync(request)).Content.ReadAsStringAsync();
         var current = ModeLink().Matches(html).Where(m => m.Groups["current"].Success).Select(m => m.Groups["mode"].Value).ToList();
 
-        Assert.Equal([expected, expected], current);
+        Assert.Equal([expected], current);
     }
 
     private static string Example(string html, string id)
