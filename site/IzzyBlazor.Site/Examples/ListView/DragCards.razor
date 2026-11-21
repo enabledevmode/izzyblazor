@@ -7,12 +7,12 @@
     <Form Model="this" FormName="list-view-tiles" OnValidSubmit="Save">
         <ListView @bind-Items="_tiles" ItemKey="t => t.Id" ItemLabel="t => t.Title" Reorderable DragWholeItem Name="tiles" Order="Order"
                   Columns="3" Bordered Context="tile">
-            <ChildContent>
+            <ItemTemplate>
                 <Stack Gap="1">
                     <Heading Level="3" Size="TextSize.Md">@tile.Title</Heading>
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">@tile.Description</TextBlock>
                 </Stack>
-            </ChildContent>
+            </ItemTemplate>
             <ItemMenu>
                 <MenuItem Href="@Navigation.GetUriWithQueryParameter("tile", tile.Id)" Icon="Lucide.ExternalLink">Open</MenuItem>
             </ItemMenu>

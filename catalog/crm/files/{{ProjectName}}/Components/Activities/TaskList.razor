@@ -3,7 +3,7 @@
    task's Contact (with its Company) and Deal (with its Company) for the second line, and its AssignedTo for
    ShowAssignee. *@
 <ListView Items="Tasks" ItemKey="t => t.Id.ToString()" ItemLabel="t => t.Title" Label="@Label" Context="task">
-    <ChildContent>
+    <ItemTemplate>
         @* 16px from the box to the text, as the design draws it. *@
         <Row Gap="4" Align="Align.Center">
             <TaskCheck @key="task.Id" Task="task" />
@@ -18,7 +18,7 @@
                 }
             </Column>
         </Row>
-    </ChildContent>
+    </ItemTemplate>
     <ItemActions>
         @if (task.Completed is not null)
         {

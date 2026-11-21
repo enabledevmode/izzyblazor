@@ -5,10 +5,12 @@
     <SplitterPane Label="Orders" Size="Length.Rem(16)" Min="Length.Rem(12)" Current="@(Chosen is null)">
         <ListView Items="_orders" ItemKey="o => o.Number" Label="Orders" ItemHref="@(o => Navigation.GetUriWithQueryParameter("order", o.Number))"
                   ItemCurrent="o => o == Chosen" Context="order">
-            <Column Gap="1" Grow>
-                <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@order.Number</TextBlock>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@order.Customer</TextBlock>
-            </Column>
+            <ItemTemplate>
+                <Column Gap="1" Grow>
+                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@order.Number</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@order.Customer</TextBlock>
+                </Column>
+            </ItemTemplate>
         </ListView>
     </SplitterPane>
     <SplitterPane Label="Order" Current="@(Chosen is not null)">

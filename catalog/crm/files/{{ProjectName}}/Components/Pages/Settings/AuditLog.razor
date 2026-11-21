@@ -45,13 +45,15 @@
 
     <ListView TItem="AuditEvent" ItemsProvider="LoadAsync" ItemKey="e => e.Id.ToString()" Label="Audit log" PageSize="25" Bordered
               EmptyText="No changes match these filters." HiddenFrom="Breakpoint.Sm" Context="e">
-        <Stack Gap="1" Grow>
-            <Row Gap="2" Align="Align.Center" Wrap>
-                <TextBlock As="span" Weight="FontWeight.Medium">@Who(e)</TextBlock>
-                <Badge Status="AuditText.Tone(e.Action)">@AuditText.Label(e)</Badge>
-            </Row>
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Record(e) · @At(e)</TextBlock>
-        </Stack>
+        <ItemTemplate>
+            <Stack Gap="1" Grow>
+                <Row Gap="2" Align="Align.Center" Wrap>
+                    <TextBlock As="span" Weight="FontWeight.Medium">@Who(e)</TextBlock>
+                    <Badge Status="AuditText.Tone(e.Action)">@AuditText.Label(e)</Badge>
+                </Row>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Record(e) · @At(e)</TextBlock>
+            </Stack>
+        </ItemTemplate>
     </ListView>
 </Column>
 

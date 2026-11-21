@@ -20,7 +20,7 @@
     gives each item a ⋯ menu of MenuItems:
 
     <ListView Items="files" ItemKey="f => f.Id" ItemLabel="f => f.Name" Context="file">
-        <ChildContent>@file.Name</ChildContent>
+        <ItemTemplate>@file.Name</ItemTemplate>
         <ItemActions>
             <IconButton Icon="Lucide.Star" Label="@($"Star {file.Name}")" OnClick="() => Star(file)" />
         </ItemActions>
@@ -185,7 +185,7 @@
 
 @code {
     /// <summary>An item's content. Without it, <see cref="ItemText"/>, <see cref="ItemDescription"/> and <see cref="ItemIcon"/> draw a row.</summary>
-    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
 
     /// <summary>The default row's text. Defaults to the item's string form.</summary>
     [Parameter] public Func<TItem, string?>? ItemText { get; set; }
@@ -621,9 +621,9 @@
                     }
                 }
                 <div class="ib-listview-content">
-                    @if (ChildContent is not null)
+                    @if (ItemTemplate is not null)
                     {
-                        @ChildContent(item)
+                        @ItemTemplate(item)
                     }
                     else
                     {

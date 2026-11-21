@@ -59,7 +59,7 @@
     </div>
     <ListView TItem="TItem" Class="ib-kanban-cards" Zone="@_zone" Label="@TitleText" Cards DragWholeItem="@(!Board.DragHandle)" Accepts="Accepts"
               ItemLabel="@_itemLabel" ItemHref="Board.ItemHref" OnItemClick="Board.OnItemClick" ItemCurrent="Board.ItemCurrent" ItemDisabled="Board.ItemDisabled"
-              EmptyText="@Board.EmptyText" Size="Board.Size" MaxHeight="Board.MaxHeight" ChildContent="_card" ItemMenu="_menu" />
+              EmptyText="@Board.EmptyText" Size="Board.Size" MaxHeight="Board.MaxHeight" ItemTemplate="_card" ItemMenu="_menu" />
 </section>
 
 @code {

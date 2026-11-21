@@ -26,7 +26,7 @@ public class ListViewReorderTests : BunitContext
                 .Add(l => l.ItemDisabled, s => s.Locked)
                 .Add(l => l.Name, name)
                 .Add(l => l.Order, order)
-                .Add(l => l.ChildContent, s => b => b.AddContent(0, s.Title));
+                .Add(l => l.ItemTemplate, s => b => b.AddContent(0, s.Title));
             more?.Invoke(p);
         });
 

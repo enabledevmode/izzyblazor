@@ -87,7 +87,7 @@
                     @if (_risks.Count > 0)
                     {
                         <ListView Items="_risks" ItemKey="r => r.Deal.Id.ToString()" ItemLabel="r => r.Deal.Name" Label="Deals at risk" Context="risk">
-                            <ChildContent>
+                            <ItemTemplate>
                                 <Column Gap="1">
                                     <Column Gap="0">
                                         <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium"><Anchor Href="@($"deals/{risk.Deal.Id}")" InheritColor Underline="AnchorUnderline.Hover">@risk.Deal.Name</Anchor></TextBlock>
@@ -96,7 +96,7 @@
                                     @* A phone has the reason under the deal, a wider screen beside its value. *@
                                     <Row HiddenFrom="Breakpoint.Sm"><Badge Status="Status.Warning">@risk.Reason</Badge></Row>
                                 </Column>
-                            </ChildContent>
+                            </ItemTemplate>
                             <ItemActions>
                                 <Row Gap="3" Align="Align.Center">
                                     <Row VisibleFrom="Breakpoint.Sm"><Badge Status="Status.Warning">@risk.Reason</Badge></Row>
@@ -119,7 +119,7 @@
                     @if (_next.Count > 0)
                     {
                         <ListView Items="_next" ItemKey="d => d.Id.ToString()" ItemLabel="d => d.Name" Label="Deals closing next" Context="deal">
-                            <ChildContent>
+                            <ItemTemplate>
                                 <Column Gap="1">
                                     <Column Gap="0">
                                         <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium"><Anchor Href="@($"deals/{deal.Id}")" InheritColor Underline="AnchorUnderline.Hover">@deal.Name</Anchor></TextBlock>
@@ -130,7 +130,7 @@
                                     </Column>
                                     <Row HiddenFrom="Breakpoint.Sm"><Badge Status="Tones.Of(deal.Stage)">@deal.Stage</Badge></Row>
                                 </Column>
-                            </ChildContent>
+                            </ItemTemplate>
                             <ItemActions>
                                 <Row Gap="3" Align="Align.Center">
                                     <Row VisibleFrom="Breakpoint.Sm"><Badge Status="Tones.Of(deal.Stage)">@deal.Stage</Badge></Row>

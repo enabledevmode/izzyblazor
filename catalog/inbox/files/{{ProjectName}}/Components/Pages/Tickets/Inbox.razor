@@ -37,19 +37,21 @@
         <Box Grow MinHeight="Length.Px(0)" Overflow="Overflow.Auto">
             <ListView Items="Ticket.Sample" ItemKey="t => t.Id.ToString()" Label="Tickets" ItemHref="@(t => $"tickets?id={t.Id}")"
                       ItemCurrent="t => t == Chosen" ItemLabel="Label" Context="ticket">
-                @{ var unread = ticket.Unread && ticket != Chosen; }
-                <Column Gap="1" Grow MinWidth="Length.Px(0)">
-                    <Row Gap="2" Align="Align.Center">
-                        @if (unread)
-                        {
-                            <Box As="span" Width="Length.Px(8)" Height="Length.Px(8)" Bg="Color.Primary" Radius="Radius.Full" Shrink="false"><VisuallyHidden>Unread</VisuallyHidden></Box>
-                        }
-                        <TextBlock Size="TextSize.Sm" Weight="@(unread ? FontWeight.Semibold : FontWeight.Medium)" Truncate Grow MinWidth="Length.Px(0)">@ticket.From</TextBlock>
-                        <TextBlock Size="TextSize.Xs" Color="Color.Muted">@ticket.Time</TextBlock>
-                    </Row>
-                    <TextBlock Size="TextSize.Sm" Weight="@(unread ? FontWeight.Semibold : FontWeight.Normal)" Truncate>@ticket.Subject</TextBlock>
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@ticket.Snippet</TextBlock>
-                </Column>
+                <ItemTemplate>
+                    @{ var unread = ticket.Unread && ticket != Chosen; }
+                    <Column Gap="1" Grow MinWidth="Length.Px(0)">
+                        <Row Gap="2" Align="Align.Center">
+                            @if (unread)
+                            {
+                                <Box As="span" Width="Length.Px(8)" Height="Length.Px(8)" Bg="Color.Primary" Radius="Radius.Full" Shrink="false"><VisuallyHidden>Unread</VisuallyHidden></Box>
+                            }
+                            <TextBlock Size="TextSize.Sm" Weight="@(unread ? FontWeight.Semibold : FontWeight.Medium)" Truncate Grow MinWidth="Length.Px(0)">@ticket.From</TextBlock>
+                            <TextBlock Size="TextSize.Xs" Color="Color.Muted">@ticket.Time</TextBlock>
+                        </Row>
+                        <TextBlock Size="TextSize.Sm" Weight="@(unread ? FontWeight.Semibold : FontWeight.Normal)" Truncate>@ticket.Subject</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@ticket.Snippet</TextBlock>
+                    </Column>
+                </ItemTemplate>
             </ListView>
         </Box>
     </Column>

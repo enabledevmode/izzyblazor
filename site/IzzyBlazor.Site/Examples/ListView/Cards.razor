@@ -3,17 +3,19 @@
 @inject NavigationManager Navigation
 <ListView Items="_products" ItemKey="p => p.Sku" ItemLabel="p => p.Name" ItemHref="@(p => Navigation.GetUriWithQueryParameter("product", p.Sku))"
           ItemCurrent="p => p.Sku == Product" Columns="3" Context="product">
-    <Stack Gap="1">
-        <Row Justify="Justify.Between" Align="Align.Center">
-            <Heading Level="3" Size="TextSize.Md">@product.Name</Heading>
-            @if (product.New)
-            {
-                <Badge Accent="Accent.Primary">New</Badge>
-            }
-        </Row>
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@product.Description</TextBlock>
-        <TextBlock Weight="FontWeight.Semibold">@product.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</TextBlock>
-    </Stack>
+    <ItemTemplate>
+        <Stack Gap="1">
+            <Row Justify="Justify.Between" Align="Align.Center">
+                <Heading Level="3" Size="TextSize.Md">@product.Name</Heading>
+                @if (product.New)
+                {
+                    <Badge Accent="Accent.Primary">New</Badge>
+                }
+            </Row>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@product.Description</TextBlock>
+            <TextBlock Weight="FontWeight.Semibold">@product.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</TextBlock>
+        </Stack>
+    </ItemTemplate>
 </ListView>
 
 @code {
