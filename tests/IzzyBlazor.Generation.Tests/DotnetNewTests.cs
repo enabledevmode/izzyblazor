@@ -39,7 +39,7 @@ public sealed class DotnetNewTests : IDisposable
         foreach (var (name, settings) in Cases(item.Manifest))
         {
             var output = Path.Combine(_work, $"out{run++}");
-            var args = new List<string> { "new", TemplateExport.ShortName(id), "-o", output, "-n", name, "--debug:custom-hive", hive };
+            var args = new List<string> { "new", TemplateExport.ShortName(item.Manifest), "-o", output, "-n", name, "--debug:custom-hive", hive };
             foreach (var (key, value) in settings) args.AddRange([$"--{item.Manifest.Parameters.Single(p => p.Name == key).Option}", value]);
             Dotnet([.. args]);
 

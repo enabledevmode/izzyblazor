@@ -13,11 +13,13 @@ public static class TemplateExport
     static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
 
     /// <summary>
-    /// An item's name in <c>dotnet new</c>: its id behind <c>izzy-</c>, such as <c>izzy-docs-site</c>. Short
-    /// names there are shared with every installed template pack, so a bare <c>crm</c> or <c>docs-site</c>
-    /// could be anyone's; <c>izzy new</c> takes the kind and the id (<c>izzy new kit crm</c>).
+    /// An item's name in <c>dotnet new</c>: its kind and its id, such as <c>starter-sidebar</c> or
+    /// <c>kit-crm</c>, so it reads as <c>izzy new starter sidebar</c> does. The Hello World starter keeps
+    /// its own id, <c>izzy-blazor</c>, beside Microsoft's <c>blazor</c>.
     /// </summary>
-    public static string ShortName(string id) => id.StartsWith("izzy-", StringComparison.Ordinal) ? id : $"izzy-{id}";
+    public static string ShortName(ItemManifest manifest) => manifest.Id.StartsWith("izzy-", StringComparison.Ordinal)
+        ? manifest.Id
+        : $"{manifest.Kind.ToString().ToLowerInvariant()}-{manifest.Id}";
 
     /// <summary>Writes <paramref name="item"/> to <paramref name="directory"/> as a template folder.</summary>
     public static void WriteTemplateFolder(ItemDefinition item, string directory)
@@ -165,7 +167,7 @@ public static class TemplateExport
             ["classifications"] = new JsonArray("Web", "Blazor", "IzzyBlazor"),
             ["identity"] = $"IzzyBlazor.Templates.{manifest.Id}",
             ["name"] = manifest.Name,
-            ["shortName"] = ShortName(manifest.Id),
+            ["shortName"] = ShortName(manifest),
             ["preferNameDirectory"] = true,
             ["tags"] = new JsonObject { ["language"] = "C#", ["type"] = "project" },
             ["forms"] = new JsonObject

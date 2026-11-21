@@ -59,9 +59,12 @@
         <Heading Level="2">With dotnet new</Heading>
         <TextBlock>
             Every starter and kit is also a <Code>dotnet new</Code> template, with the same options. Its name there is
-            <Code>izzy-</Code> and the template's name:
+            the kind and the template's name, joined with a hyphen:
         </TextBlock>
         <Code Block Language="bash">@DotnetNew</Code>
+        <TextBlock>
+            The IzzyBlazor App starter is the exception: its name is <Code>izzy-blazor</Code> in both commands.
+        </TextBlock>
         <TextBlock>
             To install the templates package, see <Anchor Href="docs/get-started/create-app">Create an app</Anchor>.
         </TextBlock>
@@ -78,5 +81,5 @@
     private const string Starter = "izzy new starter sidebar -n MyApp";
     private const string Kit = "izzy new kit crm -n MyApp";
     private const string Run = "cd MyApp\ndotnet run";
-    private const string DotnetNew = "dotnet new izzy-sidebar -n MyApp\ndotnet new izzy-crm -n MyApp";
+    private const string DotnetNew = "dotnet new starter-sidebar -n MyApp\ndotnet new kit-crm -n MyApp";
 }

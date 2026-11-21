@@ -8,7 +8,7 @@ public sealed record Template(ItemDefinition Definition)
     /// <summary>The manifest, a kit's over its base.</summary>
     public ItemManifest Manifest => Definition.Manifest;
 
-    /// <summary>The id, as in <c>izzy new kit crm</c>, <c>dotnet new izzy-crm</c> and <c>/templates/crm</c>.</summary>
+    /// <summary>The id, as in <c>izzy new kit crm</c>, <c>dotnet new kit-crm</c> and <c>/templates/crm</c>.</summary>
     public string Id => Manifest.Id;
 
     /// <summary>The name, such as "Izzy CRM".</summary>
