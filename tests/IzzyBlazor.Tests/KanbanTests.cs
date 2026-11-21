@@ -190,6 +190,50 @@ public class KanbanTests : BunitContext
         Assert.Equal(new[] { "Cleo" }, In("In progress"));
     }
 
+    [Fact]
+    public void A_search_shows_the_matching_cards_sorted_and_a_move_keeps_the_rest()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        IReadOnlyList<Job>? arranged = null;
+        var jobs = new List<Job> { new("a", "Zoe invoice", "To do"), new("b", "Brian", "To do"), new("c", "Ada invoice", "To do"), new("d", "Dan invoice", "Done") };
+        var cut = Render<Kanban<Job>>(p => p
+            .Add(k => k.Items, jobs)
+            .Add(k => k.ItemKey, j => j.Id)
+            .Add(k => k.ColumnOf, j => j.Status)
+            .Add(k => k.ItemText, j => j.Title)
+            .Add(k => k.Searchable, true)
+            .Add(k => k.SortBy, j => j.Title)
+            .Add(k => k.OnMove, (KanbanMoveEventArgs<Job> m) => m.Item.Status = m.ToColumn)
+            .Add(k => k.ItemsChanged, (IReadOnlyList<Job> all) => arranged = all)
+            .Add(k => k.Columns, b =>
+            {
+                b.OpenComponent<KanbanColumn<Job>>(0);
+                b.AddAttribute(1, nameof(KanbanColumn<Job>.Value), "To do");
+                b.CloseComponent();
+                b.OpenComponent<KanbanColumn<Job>>(2);
+                b.AddAttribute(3, nameof(KanbanColumn<Job>.Value), "Done");
+                b.CloseComponent();
+            }));
+
+        string[] In(int column) => cut.FindAll(".ib-kanban-column")[column].QuerySelectorAll(".ib-kanban-card-text").Select(c => c.TextContent).ToArray();
+
+        // Sorted by title within each column.
+        Assert.Equal(new[] { "Ada invoice", "Brian", "Zoe invoice" }, In(0));
+
+        cut.Find("input[type=search]").Input("INVOICE");
+        Assert.Equal(new[] { "Ada invoice", "Zoe invoice" }, In(0));
+        Assert.Equal("Cards: 2", cut.FindAll(".ib-kanban-column")[0].QuerySelector(".ib-kanban-count-text")!.TextContent);
+
+        // Zoe's menu moves her to Done; Brian, who isn't shown, is still on the board.
+        cut.FindAll(".ib-kanban-column")[0].QuerySelectorAll("li")[1].QuerySelector("button[data-ib-move=to][data-ib-zone='Done']")!.Click();
+        Assert.Equal(new[] { "Ada invoice" }, In(0));
+        Assert.Equal(new[] { "Dan invoice", "Zoe invoice" }, In(1));
+        Assert.Equal(new[] { "a", "b", "c", "d" }, arranged!.Select(j => j.Id).Order());
+
+        cut.Find("input[type=search]").Input("");
+        Assert.Equal(new[] { "Ada invoice", "Brian" }, In(0));
+    }
+
     private sealed class NoPosts : IFormValueMapper
     {
         public bool CanMap(Type valueType, string scopeName, string? formName) => false;

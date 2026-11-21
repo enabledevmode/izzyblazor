@@ -81,6 +81,9 @@
     /// <summary>The layout: the zones (ListViews with a <c>Zone</c>) in a Grid, a Stack or Cards.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    // A Kanban's search and sort: which items the zones show, and in what order.
+    [CascadingParameter] private ZoneView<TItem>? View { get; set; }
+
     private readonly List<ListView<TItem>> _zones = [];
     // On interactive pages, the zone a move gave an item, until ZoneOf agrees.
     private readonly Dictionary<string, string> _moved = new(StringComparer.Ordinal);
@@ -208,9 +211,21 @@
 
             foreach (var entry in _entries!)
             {
-                if (entry.Zone is { } z && _byZone.TryGetValue(z, out var list))
+                if (entry.Zone is { } z && _byZone.TryGetValue(z, out var list) && View?.Shows?.Invoke(entry.Item) != false)
                 {
                     ((List<TItem>)list).Add(entry.Item);
+                }
+            }
+
+            if (View?.Order is { } order)
+            {
+                foreach (var list in _byZone.Values)
+                {
+                    // Stable, so items that sort the same keep the group's order.
+                    var sorted = list.Select((item, index) => (item, index)).ToList();
+                    sorted.Sort((a, b) => order(a.item, b.item) is var c and not 0 ? c : a.index.CompareTo(b.index));
+                    ((List<TItem>)list).Clear();
+                    ((List<TItem>)list).AddRange(sorted.Select(s => s.item));
                 }
             }
         }
@@ -366,7 +381,9 @@
         try
         {
             Arrange();
-            var entries = new List<ListEntry<TItem>>(_entries!);
+            // With some items not shown (a search), the move is among the ones that are.
+            var all = _entries!;
+            var entries = View?.Shows is { } shows ? all.FindAll(e => shows(e.Item)) : new List<ListEntry<TItem>>(all);
             var at = entries.FindIndex(e => e.Key == key);
             if (at < 0 || ZoneNamed(entries[at].Zone) is not { } from || from.ItemDisabled?.Invoke(entries[at].Item) == true)
             {
@@ -399,6 +416,18 @@
             else
             {
                 _moved.Remove(key);
+            }
+
+            if (View?.Shows is not null)
+            {
+                // The rest keep their zones, each after the item it followed.
+                var zones = new Dictionary<string, string?>(StringComparer.Ordinal);
+                foreach (var entry in all)
+                {
+                    zones[entry.Key] = entry.Zone;
+                }
+
+                entries = ListArrangement.Order(all.ConvertAll(e => e.Item), KeyOf, entries.ConvertAll(e => e.Key), entries.ConvertAll(e => e.Zone ?? ""), i => zones[KeyOf(i)]);
             }
 
             var items = entries.ConvertAll(e => e.Item);

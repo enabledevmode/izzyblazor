@@ -54,6 +54,11 @@
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/kanban.css"]" />
 <ib-kanban @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@(Label ?? TextDefaults.KanbanName)"
            data-ib-interactive="@(WillBeInteractive ? "" : null)" data-ib-count="@TextDefaults.KanbanCount" data-ib-count-limit="@TextDefaults.KanbanCountOfLimit">
+    @if (Searchable)
+    {
+        @SearchBar
+    }
+    <CascadingValue Value="_view">
     <CascadingValue Value="this" IsFixed="true">
         @if (Live)
         {
@@ -100,6 +105,7 @@
             }
         }
     </CascadingValue>
+    </CascadingValue>
 </ib-kanban>
 
 @code {
@@ -145,6 +151,28 @@
     /// <c>context.CloseAsync()</c> when it has saved, and put <c>autofocus</c> on its first field.
     /// </summary>
     [Parameter] public RenderFragment<KanbanEditFormContext<TItem>>? EditDialogForm { get; set; }
+
+    /// <summary>
+    /// Puts a search box above the board that shows only the cards matching what's typed, in
+    /// their text and description or in <see cref="SearchBy"/>. On a static page the search is in
+    /// the page's address (<c>?q=…</c>) and applies on Enter.
+    /// </summary>
+    [Parameter] public bool Searchable { get; set; }
+
+    /// <summary>The search box's label and placeholder. Defaults to "Search".</summary>
+    [Parameter] public string? SearchLabel { get; set; }
+
+    /// <summary>What a card is searched by, such as <c>d =&gt; $"{d.Name} {d.Company}"</c>, in place of its text and description.</summary>
+    [Parameter] public Func<TItem, string?>? SearchBy { get; set; }
+
+    /// <summary>
+    /// Sorts each column's cards, such as <c>t =&gt; t.Due</c>, in place of the order they're
+    /// given in. A card moved to a column takes its sorted place there.
+    /// </summary>
+    [Parameter] public Func<TItem, IComparable?>? SortBy { get; set; }
+
+    /// <summary>With <see cref="SortBy"/>, sorts from last to first.</summary>
+    [Parameter] public bool SortDescending { get; set; }
 
     /// <summary>
     /// Runs when the user adds a column, on a static page too: with it, an Add column button after
@@ -1070,7 +1098,83 @@
         }
 
         (_class, _style) = BuildRootAttributes();
+        BuildView();
     }
+
+    // ---- Search and sort: which cards the columns show, and in what order. ----
+
+    private ZoneView<TItem>? _view;
+    private string? _typed;
+    private Func<TItem, IComparable?>? _sortedBy;
+    private bool _sortedDown;
+    private string? _searched;
+
+    internal string SearchKey => QueryPrefix + "q";
+
+    // What's searched for: typed on an interactive page, else the address's.
+    private string? CurrentSearch => !Searchable ? null : (_typed ?? Query(SearchKey)) is { Length: > 0 } text ? text.Trim() : null;
+
+    // Made again only when the search or the sort changes: the zones draw again when it does.
+    private void BuildView()
+    {
+        var search = CurrentSearch;
+        if (_view is not null && search == _searched && ReferenceEquals(SortBy, _sortedBy) && SortDescending == _sortedDown)
+        {
+            return;
+        }
+
+        (_searched, _sortedBy, _sortedDown) = (search, SortBy, SortDescending);
+        Func<TItem, bool>? shows = search is null ? null : item =>
+            (SearchBy is not null ? SearchBy(item) : $"{ItemText?.Invoke(item) ?? ItemLabel?.Invoke(item) ?? item?.ToString()} {ItemDescription?.Invoke(item)}")
+                ?.Contains(search, StringComparison.CurrentCultureIgnoreCase) == true;
+        Comparison<TItem>? order = SortBy is not { } by ? null : (a, b) =>
+        {
+            var compared = Comparer<IComparable?>.Default.Compare(by(a), by(b));
+            return SortDescending ? -compared : compared;
+        };
+        _view = shows is null && order is null ? null : new ZoneView<TItem>(shows, order);
+    }
+
+    private void OnSearch(ChangeEventArgs e)
+    {
+        _typed = e.Value?.ToString() ?? "";
+        BuildView();
+    }
+
+    // The search box: bound on an interactive page; on a static one a form that puts the search in
+    // the address, keeping what else is there.
+    private RenderFragment SearchBar => __builder =>
+    {
+        var label = SearchLabel ?? TextDefaults.Search;
+        <div class="ib-kanban-toolbar">
+            @if (RendererInfo.IsInteractive)
+            {
+                <div class="ib-field ib-field-sm ib-kanban-search" role="search">
+                    <div class="ib-field-control">
+                        <input type="search" class="ib-field-input" aria-label="@label" placeholder="@label" value="@(_typed ?? Query(SearchKey))" autocomplete="off" @oninput="OnSearch" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                var uri = new Uri(Navigation.Uri);
+                <form method="get" action="@uri.AbsolutePath" class="ib-field ib-field-sm ib-kanban-search" role="search">
+                    @foreach (var part in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var pair = part.Split('=', 2);
+                        var name = Uri.UnescapeDataString(pair[0].Replace('+', ' '));
+                        if (name != SearchKey && name != EditKey && name != ColumnKey && name != ColumnEditKey)
+                        {
+                            <input type="hidden" name="@name" value="@(pair.Length > 1 ? Uri.UnescapeDataString(pair[1].Replace('+', ' ')) : "")" />
+                        }
+                    }
+                    <div class="ib-field-control">
+                        <input type="search" class="ib-field-input" aria-label="@label" placeholder="@label" value="@Query(SearchKey)" autocomplete="off" name="@SearchKey" />
+                    </div>
+                </form>
+            }
+        </div>
+    };
 
     // The group's move, in the board's words. Handled here, so the board renders after it and the
     // columns count again.

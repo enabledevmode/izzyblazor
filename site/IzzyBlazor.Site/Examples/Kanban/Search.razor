@@ -1,0 +1,36 @@
+@* A bug board: the search box shows the bugs that match, and each column lists its bugs by the
+   day they're due. *@
+<Stack Grow>
+    <Kanban TItem="Bug" @bind-Items="_bugs" ItemKey="b => b.Id" ColumnOf="b => b.Status" ItemText="b => b.Title"
+            ItemDescription="@(b => $"Due {b.Due:MMM d}")" Searchable SearchLabel="Search bugs" SortBy="b => b.Due"
+            OnMove="Moved" QueryPrefix="bugs-" Label="Bugs">
+        <Columns>
+            <KanbanColumn Value="Reported" />
+            <KanbanColumn Value="Fixing" />
+            <KanbanColumn Value="Fixed" />
+        </Columns>
+    </Kanban>
+</Stack>
+
+@code {
+    private IReadOnlyList<Bug> _bugs =
+    [
+        new("1", "Checkout fails with a saved card", new(2026, 12, 4), "Reported"),
+        new("2", "Search ignores accented letters", new(2026, 12, 1), "Reported"),
+        new("3", "Export times out on large reports", new(2026, 12, 9), "Reported"),
+        new("4", "Checkout shows the wrong currency", new(2026, 11, 28), "Fixing"),
+        new("5", "Login loops after a password reset", new(2026, 11, 30), "Fixing"),
+        new("6", "Report totals round the wrong way", new(2026, 11, 24), "Fixed"),
+    ];
+
+    private void Moved(KanbanMoveEventArgs<Bug> move) => move.Item.Status = move.ToColumn;
+    @* hide *@
+    private sealed class Bug(string id, string title, DateOnly due, string status)
+    {
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+        public DateOnly Due { get; } = due;
+        public string Status { get; set; } = status;
+    }
+    @* /hide *@
+}

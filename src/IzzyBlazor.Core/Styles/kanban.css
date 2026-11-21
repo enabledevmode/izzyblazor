@@ -9,6 +9,17 @@
     container: ib-kanban / inline-size;
   }
 
+  /* The search box, above the board. */
+  .ib-kanban-toolbar {
+    display: flex;
+    margin-block-end: var(--ib-space-3);
+  }
+
+  .ib-kanban-search {
+    inline-size: 14rem;
+    max-inline-size: 100%;
+  }
+
   /* The columns share the width, none narrower than ColumnWidth; past that the board scrolls
      sideways. They're all as tall as the tallest, so a short column takes drops anywhere in it. */
   .ib-kanban-columns {

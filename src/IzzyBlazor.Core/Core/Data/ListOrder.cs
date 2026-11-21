@@ -186,6 +186,18 @@ internal readonly record struct ListEntry<TItem>(TItem Item, string Key, string?
 internal readonly record struct ListMoved(string Key, string? FromZone, int FromIndex, string? ToZone, int ToIndex);
 
 /// <summary>The ordering and move rules shared by ListView, DropZoneGroup and <see cref="ListOrder"/>.</summary>
+/// <summary>
+/// How a <c>DropZoneGroup</c>'s zones show their items, set by what's around it (a Kanban's search
+/// and sort): which items, and in what order within a zone. The group still holds every item.
+/// </summary>
+/// <typeparam name="TItem">The type of the items.</typeparam>
+internal sealed class ZoneView<TItem>(Func<TItem, bool>? shows, Comparison<TItem>? order)
+{
+    public Func<TItem, bool>? Shows { get; } = shows;
+
+    public Comparison<TItem>? Order { get; } = order;
+}
+
 internal static class ListArrangement
 {
     /// <summary>
