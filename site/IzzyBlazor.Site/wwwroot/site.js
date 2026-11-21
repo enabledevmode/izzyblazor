@@ -121,7 +121,9 @@
 
     if (saved.focus) {
       const current = [...document.querySelectorAll('.site-modeswitch a[data-mode][aria-current]')].find((link) => link.getClientRects().length > 0);
-      if (current) current.focus({ preventScroll: true });
+      // The header's menu is closed again: its button.
+      const back = current ?? [...document.querySelectorAll(".site-modeswitch [popovertarget]")].find((button) => button.getClientRects().length > 0);
+      if (back) back.focus({ preventScroll: true });
     }
   }
 
@@ -166,8 +168,7 @@
     if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     if (link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
     if (link.matches(".site-modeswitch a[data-mode]")) {
-      // A no-script page points an example's own switch at the example for JavaScript off
-      // (NoScriptExampleAnchors); here the saved place puts it back where it was instead.
+      // The saved place puts the page back where it was.
       const target = new URL(link.href, location.href);
       if (target.hash) {
         target.hash = "";

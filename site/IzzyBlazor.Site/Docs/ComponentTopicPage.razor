@@ -16,7 +16,7 @@
     <PageMeta Title="@($"{_topic.Title} · {_component.DisplayName} · IzzyBlazor")" Description="@_topic.Summary" Indexed="!_component.Preview" />
 
     <article class="site-article">
-        <ComponentHeader Component="_component" ApiComponent="@Api.Component(_component.Name)" Topic="_topic" ModeSwitch />
+        <ComponentHeader Component="_component" ApiComponent="@Api.Component(_component.Name)" Topic="_topic" />
 
         @if (TopicType(_component, _topic) is { } written)
         {

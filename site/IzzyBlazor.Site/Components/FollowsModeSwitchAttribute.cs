@@ -5,11 +5,10 @@ using Microsoft.AspNetCore.Components.Endpoints;
 namespace IzzyBlazor.Site.Components;
 
 /// <summary>
-/// Marks a page that has the Static · Interactive switch (ModeSwitch): its examples render in the
-/// picked mode, and in the no-script mode, App sends it no Blazor and no IzzyBlazor script. Every other page
-/// renders its examples in Static and keeps its script, so picking no script for the examples doesn't
-/// turn the rest of the site's script off on pages with no switch to turn it back on. A site test
-/// checks that a page has a switch exactly when it follows one.
+/// Marks a page whose examples follow the header's Static · Interactive choice (ModeSwitch): they
+/// render in the picked mode, and in the no-script mode, App sends the page no Blazor and no
+/// IzzyBlazor script. Every other page renders its examples in Static and keeps its script, so
+/// picking no script for the examples doesn't turn the rest of the site's script off.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class FollowsModeSwitchAttribute : Attribute
