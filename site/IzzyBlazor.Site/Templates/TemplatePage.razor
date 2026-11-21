@@ -5,8 +5,8 @@
 
 @*
     A starter's or kit's page, generated from its manifest (catalog/<id>/izzy.json): the commands
-    that create it, its screenshots (a kit: a Lightbox of its key screens, each in the light and the
-    dark scheme) or its picture (a starter), the options it takes, and the render modes it supports.
+    that create it, its screenshots (a kit: a Carousel of its key screens, each in the light and the
+    dark scheme, that open full size in a Lightbox) or its picture (a starter), the options it takes, and the render modes it supports.
 *@
 
 @if (_template is not null)
@@ -43,25 +43,36 @@
         @if (_screens.Count > 0)
         {
             <Heading Level="2" id="screens">Screens</Heading>
-            <TextBlock>@($"{_template.Name} running with its sample data. Choose one to see it full size.")</TextBlock>
+            <TextBlock>@($"{_template.Name} running with its sample data. Choose a screen to see it full size.")</TextBlock>
             <Lightbox Label="@($"{_template.Name} screens")" Counter Nav="LightboxNav.Thumbnails" Loop Class="site-template-screens">
-                <Stack Gap="4">
-                    <Grid Columns="new() { Base = 2, Md = 3 }" Gap="4">
-                        @foreach (var screen in _screens.Where(s => !s.Phone))
-                        {
-                            @Screen(screen)
-                        }
-                    </Grid>
+                <Carousel Label="@($"{_template.Name} screens")" Loop Dots="CarouselDots.Below">
+                    @foreach (var screen in _screens.Where(s => !s.Phone))
+                    {
+                        var path = Path(screen);
+                        <CarouselItem Label="@screen.Caption">
+                            <LightboxItem Src="@($"{path}.webp")" DarkSrc="@($"{path}-dark.webp")"
+                                          Thumbnail="@($"{path}-thumb.webp")" DarkThumbnail="@($"{path}-dark-thumb.webp")"
+                                          Alt="@screen.Alt" Caption="@screen.Caption" Class="site-template-screen">
+                                <Image Src="@($"{path}.webp")" DarkSrc="@($"{path}-dark.webp")" Alt="@screen.Alt"
+                                       Ratio="16 / 10.0" Lazy="@(screen != _screens[0])" />
+                            </LightboxItem>
+                        </CarouselItem>
+                    }
                     @if (_screens.Any(s => s.Phone))
                     {
-                        <Grid Columns="new() { Base = 3, Md = 6 }" Gap="4">
-                            @foreach (var screen in _screens.Where(s => s.Phone))
-                            {
-                                @Screen(screen)
-                            }
-                        </Grid>
+                        <CarouselItem Label="On a phone">
+                            <Row Gap="4" Justify="Justify.Center" Class="site-template-phones">
+                                @foreach (var screen in _screens.Where(s => s.Phone))
+                                {
+                                    var path = Path(screen);
+                                    <LightboxItem Src="@($"{path}.webp")" DarkSrc="@($"{path}-dark.webp")"
+                                                  Thumbnail="@($"{path}-thumb.webp")" DarkThumbnail="@($"{path}-dark-thumb.webp")"
+                                                  Alt="@screen.Alt" Caption="@screen.Caption" Class="site-template-screen" />
+                                }
+                            </Row>
+                        </CarouselItem>
                     }
-                </Stack>
+                </Carousel>
             </Lightbox>
         }
         else
@@ -140,14 +151,7 @@
         _options = _template.Options.ToList();
     }
 
-    // One screenshot: a link to the full image, light and dark, drawn from its smaller copy.
-    private RenderFragment Screen(TemplateScreen screen) => __builder =>
-    {
-        var path = $"img/templates/{_template!.Id}/{screen.File}";
-        <LightboxItem Src="@($"{path}.webp")" DarkSrc="@($"{path}-dark.webp")"
-                      Thumbnail="@($"{path}-thumb.webp")" DarkThumbnail="@($"{path}-dark-thumb.webp")"
-                      Alt="@screen.Alt" Caption="@screen.Caption" Class="site-template-screen" />
-    };
+    private string Path(TemplateScreen screen) => $"img/templates/{_template!.Id}/{screen.File}";
 
     // The first choice option set to something other than its default, as a worked example.
     private string OptionExample
