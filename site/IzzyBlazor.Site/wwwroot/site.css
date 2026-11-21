@@ -709,7 +709,7 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
    curve: the box paints the background itself. */
 .ex-theme { background: none; }
 /* The home hero's window: an example, so the library's surface, inside the dark band. */
-.ex-fixed-mode { margin: 0; white-space: nowrap; }
+.ex-fixed-mode, .ex-mode { margin: 0; white-space: nowrap; }
 .ex-needs-live { display: flex; align-items: center; justify-content: center; padding: var(--ib-space-6); }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
 /* The note's lines line up after the mode's name, not under it. */
@@ -776,14 +776,14 @@ html:has(.frame-no-scrollbar) { scrollbar-width: none; }
 .ex-widths a { text-decoration: none; }
 
 /*
- * The page's mode switch (ModeSwitch): a label and segmented link Tabs. At the top right of a
- * component page, opposite its name (under it where they don't fit on a line), and in an example's
- * row on a page that is one example. Hidden on pages with no example.
+ * The examples' mode (ModeSwitch): a menu in the docs header from 768px, and a label over a
+ * full-width pair of links at the top of the drawer below that.
  */
-.site-modeswitch { display: flex; align-items: center; gap: var(--ib-space-3); }
+.site-modeswitch-header { margin-inline: var(--ib-space-1); }
+.site-modeswitch-drawer { display: flex; flex-direction: column; gap: var(--ib-space-2); margin-block-end: var(--ib-space-4); }
 .site-modeswitch-label { font-size: var(--ib-text-sm); font-weight: 600; }
-.site-modeswitch-head { margin-inline-start: auto; }
-body:not(:has(.ex)) .site-modeswitch-head { display: none; }
+@media (width >= 768px) { .site-modeswitch-drawer { display: none; } }
+@media (width < 768px) { .site-modeswitch-header { display: none; } }
 
 /* The docs home: concepts, and the library by category. */
 .site-concept-title { margin: 0; }

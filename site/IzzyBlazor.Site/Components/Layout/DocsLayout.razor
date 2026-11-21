@@ -4,8 +4,10 @@
 @* /docs: articles, component pages and API reference, with the docs sidebar and "On this page". *@
 
 <AppShell Variant="ShellVariant.Flat" Class="site-shell site-shell-docs">
-    <SiteHeader Sidebar ContentWidth="Length.Rem(SiteWidths.Bars)" />
+    <SiteHeader Sidebar Examples ContentWidth="Length.Rem(SiteWidths.Bars)" />
     <AppSidebar Label="@(DocsNav.AreaOf(Navigation) switch { DocsArea.Components => "Components", DocsArea.Blocks => "Blocks", DocsArea.Templates => "Templates", _ => "Docs" })">
+        @* On phones, where the header has no room for it. *@
+        <ModeSwitch Placement="drawer" />
         <VersionMenu />
         <DocsNav />
     </AppSidebar>

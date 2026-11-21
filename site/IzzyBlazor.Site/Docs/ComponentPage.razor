@@ -6,8 +6,8 @@
 
 @*
     A component's Overview: a hand-written one where there is one (Docs/Overviews/{Name}Overview),
-    else one generated from the doc comment and components.json (Parts/GeneratedOverview). The mode
-    switch shows where there are previews.
+    else one generated from the doc comment and components.json (Parts/GeneratedOverview). Its previews run in the
+    mode picked in the header (ModeSwitch).
 *@
 
 @if (_component is not null)
@@ -16,7 +16,7 @@
     <PageMeta Title="@($"{_component.DisplayName} · IzzyBlazor")" Description="@(OverviewText.Sentence(ApiMetadata.PlainText(_api?.Summary)) ?? _component.Summary)" Indexed="!_component.Preview" />
 
     <article class="site-article">
-        <ComponentHeader Component="_component" ApiComponent="_api" ModeSwitch="@(_api is not null && FollowsSwitch(_component))" />
+        <ComponentHeader Component="_component" ApiComponent="_api" />
 
         @if (_api is not null)
         {

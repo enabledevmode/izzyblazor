@@ -1,17 +1,16 @@
 @inject NavigationManager Navigation
 
 @*
-    The page's Static · Interactive switch: links that load the page in that mode, the current one
-    marked. A third mode, no script (?mode=noscript: neither Blazor's nor IzzyBlazor's script), isn't
-    offered: it's how every page looks before its scripts run, kept for checking the fallback, and
-    shows in the switch only while the page is in it. The library's segmented TabNav draws it, with TabLink's Current, since the mode
-    may come from the cookie rather than the address. Every example on the page renders in the page's mode (ExampleViewer), so picking
-    another loads the page again in it; site.js keeps the scroll position.
+    The site's Static · Interactive choice: how every page's examples run. It's a site preference,
+    so it sits in the docs header beside the color-scheme switch, as a menu whose button shows the
+    current mode; on phones it's a segmented pair of links at the top of the drawer. Both are links
+    that load the page again in that mode, the current one marked; site.js keeps the place on the
+    page. Every example renders in the page's mode (ExampleViewer) and says which at the end of its
+    row.
 
-    A component page has it at the top right, opposite the page's name (ComponentHeader): the mode
-    is the site's, for every page's examples, so it sits with the page and not in its content. Each
-    option's tooltip says what the mode means. A page with an example and no switch of its own (an article, the docs overview)
-    has one copy, in the example's row.
+    A third mode, no script (?mode=noscript: neither Blazor's nor IzzyBlazor's script), isn't
+    offered: it's how every page looks before its scripts run, kept for checking the fallback, and
+    shows as a choice only while it's the mode.
 
     The mode comes from ?mode=, then the "site-mode" cookie, then Static. The server stores ?mode=
     in the cookie (SiteApp), so the next page opens in the same mode, with JavaScript off too, and
@@ -22,18 +21,42 @@
 *@
 
 <div class="@($"site-modeswitch site-modeswitch-{Placement}")">
-    @if (!Compact)
+    @if (Placement == "drawer")
     {
-        @* The Tabs' nav is named "Examples run" too, so the visible label isn't read twice. *@
+        @* The nav is named "Examples run" too, so the visible label isn't read twice. *@
         <span class="site-modeswitch-label" aria-hidden="true">Examples run</span>
+        <TabNav Label="Examples run" Variant="TabsVariant.Segmented" Size="ControlSize.Sm" FullWidth Class="site-modeswitch-options">
+            @foreach (var mode in Choices)
+            {
+                <TabLink Href="@Href(mode)" Label="@ModeChip.Name(mode)" Current="@(mode == _mode)"
+                         data-mode="@mode" data-enhance-nav="@EnhanceNav(mode)" />
+            }
+        </TabNav>
     }
-    <TabNav Label="Examples run" Variant="TabsVariant.Segmented" Size="ControlSize.Sm" Class="site-modeswitch-options">
-        @foreach (var mode in Offered.Concat(_mode == "noscript" ? ["noscript"] : []))
-        {
-            <TabLink Href="@Href(mode)" Label="@ModeChip.Name(mode)" Current="@(mode == _mode)"
-                     title="@Meaning(mode)" data-mode="@mode" data-enhance-nav="@(mode == "noscript" || _mode == "noscript" ? "false" : null)" />
-        }
-    </TabNav>
+    else
+    {
+        <Menu Placement="IzzyBlazor.Placement.BottomEnd" PanelWidth="Length.Rem(21)">
+            <Trigger>
+                @* "Static" alone says nothing out of context: the name is "Examples: Static". *@
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="@Icon(_mode)" EndIcon="Lucide.ChevronDown" @attributes="context">
+                    <VisuallyHidden>Examples: </VisuallyHidden>@ModeChip.Name(_mode)
+                </Button>
+            </Trigger>
+            <ChildContent>
+                <MenuRadioGroup Label="Examples run" Value="@_mode">
+                    @foreach (var mode in Choices)
+                    {
+                        <MenuItem Value="@mode" Href="@Href(mode)" Icon="@Icon(mode)" data-mode="@mode" data-enhance-nav="@EnhanceNav(mode)">
+                            <Stack Gap="0">
+                                <span>@ModeChip.Name(mode)</span>
+                                <TextBlock Size="TextSize.Xs" Color="Color.Muted">@Meaning(mode)</TextBlock>
+                            </Stack>
+                        </MenuItem>
+                    }
+                </MenuRadioGroup>
+            </ChildContent>
+        </Menu>
+    }
 </div>
 
 @code {
@@ -46,17 +69,25 @@
     /// <summary>The cookie that remembers the mode.</summary>
     public const string Cookie = "site-mode";
 
-    /// <summary>Where it sits, for CSS: <c>head</c> (a page's top right) or <c>example</c>.</summary>
-    [Parameter] public string Placement { get; set; } = "head";
-
-    /// <summary>Only the options, for an example's own row.</summary>
-    [Parameter] public bool Compact { get; set; }
+    /// <summary>Where it sits: <c>header</c> (a menu) or <c>drawer</c> (the phone drawer's pair of links).</summary>
+    [Parameter] public string Placement { get; set; } = "header";
 
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 
     private string _mode = "static";
 
     protected override void OnInitialized() => _mode = Current(Navigation, HttpContext);
+
+    private IEnumerable<string> Choices => Offered.Concat(_mode == "noscript" ? ["noscript"] : []);
+
+    private string? EnhanceNav(string mode) => mode == "noscript" || _mode == "noscript" ? "false" : null;
+
+    private static IconData Icon(string mode) => mode switch
+    {
+        "noscript" => Lucide.Code,
+        "interactive" => Lucide.Zap,
+        _ => Lucide.FileText,
+    };
 
     // The same page in that mode, keeping the rest of its address (an example's ?q=, say).
     private string Href(string mode) => Navigation.GetUriWithQueryParameter("mode", mode);
@@ -86,8 +117,8 @@
 
     private static string Meaning(string mode) => mode switch
     {
-        "noscript" => "No script: the HTML and CSS on their own, as every page starts before its scripts run.",
-        "interactive" => "An interactive page: C# runs over a Blazor Server connection.",
-        _ => "Static server-side rendering: no circuit, no WebAssembly.",
+        "noscript" => "The HTML and CSS on their own, no script.",
+        "interactive" => "C# runs over a Blazor Server connection.",
+        _ => "Rendered on the server, no connection.",
     };
 }

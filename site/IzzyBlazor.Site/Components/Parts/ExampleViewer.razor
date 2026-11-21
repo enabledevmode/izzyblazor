@@ -29,18 +29,23 @@
 
 @if (_example is not null)
 {
-    <section class="@_class" id="@_uid" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
+    <section class="@_class" id="@_uid" data-ex="@_example.Id" data-page-mode="@_pageMode" aria-label="@($"Example: {Title}")">
         @if (_source is null)
         {
             <span class="ex-title">@Title</span>
         }
-        @* Before the preview in reading order ("Always Interactive", the switches); the grid puts it at the
+        @* Before the preview in reading order ("Always Interactive" or the mode, the width switch); the grid puts it at the
            right of the row. *@
         <div class="ex-tools">
             @if (_example.Modes.Count == 1)
             {
                 @* Shown in its one mode whatever the page's (an example of Interactive-only behavior). *@
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-fixed-mode">Always @ModeChip.Name(_example.Modes[0])</TextBlock>
+            }
+            else
+            {
+                @* How this preview runs: the mode picked in the header. *@
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-mode">@ModeChip.Name(_mode)</TextBlock>
             }
             @if (WidthSwitch || _example.WidthSwitch)
             {
@@ -50,10 +55,6 @@
                     <a href="@WidthHref(false)" title="Desktop width" aria-current="@(_phone ? null : "true")"><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></a>
                     <a href="@WidthHref(true)" title="Phone width" aria-current="@(_phone ? "true" : null)"><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></a>
                 </nav>
-            }
-            @if (ModeSwitch)
-            {
-                <IzzyBlazor.Site.Components.Parts.ModeSwitch Placement="example" Compact />
             }
         </div>
         @if (_source is null)
@@ -83,12 +84,6 @@
 
     /// <summary>Adds a Desktop/Phone width switch, for page examples. An example can ask for one in components.json.</summary>
     [Parameter] public bool WidthSwitch { get; set; }
-
-    /// <summary>
-    /// Puts the page's mode switch in this viewer's row, for a page with no switch of its own,
-    /// such as an article. Elsewhere the page has its own.
-    /// </summary>
-    [Parameter] public bool ModeSwitch { get; set; }
 
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 

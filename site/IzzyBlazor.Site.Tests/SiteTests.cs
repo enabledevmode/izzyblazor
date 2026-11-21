@@ -247,8 +247,9 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
             var shared = handlers.GroupBy(h => h).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
             Assert.True(shared.Count == 0, $"/{page} ({mode}) has two forms named {string.Join(", ", shared)}");
 
-            // A page without the switch shows its examples in Static.
-            var pageMode = html.Contains("class=\"site-modeswitch ", StringComparison.Ordinal) ? mode : "static";
+            // A page that doesn't follow the header's mode shows its examples in Static; each
+            // example says which mode its page is in.
+            var pageMode = Regex.Match(html, "data-page-mode=\"(\\w+)\"") is { Success: true } said ? said.Groups[1].Value : "static";
             foreach (var id in Regex.Matches(html, "data-ex=\"([^\"]+)\"").Select(m => m.Groups[1].Value).Distinct())
             {
                 AssertRendered(Example(html, id), site.Registry.Example(id)!.Value.Example, pageMode, page);
@@ -343,23 +344,6 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.DoesNotContain("scripting:", chart);
     }
 
-    [Fact]
-    public async Task A_page_follows_off_exactly_when_it_has_the_switch()
-    {
-        // Picking Off is about the examples on pages with the switch: any other page keeps its
-        // script, since it has no switch to turn it back on. Those pages are [FollowsModeSwitch].
-        foreach (var page in ExamplePages.Concat(["docs/components/button/api", "docs/components", "docs/get-started", "docs/components/app-shell"]))
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Get, page);
-            request.Headers.Add("Cookie", "site-mode=noscript");
-            var html = await (await site.Client.SendAsync(request)).Content.ReadAsStringAsync();
-            var hasSwitch = html.Contains("class=\"site-modeswitch ", StringComparison.Ordinal);
-
-            Assert.True(hasSwitch == html.Contains("data-site-noscript", StringComparison.Ordinal),
-                $"/{page}: {(hasSwitch ? "has the switch but isn't [FollowsModeSwitch]" : "is Off with no switch")}");
-        }
-    }
-
     // The keys an example reads from the address, from its source: its own query parameters and
     // the library components that keep state there.
     private IEnumerable<string> QueryKeys(string id)
@@ -418,7 +402,8 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("docs/components/button?mode=nope", "nope", "static")]
     public async Task A_page_opens_in_the_linked_then_remembered_mode(string path, string? cookie, string expected)
     {
-        // ?mode= (a link can open a page in Off), then the cookie, then Static. The switch marks it.
+        // ?mode= (a link can open a page in Off), then the cookie, then Static. The header's menu
+        // and the drawer's links both mark it.
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
         if (cookie is not null)
         {
@@ -428,7 +413,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         var html = await (await site.Client.SendAsync(request)).Content.ReadAsStringAsync();
         var current = ModeLink().Matches(html).Where(m => m.Groups["current"].Success).Select(m => m.Groups["mode"].Value).ToList();
 
-        Assert.Equal([expected], current);
+        Assert.Equal([expected, expected], current);
     }
 
     private static string Example(string html, string id)
