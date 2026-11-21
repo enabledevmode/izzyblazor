@@ -13,14 +13,15 @@
 @if (_area == DocsArea.Components)
 {
     @* "All components" and, beside it, the list's order: by group, or every component A to Z. The
-       link is a list of its own, so the toggle sits next to it and not inside it. *@
+       button's icon is the order the list is in now, and its name is the order it switches to. The
+       link is a list of its own, so the button sits next to it and not inside it. *@
     <Row Gap="1" Align="Align.Center">
         <NavMenu Grow MinWidth="Length.Px(0)">
-            <NavItem Href="docs/components" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All" Current="@(_group is null ? null : false)">All components</NavItem>
+            <NavItem Href="docs/components" Match="NavLinkMatch.All" Current="@(_group is null ? null : false)">All components</NavItem>
         </NavMenu>
         <form method="post" action="docs/components/order" data-enhance>
             <input type="hidden" name="return" value="@_here" />
-            <ToggleButton name="az" @bind-Value="_az" Label="List A to Z" Icon="Lucide.ArrowDownAZ" IconOnly Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" SubmitOnChange />
+            <IconButton Submit Name="az" Value="@(_az ? "false" : "true")" Label="@(_az ? "List by group" : "List A to Z")" Icon="@(_az ? Lucide.ArrowDownAZ : Lucide.ListTree)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         </form>
     </Row>
     <NavMenu>

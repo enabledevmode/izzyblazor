@@ -422,7 +422,7 @@ public static class SiteApp
             return Results.Text(file.Css, "text/css");
         });
         // The search dialog's results as you type (site.js): the same markup the header renders.
-        // The components sidebar's order (DocsNav's toggle): kept in a cookie the sidebar reads as it
+        // The components sidebar's order (DocsNav's button): kept in a cookie the sidebar reads as it
         // renders, so it arrives in the reader's order. A post, not a link, so crawlers don't follow it.
         app.MapPost("/docs/components/order", async (HttpContext context) =>
         {
