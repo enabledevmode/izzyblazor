@@ -5,7 +5,7 @@
 
 @*
     The front door to the docs: what IzzyBlazor is, a first look at the code, one live example
-    under the page's mode switch, how it's built, what's in the box (from components.json), what it
+    in the mode picked in the header, how it's built, what's in the box (from components.json), what it
     needs, and where else to look. The sidebar covers the docs sections, so this page doesn't
     repeat them as cards.
 *@
@@ -33,7 +33,7 @@
     </Row>
 
     <Heading Level="2">Static · Interactive</Heading>
-    <TextBlock>Every example on this site runs both static and interactive. To pick one, use the switch, here and on component pages:</TextBlock>
+    <TextBlock>Every example on this site runs both static and interactive. Pick one from the menu in the header, beside the color-scheme switch (on a phone, at the top of the menu). Your choice applies on every page:</TextBlock>
     <List Gap="2">
         <ListItem><strong>Static</strong>: the server renders the page, and IzzyBlazor's script adds keyboard handling, live values and similar behavior. The page needs no circuit and no WebAssembly.</ListItem>
         <ListItem><strong>Interactive</strong>: the page runs on Blazor Server, so C# event handlers and <Code>@@bind</Code> work.</ListItem>
