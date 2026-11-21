@@ -97,6 +97,13 @@ export function trackDrag(options: SortOptions): void {
   let sideSnap = "";
   // How far it scrolled before the drag: the item's own offset would let it scroll on past its content.
   let sideMax = 0;
+  // In a zone that scrolls its own items (a board's column), the item leaves the list's flow so
+  // the scrolling box doesn't clip it over the other zones: where it started, the inline styles
+  // it had, and how far it has been moved. The items after it are held down by its space.
+  let floated: { left: number; top: number; styles: string | null; dx: number; dy: number } | null = null;
+  let lift = 0;
+  // Each zone's own scrolling box, found when the pointer first comes over it.
+  const scrollers = new Map<Element, Element | null>();
   let frame = 0;
   let held = 0;
   // The item follows the pointer sideways too: rows that wrap, or zones to move to.
@@ -157,6 +164,7 @@ export function trackDrag(options: SortOptions): void {
       });
     }
     if (options.targets) lifted = unclip(list);
+    if (options.targets && !wrap && units[from].length === 1 && scrollsWithin(list)) float();
     list.classList.add("ib-sortable-sorting");
     frame = requestAnimationFrame(autoScroll);
   };
@@ -177,11 +185,38 @@ export function trackDrag(options: SortOptions): void {
     for (const el of units[i]) el.style.transform = transform;
   };
 
+  // Moves another item of this column up or down. With the dragged item out of the flow, the ones
+  // after it start a space lower, where they were.
+  const shift = (i: number, by: number) => {
+    const total = by + (i > from ? lift : 0);
+    move(i, total ? `translateY(${total}px)` : "");
+  };
+
+  // Takes the item out of the list's flow, where it is, at its size. Wherever a fixed box is
+  // placed from (the window, or an ancestor that contains it), update moves it by what it measures.
+  const float = () => {
+    const box = item.getBoundingClientRect();
+    floated = { left: box.left, top: box.top, styles: item.getAttribute("style"), dx: 0, dy: 0 };
+    Object.assign(item.style, {
+      position: "fixed", left: "0", top: "0", width: `${box.width}px`, height: `${box.height}px`, margin: "0", boxSizing: "border-box", zIndex: "50",
+    });
+    lift = step;
+    items.forEach((_, i) => i !== from && shift(i, 0));
+  };
+
   const update = () => {
     const box = list.getBoundingClientRect();
     const dx = free ? x - startX + (startBox.left - box.left) : 0;
     const dy = y - startY + (startBox.top - box.top);
-    move(from, `translate(${dx}px, ${dy}px)`);
+    if (floated) {
+      // To where it started plus the pointer's move, from where it is now.
+      const now = item.getBoundingClientRect();
+      floated.dx += floated.left + (x - startX) - now.left;
+      floated.dy += floated.top + (y - startY) - now.top;
+      move(from, `translate(${floated.dx}px, ${floated.dy}px)`);
+    } else {
+      move(from, `translate(${dx}px, ${dy}px)`);
+    }
     zoneMarked?.removeAttribute("data-ib-drop");
     zoneMarked = null;
     target = targets.find((t) => within(t.area, x, y));
@@ -190,7 +225,7 @@ export function trackDrag(options: SortOptions): void {
     item.toggleAttribute("data-ib-refused", refused);
     if (refused) {
       // Over a zone that won't take it, or over no zone: everything stays put, and the drop does nothing.
-      items.forEach((_, i) => i !== from && move(i, ""));
+      items.forEach((_, i) => i !== from && (wrap ? move(i, "") : shift(i, 0)));
       to = from;
       return;
     }
@@ -198,7 +233,8 @@ export function trackDrag(options: SortOptions): void {
       // Over another zone: its own list closes up behind it, and the other opens a space where it lands.
       items.forEach((_, i) => {
         if (i === from) return;
-        move(i, i < from ? "" : wrap ? `translate(${lefts[i - 1] - lefts[i]}px, ${tops[i - 1] - tops[i]}px)` : `translateY(${-step}px)`);
+        if (wrap) move(i, i < from ? "" : `translate(${lefts[i - 1] - lefts[i]}px, ${tops[i - 1] - tops[i]}px)`);
+        else shift(i, i < from ? 0 : -step);
       });
       if (!openSpace(target)) markTarget(target);
       return;
@@ -216,8 +252,7 @@ export function trackDrag(options: SortOptions): void {
     });
     items.forEach((_, i) => {
       if (i === from) return;
-      const shift = from < to && i > from && i <= to ? -step : to < from && i >= to && i < from ? step : 0;
-      move(i, shift ? `translateY(${shift}px)` : "");
+      shift(i, from < to && i > from && i <= to ? -step : to < from && i >= to && i < from ? step : 0);
     });
   };
 
@@ -285,9 +320,15 @@ export function trackDrag(options: SortOptions): void {
       finish(false);
       return;
     }
-    const area = scroller === document.scrollingElement || !scroller
+    // Over another zone, that zone's own scrolling box; else this list's.
+    let vertical = scroller;
+    if (target) {
+      if (!scrollers.has(target.list)) scrollers.set(target.list, scrollParent(target.list));
+      vertical = scrollers.get(target.list) ?? null;
+    }
+    const area = vertical === document.scrollingElement || !vertical
       ? { top: 0, bottom: window.innerHeight }
-      : scroller.getBoundingClientRect();
+      : vertical.getBoundingClientRect();
     const speed =
       y < area.top + EDGE ? -Math.ceil(((area.top + EDGE - y) / EDGE) * MAX_SPEED)
       : y > area.bottom - EDGE ? Math.ceil(((y - (area.bottom - EDGE)) / EDGE) * MAX_SPEED)
@@ -307,7 +348,7 @@ export function trackDrag(options: SortOptions): void {
         else sideScroller.scrollLeft = left;
       }
     }
-    if (speed) (scroller ?? document.scrollingElement)?.scrollBy(0, speed);
+    if (speed) (vertical ?? document.scrollingElement)?.scrollBy(0, speed);
     if (speed || side) update();
     frame = requestAnimationFrame(autoScroll);
   };
@@ -331,6 +372,10 @@ export function trackDrag(options: SortOptions): void {
       zoneMarked?.removeAttribute("data-ib-drop");
       item.removeAttribute("data-ib-refused");
       for (const el of lifted) el.removeAttribute("data-ib-unclip");
+      if (floated) {
+        if (floated.styles === null) item.removeAttribute("style");
+        else item.setAttribute("style", floated.styles);
+      }
       for (const unit of units) for (const el of unit) el.style.transform = "";
       for (const el of units[from]) el.classList.remove("ib-sortable-dragging");
       // A column that opened a space keeps it until then, as this list keeps its order.
@@ -443,6 +488,16 @@ function scrollParent(el: Element): Element | null {
     if ((overflow === "auto" || overflow === "scroll") && node.scrollHeight > node.clientHeight) return node;
   }
   return document.scrollingElement;
+}
+
+/** Whether a zone's list is inside a box of its own that scrolls, within its drop zone group. */
+function scrollsWithin(list: Element): boolean {
+  const stop = list.closest(".ib-dropzone-group");
+  for (let node = list.parentElement; node && node !== stop; node = node.parentElement) {
+    const style = getComputedStyle(node);
+    if ([style.overflowX, style.overflowY].some((o) => o === "auto" || o === "scroll")) return true;
+  }
+  return false;
 }
 
 /** The nearest ancestor that scrolls sideways and has more to show, if any. */

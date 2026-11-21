@@ -42,7 +42,7 @@
 
                 <Kanban TItem="KanbanCard" @bind-Items="_cards" ItemKey="c => c.Id" ColumnOf="c => c.Column" OnMove="Moved"
                         Name="board" Order="Order" SubmitOnMove ItemLabel="c => c.Title" ItemHref="c => CardHref(c)" ItemCurrent="c => c.Id == Opened"
-                        EmptyText="No cards" Size="ControlSize.Sm" ColumnWidth="Length.Rem(15)" Label="Spring conference" TitleLevel="2" Context="card">
+                        EmptyText="No cards" Size="ControlSize.Sm" ColumnWidth="Length.Rem(15)" MaxHeight="Length.Rem(20)" Label="Spring conference" TitleLevel="2" Context="card">
                     <Columns>
                         @foreach (var column in Columns)
                         {

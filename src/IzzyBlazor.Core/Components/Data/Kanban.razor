@@ -147,6 +147,12 @@
     /// <summary>The narrowest a column gets before the board scrolls sideways. Defaults to 17rem.</summary>
     [Parameter] public Length ColumnWidth { get; set; } = Length.Rem(17);
 
+    /// <summary>
+    /// The tallest a column's cards get before they scroll under its header, such as
+    /// <c>Length.Vh(60)</c>. Without it, each column is as tall as its cards.
+    /// </summary>
+    [Parameter] public Length? MaxHeight { get; set; }
+
     /// <summary>Gives each column a button that collapses it to a strip with its title and count.</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public bool Collapsible { get; set; }
