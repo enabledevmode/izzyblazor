@@ -1,4 +1,5 @@
-# Fly.io: fly launch --copy-config, then fly volumes create data --size 1, then fly deploy.
+# Fly.io: fly launch --copy-config, then fly volumes create data --size 1, then
+# fly secrets set Admin__Email=you@example.com Admin__Password=… (the first admin: Data/Setup.cs), then fly deploy.
 # Pages are static and the sign-in and form keys are in the database, so any machine can serve any request: no
 # sticky sessions. SQLite on a volume keeps it to one machine; for more, move the database to Postgres.
 app = "{{HostName}}"

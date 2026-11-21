@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 namespace {{RootNamespace}}.Security;
 
 /// <summary>
-/// The app's roles. They're set here, in code, not edited in the app: a new role is a constant here, a line in
-/// the seeder (Data/SeedData.cs), its place in <see cref="Policies"/> and a member of the team list's UserRole.
+/// The app's roles. They're set here, in code, not edited in the app: a new role is a constant here (made in
+/// the database on the next start: Data/Setup.cs), its place in <see cref="Policies"/> and a member of the team list's UserRole.
 /// </summary>
 public static class Roles
 {

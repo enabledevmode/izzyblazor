@@ -76,8 +76,9 @@ builder.Services.AddDataProtection().PersistKeysToDbContext<ApplicationDbContext
 
 var app = builder.Build();
 
-// Creates the database on first run and fills it with sample data (Data/SeedData.cs).
-await app.SeedAsync();
+// Makes the database, the roles and the workspace, and on first run the first admin or, with Seed:SampleData on
+// (as it is in development), the sample team and its data (Data/Setup.cs).
+await app.SetupAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

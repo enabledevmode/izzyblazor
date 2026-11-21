@@ -14,7 +14,7 @@ public class AuditEvent
     /// <summary>When it happened, in UTC.</summary>
     public DateTime Time { get; set; }
 
-    /// <summary>The user who did it; null for the app itself (the seeder) or a login to an unknown account.</summary>
+    /// <summary>The user who did it; null for the app itself (the sample data) or a login to an unknown account.</summary>
     [StringLength(450)] public string? ActorId { get; set; }
 
     /// <summary>Their name or email as it was then, so the entry still reads after they're deleted.</summary>

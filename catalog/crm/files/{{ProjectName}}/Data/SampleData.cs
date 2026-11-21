@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using {{RootNamespace}}.Security;
@@ -6,35 +5,29 @@ using {{RootNamespace}}.Security;
 namespace {{RootNamespace}}.Data;
 
 /// <summary>
-/// Makes the database on first run (applying the migrations) and, while it has no users, fills it: the workspace,
-/// the roles and a team member for each, four companies and their people, the deals in the pipeline and those won
-/// and lost over the last three months, this week's activities, a note, and the audit history behind them, so every page has
-/// something to show. Dates are set around today. Delete Data/app.db to start again; remove the call in Program.cs
-/// to start empty.
+/// The sample data a new database starts with when Seed:SampleData is on (appsettings.Development.json has it on;
+/// Data/Setup.cs asks): a team member for each role, four companies and their people, the deals in the pipeline
+/// and those won and lost over the last three months, this week's activities, a note, and the audit history
+/// behind them, so every page has something to show. Dates are set around today. Delete Data/app.db to start
+/// again; turn Seed:SampleData off to start with one admin and nothing else.
 /// </summary>
-public static class SeedData
+public static class SampleData
 {
-    public static async Task SeedAsync(this WebApplication app)
+    /// <summary>Fills an empty database, naming its <paramref name="workspace"/> for the sample team.</summary>
+    public static async Task AddAsync(IServiceProvider services, IConfiguration configuration, ApplicationDbContext db, Workspace workspace)
     {
-        using var scope = app.Services.CreateScope();
-        var services = scope.ServiceProvider;
-        var db = services.GetRequiredService<ApplicationDbContext>();
-        await db.Database.MigrateAsync();
-        if (await db.Users.AnyAsync()) return;
-
-        var log = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(SeedData));
-        var config = app.Configuration.GetSection("Seed");
+        var log = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(SampleData));
+        var config = configuration.GetSection("Seed");
         var domain = config["Domain"] ?? "northstar.example";
         var password = config["Password"];
         if (string.IsNullOrEmpty(password))
         {
-            password = RandomNumberGenerator.GetString("ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789", 16) + "-1a";
+            password = Setup.NewPassword();
             log.LogWarning("Made the sample accounts. Log in as jamie@{Domain} (Admin) or alex@{Domain} (Manager) with {Password}, then change both: this is the only time it's shown.", domain, domain, password);
         }
 
         db.Auditing = false;
-        var workspace = new Workspace { Name = "Northstar Studio", Website = $"https://{domain}" };
-        db.Workspaces.Add(workspace);
+        (workspace.Name, workspace.Website) = ("Northstar Studio", $"https://{domain}");
 
         // The workspace's clock: activities are scheduled in its time zone, the audit log is in UTC.
         var zone = TimeZoneInfo.FindSystemTimeZoneById(workspace.TimeZone);
@@ -43,9 +36,7 @@ public static class SeedData
         DateTime Local(int days, int hour, int minute = 0) => Day(days).ToDateTime(new TimeOnly(hour, minute));
         DateTime Utc(int days, int hour, int minute = 0) => TimeZoneInfo.ConvertTimeToUtc(Local(days, hour, minute), zone);
 
-        // Roles and the team.
-        var roles = services.GetRequiredService<RoleManager<IdentityRole>>();
-        foreach (var role in Roles.All) await roles.CreateAsync(new IdentityRole(role));
+        // The team.
         var users = services.GetRequiredService<UserManager<ApplicationUser>>();
         async Task<ApplicationUser> Person(string name, string email, string role, DateTime created, bool invited = false)
         {

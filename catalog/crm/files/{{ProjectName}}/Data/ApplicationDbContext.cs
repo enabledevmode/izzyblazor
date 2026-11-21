@@ -25,7 +25,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     /// <summary>The keys that protect cookies and form tokens (Program.cs, AddDataProtection).</summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
-    /// <summary>Whether saves are written to the audit log; the seeder turns it off to write its own history.</summary>
+    /// <summary>Whether saves are written to the audit log; setup turns it off, and the sample data writes its own history.</summary>
     public bool Auditing { get; set; } = true;
 
     /// <summary>

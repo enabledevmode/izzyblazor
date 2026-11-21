@@ -32,6 +32,11 @@
         <ToolbarContent>
             <DataGridSearch />
         </ToolbarContent>
+        @* First use: no companies yet. *@
+        <EmptyContent>
+            <EmptyState TitleLevel="2" Icon="Lucide.BuildingComplex" Title="No companies yet"
+                        Description="@(_canEdit ? "Add a company to keep its people and deals together." : "Companies your team adds show here.")" />
+        </EmptyContent>
         <NoMatchesContent>
             <EmptyState TitleLevel="2" Icon="Lucide.SearchX" Title="No matching companies" Description="Try a different name, city, or owner. Your other companies are still here." />
         </NoMatchesContent>
