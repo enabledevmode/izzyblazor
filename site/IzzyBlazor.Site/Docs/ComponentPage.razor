@@ -16,18 +16,10 @@
     <PageMeta Title="@($"{_component.DisplayName} · IzzyBlazor")" Description="@(OverviewText.Sentence(ApiMetadata.PlainText(_api?.Summary)) ?? _component.Summary)" Indexed="!_component.Preview" />
 
     <article class="site-article">
-        <ComponentHeader Component="_component" ApiComponent="_api" />
+        <ComponentHeader Component="_component" ApiComponent="_api" ModeSwitch="@(_api is not null && FollowsSwitch(_component))" />
 
         @if (_api is not null)
         {
-            @if (FollowsSwitch(_component))
-            {
-                @* In the right column from 1024px, at the top of the content below that. Only with
-                   examples of its own (FollowsModeSwitchAttribute.PageMode). An example of a whole
-                   page (AppShell's) is a frame in the picked mode. *@
-                <SectionContent SectionName="@ModeSwitch.AsideSection"><ModeSwitch Placement="aside" /></SectionContent>
-                <ModeSwitch Placement="top" />
-            }
             @if (_overview is not null)
             {
                 <DynamicComponent Type="_overview" Parameters="_parameters" />

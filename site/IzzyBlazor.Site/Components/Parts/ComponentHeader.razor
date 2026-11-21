@@ -1,5 +1,5 @@
 @* The top of a component's pages, the same on each: breadcrumb, name with tier and version, the
-   summary, and Overview · API as links. *@
+   summary, and Overview · API as links. A page with examples has the mode switch opposite the name. *@
 
 <Stack Gap="4" Class="site-pagehead">
     <Breadcrumb>
@@ -30,6 +30,11 @@
                 <Badge Variant="BadgeVariant.Outline">Since @added</Badge>
             }
         }
+        @if (ModeSwitch)
+        {
+            @* Opposite the name: it sets the mode for every page's examples, not this page's content alone. *@
+            <IzzyBlazor.Site.Components.Parts.ModeSwitch Placement="head" />
+        }
     </Row>
     @* The registry's one-line summary, the same on every tab, so switching between Overview and
        API changes only what's below. A generated Overview shows the doc comment's fuller summary
@@ -46,6 +51,9 @@
     [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
 
     [Parameter] public ApiComponent? ApiComponent { get; set; }
+
+    /// <summary>Shows the Static · Interactive switch at the top right: on a page with examples.</summary>
+    [Parameter] public bool ModeSwitch { get; set; }
 
     /// <summary>On a topic's page: it takes the name's and summary's place, and the breadcrumb leads back to the component.</summary>
     [Parameter] public RegistryTopic? Topic { get; set; }

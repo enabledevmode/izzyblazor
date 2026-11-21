@@ -8,8 +8,9 @@
     may come from the cookie rather than the address. Every example on the page renders in the page's mode (ExampleViewer), so picking
     another loads the page again in it; site.js keeps the scroll position.
 
-    A component page has two copies, the right column's on wide screens and one at the top of the
-    content on narrow ones. A page with an example and no switch of its own (an article, the docs overview)
+    A component page has it at the top right, opposite the page's name (ComponentHeader): the mode
+    is the site's, for every page's examples, so it sits with the page and not in its content. Each
+    option's tooltip says what the mode means. A page with an example and no switch of its own (an article, the docs overview)
     has one copy, in the example's row.
 
     The mode comes from ?mode=, then the "site-mode" cookie, then Static. The server stores ?mode=
@@ -30,13 +31,9 @@
         @foreach (var mode in Offered.Concat(_mode == "noscript" ? ["noscript"] : []))
         {
             <TabLink Href="@Href(mode)" Label="@ModeChip.Name(mode)" Current="@(mode == _mode)"
-                     data-mode="@mode" data-enhance-nav="@(mode == "noscript" || _mode == "noscript" ? "false" : null)" />
+                     title="@Meaning(mode)" data-mode="@mode" data-enhance-nav="@(mode == "noscript" || _mode == "noscript" ? "false" : null)" />
         }
     </TabNav>
-    @if (!Compact)
-    {
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-modeswitch-text">@Meaning(_mode)</TextBlock>
-    }
 </div>
 
 @code {
@@ -46,14 +43,11 @@
     /// <summary>The modes the switch offers.</summary>
     public static readonly string[] Offered = ["static", "interactive"];
 
-    /// <summary>The docs layout's right-column section a component page puts its switch in.</summary>
-    public const string AsideSection = "site-mode-aside";
-
     /// <summary>The cookie that remembers the mode.</summary>
     public const string Cookie = "site-mode";
 
-    /// <summary>Where it sits, for CSS: <c>aside</c> (wide screens), <c>top</c> (narrow) or <c>example</c>.</summary>
-    [Parameter] public string Placement { get; set; } = "top";
+    /// <summary>Where it sits, for CSS: <c>head</c> (a page's top right) or <c>example</c>.</summary>
+    [Parameter] public string Placement { get; set; } = "head";
 
     /// <summary>Only the options, for an example's own row.</summary>
     [Parameter] public bool Compact { get; set; }
