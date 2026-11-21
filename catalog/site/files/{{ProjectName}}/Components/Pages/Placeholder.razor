@@ -5,7 +5,9 @@
 
 @* Where the header's and the footer's links go until they have pages of their own. A page with its own
    address (@@page "/pricing") takes over from this one; delete this file when none of the links is left.
-   Any other address is not found. *@
+   Any other address is not found. While this file is here, a link on an interactive page to a file
+   or an endpoint at the site's root (href="brochure.pdf") also lands on it and shows Not found:
+   give such a link target="_blank" or the download attribute, or delete this file. *@
 @if (_title is not null)
 {
     <Container Size="ContainerSize.Xs" Align="ContainerAlign.Center" MaxWidth="Length.Rem(27.5)" Gutters="false" MarginTop="new() { Base = 0, Md = 12 }">

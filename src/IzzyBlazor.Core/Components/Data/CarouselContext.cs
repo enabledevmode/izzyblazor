@@ -114,6 +114,7 @@ internal sealed class CarouselDotList : ComponentBase, IDisposable
     {
         var thumbnails = Context.Owner.Dots == CarouselDots.Thumbnails;
         var current = thumbnails ? Context.Owner.StartIndex : Context.Owner.StartDot;
+        var shown = thumbnails ? Math.Max(1, Context.Owner.ItemsPerView.Base) : 1;
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", thumbnails ? "ib-carousel-dots ib-carousel-thumbs" : "ib-carousel-dots");
         builder.AddAttribute(2, "data-ib-page-label", Text.SlidesRange);
@@ -127,12 +128,12 @@ internal sealed class CarouselDotList : ComponentBase, IDisposable
             builder.AddAttribute(6, "class", thumbnails ? "ib-carousel-dot ib-carousel-thumb" : "ib-carousel-dot");
             builder.AddAttribute(7, "aria-label", item?.Label is { Length: > 0 } label ? label : string.Format(Text.GoToSlide, i + 1));
             builder.AddAttribute(8, "aria-controls", Context.Owner.TrackId);
-            builder.AddAttribute(9, "aria-current", i == current ? "true" : null);
+            builder.AddAttribute(9, "aria-current", i >= current && i < current + shown ? "true" : null);
             if (item?.Thumbnail is { Length: > 0 } src)
             {
                 // The button has the name; the pictures are decoration.
-                Picture(builder, src, item.DarkThumbnail is null ? null : "ib-carousel-on-light");
-                if (item.DarkThumbnail is { } dark)
+                Picture(builder, src, item.DarkThumbnail is { Length: > 0 } ? "ib-carousel-on-light" : null);
+                if (item.DarkThumbnail is { Length: > 0 } dark)
                 {
                     Picture(builder, dark, "ib-carousel-on-dark");
                 }

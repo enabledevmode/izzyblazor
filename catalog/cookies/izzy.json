@@ -32,7 +32,7 @@
   "checks": [
     {
       "file": "Components/App.razor", "pattern": "<Routes\\s+@rendermode=\"Interactive",
-      "message": "App.razor makes every page interactive, so the settings page, which is static to save the visitor's choice in a cookie, shows Not found. Give Routes and HeadOutlet a render mode that's null for pages marked [ExcludeFromInteractiveRouting], as a new blazor app does: @rendermode=\"PageRenderMode\" with PageRenderMode => HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null."
+      "message": "App.razor makes every page interactive, so the settings page, which is static to save the visitor's choice in a cookie, shows Not found. Give Routes and HeadOutlet a render mode that's null for pages marked [ExcludeFromInteractiveRouting], as izzy new starter blazor does: @rendermode=\"PageRenderMode\" with PageRenderMode => HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null."
     }
   ],
   "inserts": [

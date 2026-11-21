@@ -1,7 +1,8 @@
 /*
  * A Splitter's OnePaneBelow, built to wwwroot/splitter-one.css and linked by a Splitter that sets
  * it, so other pages don't pay for it. Below the breakpoint the bars go and one pane fills the
- * splitter: the pane marked Current, or the first when none is. The sizes stay on the panes, so
+ * splitter: the pane marked Current, or the first when none is, even one left collapsed (there is
+ * no bar to restore it with). The sizes stay on the panes, so
  * they are back when the window widens.
  */
 @layer izzy.components {
@@ -20,7 +21,7 @@
       max-block-size: none;
     }
 
-    .ib-splitter-one-sm > .ib-split-current[hidden] {
+    .ib-splitter-one-sm > .ib-split-pane[hidden] {
       display: block;
     }
   }
@@ -40,7 +41,7 @@
       max-block-size: none;
     }
 
-    .ib-splitter-one-md > .ib-split-current[hidden] {
+    .ib-splitter-one-md > .ib-split-pane[hidden] {
       display: block;
     }
   }
@@ -60,7 +61,7 @@
       max-block-size: none;
     }
 
-    .ib-splitter-one-lg > .ib-split-current[hidden] {
+    .ib-splitter-one-lg > .ib-split-pane[hidden] {
       display: block;
     }
   }
@@ -80,7 +81,7 @@
       max-block-size: none;
     }
 
-    .ib-splitter-one-xl > .ib-split-current[hidden] {
+    .ib-splitter-one-xl > .ib-split-pane[hidden] {
       display: block;
     }
   }
@@ -100,7 +101,7 @@
       max-block-size: none;
     }
 
-    .ib-splitter-one-xxl > .ib-split-current[hidden] {
+    .ib-splitter-one-xxl > .ib-split-pane[hidden] {
       display: block;
     }
   }

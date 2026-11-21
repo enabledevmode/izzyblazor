@@ -268,15 +268,16 @@ class Carousel extends IzzyElement {
 
     const dots = this.#dots();
     if (dots && this.#thumbs(dots)) {
-      // One for each slide, the first in view current and kept in sight: the row scrolls, not the page.
+      // One for each slide, those in view current and the first kept in sight: the row scrolls, not the page.
       dots.hidden = count < 2;
       [...dots.children].forEach((thumb, i) => {
         const el = thumb as HTMLElement;
-        if (i !== index) {
+        if (i < index || i >= index + per) {
           el.removeAttribute("aria-current");
           return;
         }
         el.setAttribute("aria-current", "true");
+        if (i !== index) return;
         const row = dots.getBoundingClientRect();
         const r = el.getBoundingClientRect();
         dots.scrollBy({ left: r.left - row.left - (row.width - r.width) / 2, behavior: "instant" });

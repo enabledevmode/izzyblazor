@@ -3,7 +3,7 @@ using IzzyBlazor.Generation;
 namespace IzzyBlazor.Generation.Tests;
 
 /// <summary>
-/// The phase 1 gate for blocks: izzy add hero into a project blazor made. It writes the component, places
+/// The phase 1 gate for blocks: izzy add hero into a project the blazor starter made. It writes the component, places
 /// it on Home and imports its folder, warns that Home already has an h1, changes nothing when run again, and
 /// the project builds.
 /// </summary>

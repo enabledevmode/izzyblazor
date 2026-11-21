@@ -150,9 +150,10 @@
     // renders draw the same and Blazor's diff never undoes it.
     private int _startIndex;
 
-    /// <summary>The dot current on the first paint: the page the starting slide is on.</summary>
+    /// <summary>The slide the carousel starts on.</summary>
     internal int StartIndex => _startIndex;
 
+    /// <summary>The dot current on the first paint: the page the starting slide is on.</summary>
     internal int StartDot => Fade ? _startIndex : _startIndex / Math.Max(1, ItemsPerView.Base);
 
     internal bool Fade => Transition == CarouselTransition.Fade;

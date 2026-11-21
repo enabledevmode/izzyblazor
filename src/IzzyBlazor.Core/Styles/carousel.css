@@ -232,12 +232,12 @@
     justify-content: safe center;
     gap: var(--ib-space-2);
     overflow-x: auto;
-    padding: var(--ib-space-2) 2px 2px;
+    padding: var(--ib-space-2) 4px 4px;
     scrollbar-width: none;
   }
 
   .ib-carousel:not(.ib-carousel-single):has(> .ib-carousel-thumbs:not([hidden])) {
-    --ib-carousel-dots-h: calc(3rem + var(--ib-space-2) + 2px);
+    --ib-carousel-dots-h: calc(3rem + var(--ib-space-2) + 4px);
   }
 
   .ib-carousel-thumb {
@@ -284,6 +284,11 @@
     outline-offset: -2px;
   }
 
+  /* Outside the picture, so it shows on the current one too (the row's padding holds it). */
+  .ib-carousel-thumb:focus-visible {
+    outline-offset: 2px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .ib-carousel-thumb,
     .ib-carousel-dot::before,
@@ -296,12 +301,12 @@
 
   /* Forced colors drop backgrounds (and the pill): the dots keep system colors. */
   @media (forced-colors: active) {
-    .ib-carousel .ib-carousel-dot::before {
+    .ib-carousel .ib-carousel-dot:not(.ib-carousel-thumb)::before {
       forced-color-adjust: none;
       background: CanvasText;
     }
 
-    .ib-carousel .ib-carousel-dot[aria-current="true"]::before {
+    .ib-carousel .ib-carousel-dot:not(.ib-carousel-thumb)[aria-current="true"]::before {
       background: Highlight;
     }
 

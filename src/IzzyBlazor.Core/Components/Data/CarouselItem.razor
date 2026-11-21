@@ -42,6 +42,7 @@
 
     private string? _class;
     private bool _shownAtStart;
+    private (string?, string?, string?) _drawn;
     private string? _style;
 
     /// <inheritdoc />
@@ -68,6 +69,14 @@
     {
         Context!.Seen(this);
         (_class, _style) = BuildRootAttributes();
+
+        // The thumbnail row draws the slide's name and pictures: draw it again when they change.
+        var drawn = (Label, Thumbnail, DarkThumbnail);
+        if (drawn != _drawn)
+        {
+            _drawn = drawn;
+            if (Context.Rendered) Context.Dots?.Refresh();
+        }
     }
 
     // Slides came or went: the count in the name changed.

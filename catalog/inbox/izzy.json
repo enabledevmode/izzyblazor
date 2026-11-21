@@ -1,6 +1,6 @@
 // List and detail app: a shell that fills the window, with a sidebar of views, a list of tickets and the chosen
 // ticket beside it, each scrolling on its own; on phones the list and the ticket are two screens. Made over
-// blazor, with the welcome page as its Home. Design: artifacts/izzyblazor-handoff-starters.md (ST5).
+// the blazor starter, with the welcome page as its Home. Design: artifacts/izzyblazor-handoff-starters.md (ST5).
 {
   "id": "inbox",
   "name": "List and detail app",
