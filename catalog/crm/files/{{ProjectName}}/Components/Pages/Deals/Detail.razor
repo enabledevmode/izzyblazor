@@ -11,7 +11,7 @@
 
 @* A deal: where it is in the pipeline, what it's worth, what's next and what's been done. The stage strip follows
    the deal's stage, which changes from the header: Mark as won, or the arrow beside it for another stage (or
-   lost). Each posts here, writes "Changed stage" in the audit log and comes back with a toast. On a phone the
+   lost, which asks why in a dialog: ?dialog=lost-deal). Each posts here, writes "Changed stage" in the audit log and comes back with a toast. On a phone the
    same actions float in the corner, with the next stage in place of the menu. Its activity and the team's notes about
    it are one feed (Components/Activities/ActivityFeed.razor), and its files are in the database (Components/Deals/DealAttachments.razor).
    People who can't edit records (Viewers) read everything and see no buttons. *@
@@ -43,7 +43,7 @@
                                 }
                             </MenuGroup>
                             <MenuDivider />
-                            <MenuItem Submit Form="deal-action" Name="stage" Value="@nameof(DealStage.Lost)" Icon="Lucide.CircleX" Accent="Accent.Danger">Mark as lost</MenuItem>
+                            <MenuItem Href="@($"{Here}?dialog={LostId}")" Icon="Lucide.CircleX" Accent="Accent.Danger">Mark as lost</MenuItem>
                         </SplitButton>
                     }
                     else
@@ -59,7 +59,7 @@
                so the five fit a phone with the current stage's name beside its marker. *@
             @if (deal.Stage == DealStage.Lost)
             {
-                <Alert Status="Status.Neutral" Title="Deal lost">@(deal.Closed is { } lost ? $"Closed {lost.ToString(_workspace!.DateFormat)}." : "It’s out of the pipeline.")</Alert>
+                <Alert Status="Status.Neutral" Title="Deal lost">@(deal.Closed is { } lost ? $"Closed {lost.ToString(_workspace!.DateFormat)}." : "It’s out of the pipeline.")@(deal.LostReason is { } why ? $" Reason: {Names.Of(why).ToLowerInvariant()}." : null)</Alert>
             }
             else
             {
@@ -148,6 +148,7 @@
                     <SpeedDialAction Icon="Lucide.ArrowRight" Label="@($"Move to {deal.Stage + 1}")" Submit Form="deal-action" Name="stage" Value="@((deal.Stage + 1).ToString())" />
                 }
                 <SpeedDialAction Icon="Lucide.Pencil" Label="Edit deal" Href="@EditHref" />
+                <SpeedDialAction Icon="Lucide.CircleX" Label="Mark as lost" Href="@($"{Here}?dialog={LostId}")" />
             </SpeedDial>
         }
 
@@ -155,6 +156,21 @@
         <form id="deal-action" method="post" @formname="deal-action" @onsubmit="MoveAsync">
             <AntiforgeryToken />
         </form>
+    }
+
+    @* Mark as lost asks why first. *@
+    @if (_canEdit && deal.IsOpen && Dialog == LostId)
+    {
+        <Dialog Id="@LostId" Title="Mark as lost" Size="DialogSize.Sm" CloseOnBackdrop="false">
+            <Form Model="Lost" FormName="@LostId" OnValidSubmit="LoseAsync">
+                <TextBlock Color="Color.Muted">@($"{deal.Name} leaves the pipeline.")</TextBlock>
+                <Select @bind-Value="Lost!.Reason" Label="Reason" Placeholder="Choose a reason" />
+                <DialogFooter>
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Submit Accent="Accent.Danger">Mark as lost</Button>
+                </DialogFooter>
+            </Form>
+        </Dialog>
     }
 
     <DealDialog CanEdit="_canEdit" Deal="Id" />
@@ -170,6 +186,19 @@
 
     // The stage a button posted: a DealStage's name.
     [SupplyParameterFromForm(FormName = "deal-action", Name = "stage")] private string? StagePost { get; set; }
+
+    /// <summary>The dialog that asks why a deal was lost: <c>?dialog=lost-deal</c>.</summary>
+    public const string LostId = "lost-deal";
+
+    [SupplyParameterFromQuery(Name = "dialog")] private string? Dialog { get; set; }
+
+    // Why the deal was lost, as the dialog posts it.
+    [SupplyParameterFromForm(FormName = LostId)] private LostInput? Lost { get; set; }
+
+    private sealed class LostInput
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Choose a reason.")] public DealLostReason? Reason { get; set; }
+    }
 
     // The stages a deal moves through while it's open, in order.
     private static readonly DealStage[] Pipeline = [DealStage.Discovery, DealStage.Qualified, DealStage.Proposal, DealStage.Negotiation];
@@ -225,6 +254,7 @@
         var user = (await AuthState).User;
         _canEdit = (await Authorization.AuthorizeAsync(user, Policies.EditRecords)).Succeeded;
 
+        Lost ??= new();
         _deal = await Db.Deals.AsNoTracking().Include(d => d.Company).Include(d => d.Contact).Include(d => d.Owner).FirstOrDefaultAsync(d => d.Id == Id);
         if (_deal is null)
         {
@@ -252,6 +282,20 @@
                 case DealStage.Lost: Toasts.Success($"{deal.Name} is out of the pipeline.", "Deal marked as lost"); break;
                 default: Toasts.Success($"{deal.Name} is now in {to}.", "Stage changed"); break;
             }
+        }
+
+        Navigation.NavigateTo(Here);
+    }
+
+    // Marks the deal lost for the reason chosen, closing it today.
+    private async Task LoseAsync()
+    {
+        if (_canEdit && Lost?.Reason is { } why && Enum.IsDefined(why)
+            && await Db.Deals.FirstOrDefaultAsync(d => d.Id == Id) is { IsOpen: true } deal)
+        {
+            deal.LostReason = why;
+            await Audit.MoveAsync(deal, DealStage.Lost, _today);
+            Toasts.Success($"{deal.Name} is out of the pipeline.", "Deal marked as lost");
         }
 
         Navigation.NavigateTo(Here);

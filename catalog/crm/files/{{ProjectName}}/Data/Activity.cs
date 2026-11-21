@@ -33,6 +33,10 @@ public class Activity : IAudited
     /// <summary>Minutes before it starts to remind them: one of <see cref="Reminders"/>, or null for none.</summary>
     public int? Reminder { get; set; } = 30;
 
+    /// <summary>When the reminder was emailed, in UTC; null until it is, and again when the time or the reminder changes (Email/Reminders.cs).</summary>
+    [NotAudited]
+    public DateTime? Reminded { get; set; }
+
     /// <summary>Where it is, or a meeting link.</summary>
     [StringLength(300)] public string? Location { get; set; }
 

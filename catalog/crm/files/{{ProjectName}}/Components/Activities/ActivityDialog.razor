@@ -3,6 +3,7 @@
 @inject ApplicationDbContext Db
 @inject NavigationManager Navigation
 @inject ToastService Toasts
+@inject {{RootNamespace}}.Email.Mailer Mailer
 
 @* The activity form, in a dialog over the page that asked for it: a link to that page's own address with
    ?dialog=new-activity schedules one, and with ?dialog=edit-activity edits the page's activity. Put one on a page
@@ -38,7 +39,8 @@
                 <TimeField @bind-Value="Input.StartTime" Label="Start time" Step="TimeSpan.FromMinutes(15)" />
                 <Select @bind-Value="Input.Duration" Label="Duration" Items="_durations" ItemText="@(minutes => $"{minutes} minutes")" />
                 <Select @bind-Value="Input.AssignedToId" Label="Assigned to" Items="_teamIds" ItemText="id => _team[id!]" />
-                <Select @bind-Value="Input.Reminder" Label="Reminder" Items="Reminders" ItemText="Before" Placeholder="No reminder" />
+                <Select @bind-Value="Input.Reminder" Label="Reminder" Items="Reminders" ItemText="Before" Placeholder="No reminder"
+                        Hint="@(Mailer.Sends ? "Emailed to whoever it’s assigned to." : "Emailed once email is set up.")" />
                 <TextField @bind-Value="Input.Location" Label="Location or meeting link" autocomplete="off" />
             </Fieldset>
             <TextArea @bind-Value="Input.Agenda" Label="Agenda" Placeholder="What should you cover?" Rows="4" />
@@ -210,7 +212,10 @@
 
         // The form's fields and nothing else: who created it and whether it's done aren't the form's to set.
         (saved.Type, saved.Title, saved.ContactId, saved.DealId) = (Input.Type, Input.Title!.Trim(), Input.ContactId, Input.DealId);
-        (saved.Start, saved.Duration) = (Input.Date!.Value.ToDateTime(Input.StartTime!.Value), Input.Duration);
+        // Another time or another reminder is reminded of again (Email/Reminders.cs).
+        var start = Input.Date!.Value.ToDateTime(Input.StartTime!.Value);
+        if (start != saved.Start || Input.Reminder != saved.Reminder) saved.Reminded = null;
+        (saved.Start, saved.Duration) = (start, Input.Duration);
         (saved.AssignedToId, saved.Reminder, saved.Location, saved.Agenda) = (Blank(Input.AssignedToId), Input.Reminder, Blank(Input.Location), Blank(Input.Agenda));
         if (adding)
         {

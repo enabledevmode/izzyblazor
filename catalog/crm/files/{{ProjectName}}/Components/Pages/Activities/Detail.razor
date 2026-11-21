@@ -132,7 +132,7 @@
                 <Card Title="Activity ownership" TitleLevel="2">
                     <DescriptionList Orientation="Orientation.Vertical">
                         <DescriptionItem Term="Assigned to">@(activity.AssignedTo?.Name ?? "No one yet")</DescriptionItem>
-                        <DescriptionItem Term="Reminder">@(activity.Reminder switch { null => "No reminder", >= 1440 => "1 day before", var minutes => $"{minutes} minutes before" })</DescriptionItem>
+                        <DescriptionItem Term="Reminder">@(activity.Reminder switch { null => "No reminder", >= 1440 => "1 day before", var minutes => $"{minutes} minutes before" })@(activity.Reminder is not null && activity.Reminded is not null ? " · Sent" : null)</DescriptionItem>
                         @if (activity.CreatedBy is { } creator)
                         {
                             <DescriptionItem Term="Created by">@creator.Name</DescriptionItem>

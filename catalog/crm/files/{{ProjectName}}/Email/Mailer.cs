@@ -15,6 +15,7 @@ namespace {{RootNamespace}}.Email;
 /// Email__From=crm@example.com        an address the service lets you send from
 /// Email__FromName="Acme Sales"       the name beside it; the workspace's name without it
 /// Email__Port=587                    587 without it
+/// Email__AppUrl=https://crm.example.com   where the app is, for the link in a reminder
 /// </code>
 /// </summary>
 public sealed class EmailOptions
@@ -31,6 +32,9 @@ public sealed class EmailOptions
     public string? From { get; set; }
 
     public string? FromName { get; set; }
+
+    /// <summary>The app's own address, such as https://crm.example.com: a reminder links to its activity with it.</summary>
+    public string? AppUrl { get; set; }
 
     /// <summary>Whether the connection is encrypted (STARTTLS). Off only for a test server on your own machine.</summary>
     public bool Tls { get; set; } = true;
@@ -49,11 +53,11 @@ public sealed class Mailer(IOptions<EmailOptions> options, ILogger<Mailer> log)
     public bool Sends => !string.IsNullOrWhiteSpace(_options.Host) && !string.IsNullOrWhiteSpace(_options.From);
 
     /// <summary>
-    /// Sends a message of a few paragraphs with one link under them, as text and as HTML. False when it
+    /// Sends a message of a few paragraphs with one link under them (when there is one), as text and as HTML. False when it
     /// couldn't be sent: the log says why.
     /// </summary>
     /// <param name="from">The name it's from, such as the workspace's, when Email:FromName isn't set.</param>
-    public Task<bool> SendAsync(string to, string subject, string from, IReadOnlyList<string> paragraphs, string linkText, string link, string? after = null)
+    public Task<bool> SendAsync(string to, string subject, string from, IReadOnlyList<string> paragraphs, string linkText, string? link, string? after = null)
     {
         var text = new StringBuilder();
         var html = new StringBuilder("<div style=\"font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.5;color:#1f2933;max-width:32rem\">");
@@ -63,8 +67,12 @@ public sealed class Mailer(IOptions<EmailOptions> options, ILogger<Mailer> log)
             html.Append("<p>").Append(WebUtility.HtmlEncode(paragraph)).Append("</p>");
         }
 
-        text.AppendLine($"{linkText}: {link}");
-        html.Append("<p><a href=\"").Append(WebUtility.HtmlEncode(link)).Append("\">").Append(WebUtility.HtmlEncode(linkText)).Append("</a></p>");
+        if (link is not null)
+        {
+            text.AppendLine($"{linkText}: {link}");
+            html.Append("<p><a href=\"").Append(WebUtility.HtmlEncode(link)).Append("\">").Append(WebUtility.HtmlEncode(linkText)).Append("</a></p>");
+        }
+
         if (after is not null)
         {
             text.AppendLine().AppendLine(after);

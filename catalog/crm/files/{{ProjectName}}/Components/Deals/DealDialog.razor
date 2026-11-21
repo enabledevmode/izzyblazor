@@ -40,6 +40,11 @@
                 <Select @bind-Value="Input.Stage" Label="Stage" Items="@(adding ? Pipeline : Stages)" />
                 <DateField @bind-Value="Input.ExpectedClose" Label="Expected close date" />
                 <Select @bind-Value="Input.Source" Label="Source" Placeholder="Not recorded" />
+                @* A lost deal's reason, asked as it was marked lost (the deal's page), can be put right here. *@
+                @if (_lost)
+                {
+                    <Select @bind-Value="Input.LostReason" Label="Lost reason" Placeholder="Not recorded" />
+                }
             </Fieldset>
             <TextArea @bind-Value="Input.Scope" Label="Scope and next steps" Placeholder="What is included, and what needs to happen next?" Rows="4" />
             @* Editing, Delete is at the footer's other end: it asks first (the ConfirmDialog below). *@
@@ -112,6 +117,8 @@
 
         public DealSource? Source { get; set; }
 
+        public DealLostReason? LostReason { get; set; }
+
         [StringLength(4000, ErrorMessage = "Use 4,000 characters or fewer.")] public string? Scope { get; set; }
     }
 
@@ -128,6 +135,9 @@
     private List<string?> _ownerIds = [];
     private Workspace? _workspace;
     private string _currency = "USD";
+
+    // Whether the deal being edited is lost: its reason is a field then.
+    private bool _lost;
 
     // Which of the two the address opens, if either: edit only on a page with a deal.
     private string? Opened => Dialog == NewId ? NewId : Dialog == EditId && Deal is not null ? EditId : null;
@@ -149,12 +159,15 @@
 
         // A post brings the form's own values; otherwise the deal as it is, or a new one: yours, in Discovery, with
         // the page's company or person.
+        var current = Opened == EditId ? await Db.Deals.AsNoTracking().FirstOrDefaultAsync(d => d.Id == Deal) : null;
+        _lost = current?.Stage == DealStage.Lost;
         if (Input is not null) return;
         if (Opened == EditId)
         {
-            if (await Db.Deals.AsNoTracking().FirstOrDefaultAsync(d => d.Id == Deal) is { } deal)
+            if (current is { } deal)
                 Input = new DealInput
                 {
+                    LostReason = deal.LostReason,
                     Name = deal.Name, CompanyId = deal.CompanyId, ContactId = deal.ContactId, OwnerId = deal.OwnerId, Value = Plain(deal.Value),
                     Stage = deal.Stage, ExpectedClose = deal.ExpectedClose, Source = deal.Source, Scope = deal.Scope,
                 };
@@ -209,6 +222,7 @@
         var from = saved.Stage;
         (saved.Name, saved.CompanyId, saved.ContactId, saved.OwnerId) = (Input.Name!.Trim(), companyId, Input.ContactId, Blank(Input.OwnerId));
         (saved.Value, saved.ExpectedClose, saved.Source, saved.Scope) = (Input.Value!.Value, Input.ExpectedClose!.Value, Input.Source, Blank(Input.Scope));
+        saved.LostReason = Input.Stage == DealStage.Lost && Input.LostReason is { } why && Enum.IsDefined(why) ? why : null;
         if (adding)
         {
             (saved.Stage, saved.Created) = (Input.Stage, today);

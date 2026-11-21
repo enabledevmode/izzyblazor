@@ -12,8 +12,9 @@ public class Contact : IAudited
 
     [Required(ErrorMessage = "Enter a last name."), StringLength(60)] public string LastName { get; set; } = "";
 
-    [Required(ErrorMessage = "Enter an email address."), EmailAddress(ErrorMessage = "Enter an email address like name@example.com."), StringLength(256)]
-    public string Email { get; set; } = "";
+    /// <summary>Their address, when there is one: no two contacts share it.</summary>
+    [EmailAddress(ErrorMessage = "Enter an email address like name@example.com."), StringLength(256)]
+    public string? Email { get; set; }
 
     [Phone(ErrorMessage = "Enter a phone number, digits with spaces or dashes."), StringLength(40)] public string? Phone { get; set; }
 
@@ -29,8 +30,6 @@ public class Contact : IAudited
     public ContactStatus Status { get; set; }
 
     public LeadSource? Source { get; set; }
-
-    public DateOnly? NextFollowUp { get; set; }
 
     [StringLength(2000)] public string? Notes { get; set; }
 

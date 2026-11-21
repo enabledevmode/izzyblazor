@@ -37,6 +37,9 @@ public class Deal : IAudited
     /// <summary>The day it was won or lost; null while it's open.</summary>
     public DateOnly? Closed { get; set; }
 
+    /// <summary>Why it was lost, asked as it's marked lost; null for any other deal.</summary>
+    public DealLostReason? LostReason { get; set; }
+
     /// <summary>Still in the pipeline: not won, not lost.</summary>
     public bool IsOpen => Stage < DealStage.Won;
 
@@ -45,6 +48,17 @@ public class Deal : IAudited
 
 /// <summary>The pipeline's stages in order, then how a deal ends.</summary>
 public enum DealStage { Discovery, Qualified, Proposal, Negotiation, Won, Lost }
+
+/// <summary>Why a deal was lost, in the order the form offers them.</summary>
+public enum DealLostReason
+{
+    Price,
+    Timing,
+    [Display(Name = "Chose a competitor")] Competitor,
+    [Display(Name = "No decision")] NoDecision,
+    [Display(Name = "Not a fit")] NotAFit,
+    Other,
+}
 
 public enum DealSource
 {

@@ -25,7 +25,7 @@ public static class ContactImport
     internal static async Task<ImportPlan> PlanAsync(Import import, ApplicationDbContext db)
     {
         var contacts = new Dictionary<string, int>();
-        foreach (var contact in await db.Contacts.AsNoTracking().Select(c => new { c.Id, c.Email }).ToListAsync()) contacts.TryAdd(contact.Email.ToLowerInvariant(), contact.Id);
+        foreach (var contact in await db.Contacts.AsNoTracking().Where(c => c.Email != null).Select(c => new { c.Id, c.Email }).ToListAsync()) contacts.TryAdd(contact.Email!.ToLowerInvariant(), contact.Id);
         var companies = new Dictionary<string, int>();
         foreach (var company in await db.Companies.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync()) companies.TryAdd(company.Name.ToLowerInvariant(), company.Id);
 

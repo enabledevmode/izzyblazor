@@ -320,14 +320,13 @@ namespace {{RootNamespace}}.Data.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     FirstName = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
                     LastName = table.Column<string>(type: "TEXT", maxLength: 60, nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
                     Phone = table.Column<string>(type: "TEXT", maxLength: 40, nullable: true),
                     JobTitle = table.Column<string>(type: "TEXT", maxLength: 80, nullable: true),
                     CompanyId = table.Column<int>(type: "INTEGER", nullable: true),
                     OwnerId = table.Column<string>(type: "TEXT", nullable: true),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     Source = table.Column<int>(type: "INTEGER", nullable: true),
-                    NextFollowUp = table.Column<DateOnly>(type: "TEXT", nullable: true),
                     Notes = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
                     Added = table.Column<DateOnly>(type: "TEXT", nullable: false),
                     LastActivity = table.Column<DateTime>(type: "TEXT", nullable: true)
@@ -365,7 +364,8 @@ namespace {{RootNamespace}}.Data.Migrations
                     Source = table.Column<int>(type: "INTEGER", nullable: true),
                     Scope = table.Column<string>(type: "TEXT", maxLength: 4000, nullable: true),
                     Created = table.Column<DateOnly>(type: "TEXT", nullable: false),
-                    Closed = table.Column<DateOnly>(type: "TEXT", nullable: true)
+                    Closed = table.Column<DateOnly>(type: "TEXT", nullable: true),
+                    LostReason = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -404,6 +404,7 @@ namespace {{RootNamespace}}.Data.Migrations
                     Duration = table.Column<int>(type: "INTEGER", nullable: false),
                     AssignedToId = table.Column<string>(type: "TEXT", nullable: true),
                     Reminder = table.Column<int>(type: "INTEGER", nullable: true),
+                    Reminded = table.Column<DateTime>(type: "TEXT", nullable: true),
                     Location = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
                     Agenda = table.Column<string>(type: "TEXT", maxLength: 4000, nullable: true),
                     Completed = table.Column<DateTime>(type: "TEXT", nullable: true),

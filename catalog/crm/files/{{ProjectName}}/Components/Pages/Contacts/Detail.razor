@@ -26,7 +26,10 @@
             <PageHeaderMedia><Avatar Name="@contact.Name" Size="AvatarSize.Lg" Decorative /></PageHeaderMedia>
             @* On a phone Email and Call are a row under the header, and New deal floats in the corner. *@
             <PageHeaderActions>
-                <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" VisibleFrom="Breakpoint.Sm">Email</Button>
+                @if (contact.Email is not null)
+                {
+                    <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" VisibleFrom="Breakpoint.Sm">Email</Button>
+                }
                 @if (Tel(contact) is { } tel)
                 {
                     <Button Href="@tel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" VisibleFrom="Breakpoint.Sm">Call</Button>
@@ -38,13 +41,19 @@
             </PageHeaderActions>
         </PageHeader>
 
-        <Grid Columns="2" Gap="3" HiddenFrom="Breakpoint.Sm">
-            <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" FullWidth>Email</Button>
-            @if (Tel(contact) is { } phone)
-            {
-                <Button Href="@phone" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" FullWidth>Call</Button>
-            }
-        </Grid>
+        @if (contact.Email is not null || Tel(contact) is not null)
+        {
+            <Grid Columns="@(contact.Email is not null && Tel(contact) is not null ? 2 : 1)" Gap="3" HiddenFrom="Breakpoint.Sm">
+                @if (contact.Email is not null)
+                {
+                    <Button Href="@($"mailto:{contact.Email}")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail" FullWidth>Email</Button>
+                }
+                @if (Tel(contact) is { } phone)
+                {
+                    <Button Href="@phone" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Phone" FullWidth>Call</Button>
+                }
+            </Grid>
+        }
 
         @* Above the sections until the side column shows (1024px). *@
         <Box HiddenFrom="Breakpoint.Lg">@NextFollowUp</Box>
@@ -107,7 +116,10 @@
                         </CardActions>
                     }
                     <DescriptionList Orientation="Orientation.Vertical">
-                        <DescriptionItem Term="Email"><Anchor Href="@($"mailto:{contact.Email}")">@contact.Email</Anchor></DescriptionItem>
+                        @if (contact.Email is not null)
+                        {
+                            <DescriptionItem Term="Email"><Anchor Href="@($"mailto:{contact.Email}")">@contact.Email</Anchor></DescriptionItem>
+                        }
                         @if (Tel(contact) is { } tel)
                         {
                             <DescriptionItem Term="Phone"><Anchor Href="@tel">@contact.Phone</Anchor></DescriptionItem>

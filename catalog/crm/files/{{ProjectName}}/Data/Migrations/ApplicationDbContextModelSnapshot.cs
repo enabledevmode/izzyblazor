@@ -49,6 +49,9 @@ namespace {{RootNamespace}}.Data.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("Reminded")
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("Reminder")
                         .HasColumnType("INTEGER");
 
@@ -295,7 +298,6 @@ namespace {{RootNamespace}}.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
@@ -314,9 +316,6 @@ namespace {{RootNamespace}}.Data.Migrations
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(60)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateOnly?>("NextFollowUp")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Notes")
@@ -368,6 +367,9 @@ namespace {{RootNamespace}}.Data.Migrations
 
                     b.Property<DateOnly>("ExpectedClose")
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("LostReason")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()

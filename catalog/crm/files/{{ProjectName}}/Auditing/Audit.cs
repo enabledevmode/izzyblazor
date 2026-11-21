@@ -43,12 +43,13 @@ public sealed class Audit(ApplicationDbContext db, IHttpContextAccessor http)
     /// <summary>
     /// Moves a tracked <paramref name="deal"/> to another stage and saves it, as one line of its own in the log
     /// (not an ordinary change). Won or Lost closes it on <paramref name="today"/>; back in the pipeline, it's
-    /// open again.
+    /// open again. Why it was lost (Deal.LostReason) is the caller's to set, and goes when the deal isn't lost.
     /// </summary>
     public async Task MoveAsync(Deal deal, DealStage to, DateOnly today)
     {
         var from = deal.Stage;
         deal.Stage = to;
+        if (to != DealStage.Lost) deal.LostReason = null;
         deal.Closed = deal.IsOpen ? null : today;
         await db.SaveUnauditedAsync();
         await RecordAsync(AuditActions.StageChanged, nameof(Deal), deal.Id.ToString(), deal.Name, [new AuditChange("Stage", from.ToString(), to.ToString())]);

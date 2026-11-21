@@ -32,7 +32,6 @@
             <Select @bind-Value="Input.OwnerId" Label="Owner" Items="_ownerIds" ItemText="id => _owners[id!]" />
             <Select @bind-Value="Input.Status" Label="Status" />
             <Select @bind-Value="Input.Source" Label="Lead source" />
-            <DateField @bind-Value="Input.NextFollowUp" Label="Next follow-up" />
             <TextArea @bind-Value="Input.Notes" Label="Background" Placeholder="Helpful context about this person…" ColSpan="GridSpan.Full" />
             @* Editing, Delete is at the footer's other end: it asks first (the ConfirmDialog below). *@
             <DialogFooter Justify="@(adding ? Justify.End : Justify.Between)">
@@ -126,10 +125,10 @@
             return;
         }
 
-        // One contact per email address.
-        var email = Input.Email.Trim();
+        // One contact per email address, for those who have one.
+        var email = Blank(Input.Email);
         // SQLite compares text by case, so both sides are lowered: Olivia@ is olivia@.
-        if (await Db.Contacts.AnyAsync(c => c.Email.ToLower() == email.ToLower() && c.Id != saved.Id))
+        if (email is not null && await Db.Contacts.AnyAsync(c => c.Email != null && c.Email.ToLower() == email.ToLower() && c.Id != saved.Id))
         {
             Fail(form, nameof(Input.Email), "Another contact has this email address.");
             return;
@@ -139,7 +138,7 @@
         (saved.FirstName, saved.LastName, saved.Email) = (Input.FirstName.Trim(), Input.LastName.Trim(), email);
         (saved.Phone, saved.JobTitle, saved.Notes) = (Blank(Input.Phone), Blank(Input.JobTitle), Blank(Input.Notes));
         (saved.CompanyId, saved.OwnerId) = (Input.CompanyId, Blank(Input.OwnerId));
-        (saved.Status, saved.Source, saved.NextFollowUp) = (Input.Status, Input.Source, Input.NextFollowUp);
+        (saved.Status, saved.Source) = (Input.Status, Input.Source);
         if (adding)
         {
             saved.Added = DateOnly.FromDateTime(Clock.Now(await Db.Workspaces.AsNoTracking().FirstOrDefaultAsync()));

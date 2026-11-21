@@ -77,7 +77,6 @@ public static class SampleData
                 Phone = $"(212) 555-01{++phones:00}",
             };
         var olivia = Someone("Olivia", "Chen", acme, ContactStatus.Customer, jamie, Utc(0, 9, 15), -7, "Marketing director");
-        olivia.NextFollowUp = Day(2);
         olivia.Phone = "(212) 555-0148";
         olivia.Notes = "Prefers email for proposals and a short call for scope changes.\n\nBudget agreed in principle. Confirm the final decision-maker before closing.";
         var marcus = Someone("Marcus", "Reed", brightside, ContactStatus.Lead, jamie, Utc(-1, 15), -20);

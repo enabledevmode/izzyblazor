@@ -72,6 +72,8 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options => options.Val
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
 builder.Services.AddSingleton<Mailer>();
 builder.Services.AddScoped<IdentityEmails>();
+// An activity's reminder is emailed to whoever it's assigned to (Email/Reminders.cs).
+builder.Services.AddHostedService<Reminders>();
 builder.Services.AddScoped<IEmailSender<ApplicationUser>>(services => services.GetRequiredService<IdentityEmails>());
 
 // The keys that protect login cookies and form tokens, kept in the database, so every instance of the app
