@@ -14,59 +14,76 @@
     and out. To refuse cards, use Accepts, or cancel the move in the board's OnMove.
 *@
 
-@{
+@if (Row?.Lane is { } lane)
+{
+    @* A lane's cell: this column's cards in that lane. The column's header is in the row above. *@
+    <div class="ib-kanban-cell" data-ib-column="@Value">
+        @Cards(string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanCellName, TitleText, lane.TitleText))
+    </div>
+}
+else
+{
     var count = _items.Count;
     var summary = Board.ColumnSummary?.Invoke(_items);
     var addHref = Board.AddHref?.Invoke(Value!);
-}
-<section @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@_titleId" data-ib-column="@_zone"
-         data-ib-collapsed="@(IsCollapsed ? "" : null)" data-ib-off="@(Off(count) ? "" : null)"
-         data-ib-limit="@Limit?.ToString(CultureInfo.InvariantCulture)" data-ib-min="@MinItems?.ToString(CultureInfo.InvariantCulture)">
-    <div class="ib-kanban-header">
-        @if (Board.Collapsible)
-        {
-            <IconButton Icon="IconSet.Current.Get(IconPurpose.ChevronDown)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanColumnCards, TitleText)"
-                        Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-toggle"
-                        aria-expanded="@(IsCollapsed ? "false" : "true")" OnClick="ToggleAsync" />
-            @if (!Board.Live)
+    <section @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@_titleId" data-ib-column="@_zone"
+             data-ib-collapsed="@(IsCollapsed ? "" : null)" data-ib-off="@(Off(count) ? "" : null)"
+             data-ib-limit="@Limit?.ToString(CultureInfo.InvariantCulture)" data-ib-min="@MinItems?.ToString(CultureInfo.InvariantCulture)">
+        <div class="ib-kanban-header">
+            @if (Board.Collapsible && Row is null)
             {
-                <input type="hidden" class="ib-kanban-collapsed" name="@($"{KanbanPostBinding.Prefix}.Collapsed")" value="@_zone" disabled="@(!IsCollapsed)" />
+                <IconButton Icon="IconSet.Current.Get(IconPurpose.ChevronDown)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanColumnCards, TitleText)"
+                            Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-toggle"
+                            aria-expanded="@(IsCollapsed ? "false" : "true")" OnClick="ToggleAsync" />
+                @if (!Board.Live)
+                {
+                    <input type="hidden" class="ib-kanban-collapsed" name="@($"{KanbanPostBinding.Prefix}.Collapsed")" value="@_zone" disabled="@(!IsCollapsed)" />
+                }
             }
-        }
-        @if (Accent is not null)
+            @if (Accent is not null)
+            {
+                <span class="ib-kanban-dot" aria-hidden="true"></span>
+            }
+            @Heading
+            <span class="ib-kanban-count">
+                <span aria-hidden="true"><span class="ib-kanban-n">@count.ToString(CultureInfo.CurrentCulture)</span>@(Limit is { } limit ? $" / {limit.ToString(CultureInfo.CurrentCulture)}" : null)</span>
+                <span class="ib-visually-hidden ib-kanban-count-text">@CountText(count)</span>
+            </span>
+            @if (summary is not null)
+            {
+                <span class="ib-kanban-summary">@summary</span>
+            }
+            @if (addHref is null && !Board.OnAdd.HasDelegate && Board.Editable)
+            {
+                addHref = Board.EditHref(Kanban<TItem>.NewKey, Value);
+            }
+            @if (addHref is not null)
+            {
+                <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
+                            Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" Href="@addHref" />
+            }
+            else if (Board.OnAdd.HasDelegate)
+            {
+                <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
+                            Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" OnClick="() => Board.OnAdd.InvokeAsync(Value)" />
+            }
+        </div>
+        @if (Row is null)
         {
-            <span class="ib-kanban-dot" aria-hidden="true"></span>
+            @Cards(TitleText)
         }
-        @Heading
-        <span class="ib-kanban-count">
-            <span aria-hidden="true"><span class="ib-kanban-n">@count.ToString(CultureInfo.CurrentCulture)</span>@(Limit is { } limit ? $" / {limit.ToString(CultureInfo.CurrentCulture)}" : null)</span>
-            <span class="ib-visually-hidden ib-kanban-count-text">@CountText(count)</span>
-        </span>
-        @if (summary is not null)
-        {
-            <span class="ib-kanban-summary">@summary</span>
-        }
-        @if (addHref is null && !Board.OnAdd.HasDelegate && Board.Editable)
-        {
-            addHref = Board.EditHref(Kanban<TItem>.NewKey, Value);
-        }
-        @if (addHref is not null)
-        {
-            <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
-                        Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" Href="@addHref" />
-        }
-        else if (Board.OnAdd.HasDelegate)
-        {
-            <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
-                        Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" OnClick="() => Board.OnAdd.InvokeAsync(Value)" />
-        }
-    </div>
-    <ListView TItem="TItem" Class="ib-kanban-cards" Zone="@_zone" Label="@TitleText" Cards DragWholeItem="@(!Board.DragHandle)" Accepts="Accepts"
-              ItemLabel="@_itemLabel" ItemHref="_itemHref" OnItemClick="Board.OnItemClick" ItemCurrent="Board.ItemCurrent" ItemDisabled="Board.ItemDisabled"
-              EmptyText="@Board.EmptyText" Size="Board.Size" MaxHeight="Board.MaxHeight" ItemTemplate="_card" ItemMenu="_menu" />
-</section>
+    </section>
+}
 
 @code {
+    // The column's cards in a list of their own: a zone of the board's group.
+    private RenderFragment Cards(string label) => __builder =>
+    {
+        <ListView TItem="TItem" Class="ib-kanban-cards" Zone="@_zone" Label="@label" Cards DragWholeItem="@(!Board.DragHandle)" Accepts="Accepts"
+                  ItemLabel="@_itemLabel" ItemHref="_itemHref" OnItemClick="Board.OnItemClick" ItemCurrent="Board.ItemCurrent" ItemDisabled="Board.ItemDisabled"
+                  EmptyText="@Board.EmptyText" Size="Board.Size" MaxHeight="Board.MaxHeight" ItemTemplate="_card" ItemMenu="_menu" />
+    };
+
     private IReadOnlyList<TItem> _items = [];
 
     /// <summary>
@@ -107,6 +124,11 @@
 
     [CascadingParameter] private DropZoneGroup<TItem>? Group { get; set; }
 
+    // On a board with lanes, where this is drawn: the row of headers, or a lane's row of cells.
+    [CascadingParameter] private KanbanRow? Row { get; set; }
+
+    private bool IsCell => Row?.Lane is not null;
+
     private readonly string _titleId = IdGenerator.Next("ib-kanban-title");
     private Kanban<TItem> Board => Kanban!;
     private string _zone = "";
@@ -144,6 +166,7 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-kanban-column");
+        classes.Add("ib-kanban-head", Row is not null);
         if (Accent is { } accent)
         {
             styles.AddVar("kanban-accent", accent.ToColor().Css);
@@ -201,10 +224,14 @@
             }
         };
 
-        Board.AddColumn(this);
-        // The group tells its zones when the items or a move changed them; the header counts too.
-        Group.Changed += GroupChanged;
-        _subscribed = true;
+        // A lane's cell has no header: the column is the one in the row of headers.
+        if (!IsCell)
+        {
+            Board.AddColumn(this);
+            // The group tells its zones when the items or a move changed them; the header counts too.
+            Group.Changed += GroupChanged;
+            _subscribed = true;
+        }
     }
 
     /// <inheritdoc />
@@ -215,12 +242,13 @@
             throw new InvalidOperationException("A KanbanColumn needs a Value, such as Value=\"Done\": the ColumnOf of the cards it shows.");
         }
 
-        if (_zone.Length > 0 && _zone != KanbanZone.Of(Value))
+        var zone = KanbanZone.Of(Value, Row?.Lane?.Value);
+        if (_zone.Length > 0 && _zone != zone)
         {
             throw new InvalidOperationException("A KanbanColumn's Value can't change: give columns you render from a list an @key.");
         }
 
-        _zone = KanbanZone.Of(Value);
+        _zone = zone;
         if (Collapsed != _collapsedParam)
         {
             _collapsed = _collapsedParam = Collapsed;
@@ -229,12 +257,34 @@
         // A card opens its own page or runs the app's click; else, on a board with a form, the form.
         _itemHref = Board.ItemHref ?? (Board.Editable && !Board.OnItemClick.HasDelegate ? item => Board.EditHref(Board.ItemKey!(item)) : null);
         (_class, _style) = BuildRootAttributes();
-        _items = Group!.ItemsIn(_zone);
+        _items = Counted();
+    }
+
+    // The column's cards: on a board with lanes, in every lane.
+    private IReadOnlyList<TItem> Counted()
+    {
+        if (Row is null)
+        {
+            return Group!.ItemsIn(_zone);
+        }
+
+        if (IsCell)
+        {
+            return [];
+        }
+
+        var all = new List<TItem>();
+        foreach (var lane in Board.LaneList)
+        {
+            all.AddRange(Group!.ItemsIn(KanbanZone.Of(Value!, lane.Value)));
+        }
+
+        return all;
     }
 
     private void GroupChanged() => _ = InvokeAsync(() =>
     {
-        _items = Group!.ItemsIn(_zone);
+        _items = Counted();
         StateHasChanged();
     });
 

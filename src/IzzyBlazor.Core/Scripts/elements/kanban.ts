@@ -15,7 +15,8 @@ class Kanban extends IzzyElement {
       "click",
       (event) => {
         const button = (event.target as Element).closest<HTMLElement>(".ib-kanban-toggle");
-        const column = button?.closest<HTMLElement>(".ib-kanban-column");
+        // A column's button, or on a board with lanes a lane's.
+        const column = button?.closest<HTMLElement>(".ib-kanban-column, .ib-kanban-lane");
         if (!button || !column || column.closest("ib-kanban") !== this) return;
         const collapsed = column.toggleAttribute("data-ib-collapsed");
         button.setAttribute("aria-expanded", String(!collapsed));

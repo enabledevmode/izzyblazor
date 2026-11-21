@@ -2,6 +2,7 @@
 @typeparam TItem
 @inherits IzzyComponentBase
 @implements IDisposable
+@implements IKanbanLanes
 @using Microsoft.AspNetCore.Components.Forms
 @inject NavigationManager Navigation
 @attribute [CascadingTypeParameter(nameof(TItem))]
@@ -56,8 +57,8 @@
     <CascadingValue Value="this" IsFixed="true">
         @if (Live)
         {
-            <DropZoneGroup TItem="TItem" Class="ib-kanban-columns" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" ItemsChanged="ItemsChanged" OnMove="MovedAsync">
-                @Columns
+            <DropZoneGroup TItem="TItem" Class="@BoardClass" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" ItemsChanged="ItemsChanged" OnMove="MovedAsync">
+                @Inner
             </DropZoneGroup>
         }
         else
@@ -140,6 +141,16 @@
 
     /// <summary>The <see cref="KanbanColumn{TItem}"/>s, in the order shown.</summary>
     [Parameter] public RenderFragment? Columns { get; set; }
+
+    /// <summary>
+    /// The lane a card is in, matching a <see cref="KanbanLane"/>'s <c>Value</c>, such as
+    /// <c>t =&gt; t.Team</c>. With it, the board has a row for each lane in <see cref="Lanes"/>,
+    /// across every column, and a card moves between lanes as it does between columns.
+    /// </summary>
+    [Parameter] public Func<TItem, string>? LaneOf { get; set; }
+
+    /// <summary>The <see cref="KanbanLane"/>s, in the order shown, on a board with a <see cref="LaneOf"/>.</summary>
+    [Parameter] public RenderFragment? Lanes { get; set; }
 
     /// <summary>A card's content. Without it, <see cref="ItemText"/> and <see cref="ItemDescription"/> draw the card.</summary>
     [Parameter] public RenderFragment<TItem>? CardTemplate { get; set; }
@@ -231,9 +242,90 @@
 
     internal const string NewKey = "new";
 
+    private string BoardClass => LaneOf is null ? "ib-kanban-columns" : "ib-kanban-lanes";
+
+    private readonly List<KanbanLane> _laneList = [];
+    private readonly KanbanRow _heads = new(null);
+
+    /// <summary>The board's lanes, in the order they arrived.</summary>
+    internal IReadOnlyList<KanbanLane> LaneList => _laneList;
+
+    void IKanbanLanes.AddLane(KanbanLane lane)
+    {
+        if (!_laneList.Contains(lane))
+        {
+            _laneList.Add(lane);
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void IKanbanLanes.RemoveLane(KanbanLane lane)
+    {
+        if (_laneList.Remove(lane))
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    void IKanbanLanes.LaneChanged() => _ = InvokeAsync(StateHasChanged);
+
+    // The board's content: the columns, or with lanes a row of the columns' headers and a row of
+    // cells for each lane.
+    private RenderFragment Inner => __builder =>
+    {
+        if (LaneOf is null)
+        {
+            @Columns
+            return;
+        }
+
+        <CascadingValue Value="_heads" IsFixed="true">
+            <div class="ib-kanban-heads">@Columns</div>
+        </CascadingValue>
+        <CascadingValue Value="(IKanbanLanes)this" IsFixed="true">@Lanes</CascadingValue>
+        @foreach (var lane in _laneList)
+        {
+            var each = lane;
+            <section @key="each" class="ib-kanban-lane" aria-labelledby="@each.TitleId" data-ib-collapsed="@(Collapsible && each.IsCollapsed ? "" : null)">
+                <div class="ib-kanban-lane-header">
+                    @if (Collapsible)
+                    {
+                        <IconButton Icon="IconSet.Current.Get(IconPurpose.ChevronDown)" Label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.KanbanColumnCards, each.TitleText)"
+                                    Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-toggle"
+                                    aria-expanded="@(each.IsCollapsed ? "false" : "true")" OnClick="() => each.ToggleAsync()" />
+                    }
+                    @LaneTitle(each)
+                    @LaneCount(each)
+                </div>
+                <CascadingValue Value="each.Row" IsFixed="true">
+                    <div class="ib-kanban-cells">@Columns</div>
+                </CascadingValue>
+            </section>
+        }
+    };
+
+    private static RenderFragment LaneCount(KanbanLane lane) => builder =>
+    {
+        builder.OpenComponent<KanbanLaneCount<TItem>>(0);
+        builder.AddComponentParameter(1, nameof(KanbanLaneCount<TItem>.Lane), lane);
+        builder.CloseComponent();
+    };
+
+    private RenderFragment LaneTitle(KanbanLane lane) => builder =>
+    {
+        builder.OpenElement(0, $"h{TitleLevel}");
+        builder.AddAttribute(1, "class", "ib-kanban-lane-title");
+        builder.AddAttribute(2, "id", lane.TitleId);
+        builder.AddContent(3, lane.TitleText);
+        builder.CloseElement();
+    };
+
     internal string EditKey => QueryPrefix + "card";
 
     internal string ColumnKey => QueryPrefix + "column";
+
+    // On a board with lanes, a new card's: the first lane.
+    private string? NewLane() => LaneOf is null ? null : _laneList.Count > 0 ? _laneList[0].Value : "";
 
     private readonly List<KanbanColumn<TItem>> _columnList = [];
 
@@ -322,9 +414,9 @@
         var post = posted ?? Post;
         Posted = post.Posted ? post : null;
         <EditForm Model="post" FormName="@KanbanPostBinding.FormName" OnSubmit="PostedAsync" Enhance class="ib-kanban-form">
-            <DropZoneGroup TItem="TItem" Class="ib-kanban-columns" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" Name="@KanbanPostBinding.Prefix"
+            <DropZoneGroup TItem="TItem" Class="@BoardClass" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" Name="@KanbanPostBinding.Prefix"
                            Order="@(Posted is null || _cancelled ? null : post.ToListOrder())" SubmitOnMove @ref="_group">
-                @Columns
+                @Inner
             </DropZoneGroup>
         </EditForm>
     };
@@ -375,6 +467,7 @@
         {
             Item = item, Key = key, FromIndex = fromIndex, ToIndex = place.Index,
             FromColumn = KanbanZone.Column(from), ToColumn = KanbanZone.Column(place.Zone),
+            FromLane = KanbanZone.Lane(from), ToLane = KanbanZone.Lane(place.Zone),
         };
         // The order as posted, before the handler changes the cards.
         var arranged = _group.Arranged();
@@ -398,7 +491,7 @@
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        _zoneOf = item => KanbanZone.Of(ColumnOf!(item));
+        _zoneOf = item => KanbanZone.Of(ColumnOf!(item), LaneOf?.Invoke(item));
         if (RendererInfo.IsInteractive)
         {
             Navigation.LocationChanged += Moved;
@@ -480,7 +573,7 @@
             }
             else
             {
-                @EditDialogForm!(new KanbanEditFormContext<TItem>(item, isNew, isNew ? NewColumn() : ColumnOf!(item!), () =>
+                @EditDialogForm!(new KanbanEditFormContext<TItem>(item, isNew, isNew ? NewColumn() : ColumnOf!(item!), isNew ? NewLane() : LaneOf?.Invoke(item!), () =>
                 {
                     EndEdit();
                     return Task.CompletedTask;
@@ -506,7 +599,7 @@
         }
         else if (key == NewKey)
         {
-            _model = new KanbanEditFields { Column = NewColumn() };
+            _model = new KanbanEditFields { Column = NewColumn(), Lane = NewLane() };
         }
         else if (_editItem is { } item)
         {
@@ -515,6 +608,7 @@
                 Title = ItemText?.Invoke(item) ?? ItemLabel?.Invoke(item) ?? item.ToString(),
                 Description = ItemDescription?.Invoke(item),
                 Column = ColumnOf!(item),
+                Lane = LaneOf?.Invoke(item),
             };
         }
         else
@@ -537,6 +631,11 @@
             _model.Column = NewColumn();
         }
 
+        if (isNew && _model is not null && _laneList.Count > 0 && !_laneList.Any(l => l.Value == _model.Lane))
+        {
+            _model.Lane = NewLane();
+        }
+
         <Dialog Open="true" OpenChanged="OnDialogChanged" QueryKey="@EditKey" Title="@(isNew ? TextDefaults.KanbanNewTitle : TextDefaults.KanbanEditTitle)" Size="DialogSize.Md" CloseOnBackdrop="false">
             @if (_model is null || _context is null)
             {
@@ -551,6 +650,11 @@
                     {
                         <Select TValue="string" @bind-Value="_model.Column" name="@($"{name}.Column")" Label="@TextDefaults.KanbanColumnField"
                                 Items="@ColumnList.Select(c => c.Value!)" ItemText="@ColumnTitle" />
+                    }
+                    @if (LaneOf is not null && _laneList.Count > 0)
+                    {
+                        <Select TValue="string" @bind-Value="_model.Lane" name="@($"{name}.Lane")" Label="@TextDefaults.KanbanLaneField"
+                                Items="@_laneList.Select(l => l.Value!)" ItemText="@LaneTitleOf" />
                     }
                     @if (ItemDescription is not null)
                     {
@@ -583,6 +687,8 @@
 
         return value;
     }
+
+    private string LaneTitleOf(string value) => _laneList.FirstOrDefault(l => l.Value == value)?.TitleText ?? value;
 
     private void OnDialogChanged(bool open)
     {
@@ -622,6 +728,15 @@
         if (!ColumnList.Any(c => c.Value == _model.Column))
         {
             _model.Column = isNew ? NewColumn() : ColumnOf!(_editItem!);
+        }
+
+        if (LaneOf is null)
+        {
+            _model.Lane = null;
+        }
+        else if (!_laneList.Any(l => l.Value == _model.Lane))
+        {
+            _model.Lane = isNew ? NewLane() : LaneOf(_editItem!);
         }
 
         var save = new KanbanSave<TItem>(_editItem, isNew, _model, Error);
@@ -713,6 +828,7 @@
         {
             Item = move.Item, Key = move.Key, FromIndex = move.FromIndex, ToIndex = move.ToIndex,
             FromColumn = KanbanZone.Column(move.FromZone!), ToColumn = KanbanZone.Column(move.ToZone!),
+            FromLane = KanbanZone.Lane(move.FromZone!), ToLane = KanbanZone.Lane(move.ToZone!),
         };
         await OnMove.InvokeAsync(args);
         move.Cancel = args.Cancel;

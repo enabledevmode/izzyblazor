@@ -20,7 +20,13 @@ public sealed class KanbanMoveEventArgs<TItem>
     /// <summary>The column it moves to; the same as <see cref="FromColumn"/> when it only changes place.</summary>
     public required string ToColumn { get; init; }
 
-    /// <summary>Its place before the move, from 0, among its column's cards.</summary>
+    /// <summary>On a board with lanes, the lane it moves from: a <see cref="KanbanLane"/>'s <c>Value</c>.</summary>
+    public string? FromLane { get; init; }
+
+    /// <summary>On a board with lanes, the lane it moves to; the same as <see cref="FromLane"/> when it stays in its lane.</summary>
+    public string? ToLane { get; init; }
+
+    /// <summary>Its place before the move, from 0, among its column's cards (in its lane, on a board with lanes).</summary>
     public required int FromIndex { get; init; }
 
     /// <summary>Its place after the move, from 0, among the cards of the column it moves to.</summary>
@@ -90,6 +96,9 @@ public sealed class KanbanEditFields
     /// <summary>The column: a <see cref="KanbanColumn{TItem}"/>'s <c>Value</c>.</summary>
     public string? Column { get; set; }
 
+    /// <summary>On a board with lanes, the lane: a <see cref="KanbanLane"/>'s <c>Value</c>.</summary>
+    public string? Lane { get; set; }
+
     /// <summary>Set by the form's Delete button on a static page.</summary>
     public bool Remove { get; set; }
 }
@@ -124,6 +133,9 @@ public sealed class KanbanSave<TItem>
 
     /// <summary>The column: one of the board's, by its <c>Value</c>.</summary>
     public string Column => Fields.Column ?? "";
+
+    /// <summary>On a board with lanes, the lane: one of the board's, by its <c>Value</c>.</summary>
+    public string? Lane => Fields.Lane;
 
     internal bool HasErrors { get; private set; }
 
@@ -162,8 +174,8 @@ public sealed class KanbanEditFormContext<TItem>
 {
     private readonly Func<Task> _close;
 
-    internal KanbanEditFormContext(TItem? item, bool isNew, string column, Func<Task> close) =>
-        (Item, IsNew, Column, _close) = (item, isNew, column, close);
+    internal KanbanEditFormContext(TItem? item, bool isNew, string column, string? lane, Func<Task> close) =>
+        (Item, IsNew, Column, Lane, _close) = (item, isNew, column, lane, close);
 
     /// <summary>The card as the board has it, which isn't a copy, or the default for a new one.</summary>
     public TItem? Item { get; }
@@ -173,6 +185,9 @@ public sealed class KanbanEditFormContext<TItem>
 
     /// <summary>The card's column, or for a new card the column whose add button opened the form.</summary>
     public string Column { get; }
+
+    /// <summary>On a board with lanes, the card's lane, or the first lane for a new card.</summary>
+    public string? Lane { get; }
 
     /// <summary>Closes the dialog, once your form has saved.</summary>
     public Task CloseAsync() => _close();
@@ -199,7 +214,67 @@ internal sealed class KanbanEditBinding : ComponentBase
 /// </summary>
 internal static class KanbanZone
 {
-    public static string Of(string column) => Uri.EscapeDataString(column);
+    /// <summary>A column's zone, or on a board with lanes a cell's: the lane, a slash, the column.</summary>
+    public static string Of(string column, string? lane = null) =>
+        lane is null ? Uri.EscapeDataString(column) : Uri.EscapeDataString(lane) + "/" + Uri.EscapeDataString(column);
 
-    public static string Column(string zone) => Uri.UnescapeDataString(zone);
+    public static string Column(string zone) => Uri.UnescapeDataString(zone[(zone.IndexOf('/') + 1)..]);
+
+    public static string? Lane(string zone) => zone.IndexOf('/') is var slash and >= 0 ? Uri.UnescapeDataString(zone[..slash]) : null;
+}
+
+/// <summary>What a <see cref="KanbanLane"/> registers with: its board.</summary>
+internal interface IKanbanLanes
+{
+    void AddLane(KanbanLane lane);
+
+    void RemoveLane(KanbanLane lane);
+
+    void LaneChanged();
+}
+
+/// <summary>Where a board with lanes is drawing its columns: the row of headers (no lane), or a lane's row of cells.</summary>
+internal sealed class KanbanRow(KanbanLane? lane)
+{
+    public KanbanLane? Lane { get; } = lane;
+}
+
+/// <summary>A lane's count of cards, in its header: counted again when the board's cards move.</summary>
+internal sealed class KanbanLaneCount<TItem> : ComponentBase, IDisposable
+{
+    [CascadingParameter] private Kanban<TItem>? Board { get; set; }
+
+    [CascadingParameter] private DropZoneGroup<TItem>? Group { get; set; }
+
+    [Parameter] public KanbanLane? Lane { get; set; }
+
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    protected override void OnInitialized() => Group!.Changed += Changed;
+
+    private void Changed() => _ = InvokeAsync(StateHasChanged);
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        var count = 0;
+        foreach (var column in Board!.ColumnList)
+        {
+            count += Group!.ItemsIn(KanbanZone.Of(column.Value!, Lane!.Value)).Count;
+        }
+
+        var text = count.ToString(System.Globalization.CultureInfo.CurrentCulture);
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", "ib-kanban-count");
+        builder.OpenElement(2, "span");
+        builder.AddAttribute(3, "aria-hidden", "true");
+        builder.AddContent(4, text);
+        builder.CloseElement();
+        builder.OpenElement(5, "span");
+        builder.AddAttribute(6, "class", "ib-visually-hidden");
+        builder.AddContent(7, string.Format(System.Globalization.CultureInfo.CurrentCulture, IzzyText.From(Services).KanbanCount, text));
+        builder.CloseElement();
+        builder.CloseElement();
+    }
+
+    public void Dispose() => Group!.Changed -= Changed;
 }

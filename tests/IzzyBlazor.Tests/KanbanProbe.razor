@@ -13,6 +13,7 @@
         public string Id { get; } = id;
         public string Title { get; } = title;
         public string Status { get; set; } = status;
+        public string Team { get; set; } = "";
     }
 
     [Parameter] public IReadOnlyList<Job> Cards { get; set; } = [];

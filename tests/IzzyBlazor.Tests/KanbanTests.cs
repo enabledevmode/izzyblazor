@@ -94,6 +94,57 @@ public class KanbanTests : BunitContext
         Assert.Empty(cut.FindAll("dialog[open]"));
     }
 
+    [Fact]
+    public void A_board_with_lanes_shows_a_cell_per_lane_and_column_and_moves_between_lanes()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var moves = new List<KanbanMoveEventArgs<Job>>();
+        var jobs = new List<Job> { new("a", "Ada", "To do") { Team = "Design" }, new("b", "Brian", "To do") { Team = "Build" }, new("c", "Cleo", "Done") { Team = "Build" } };
+        var cut = Render<Kanban<Job>>(p => p
+            .Add(k => k.Items, jobs)
+            .Add(k => k.ItemKey, j => j.Id)
+            .Add(k => k.ColumnOf, j => j.Status)
+            .Add(k => k.LaneOf, j => j.Team)
+            .Add(k => k.ItemText, j => j.Title)
+            .Add(k => k.OnMove, (KanbanMoveEventArgs<Job> m) => { moves.Add(m); (m.Item.Status, m.Item.Team) = (m.ToColumn, m.ToLane!); })
+            .Add(k => k.Columns, b =>
+            {
+                b.OpenComponent<KanbanColumn<Job>>(0);
+                b.AddAttribute(1, nameof(KanbanColumn<Job>.Value), "To do");
+                b.CloseComponent();
+                b.OpenComponent<KanbanColumn<Job>>(2);
+                b.AddAttribute(3, nameof(KanbanColumn<Job>.Value), "Done");
+                b.CloseComponent();
+            })
+            .Add(k => k.Lanes, b =>
+            {
+                b.OpenComponent<KanbanLane>(0);
+                b.AddAttribute(1, nameof(KanbanLane.Value), "Design");
+                b.CloseComponent();
+                b.OpenComponent<KanbanLane>(2);
+                b.AddAttribute(3, nameof(KanbanLane.Value), "Build");
+                b.CloseComponent();
+            }));
+
+        string[] Cell(string lane, string column) => cut.FindAll(".ib-kanban-lane").Single(l => l.QuerySelector(".ib-kanban-lane-title")!.TextContent == lane)
+            .QuerySelectorAll($".ib-kanban-cell[data-ib-column='{column}'] .ib-kanban-card-text").Select(c => c.TextContent).ToArray();
+        string Head(string column) => cut.FindAll(".ib-kanban-head").Single(h => h.QuerySelector(".ib-kanban-title")!.TextContent == column)
+            .QuerySelector(".ib-kanban-count-text")!.TextContent;
+
+        Assert.Equal(new[] { "Ada" }, Cell("Design", "To do"));
+        Assert.Equal(new[] { "Brian" }, Cell("Build", "To do"));
+        // A column's header counts its cards in every lane.
+        Assert.Equal("Cards: 2", Head("To do"));
+
+        // Ada's menu: to Done in the Build lane.
+        cut.FindAll(".ib-kanban-lane")[0].QuerySelector("button[data-ib-move=to][data-ib-zone='Build/Done']")!.Click();
+
+        var move = Assert.Single(moves);
+        Assert.Equal(("To do", "Design", "Done", "Build"), (move.FromColumn, move.FromLane, move.ToColumn, move.ToLane));
+        Assert.Equal(new[] { "Cleo", "Ada" }, Cell("Build", "Done"));
+        Assert.Equal("Cards: 1", Head("To do"));
+    }
+
     private sealed class NoPosts : IFormValueMapper
     {
         public bool CanMap(Type valueType, string scopeName, string? formName) => false;

@@ -1230,6 +1230,12 @@ public class IzzyText
     /// <summary>The label of the column field in a Kanban's form.</summary>
     public virtual string KanbanColumnField { get; set; } = "Column";
 
+    /// <summary>The label of the lane field in a Kanban's form, on a board with lanes.</summary>
+    public virtual string KanbanLaneField { get; set; } = "Lane";
+
+    /// <summary>A Kanban cell's name, on a board with lanes: "Review, Design team". {0} is the column's title and {1} the lane's.</summary>
+    public virtual string KanbanCellName { get; set; } = "{0}, {1}";
+
     /// <summary>Shown in a Kanban's form when its card has gone.</summary>
     public virtual string KanbanGone { get; set; } = "This card isn't there any more.";
 

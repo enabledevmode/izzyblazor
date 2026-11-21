@@ -159,6 +159,7 @@ Image
 IzzyTheme
 Kanban
 KanbanColumn
+KanbanLane
 Kbd
 Lightbox
 LightboxItem

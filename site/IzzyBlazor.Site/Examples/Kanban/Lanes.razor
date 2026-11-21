@@ -1,0 +1,43 @@
+@* Work by team: LaneOf says which lane a task is in, and each KanbanLane is a row across the
+   columns. A task dragged to another lane changes team as well as status. *@
+<Stack Grow>
+    <Kanban TItem="TeamTask" @bind-Items="_tasks" ItemKey="t => t.Id" ColumnOf="t => t.Status" LaneOf="t => t.Team" ItemText="t => t.Title"
+            Collapsible OnMove="Moved" QueryPrefix="teams-" ColumnWidth="Length.Rem(14)" Size="ControlSize.Sm" Label="Work by team">
+        <Columns>
+            <KanbanColumn Value="To do" />
+            <KanbanColumn Value="In progress" Limit="3" />
+            <KanbanColumn Value="Done" />
+        </Columns>
+        <Lanes>
+            <KanbanLane Value="Design" />
+            <KanbanLane Value="Engineering" />
+            <KanbanLane Value="Marketing" />
+        </Lanes>
+    </Kanban>
+</Stack>
+
+@code {
+    private IReadOnlyList<TeamTask> _tasks =
+    [
+        new("1", "Onboarding screens", "Design", "To do"),
+        new("2", "Icon set for settings", "Design", "In progress"),
+        new("3", "Billing page layout", "Design", "Done"),
+        new("4", "Rate limiting for the API", "Engineering", "To do"),
+        new("5", "Migrate to the new queue", "Engineering", "In progress"),
+        new("6", "Fix the CSV import", "Engineering", "In progress"),
+        new("7", "Launch email", "Marketing", "To do"),
+        new("8", "Pricing page copy", "Marketing", "Done"),
+    ];
+
+    // Where an app saves the move: the task's status and, across lanes, its team.
+    private void Moved(KanbanMoveEventArgs<TeamTask> move) => (move.Item.Status, move.Item.Team) = (move.ToColumn, move.ToLane!);
+    @* hide *@
+    private sealed class TeamTask(string id, string title, string team, string status)
+    {
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+        public string Team { get; set; } = team;
+        public string Status { get; set; } = status;
+    }
+    @* /hide *@
+}
