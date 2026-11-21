@@ -263,13 +263,13 @@
     private static readonly ShowGroup[] Showcase =
     [
         new("data", "Data", "Grids, trees, lists and scheduling, with sorting, filtering, editing and export.",
-            ["Data", "Display"], ["DataGrid", "TreeList", "Table", "Scheduler", "TreeView", "ListView"]),
+            ["Data", "Display", "Media", "Conversation & AI"], ["DataGrid", "TreeList", "Table", "Scheduler", "TreeView", "ListView"]),
         new("charts", "Charts", "More than twenty chart types and gauges, drawn on the server as SVG, with zoom and drill-down.",
             ["Charts"], ["Chart", "SankeyChart", "PieChart", "HeatmapChart", "Gauge", "Sparkline"]),
         new("forms", "Forms and inputs", "Validated fields, selection, dates and file uploads, for static and interactive forms.",
-            ["Inputs", "Dropdowns", "Buttons"], ["Form", "TextField", "DateField", "Combobox", "MultiSelect", "FileUpload"]),
+            ["Inputs", "Date and time", "Dropdowns", "Buttons"], ["Form", "TextField", "DateField", "Combobox", "MultiSelect", "FileUpload"]),
         new("app", "App structure", "App shells, navigation, tabs, dialogs, drawers and feedback.",
-            ["Layout", "Navigation", "Overlays", "Feedback"], ["AppShell", "TileLayout", "Tabs", "Dialog", "Drawer", "ToastRegion"]),
+            ["Layout", "Navigation", "Disclosure", "Overlays", "Feedback"], ["AppShell", "TileLayout", "Tabs", "Dialog", "Drawer", "ToastRegion"]),
     ];
 
     private int Count(ShowGroup group) => group.Groups.Sum(g => Registry.InCategory(g).Count());
