@@ -15,7 +15,9 @@ namespace {{RootNamespace}}.Email;
 /// Email__From=crm@example.com        an address the service lets you send from
 /// Email__FromName="Acme Sales"       the name beside it; the workspace's name without it
 /// Email__Port=587                    587 without it
-/// Email__AppUrl=https://crm.example.com   where the app is, for the link in a reminder
+/// Email__AppUrl=https://crm.example.com   where the app is, for the links in its mail. Set it: without it an
+///                                         invitation or reset link uses the address the request came to, which
+///                                         a proxy that passes any Host header lets a stranger choose.
 /// </code>
 /// </summary>
 public sealed class EmailOptions
@@ -33,7 +35,7 @@ public sealed class EmailOptions
 
     public string? FromName { get; set; }
 
-    /// <summary>The app's own address, such as https://crm.example.com: a reminder links to its activity with it.</summary>
+    /// <summary>The app's own address, such as https://crm.example.com: the links in its mail start with it.</summary>
     public string? AppUrl { get; set; }
 
     /// <summary>Whether the connection is encrypted (STARTTLS). Off only for a test server on your own machine.</summary>
@@ -51,6 +53,13 @@ public sealed class Mailer(IOptions<EmailOptions> options, ILogger<Mailer> log)
 
     /// <summary>Whether mail is set up. Without it the team page hands the admin each link to pass on.</summary>
     public bool Sends => !string.IsNullOrWhiteSpace(_options.Host) && !string.IsNullOrWhiteSpace(_options.From);
+
+    /// <summary>
+    /// The address of one of the app's pages, such as "Account/ResetPassword", for a link in an email: under
+    /// Email:AppUrl when it's set, else under the address this request came to (<paramref name="request"/>).
+    /// </summary>
+    public string PageUrl(string page, Uri request) =>
+        _options.AppUrl is { Length: > 0 } app ? $"{app.TrimEnd('/')}/{page}" : new Uri(request, page).AbsoluteUri;
 
     /// <summary>
     /// Sends a message of a few paragraphs with one link under them (when there is one), as text and as HTML. False when it
@@ -96,8 +105,9 @@ public sealed class Mailer(IOptions<EmailOptions> options, ILogger<Mailer> log)
         {
             using var message = new MailMessage
             {
-                From = new MailAddress(_options.From!, string.IsNullOrWhiteSpace(_options.FromName) ? from : _options.FromName),
-                Subject = subject, Body = text, BodyEncoding = Encoding.UTF8, SubjectEncoding = Encoding.UTF8,
+                // One line each: a header can't hold a line break, wherever the words came from.
+                From = new MailAddress(_options.From!, OneLine(string.IsNullOrWhiteSpace(_options.FromName) ? from : _options.FromName)),
+                Subject = OneLine(subject), Body = text, BodyEncoding = Encoding.UTF8, SubjectEncoding = Encoding.UTF8,
             };
             message.To.Add(to);
             if (html is not null) message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(html, Encoding.UTF8, "text/html"));
@@ -107,10 +117,13 @@ public sealed class Mailer(IOptions<EmailOptions> options, ILogger<Mailer> log)
             await client.SendMailAsync(message);
             return true;
         }
-        catch (Exception problem) when (problem is SmtpException or IOException or FormatException or InvalidOperationException)
+        // Whatever went wrong (the server, its certificate, an address): the caller is told it wasn't sent.
+        catch (Exception problem) when (problem is not OperationCanceledException)
         {
             log.LogError(problem, "Couldn't send “{Subject}” to {To} through {Host}:{Port}.", subject, to, _options.Host, _options.Port);
             return false;
         }
     }
+
+    private static string OneLine(string text) => text.ReplaceLineEndings(" ").Trim();
 }

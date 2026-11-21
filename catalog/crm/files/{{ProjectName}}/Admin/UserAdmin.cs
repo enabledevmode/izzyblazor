@@ -187,7 +187,7 @@ public sealed class UserAdmin(UserManager<ApplicationUser> users, ApplicationDbC
     {
         var code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(await users.GeneratePasswordResetTokenAsync(user)));
         var page = StatusOf(user) == UserStatus.Invited ? "Account/AcceptInvitation" : "Account/ResetPassword";
-        return navigation.GetUriWithQueryParameters(navigation.ToAbsoluteUri(page).AbsoluteUri,
+        return navigation.GetUriWithQueryParameters(mailer.PageUrl(page, new Uri(navigation.BaseUri)),
             new Dictionary<string, object?> { ["userId"] = user.Id, ["code"] = code });
     }
 

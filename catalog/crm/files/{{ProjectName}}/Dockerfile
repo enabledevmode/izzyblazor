@@ -9,7 +9,8 @@ WORKDIR /app
 COPY --from=build /app .
 # The database lives on a volume at /data, so it outlasts the container. It starts empty, with one admin: run it
 # with -e Admin__Email=you@example.com (and Admin__Password; without it one is made up and written to the log,
-# once). For the sample team and its data instead, -e Seed__SampleData=true (Data/Setup.cs).
+# once). For the sample team and its data instead, -e Seed__SampleData=true (Data/Setup.cs). Once mail is set
+# up (Email/Mailer.cs), set Email__AppUrl to the app's address too.
 ENV ASPNETCORE_HTTP_PORTS=8080 \
     ConnectionStrings__DefaultConnection="DataSource=/data/app.db;Cache=Shared" \
     ASPNETCORE_FORWARDEDHEADERS_ENABLED=true

@@ -8,7 +8,8 @@ namespace {{RootNamespace}}.Email;
 /// Emails an activity's reminder to whoever it's assigned to, as long before it starts as the activity asks
 /// (Activity.Reminder). It looks once a minute while the app runs, and only when mail is set up
 /// (<see cref="Mailer.Sends"/>). Each reminder goes once, whichever copy of the app sees it first: the activity is
-/// marked (Activity.Reminded) before the mail is sent. One whose time has passed is not sent late.
+/// marked (Activity.Reminded) before the mail is sent, and unmarked if the mail can't be sent, to try again. One whose time has passed is not sent late, and someone
+/// deactivated gets none.
 /// </summary>
 public sealed class Reminders(IServiceScopeFactory scopes, Mailer mailer, IOptions<EmailOptions> options, ILogger<Reminders> log) : BackgroundService
 {
@@ -48,7 +49,8 @@ public sealed class Reminders(IServiceScopeFactory scopes, Mailer mailer, IOptio
             // Marked first, and only by one: another copy of the app finds it taken.
             var mine = await db.Activities.Where(a => a.Id == activity.Id && a.Reminded == null)
                 .ExecuteUpdateAsync(set => set.SetProperty(a => a.Reminded, DateTime.UtcNow), stopping);
-            if (mine == 0 || activity.AssignedTo?.Email is not { } to) continue;
+            // Not to someone deactivated (Identity's lockout: Admin/UserAdmin.cs).
+            if (mine == 0 || activity.AssignedTo is not { Email: { } to } assignee || assignee.LockoutEnd > DateTimeOffset.UtcNow) continue;
 
             var today = DateOnly.FromDateTime(now);
             var when = $"{When.Day(DateOnly.FromDateTime(activity.Start), today)} at {When.Time(activity.Start)}";
@@ -58,7 +60,8 @@ public sealed class Reminders(IServiceScopeFactory scopes, Mailer mailer, IOptio
 
             // The link needs the app's own address, which only configuration knows here (Email:AppUrl).
             var link = options.Value.AppUrl is { Length: > 0 } app ? $"{app.TrimEnd('/')}/activities/{activity.Id}" : null;
-            await mailer.SendAsync(to, $"Reminder: {activity.Title}", workspace?.Name ?? "Reminders", lines, "Open the activity", link);
+            if (!await mailer.SendAsync(to, $"Reminder: {activity.Title}", workspace?.Name ?? "Reminders", lines, "Open the activity", link))
+                await db.Activities.Where(a => a.Id == activity.Id).ExecuteUpdateAsync(set => set.SetProperty(a => a.Reminded, (DateTime?)null), stopping);
         }
     }
 }

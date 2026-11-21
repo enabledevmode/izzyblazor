@@ -8,7 +8,7 @@ namespace {{RootNamespace}}.Data;
 /// <summary>
 /// Contacts, companies and deals as CSV files, for a spreadsheet or another tool: every record, by name. The
 /// contact and company files have the columns Import reads (Data/ContactImport.cs, Data/CompanyImport.cs), so one
-/// can be changed and brought back. Anyone who may see records may download them; the Export buttons are on the
+/// can be changed and brought back (a contact needs an email address for that: Import matches by it). Anyone who may see records may download them; the Export buttons are on the
 /// three lists.
 /// </summary>
 public static class Export

@@ -43,7 +43,7 @@ public static class Setup
 
         if (app.Configuration.GetValue<bool>("Seed:SampleData"))
         {
-            await SampleData.AddAsync(services, app.Configuration, db, workspace);
+            await SampleData.AddAsync(services, app.Configuration, db, workspace, app.Environment.IsDevelopment());
             return;
         }
 

@@ -225,9 +225,19 @@
 
         // The form's fields and nothing else: who created it and whether it's done aren't the form's to set.
         (saved.Type, saved.Title, saved.ContactId, saved.DealId) = (Input.Type, Input.Title!.Trim(), Input.ContactId, Input.DealId);
-        // Another time or another reminder is reminded of again (Email/Reminders.cs).
+        // Another time, another reminder or another person is reminded again (Email/Reminders.cs).
         var start = Input.Date!.Value.ToDateTime(Input.StartTime!.Value);
-        if (start != saved.Start || Input.Reminder != saved.Reminder) saved.Reminded = null;
+        if (start != saved.Start || Input.Reminder != saved.Reminder || Blank(Input.AssignedToId) != saved.AssignedToId) saved.Reminded = null;
+
+        // What's logged has happened: it was done when it ended, or now if it's still going on.
+        var finished = DateTime.UtcNow;
+        if (logging)
+        {
+            if (start > Clock.Now(_workspace)) { Fail(form, nameof(Input.Date), "Choose a time that has passed, or schedule it instead."); return; }
+            var ended = TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(start.AddMinutes(Input.Duration), DateTimeKind.Unspecified), TimeZoneInfo.FindSystemTimeZoneById(_workspace!.TimeZone));
+            if (ended < finished) finished = ended;
+        }
+
         (saved.Start, saved.Duration) = (start, Input.Duration);
         (saved.AssignedToId, saved.Reminder, saved.Location, saved.Agenda) = (Blank(Input.AssignedToId), Input.Reminder, Blank(Input.Location), Blank(Input.Agenda));
         if (adding)
@@ -237,7 +247,7 @@
             // Logged, it's done already, and its contact has been heard from.
             if (logging)
             {
-                (saved.Completed, saved.Reminder) = (DateTime.UtcNow, null);
+                (saved.Completed, saved.Reminder) = (finished, null);
                 await Db.TouchContactAsync(saved.ContactId, saved.Completed.Value);
             }
         }

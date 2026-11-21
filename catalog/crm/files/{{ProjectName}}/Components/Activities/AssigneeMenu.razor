@@ -13,7 +13,7 @@
         <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.User" EndIcon="Lucide.ChevronDown" @attributes="context">@Shown</Button>
     </Trigger>
     <ChildContent>
-        <MenuItem Href="@Link(null)" Checked="@(Chosen is null)">Assigned to me</MenuItem>
+        <MenuItem Href="@Link(null)" Checked="@(string.IsNullOrEmpty(Who))">Assigned to me</MenuItem>
         <MenuItem Href="@Link(All)" Checked="@(Chosen == All)">Everyone</MenuItem>
         <MenuItem Href="@Link(None)" Checked="@(Chosen == None)">Unassigned</MenuItem>
         @if (_others.Count > 0)
@@ -43,8 +43,10 @@
     // The choice in the address, when it's one the menu offers.
     private string? Chosen => Who is All or None || _others.Any(o => o.Id == Who) ? Who : null;
 
+    // An id that's no one's now (a link kept from before someone left) still narrows the list, to nothing.
     private string Shown => Chosen switch
     {
+        null when !string.IsNullOrEmpty(Who) => "Former member",
         null => "Assigned to me",
         All => "Everyone",
         None => "Unassigned",

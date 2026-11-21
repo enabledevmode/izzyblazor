@@ -39,10 +39,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         finally { Auditing = true; }
     }
 
-    /// <summary>Marks a contact as heard from at <paramref name="at"/> (UTC); the caller saves.</summary>
+    /// <summary>Marks a contact as heard from at <paramref name="at"/> (UTC), unless they've been heard from since; the caller saves.</summary>
     public async Task TouchContactAsync(int? contact, DateTime at)
     {
-        if (contact is { } id && await Contacts.FirstOrDefaultAsync(c => c.Id == id) is { } about) about.LastActivity = at;
+        if (contact is { } id && await Contacts.FirstOrDefaultAsync(c => c.Id == id) is { } about && !(about.LastActivity > at)) about.LastActivity = at;
     }
 
     protected override void OnModelCreating(ModelBuilder builder)

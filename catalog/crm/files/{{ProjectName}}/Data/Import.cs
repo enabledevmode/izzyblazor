@@ -125,7 +125,10 @@ public class Import
             var values = new Dictionary<string, string>();
             for (var cell = 0; cell < all[at].Count && cell < columns.Length; cell++)
             {
-                if (all[at][cell].Trim() is { Length: > 0 } value) values.TryAdd(columns[cell], value);
+                // An export puts an apostrophe before a cell a spreadsheet would run as a formula (Data/Export.cs): "'+44 20…".
+                var text = all[at][cell].Trim();
+                if (text.Length > 1 && text[0] == '\'' && text[1] is '=' or '+' or '-' or '@') text = text[1..];
+                if (text is { Length: > 0 } value) values.TryAdd(columns[cell], value);
             }
             if (values.Count > 0) rows.Add(new ImportRow { Number = at + 1, Values = values });
         }

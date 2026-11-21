@@ -14,12 +14,13 @@ namespace {{RootNamespace}}.Data;
 public static class SampleData
 {
     /// <summary>Fills an empty database, naming its <paramref name="workspace"/> for the sample team.</summary>
-    public static async Task AddAsync(IServiceProvider services, IConfiguration configuration, ApplicationDbContext db, Workspace workspace)
+    /// <param name="development">Whether Seed:Password may set the accounts' password: only in development, so a file left in a deployment can't give it a known one.</param>
+    public static async Task AddAsync(IServiceProvider services, IConfiguration configuration, ApplicationDbContext db, Workspace workspace, bool development)
     {
         var log = services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(SampleData));
         var config = configuration.GetSection("Seed");
         var domain = config["Domain"] ?? "northstar.example";
-        var password = config["Password"];
+        var password = development ? config["Password"] : null;
         if (string.IsNullOrEmpty(password))
         {
             password = Setup.NewPassword();
