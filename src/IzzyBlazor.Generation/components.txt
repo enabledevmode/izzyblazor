@@ -157,6 +157,8 @@ Icon
 IconButton
 Image
 IzzyTheme
+Kanban
+KanbanColumn
 Kbd
 Lightbox
 LightboxItem
