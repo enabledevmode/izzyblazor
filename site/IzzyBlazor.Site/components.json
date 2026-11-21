@@ -3326,21 +3326,43 @@
     },
 
     {
-      "id": "drop-zone-group", "icon": "Columns3", "name": "DropZoneGroup", "category": "Data", "summary": "Builds kanban boards and available-to-chosen lists, with items dragged between them.", "keywords": ["drag and drop", "kanban", "board", "drop zone", "transfer list"],
+      "id": "drop-zone-group", "icon": "Columns3", "name": "DropZoneGroup", "category": "Data", "summary": "Moves items between lists you lay out yourself, such as available and chosen, by dragging or from each item's menu.", "keywords": ["drag and drop", "drop zone", "transfer list", "zones"],
       "features": [
         { "feature": "Moving between zones from each handle's menu (with JavaScript off, each move posts the form)" },
         { "feature": "Dragging between zones and announcements", "noscript": "none" },
         { "feature": "The moves bound to C#", "member": "Items" }
       ],
       "examples": [
-        { "id": "drop-zone-group-usage", "title": "A board", "lead": "Put a `ListView` with a `Zone` in the group for each column, anywhere in its layout. The group holds the items in `@bind-Items`, and `ZoneOf` returns the zone each one is in.", "after": ["To show a list's items as cards, set `Cards` on its `ListView`.", "On interactive pages, `@bind-Items` keeps the order, and `OnMove` (with `FromZone` and `ToZone`) is where you save a move.", "On static pages, give the group a `Name` and pass the posted `ListOrder` back as `Order`. `SubmitOnMove` posts each move, and `Order.Arrange` gives each item's zone and place to save.", "To limit what a zone accepts, set `Accepts` and `MaxItems`."],
+        { "id": "drop-zone-group-usage", "title": "A board", "lead": "Put a `ListView` with a `Zone` in the group for each column, anywhere in its layout. The group holds the items in `@bind-Items`, and `ZoneOf` returns the zone each one is in.", "after": ["For a board of cards in columns, use `Kanban`, which draws the columns, their headers and counts. Use the group when the layout is your own.", "To show a list's items as cards, set `Cards` on its `ListView`.", "On interactive pages, `@bind-Items` keeps the order, and `OnMove` (with `FromZone` and `ToZone`) is where you save a move.", "On static pages, give the group a `Name` and pass the posted `ListOrder` back as `Order`. `SubmitOnMove` posts each move, and `Order.Arrange` gives each item's zone and place to save.", "To limit what a zone accepts, set `Accepts` and `MaxItems`."],
           "notes": {
             "noscript": "Each move in a handle's menu (Move to and a column, or up and down) posts the form, and the page reloads with the task moved and its handle focused.",
             "static": "Drag a handle into another column, or use its menu: the task moves, the move is announced, and the form posts.",
             "interactive": "Drag a handle into another column, or use its menu: C# moves the task at once and the move is announced."
+          } }
+      ]
+    },
+
+    {
+      "id": "kanban", "icon": "SquareKanban", "name": "Kanban", "category": "Data", "summary": "Shows cards in columns, such as tasks by status or deals by stage, and lets people move them between columns.", "keywords": ["board", "task board", "pipeline", "swimlane", "trello", "drag and drop", "wip limit"],
+      "parts": ["KanbanColumn"],
+      "features": [
+        { "feature": "Moving cards from each card's menu (with JavaScript off, each move posts the form)" },
+        { "feature": "Dragging cards and announcements", "noscript": "none" },
+        { "feature": "Collapsing columns", "member": "Collapsible", "noscript": "none" },
+        { "feature": "The moves bound to C#", "member": "Items" }
+      ],
+      "examples": [
+        { "id": "kanban-usage", "title": "A board", "lead": "Use a board for work that moves through stages, such as tasks by status. Put a `KanbanColumn` in `Columns` for each stage, and return each card's column from `ColumnOf`.", "after": ["A column's `Value` is what `ColumnOf` returns for its cards. `Title` gives it another name.", "On interactive pages, `OnMove` runs before each move with `FromColumn` and `ToColumn`. Save the card's new column there, or set `Cancel` to keep it where it was.", "On static pages, give the board a `Name` and pass the posted `KanbanOrder` back as `Order`. `SubmitOnMove` posts each move, and `Order.Arrange` gives each card's column and place to save.", "Each card's ⋯ menu has the same moves as dragging, so the board works without a pointer."],
+          "notes": {
+            "noscript": "Each move in a card's menu (Move to and a column, or up and down) posts the form, and the page reloads with the card moved.",
+            "static": "Drag a card into another column, or use its menu: the card moves, the counts change, and the form posts.",
+            "interactive": "Drag a card into another column, or use its menu: C# moves the card at once and the move is announced."
           } },
-        { "id": "drop-zone-group-kanban", "title": "A Kanban board", "height": 760, "page": true, "widthSwitch": true,
-          "lead": "To cap how many items a zone holds, set `MaxItems` on its `ListView`: In progress takes three cards at most. `DragWholeItem` lets a card drag from anywhere on it, and `ItemHref` opens it on a click." }
+        { "id": "kanban-cards", "title": "Cards and totals", "lead": "To draw the cards yourself, give the board content. `ItemLabel` names each card for screen readers, and `ItemHref` makes it a link.", "after": ["`ColumnSummary` puts a figure from each column's cards beside its count, such as a stage's total.", "`AddHref` puts an add button in each column's header that goes to your page for a new card. On interactive pages, `OnAdd` runs instead.", "`ItemMenu` adds your own items to each card's ⋯ menu, above the moves."] },
+        { "id": "kanban-limits", "title": "Limits", "lead": "To show how much work a column should hold, set its `Limit`. The count reads \"4 / 3\" and changes color past it. `MinItems` does the same below a minimum.", "after": ["Limits are advisory: cards still move in. To refuse a card, set the column's `Accepts`, or cancel the move in `OnMove`.", "`ItemAccent` draws a colored line down a card's edge. Say what it means in the card's text too."] },
+        { "id": "kanban-collapse", "title": "Collapsing columns", "lead": "To let people fold away columns they aren't working in, set `Collapsible`. A collapsed column keeps its title and count.", "after": ["`Collapsed` starts a column collapsed, and `@bind-Collapsed` keeps the choice on interactive pages. On static pages the board posts it in its `KanbanOrder`.", "Cards still move to a collapsed column from their menu."] },
+        { "id": "kanban-project", "title": "A project board", "height": 760, "page": true, "widthSwitch": true,
+          "lead": "A card opens beside the board on a click, and its ⋯ menu assigns and archives it. Every move saves, so the card's link shows the board as it was left." }
       ]
     },
 

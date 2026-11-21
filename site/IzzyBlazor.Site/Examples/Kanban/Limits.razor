@@ -1,0 +1,50 @@
+@* In progress should hold three tickets at most and Review at least one: the count changes color
+   when a column is outside its numbers. ItemAccent marks each ticket's priority, which its second
+   line also says. *@
+<Stack Grow>
+    <Form Model="this" FormName="kanban-limits">
+        <Kanban TItem="Ticket" @bind-Items="_tickets" ItemKey="t => t.Id" ColumnOf="t => t.Status" ItemText="t => t.Title"
+                ItemDescription="@(t => $"{t.Priority} priority")" ItemAccent="t => AccentOf(t.Priority)"
+                OnMove="Moved" Name="tickets" Order="Order" SubmitOnMove Label="Support tickets">
+            <Columns>
+                <KanbanColumn Value="Open" />
+                <KanbanColumn Value="In progress" Limit="3" />
+                <KanbanColumn Value="Review" MinItems="1" />
+                <KanbanColumn Value="Closed" />
+            </Columns>
+        </Kanban>
+    </Form>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "kanban-limits", Name = "tickets")]
+    private KanbanOrder? Order { get; set; }
+
+    private IReadOnlyList<Ticket> _tickets =
+    [
+        new("1", "Invoices show the wrong tax rate", "High", "Open"),
+        new("2", "Add a CSV export to reports", "Low", "Open"),
+        new("3", "Password reset email is slow", "Medium", "In progress"),
+        new("4", "Dashboard times out on large accounts", "High", "In progress"),
+        new("5", "Search misses accented names", "Medium", "In progress"),
+        new("6", "Update the billing address form", "Low", "Closed"),
+    ];
+
+    private static Accent? AccentOf(string priority) => priority switch
+    {
+        "High" => Accent.Danger,
+        "Medium" => Accent.Token("warning"),
+        _ => null,
+    };
+
+    private void Moved(KanbanMoveEventArgs<Ticket> move) => move.Item.Status = move.ToColumn;
+    @* hide *@
+    private sealed class Ticket(string id, string title, string priority, string status)
+    {
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+        public string Priority { get; } = priority;
+        public string Status { get; set; } = status;
+    }
+    @* /hide *@
+}

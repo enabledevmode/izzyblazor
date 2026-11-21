@@ -1,0 +1,237 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits IzzyComponentBase
+@implements IDisposable
+@using System.Globalization
+@attribute [ModeSupport]
+
+@*
+    A column of a Kanban: the cards whose ColumnOf is its Value, under a header with its Title,
+    how many cards it holds and, with the board's ColumnSummary, a figure from them.
+
+    Limit and MinItems are advisory, as on most boards: the count reads "6 / 5" and changes color
+    when the column holds more than its Limit or fewer than its MinItems, and cards still move in
+    and out. To refuse cards, use Accepts, or cancel the move in the board's OnMove.
+*@
+
+@{
+    var count = _items.Count;
+    var summary = Board.ColumnSummary?.Invoke(_items);
+    var addHref = Board.AddHref?.Invoke(Value!);
+}
+<section @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-labelledby="@_titleId" data-ib-column="@_zone"
+         data-ib-collapsed="@(IsCollapsed ? "" : null)" data-ib-off="@(Off(count) ? "" : null)"
+         data-ib-limit="@Limit?.ToString(CultureInfo.InvariantCulture)" data-ib-min="@MinItems?.ToString(CultureInfo.InvariantCulture)">
+    <div class="ib-kanban-header">
+        @if (Board.Collapsible)
+        {
+            <IconButton Icon="IconSet.Current.Get(IconPurpose.ChevronDown)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanColumnCards, TitleText)"
+                        Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-toggle"
+                        aria-expanded="@(IsCollapsed ? "false" : "true")" OnClick="ToggleAsync" />
+            @if (Board.Name is not null && !Board.Live)
+            {
+                <input type="hidden" class="ib-kanban-collapsed" name="@($"{Board.Name}.Collapsed")" value="@_zone" disabled="@(!IsCollapsed)" />
+            }
+        }
+        @if (Accent is not null)
+        {
+            <span class="ib-kanban-dot" aria-hidden="true"></span>
+        }
+        @Heading
+        <span class="ib-kanban-count">
+            <span aria-hidden="true"><span class="ib-kanban-n">@count.ToString(CultureInfo.CurrentCulture)</span>@(Limit is { } limit ? $" / {limit.ToString(CultureInfo.CurrentCulture)}" : null)</span>
+            <span class="ib-visually-hidden ib-kanban-count-text">@CountText(count)</span>
+        </span>
+        @if (summary is not null)
+        {
+            <span class="ib-kanban-summary">@summary</span>
+        }
+        @if (addHref is not null)
+        {
+            <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
+                        Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" Href="@addHref" />
+        }
+        else if (Board.OnAdd.HasDelegate)
+        {
+            <IconButton Icon="IconSet.Current.Get(IconPurpose.Plus)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanAddCard, TitleText)"
+                        Variant="ButtonVariant.Ghost" Accent="IzzyBlazor.Accent.Neutral" Size="ControlSize.Sm" Class="ib-kanban-add" OnClick="() => Board.OnAdd.InvokeAsync(Value)" />
+        }
+    </div>
+    <ListView TItem="TItem" Class="ib-kanban-cards" Zone="@_zone" Label="@TitleText" Cards DragWholeItem="@(!Board.DragHandle)" Accepts="Accepts"
+              ItemLabel="@_itemLabel" ItemHref="Board.ItemHref" OnItemClick="Board.OnItemClick" ItemCurrent="Board.ItemCurrent" ItemDisabled="Board.ItemDisabled"
+              EmptyText="@Board.EmptyText" Size="Board.Size" ChildContent="_card" ItemMenu="_menu" />
+</section>
+
+@code {
+    private IReadOnlyList<TItem> _items = [];
+
+    /// <summary>
+    /// The column's value: it shows the cards whose <c>ColumnOf</c> is this, and a card moved here
+    /// takes it.
+    /// </summary>
+    [Parameter, EditorRequired] public string? Value { get; set; }
+
+    /// <summary>The column's title. Defaults to <see cref="Value"/>.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// How many cards the column should hold at most. The count shows it ("3 / 5") and changes
+    /// color past it; cards still move in.
+    /// </summary>
+    [Parameter] public int? Limit { get; set; }
+
+    /// <summary>How many cards the column should hold at least. The count changes color below it.</summary>
+    [Parameter] public int? MinItems { get; set; }
+
+    /// <summary>Which cards may move here from other columns, such as <c>t =&gt; t.Reviewed</c>.</summary>
+    [Parameter] public Func<TItem, bool>? Accepts { get; set; }
+
+    /// <summary>
+    /// With the board's <c>Collapsible</c>, whether the column is collapsed to a strip. Bind it on
+    /// an interactive page to keep it; on a static page the board posts it in its
+    /// <see cref="KanbanOrder"/>.
+    /// </summary>
+    [Parameter] public bool Collapsed { get; set; }
+
+    /// <summary>Runs when the user collapses or expands the column, on interactive pages; use <c>@bind-Collapsed</c>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<bool> CollapsedChanged { get; set; }
+
+    /// <summary>A colored dot before the title. Color only: the title says what the column is.</summary>
+    [Parameter] public Accent? Accent { get; set; }
+
+    [CascadingParameter] private Kanban<TItem>? Kanban { get; set; }
+
+    [CascadingParameter] private DropZoneGroup<TItem>? Group { get; set; }
+
+    private readonly string _titleId = IdGenerator.Next("ib-kanban-title");
+    private Kanban<TItem> Board => Kanban!;
+    private string _zone = "";
+    private bool _collapsed;
+    private bool _collapsedParam;
+    private bool _subscribed;
+    private string? _class;
+    private string? _style;
+    private RenderFragment<TItem> _card = default!;
+    private RenderFragment<TItem> _menu = default!;
+    private Func<TItem, string> _itemLabel = default!;
+
+    private string TitleText => Title ?? Value ?? "";
+
+    // The board posted it (static), else what the user or the parameter last set.
+    private bool IsCollapsed => Board.Collapsible && (!Board.Live && Board.Order is { Collapsed: not null } order ? order.IsCollapsed(Value!) : _collapsed);
+
+    private bool Off(int count) => (Limit is { } limit && count > limit) || (MinItems is { } min && count < min);
+
+    private string CountText(int count) => Limit is { } limit
+        ? string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanCountOfLimit, count, limit)
+        : string.Format(CultureInfo.CurrentCulture, TextDefaults.KanbanCount, count);
+
+    private RenderFragment Heading => builder =>
+    {
+        builder.OpenElement(0, $"h{Board.TitleLevel}");
+        builder.AddAttribute(1, "class", "ib-kanban-title");
+        builder.AddAttribute(2, "id", _titleId);
+        builder.AddContent(3, TitleText);
+        builder.CloseElement();
+    };
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-kanban-column");
+        if (Accent is { } accent)
+        {
+            styles.AddVar("kanban-accent", accent.ToColor().Css);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Kanban is null || Group is null)
+        {
+            throw new InvalidOperationException("A KanbanColumn goes in a Kanban's Columns.");
+        }
+
+        _collapsed = _collapsedParam = Collapsed;
+        _itemLabel = item => Board.ItemLabel?.Invoke(item) ?? Board.ItemText?.Invoke(item) ?? Board.ItemKey!(item);
+        _menu = item => Board.ItemMenu?.Invoke(item) ?? (_ => { });
+        _card = item => builder =>
+        {
+            if (Board.ItemAccent?.Invoke(item) is { } accent)
+            {
+                builder.OpenElement(0, "span");
+                builder.AddAttribute(1, "class", "ib-kanban-edge");
+                builder.AddAttribute(2, "style", $"--ib-kanban-accent:{accent.ToColor().Css}");
+                builder.CloseElement();
+            }
+
+            if (Board.ChildContent is { } content)
+            {
+                builder.AddContent(3, content(item));
+                return;
+            }
+
+            builder.OpenElement(4, "div");
+            builder.AddAttribute(5, "class", "ib-kanban-card-text");
+            builder.AddContent(6, Board.ItemText?.Invoke(item) ?? item?.ToString());
+            builder.CloseElement();
+            if (Board.ItemDescription?.Invoke(item) is { Length: > 0 } description)
+            {
+                builder.OpenElement(7, "div");
+                builder.AddAttribute(8, "class", "ib-kanban-card-description");
+                builder.AddContent(9, description);
+                builder.CloseElement();
+            }
+        };
+
+        // The group tells its zones when the items or a move changed them; the header counts too.
+        Group.Changed += GroupChanged;
+        _subscribed = true;
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrEmpty(Value))
+        {
+            throw new InvalidOperationException("A KanbanColumn needs a Value, such as Value=\"Done\": the ColumnOf of the cards it shows.");
+        }
+
+        if (_zone.Length > 0 && _zone != KanbanZone.Of(Value))
+        {
+            throw new InvalidOperationException("A KanbanColumn's Value can't change: give columns you render from a list an @key.");
+        }
+
+        _zone = KanbanZone.Of(Value);
+        if (Collapsed != _collapsedParam)
+        {
+            _collapsed = _collapsedParam = Collapsed;
+        }
+
+        (_class, _style) = BuildRootAttributes();
+        _items = Group!.ItemsIn(_zone);
+    }
+
+    private void GroupChanged() => _ = InvokeAsync(() =>
+    {
+        _items = Group!.ItemsIn(_zone);
+        StateHasChanged();
+    });
+
+    private Task ToggleAsync()
+    {
+        _collapsed = !_collapsed;
+        return CollapsedChanged.InvokeAsync(_collapsed);
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_subscribed)
+        {
+            Group!.Changed -= GroupChanged;
+        }
+    }
+}

@@ -1,0 +1,60 @@
+@* A sales pipeline: ChildContent draws each deal, ItemLabel names it for screen readers, and
+   ColumnSummary totals each stage. *@
+<Stack Grow>
+    <Form Model="this" FormName="kanban-cards">
+        <Kanban TItem="Deal" @bind-Items="_deals" ItemKey="d => d.Id" ColumnOf="d => d.Stage" ItemLabel="d => d.Name" ItemHref="@(_ => "#")"
+                ColumnSummary="@(deals => deals.Sum(d => d.Value).ToString("C0"))" AddHref="@(_ => "#")"
+                OnMove="Moved" Name="pipeline" Order="Order" SubmitOnMove Size="ControlSize.Sm" ColumnWidth="Length.Rem(14)" Label="Deal pipeline" Context="deal">
+            <Columns>
+                <KanbanColumn Value="Discovery" />
+                <KanbanColumn Value="Qualified" />
+                <KanbanColumn Value="Proposal" />
+                <KanbanColumn Value="Negotiation" />
+            </Columns>
+            <ChildContent>
+                <Stack Gap="2">
+                    <Stack Gap="0">
+                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@deal.Name</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@deal.Company</TextBlock>
+                    </Stack>
+                    <Row Gap="2" Align="Align.Center">
+                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@deal.Value.ToString("C0")</TextBlock>
+                        <TextBlock Size="TextSize.Xs" Color="Color.Muted">Close @deal.Close</TextBlock>
+                        <Spacer />
+                        <Avatar Name="@deal.Owner" Size="AvatarSize.Xs" />
+                    </Row>
+                </Stack>
+            </ChildContent>
+        </Kanban>
+    </Form>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "kanban-cards", Name = "pipeline")]
+    private KanbanOrder? Order { get; set; }
+
+    private IReadOnlyList<Deal> _deals =
+    [
+        new("1", "Website redesign", "Acme Co.", 18000, "Nov 27", "Jamie Davis", "Proposal"),
+        new("2", "Annual support plan", "Northwind", 12000, "Dec 4", "Priya Shah", "Negotiation"),
+        new("3", "Brand refresh", "Globex", 9500, "Dec 12", "Jamie Davis", "Qualified"),
+        new("4", "Mobile app audit", "Initech", 6500, "Dec 18", "Marco Ruiz", "Discovery"),
+        new("5", "Analytics dashboard", "Umbrella Health", 15000, "Jan 9", "Priya Shah", "Discovery"),
+        new("6", "Checkout rebuild", "Stark Outfitters", 12000, "Dec 20", "Marco Ruiz", "Qualified"),
+    ];
+
+    // Where an app saves the move.
+    private void Moved(KanbanMoveEventArgs<Deal> move) => move.Item.Stage = move.ToColumn;
+    @* hide *@
+    private sealed class Deal(string id, string name, string company, decimal value, string close, string owner, string stage)
+    {
+        public string Id { get; } = id;
+        public string Name { get; } = name;
+        public string Company { get; } = company;
+        public decimal Value { get; } = value;
+        public string Close { get; } = close;
+        public string Owner { get; } = owner;
+        public string Stage { get; set; } = stage;
+    }
+    @* /hide *@
+}

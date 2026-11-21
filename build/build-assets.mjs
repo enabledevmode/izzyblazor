@@ -293,6 +293,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "mentions.css"),
   },
   {
+    // A sheet of its own, linked by Kanban.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "kanban.css")],
+    outfile: join(lib, "wwwroot", "kanban.css"),
+  },
+  {
     // A sheet of its own, linked by TileLayout.
     ...common,
     sourcemap: false,

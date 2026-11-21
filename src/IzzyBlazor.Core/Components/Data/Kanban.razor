@@ -1,0 +1,229 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits IzzyComponentBase
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@attribute [ModeSupport]
+
+@*
+    A board of cards in columns, such as tasks by status or deals by stage. Each KanbanColumn
+    shows the cards whose ColumnOf is its Value, under a header with the column's title and how
+    many cards it holds.
+
+    <Kanban Items="tasks" ItemKey="t => t.Id" ColumnOf="t => t.Status" ItemText="t => t.Title"
+            OnMove="Moved">
+        <Columns>
+            <KanbanColumn Value="To do" />
+            <KanbanColumn Value="In progress" Limit="3" />
+            <KanbanColumn Value="Done" />
+        </Columns>
+    </Kanban>
+
+    A card drags to another place or column from anywhere on it, and its ⋯ menu has the same
+    moves, with every column under "Move to". On an interactive page OnMove runs before each
+    move: save the card's new column there. On a static page give the board a Name inside a form
+    and pass the posted KanbanOrder back as Order; SubmitOnMove posts after every move.
+
+    ChildContent draws a card; without it ItemText and ItemDescription do. ItemHref makes a card a
+    link and ItemMenu adds items to its ⋯ menu. The columns share the board's width, none
+    narrower than ColumnWidth, and the board scrolls sideways when they don't fit. On a narrow
+    board one column shows at a time with the next one's edge beside it.
+
+    Accessibility:
+    - The board is a group named by its Label. Each column is a region named by its title, which
+      is a heading (TitleLevel, 3 by default), holding a list of its cards.
+    - A column's count is read as "Cards: 3", or "Cards: 3 of 5" with a Limit.
+    - Every card's ⋯ button is named "Actions for" and the card's label, and its menu moves the
+      card, so nothing needs dragging.
+    - A move is announced from the column it lands in: "Moved Budget to Done, position 1 of 3".
+    - The button that collapses a column is named by the column, as in "Review cards", and says
+      whether the cards are shown.
+
+    Keyboard:
+    - Tab | Go through a card's controls in order
+    - Up, Down | Move to the card above or below
+    - Alt+Up, Alt+Down, Alt+Home, Alt+End | On a card's link or button, move the card
+    - Shift+F10, Menu | Open the card's menu
+    - Escape | While dragging, cancel
+    See also: DropZoneGroup, ListView.
+*@
+
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/kanban.css"]" />
+<ib-kanban @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@(Label ?? TextDefaults.KanbanName)"
+           data-ib-interactive="@(WillBeInteractive ? "" : null)" data-ib-count="@TextDefaults.KanbanCount" data-ib-count-limit="@TextDefaults.KanbanCountOfLimit">
+    <CascadingValue Value="this" IsFixed="true">
+        <DropZoneGroup TItem="TItem" Class="ib-kanban-columns" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" ItemsChanged="ItemsChanged" OnMove="MovedAsync"
+                       Name="@Name" Order="@Order?.ToListOrder()" SubmitOnMove="SubmitOnMove">
+            @Columns
+        </DropZoneGroup>
+    </CascadingValue>
+</ib-kanban>
+
+@code {
+    /// <summary>Every card, in every column; each column shows its own in this order.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>Each card's key: what posts and what keeps its elements when it moves.</summary>
+    [Parameter, EditorRequired] public Func<TItem, string>? ItemKey { get; set; }
+
+    /// <summary>
+    /// The column a card is in, matching a <see cref="KanbanColumn{TItem}"/>'s <c>Value</c>, such
+    /// as <c>t =&gt; t.Status</c>. A card whose column the board doesn't have isn't shown.
+    /// </summary>
+    [Parameter, EditorRequired] public Func<TItem, string>? ColumnOf { get; set; }
+
+    /// <summary>Runs with every card in its new order after a move, on interactive pages; use <c>@bind-Items</c>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
+
+    /// <summary>
+    /// Runs before a move changes the board, on interactive pages: set the card's column from
+    /// <see cref="KanbanMoveEventArgs{TItem}.ToColumn"/> and save it here, or set
+    /// <see cref="KanbanMoveEventArgs{TItem}.Cancel"/> to keep the card where it was.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<KanbanMoveEventArgs<TItem>> OnMove { get; set; }
+
+    /// <summary>
+    /// On a static page, the prefix of the fields the board posts, bound as a
+    /// <see cref="KanbanOrder"/>. Without it, a static page's cards don't move.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>On a static page, what the form posted: the board shows the posted places with the move applied.</summary>
+    [Parameter] public KanbanOrder? Order { get; set; }
+
+    /// <summary>
+    /// On a static page with script, posts the form after each move, for pages that save every
+    /// move. Otherwise moves stay in the page until the form is submitted. With JavaScript off,
+    /// each move from a card's menu posts anyway.
+    /// </summary>
+    [Parameter, ModeSupport(Interactive = ModeLevel.None)]
+    public bool SubmitOnMove { get; set; }
+
+    /// <summary>The <see cref="KanbanColumn{TItem}"/>s, in the order shown.</summary>
+    [Parameter] public RenderFragment? Columns { get; set; }
+
+    /// <summary>A card's content. Without it, <see cref="ItemText"/> and <see cref="ItemDescription"/> draw the card.</summary>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>The default card's text. Defaults to the card's string form.</summary>
+    [Parameter] public Func<TItem, string?>? ItemText { get; set; }
+
+    /// <summary>The default card's muted second line.</summary>
+    [Parameter] public Func<TItem, string?>? ItemDescription { get; set; }
+
+    /// <summary>
+    /// Names a card for screen readers: in its link, its ⋯ button and the announcement of a move.
+    /// Defaults to <see cref="ItemText"/>, then the key; set it when <see cref="ChildContent"/> draws the card.
+    /// </summary>
+    [Parameter] public Func<TItem, string>? ItemLabel { get; set; }
+
+    /// <summary>Makes each card a link to this address; the whole card is clickable.</summary>
+    [Parameter] public Func<TItem, string?>? ItemHref { get; set; }
+
+    /// <summary>Makes each card a button that runs this, on interactive pages. Cards with an <see cref="ItemHref"/> are links instead.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<TItem> OnItemClick { get; set; }
+
+    /// <summary>Marks the card the page is showing, such as the one open beside the board.</summary>
+    [Parameter] public Func<TItem, bool>? ItemCurrent { get; set; }
+
+    /// <summary>Dims a card and keeps it where it is: it has no link and doesn't move.</summary>
+    [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
+
+    /// <summary>A colored line down a card's edge, such as its priority's. Color only: put the meaning in the card's text too.</summary>
+    [Parameter] public Func<TItem, Accent?>? ItemAccent { get; set; }
+
+    /// <summary><c>MenuItem</c>s for each card's ⋯ menu, above its moves.</summary>
+    [Parameter] public RenderFragment<TItem>? ItemMenu { get; set; }
+
+    /// <summary>
+    /// Text beside each column's count, from the column's cards, such as their total:
+    /// <c>cards =&gt; cards.Sum(d =&gt; d.Value).ToString("C0")</c>. On a static page it's as of the
+    /// last time the page loaded, so use <see cref="SubmitOnMove"/> with it.
+    /// </summary>
+    [Parameter] public Func<IReadOnlyList<TItem>, string?>? ColumnSummary { get; set; }
+
+    /// <summary>The narrowest a column gets before the board scrolls sideways. Defaults to 17rem.</summary>
+    [Parameter] public Length ColumnWidth { get; set; } = Length.Rem(17);
+
+    /// <summary>Gives each column a button that collapses it to a strip with its title and count.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool Collapsible { get; set; }
+
+    /// <summary>
+    /// Puts an add button in each column's header that goes to this address, from the column's
+    /// <c>Value</c>, such as the page that makes a card for that column.
+    /// </summary>
+    [Parameter] public Func<string, string?>? AddHref { get; set; }
+
+    /// <summary>Puts an add button in each column's header that runs this with the column's <c>Value</c>, on interactive pages.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string> OnAdd { get; set; }
+
+    /// <summary>What an empty column says. Defaults to "Drop items here".</summary>
+    [Parameter] public string? EmptyText { get; set; }
+
+    /// <summary>Gives each card a handle to drag it by, in place of dragging from anywhere on it. The handle opens the menu of moves.</summary>
+    [Parameter] public bool DragHandle { get; set; }
+
+    /// <summary>The cards' spacing and text size. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>Names the board for screen readers. Defaults to "Board".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The heading level of the columns' titles, 2 to 6. Defaults to 3.</summary>
+    [Parameter] public int TitleLevel { get; set; } = 3;
+
+    private Func<TItem, string> _zoneOf = default!;
+    private string? _class;
+    private string? _style;
+
+    // Interactive (or prerendering for it): C# applies the moves and the collapsing.
+    internal bool Live => WillBeInteractive;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-kanban");
+        styles.AddVar("kanban-column-w", StyleValues.Length(ColumnWidth));
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _zoneOf = item => KanbanZone.Of(ColumnOf!(item));
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (ItemKey is null || ColumnOf is null)
+        {
+            throw new InvalidOperationException("A Kanban needs an ItemKey and a ColumnOf, such as ItemKey=\"t => t.Id\" ColumnOf=\"t => t.Status\".");
+        }
+
+        if (TitleLevel is < 2 or > 6)
+        {
+            throw new InvalidOperationException("Kanban's TitleLevel is 2 to 6.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    // The group's move, in the board's words. Handled here, so the board renders after it and the
+    // columns count again.
+    private async Task MovedAsync(ListMoveEventArgs<TItem> move)
+    {
+        if (!OnMove.HasDelegate)
+        {
+            return;
+        }
+
+        var args = new KanbanMoveEventArgs<TItem>
+        {
+            Item = move.Item, Key = move.Key, FromIndex = move.FromIndex, ToIndex = move.ToIndex,
+            FromColumn = KanbanZone.Column(move.FromZone!), ToColumn = KanbanZone.Column(move.ToZone!),
+        };
+        await OnMove.InvokeAsync(args);
+        move.Cancel = args.Cancel;
+    }
+}

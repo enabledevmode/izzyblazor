@@ -1197,6 +1197,21 @@ public class IzzyText
     /// <summary>An empty drop zone.</summary>
     public virtual string DropHere { get; set; } = "Drop items here";
 
+    /// <summary>A Kanban's name, when it has no Label.</summary>
+    public virtual string KanbanName { get; set; } = "Board";
+
+    /// <summary>A Kanban column's count, for screen readers: "Cards: 3". {0} is the count.</summary>
+    public virtual string KanbanCount { get; set; } = "Cards: {0}";
+
+    /// <summary>A Kanban column's count against its limit, for screen readers: "Cards: 3 of 5". {0} is the count and {1} the limit.</summary>
+    public virtual string KanbanCountOfLimit { get; set; } = "Cards: {0} of {1}";
+
+    /// <summary>The button that collapses and expands a Kanban column: "Review cards". {0} is the column's title.</summary>
+    public virtual string KanbanColumnCards { get; set; } = "{0} cards";
+
+    /// <summary>The add button in a Kanban column's header: "Add a card to Review". {0} is the column's title.</summary>
+    public virtual string KanbanAddCard { get; set; } = "Add a card to {0}";
+
     // Navigation and layout
 
     /// <summary>Breadcrumb's name.</summary>

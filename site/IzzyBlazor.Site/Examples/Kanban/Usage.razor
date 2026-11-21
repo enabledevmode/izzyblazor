@@ -1,0 +1,41 @@
+@* A column for each status, and ColumnOf says which one a task is in. On an interactive page OnMove
+   gives the task its new status; on a static one every move posts the form (SubmitOnMove) and
+   Order shows it. *@
+<Stack Grow>
+    <Form Model="this" FormName="kanban-usage">
+        <Kanban TItem="LaunchTask" @bind-Items="_tasks" ItemKey="t => t.Id" ColumnOf="t => t.Status" ItemText="t => t.Title" ItemDescription="t => t.Owner"
+                OnMove="Moved" Name="board" Order="Order" SubmitOnMove Label="Launch tasks">
+            <Columns>
+                <KanbanColumn Value="To do" />
+                <KanbanColumn Value="In progress" />
+                <KanbanColumn Value="Done" />
+            </Columns>
+        </Kanban>
+    </Form>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "kanban-usage", Name = "board")]
+    private KanbanOrder? Order { get; set; }
+
+    private IReadOnlyList<LaunchTask> _tasks =
+    [
+        new("1", "Write the release notes", "Ada Lovelace", "To do"),
+        new("2", "Record the demo video", "Alan Turing", "To do"),
+        new("3", "Update the pricing page", "Grace Hopper", "In progress"),
+        new("4", "Email the beta list", "Ada Lovelace", "In progress"),
+        new("5", "Set the launch date", "Grace Hopper", "Done"),
+    ];
+
+    // Where an app saves the move.
+    private void Moved(KanbanMoveEventArgs<LaunchTask> move) => move.Item.Status = move.ToColumn;
+    @* hide *@
+    private sealed class LaunchTask(string id, string title, string owner, string status)
+    {
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+        public string Owner { get; } = owner;
+        public string Status { get; set; } = status;
+    }
+    @* /hide *@
+}

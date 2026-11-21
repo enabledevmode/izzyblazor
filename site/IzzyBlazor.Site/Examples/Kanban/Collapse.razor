@@ -1,0 +1,38 @@
+@* Collapsible gives each column a button that folds it to a strip. Shipped starts collapsed. *@
+<Stack Grow>
+    <Form Model="this" FormName="kanban-collapse">
+        <Kanban TItem="ShopOrder" @bind-Items="_orders" ItemKey="o => o.Id" ColumnOf="o => o.Status" ItemText="o => o.Number" ItemDescription="o => o.Customer"
+                Collapsible OnMove="Moved" Name="orders" Order="Order" Label="Orders">
+            <Columns>
+                <KanbanColumn Value="New" />
+                <KanbanColumn Value="Packing" />
+                <KanbanColumn Value="Shipped" Collapsed />
+            </Columns>
+        </Kanban>
+    </Form>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "kanban-collapse", Name = "orders")]
+    private KanbanOrder? Order { get; set; }
+
+    private IReadOnlyList<ShopOrder> _orders =
+    [
+        new("1", "Order #1042", "Maria Chen", "New"),
+        new("2", "Order #1043", "Daniel Okafor", "New"),
+        new("3", "Order #1039", "Sofia Rossi", "Packing"),
+        new("4", "Order #1036", "Liam Walker", "Shipped"),
+        new("5", "Order #1035", "Aiko Tanaka", "Shipped"),
+    ];
+
+    private void Moved(KanbanMoveEventArgs<ShopOrder> move) => move.Item.Status = move.ToColumn;
+    @* hide *@
+    private sealed class ShopOrder(string id, string number, string customer, string status)
+    {
+        public string Id { get; } = id;
+        public string Number { get; } = number;
+        public string Customer { get; } = customer;
+        public string Status { get; set; } = status;
+    }
+    @* /hide *@
+}

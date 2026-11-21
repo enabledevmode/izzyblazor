@@ -19,7 +19,7 @@
     - Each zone is a list named by its Label (give every zone one), which also names it in
       the menu ("Move to Done").
     - A move is announced from the zone it lands in: "Moved Ada to Done, position 1 of 3".
-    See also: ListView.
+    See also: Kanban, ListView.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
@@ -121,6 +121,9 @@
     }
 
     internal IReadOnlyList<ListView<TItem>> Zones => _zones;
+
+    /// <summary>The items, the zones or a move changed what the zones show: a Kanban's column headers count again.</summary>
+    internal event Action? Changed;
 
     internal string KeyOf(TItem item) => ItemKey!(item);
 
@@ -381,5 +384,7 @@
                 zone.GroupChanged();
             }
         }
+
+        Changed?.Invoke();
     }
 }

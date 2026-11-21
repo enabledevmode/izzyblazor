@@ -1,0 +1,201 @@
+/*
+ * Kanban. Built to wwwroot/kanban.css and linked by Kanban, so pages without one don't pay for it.
+ */
+@layer izzy.components {
+  /* A container, so the board lays out by its own width (it may sit beside an aside). */
+  .ib-kanban {
+    display: block;
+    min-inline-size: 0;
+    container: ib-kanban / inline-size;
+  }
+
+  /* The columns share the width, none narrower than ColumnWidth; past that the board scrolls
+     sideways. They're all as tall as the tallest, so a short column takes drops anywhere in it. */
+  .ib-kanban-columns {
+    /* Positioned, so text hidden for screen readers in a column scrolled out of view stays inside
+       the scrolling box and doesn't widen the page. */
+    position: relative;
+    display: flex;
+    gap: var(--ib-space-3);
+    align-items: stretch;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+  }
+
+  .ib-kanban-column {
+    display: flex;
+    flex: 1 0 var(--ib-kanban-column-w);
+    flex-direction: column;
+    gap: var(--ib-space-3);
+    min-inline-size: 0;
+    padding: var(--ib-space-3);
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface-sunken);
+    scroll-snap-align: start;
+  }
+
+  /* As tall as a small button whether or not it has one, so every column's cards start level. */
+  .ib-kanban-header {
+    display: flex;
+    flex: none;
+    gap: var(--ib-space-2);
+    align-items: center;
+    min-block-size: var(--ib-control-h-sm);
+  }
+
+  .ib-kanban-title {
+    overflow: hidden;
+    margin: 0;
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-semibold);
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ib-kanban-dot {
+    flex: none;
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: var(--ib-radius-full);
+    background-color: var(--ib-kanban-accent);
+  }
+
+  /* Drawn as a small pill Badge; past the limit or under the minimum it takes the warning colors. */
+  .ib-kanban-count {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 1.25rem;
+    block-size: 1.25rem;
+    padding-inline: var(--ib-space-2);
+    border-radius: var(--ib-radius-full);
+    background-color: var(--ib-color-fill-strong);
+    font-size: var(--ib-text-xs);
+    font-weight: var(--ib-weight-medium);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .ib-kanban-column[data-ib-off] .ib-kanban-count {
+    background-color: var(--ib-color-warning-soft);
+    color: var(--ib-color-warning-text);
+  }
+
+  /* The summary, then the add button, at the header's end. */
+  .ib-kanban-summary {
+    flex: none;
+    margin-inline-start: auto;
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ib-kanban-count + .ib-kanban-add {
+    margin-inline-start: auto;
+  }
+
+  .ib-kanban-add {
+    margin-inline-end: calc(var(--ib-space-1) * -1);
+  }
+
+  .ib-kanban-toggle {
+    margin-inline-start: calc(var(--ib-space-1) * -1);
+  }
+
+  .ib-kanban-toggle .ib-icon {
+    transition: rotate var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  /* The cards fill the column, so its empty part takes drops too. */
+  .ib-kanban-cards {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  .ib-kanban-cards > .ib-listview-body,
+  .ib-kanban-cards > .ib-listview-body > ib-sortable {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  /* The default card: a title, clear of the ⋯ button, and a muted second line. */
+  .ib-kanban-card-text {
+    padding-inline-end: var(--ib-space-6);
+    font-weight: var(--ib-weight-medium);
+    overflow-wrap: anywhere;
+  }
+
+  .ib-kanban-card-description {
+    margin-block-start: var(--ib-space-1);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    overflow-wrap: anywhere;
+  }
+
+  /* ItemAccent: a short line down the card's starting edge. */
+  .ib-kanban-edge {
+    position: absolute;
+    inset-block: var(--ib-space-3);
+    inset-inline-start: -1px;
+    inline-size: 3px;
+    border-start-end-radius: 3px;
+    border-end-end-radius: 3px;
+    background-color: var(--ib-kanban-accent);
+    pointer-events: none;
+  }
+
+  /* Collapsed: a strip with the button, the title reading down it and the count. */
+  .ib-kanban-column[data-ib-collapsed] {
+    flex: none;
+    inline-size: calc(var(--ib-control-h-sm) + var(--ib-space-2) * 2);
+    padding-inline: var(--ib-space-2);
+  }
+
+  .ib-kanban-column[data-ib-collapsed] > .ib-kanban-header {
+    flex-direction: column;
+  }
+
+  .ib-kanban-column[data-ib-collapsed] .ib-kanban-toggle {
+    margin-inline-start: 0;
+  }
+
+  .ib-kanban-column[data-ib-collapsed] .ib-kanban-toggle .ib-icon {
+    rotate: -90deg;
+  }
+
+  .ib-kanban-column[data-ib-collapsed] .ib-kanban-title {
+    max-block-size: 16rem;
+    writing-mode: vertical-rl;
+  }
+
+  .ib-kanban-column[data-ib-collapsed] :is(.ib-kanban-summary, .ib-kanban-add, .ib-kanban-cards) {
+    display: none;
+  }
+
+  /* Collapsing is the script's on a static page. */
+  @media (scripting: none) {
+    .ib-kanban-toggle {
+      display: none;
+    }
+  }
+
+  /* A narrow board (a phone): one column at a time, the next one's edge beside it. */
+  @container ib-kanban (width < 36rem) {
+    .ib-kanban-columns {
+      scroll-snap-type: x mandatory;
+    }
+
+    .ib-kanban-column:not([data-ib-collapsed]) {
+      flex: none;
+      inline-size: 85cqi;
+    }
+  }
+}

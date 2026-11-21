@@ -91,6 +91,12 @@ export function trackDrag(options: SortOptions): void {
   let itemTop = 0;
   let step = 0;
   let scroller: Element | null = null;
+  // With zones to move to, the box that scrolls them sideways (a board wider than its space), and
+  // its scroll snapping, which is off while the drag scrolls it.
+  let sideScroller: HTMLElement | null = null;
+  let sideSnap = "";
+  // How far it scrolled before the drag: the item's own offset would let it scroll on past its content.
+  let sideMax = 0;
   let frame = 0;
   let held = 0;
   // The item follows the pointer sideways too: rows that wrap, or zones to move to.
@@ -126,6 +132,12 @@ export function trackDrag(options: SortOptions): void {
     for (const el of units[from]) el.classList.add("ib-sortable-dragging");
     scroller = scrollParent(list);
     targets = options.targets?.() ?? [];
+    sideScroller = targets.length ? sideScrollParent(list) : null;
+    if (sideScroller) {
+      sideMax = sideScroller.scrollWidth - sideScroller.clientWidth;
+      sideSnap = sideScroller.style.scrollSnapType;
+      sideScroller.style.scrollSnapType = "none";
+    }
     refusing = options.refusing?.() ?? [];
     for (const t of targets) {
       const tb = t.list.getBoundingClientRect();
@@ -280,10 +292,23 @@ export function trackDrag(options: SortOptions): void {
       y < area.top + EDGE ? -Math.ceil(((area.top + EDGE - y) / EDGE) * MAX_SPEED)
       : y > area.bottom - EDGE ? Math.ceil(((y - (area.bottom - EDGE)) / EDGE) * MAX_SPEED)
       : 0;
-    if (speed) {
-      (scroller ?? document.scrollingElement)?.scrollBy(0, speed);
-      update();
+    let side = 0;
+    if (sideScroller) {
+      const box = sideScroller.getBoundingClientRect();
+      side =
+        x < box.left + EDGE ? -Math.ceil(((box.left + EDGE - x) / EDGE) * MAX_SPEED)
+        : x > box.right - EDGE ? Math.ceil(((x - (box.right - EDGE)) / EDGE) * MAX_SPEED)
+        : 0;
+      if (side) {
+        // Right-to-left boxes scroll from 0 down to -max.
+        const rtl = getComputedStyle(sideScroller).direction === "rtl";
+        const left = Math.min(rtl ? 0 : sideMax, Math.max(rtl ? -sideMax : 0, sideScroller.scrollLeft + side));
+        if (left === sideScroller.scrollLeft) side = 0;
+        else sideScroller.scrollLeft = left;
+      }
     }
+    if (speed) (scroller ?? document.scrollingElement)?.scrollBy(0, speed);
+    if (speed || side) update();
     frame = requestAnimationFrame(autoScroll);
   };
 
@@ -297,6 +322,7 @@ export function trackDrag(options: SortOptions): void {
       // Already released.
     }
     if (!dragging) return;
+    if (sideScroller) sideScroller.style.scrollSnapType = sideSnap;
     // Without the sorting classes first, so clearing the transforms doesn't animate.
     list.classList.remove("ib-sortable-sorting");
     for (const other of columns.keys()) other.classList.remove("ib-sortable-receiving");
@@ -417,6 +443,15 @@ function scrollParent(el: Element): Element | null {
     if ((overflow === "auto" || overflow === "scroll") && node.scrollHeight > node.clientHeight) return node;
   }
   return document.scrollingElement;
+}
+
+/** The nearest ancestor that scrolls sideways and has more to show, if any. */
+function sideScrollParent(el: Element): HTMLElement | null {
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    const overflow = getComputedStyle(node).overflowX;
+    if ((overflow === "auto" || overflow === "scroll") && node.scrollWidth > node.clientWidth) return node;
+  }
+  return null;
 }
 
 /** Another zone's items, measured when the drag begins. */
