@@ -253,6 +253,11 @@
     padding-inline-end: 7rem;
   }
 
+  /* With no language label the bar is the copy button alone, so the code keeps the rest of the line. */
+  .ib-code-block:has(> .ib-code-bar:not(.ib-code-head)):not(:has(> .ib-code-bar > .ib-code-language)) .ib-code-pre {
+    padding-inline-end: 3.5rem;
+  }
+
   /* Title: the bar becomes a header row above the code (it no longer floats over it). */
   .ib-code-head {
     position: static;
