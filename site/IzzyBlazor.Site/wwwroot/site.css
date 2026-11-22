@@ -440,7 +440,7 @@
 /* The footer (design board, HF): on the subtle fill, 56px above and 40px below its content (40 and 32 on
    phones). The about column (up to 420px) and three 140px link columns sit at the two ends; on phones they
    stack, with the link columns three across. */
-:is(.site-shell, .site-shell-home) > .ib-shell-footer { background: var(--ib-color-fill-subtle); }
+:is(.site-shell, .site-shell-home) { --ib-shell-footer-bg: var(--ib-color-fill-subtle); }
 /* AppFooter pads 16px above and below already. */
 .site-footer { width: 100%; padding-block: var(--ib-space-6) var(--ib-space-4); }
 .site-footer-top { display: flex; flex-direction: column; gap: var(--ib-space-8); }
@@ -518,6 +518,7 @@
 /* The newsletter's form: the field and Subscribe on one row. */
 .site-newsletter-form { display: flex; flex-direction: column; gap: var(--ib-space-2); scroll-margin-block-start: 6rem; }
 .site-newsletter-row { display: flex; align-items: flex-start; gap: var(--ib-space-2); }
+.site-newsletter-page { max-inline-size: 36rem; }
 
 /* Pictograms: an icon on a tile tinted with the accent. */
 .site-picto {

@@ -216,7 +216,7 @@
                 <article class="site-free-card">
                     <Image Src="@($"img/{item.Picture}.webp")" DarkSrc="@($"img/{item.Picture}-dark.webp")" Alt="@item.Alt" Ratio="1.6" Class="site-free-picture" />
                     <div class="site-free-body">
-                        <Heading Level="3" Class="site-free-name"><span>@item.Count</span>@item.Name</Heading>
+                        <Heading Level="3" Class="site-free-name"><span>@item.Count</span> @item.Name</Heading>
                         <p>@item.Line</p>
                         <Anchor Href="@item.Href" Underline="AnchorUnderline.Hover" Class="site-action">@item.Link<Icon Name="Lucide.ArrowRight" /></Anchor>
                     </div>

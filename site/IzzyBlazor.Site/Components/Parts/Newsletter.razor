@@ -1,34 +1,37 @@
-@using System.ComponentModel.DataAnnotations
-@inject AccountService Account
-@inject NavigationManager Navigation
-
 @* The newsletter's form (design board, page A · Access: L7 and the footer): one email field and Subscribe. The
-   account service keeps the address and sends the link that confirms it. One per page: the landing page has it
-   in a band, every other page in the footer (SiteFooter), so one name serves both (site-newsletter: examples have forms of their own).
-   It posts to the page it's on. With no script the page loads again at its top, so the form's address ends in
-   #newsletter and the answer is in view. *@
+   landing page has it in a band, every other page in the footer (SiteFooter).
+   A plain form that posts to /newsletter/subscribe (SiteApp), with no antiforgery token: a token on every page would set
+   a cookie on every first visit and take those pages out of FirstVisitCache. The post subscribes through the
+   account service and comes back to the Newsletter page, which shows the answer (Answer). A forged post could
+   only do what anyone can do with the form. *@
 <div id="newsletter" class="site-newsletter-form">
-    @if (_answer == Subscription.Sent)
+    @if (Answer == "sent")
     {
-        <Alert Status="Status.Success" Title="Check your inbox to confirm.">We sent a confirmation link to @_email. You’ll start getting emails once you click it.</Alert>
+        <Alert Status="Status.Success" Title="Check your inbox to confirm.">We sent a confirmation link to your address. You’ll start getting emails once you click it.</Alert>
     }
-    else if (_answer == Subscription.Already)
+    else if (Answer == "subscribed")
     {
         <Alert Status="Status.Info" Title="You’re already subscribed."><Anchor Href="@AccountService.Email">Manage your subscription</Anchor></Alert>
     }
     else
     {
-        <Form Model="Model" FormName="site-newsletter" Honeypot OnValidSubmit="Subscribe" OnSpam="Caught" NativeValidation="false"
-              RequiredMark="RequiredMark.None" Gap="2" action="@Here">
-            @if (_answer == Subscription.Failed)
-            {
-                <Alert Status="Status.Danger">We couldn’t subscribe you. Try again in a few minutes.</Alert>
-            }
-            <div class="site-newsletter-row">
-                <TextField @bind-Value="Model!.Email" Label="Email address" HideLabel Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" Grow />
-                <Button Submit>Subscribe</Button>
-            </div>
-        </Form>
+        @if (Answer == "invalid")
+        {
+            <Alert Status="Status.Danger" id="newsletter-error">Enter an email address, like name@example.com.</Alert>
+        }
+        else if (Answer == "failed")
+        {
+            <Alert Status="Status.Danger">We couldn’t subscribe you. Try again in a few minutes.</Alert>
+        }
+        <form method="post" action="newsletter/subscribe" class="site-newsletter-row" data-enhance-nav="false">
+            <input type="hidden" name="source" value="@Source" />
+            @* Left empty by people, filled by bots: a post with it gets a person's answer and nothing is sent. *@
+            <div class="ib-visually-hidden" aria-hidden="true"><label>Leave this field empty <input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
+            <TextField @bind-Value="_email" name="email" Label="Email address" HideLabel Type="TextFieldType.Email" AutoComplete="email"
+                       Placeholder="you@example.com" Grow aria-invalid="@(Answer == "invalid" ? "true" : null)"
+                       aria-describedby="@(Answer == "invalid" ? "newsletter-error" : null)" />
+            <Button Submit>Subscribe</Button>
+        </form>
     }
     <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-newsletter-note">
         You can unsubscribe at any time, and we never share your address. <Anchor Href="privacy" InheritColor>Privacy</Anchor>
@@ -36,36 +39,11 @@
 </div>
 
 @code {
-    /// <summary>Which form this is, kept with the address: <c>home</c> (the band) or <c>footer</c>.</summary>
+    /// <summary>Which form this is, kept with the address: <c>home</c> (the band), <c>footer</c> or <c>page</c>.</summary>
     [Parameter, EditorRequired] public string Source { get; set; } = "footer";
 
-    [SupplyParameterFromForm(FormName = "site-newsletter")]
-    private Subscriber? Model { get; set; }
+    /// <summary>What the post came back with, on the Newsletter page: <c>sent</c>, <c>subscribed</c>, <c>invalid</c> or <c>failed</c>.</summary>
+    [Parameter] public string? Answer { get; set; }
 
-    private Subscription? _answer;
     private string? _email;
-
-    // This page, with its query, so the post comes back to it.
-    private string Here => "/" + Navigation.ToBaseRelativePath(Navigation.Uri).Split('#')[0] + "#newsletter";
-
-    protected override void OnInitialized() => Model ??= new();
-
-    private async Task Subscribe()
-    {
-        _email = Model!.Email!.Trim();
-        _answer = await Account.SubscribeAsync(_email, Source);
-    }
-
-    // A caught bot gets a person's answer, and nothing is sent.
-    private void Caught()
-    {
-        _email = Model!.Email?.Trim();
-        _answer = Subscription.Sent;
-    }
-
-    public sealed class Subscriber
-    {
-        [Required(ErrorMessage = "Enter an email address, like name@example.com."), EmailAddress(ErrorMessage = "Enter an email address, like name@example.com."), StringLength(254)]
-        public string? Email { get; set; }
-    }
 }

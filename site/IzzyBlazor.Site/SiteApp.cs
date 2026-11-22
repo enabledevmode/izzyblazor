@@ -180,6 +180,7 @@ public static class SiteApp
         builder.Services.AddHttpContextAccessor();
         builder.Services.Configure<AgentReportOptions>(builder.Configuration.GetSection("AgentReports"));
         builder.Services.AddHttpClient(GitHubDiscussionsReportSink.ClientName, client => client.Timeout = TimeSpan.FromSeconds(15));
+        builder.Services.AddSingleton<FormLimit>();
         builder.Services.AddHttpClient<AccountService>(client =>
         {
             client.BaseAddress = new Uri((builder.Configuration["Account:Service"] ?? AccountService.Address).TrimEnd('/') + "/");
@@ -446,6 +447,31 @@ public static class SiteApp
             var back = form["return"].ToString();
             var local = back.StartsWith('/') && !back.StartsWith("//", StringComparison.Ordinal) && !back.StartsWith("/\\", StringComparison.Ordinal);
             return Results.LocalRedirect(local ? back : "/docs/components");
+        }).DisableAntiforgery();
+
+        // The newsletter's forms (Newsletter.razor): the address goes to the account service, which sends the link
+        // that confirms it, and the answer shows on the Newsletter page. No antiforgery token, so the pages that
+        // hold the form stay in FirstVisitCache; each visitor gets a few posts every ten minutes (FormLimit).
+        app.MapPost("/newsletter/subscribe", async (HttpContext context, AccountService account, FormLimit limit) =>
+        {
+            var form = await context.Request.ReadFormAsync();
+            var email = form["email"].ToString().Trim();
+            string answer;
+            if (email.Length is 0 or > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email)) answer = "invalid";
+            else if (form["website"].ToString().Length > 0) answer = "sent";
+            else if (!limit.Allow(context)) answer = "failed";
+            else
+            {
+                var source = form["source"].ToString() is "home" or "footer" or "page" ? form["source"].ToString() : "site";
+                answer = await account.SubscribeAsync(email, source, context.RequestAborted) switch
+                {
+                    Subscription.Sent => "sent",
+                    Subscription.Already => "subscribed",
+                    _ => "failed",
+                };
+            }
+
+            return Results.LocalRedirect($"/newsletter?answer={answer}#newsletter");
         }).DisableAntiforgery();
 
         app.MapGet("/search/results", (string? q, HttpContext context) =>

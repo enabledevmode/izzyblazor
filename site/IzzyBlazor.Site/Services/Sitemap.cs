@@ -17,6 +17,7 @@ public static class Sitemap
     {
         yield return "";
         yield return "pricing";
+        yield return "newsletter";
         yield return "privacy";
         yield return "terms";
         yield return "docs";

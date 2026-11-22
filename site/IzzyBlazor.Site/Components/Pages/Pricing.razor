@@ -2,6 +2,7 @@
 @layout HomeLayout
 @using System.ComponentModel.DataAnnotations
 @inject AccountService Account
+@inject FormLimit Limit
 
 <PageMeta Title="Pricing · IzzyBlazor"
           Description="Every component is free and open source. A free account adds app starters, page blocks and a complete sample app, and Pro adds more of everything." />
@@ -233,6 +234,8 @@
     private Reservation? Model { get; set; }
 
     // The address that was just reserved: the form's answer, and the Pro card's.
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
     private string? _reserved;
     private bool _failed;
 
@@ -241,7 +244,7 @@
     private async Task Reserve()
     {
         var email = Model!.Email!.Trim();
-        if (await Account.ReserveAsync(email)) _reserved = email;
+        if (Limit.Allow(HttpContext) && await Account.ReserveAsync(email)) _reserved = email;
         else _failed = true;
     }
 
