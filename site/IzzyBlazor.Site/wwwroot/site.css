@@ -698,7 +698,9 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 /* An example sits on the page's own background, marked off by the border: the library's
    background, a different gray, read as a brighter panel in dark mode. */
 .ex-stage {
-  background: var(--ib-color-surface);
+  /* The shell's tone: the surface in light mode, the page in dark, so a table or card in an
+     example is a step above it there, as it is on a page. */
+  background: light-dark(var(--ib-color-surface), var(--ib-color-background));
   --ib-example-padding: var(--ib-space-6);
 }
 /* Each top-level part of a sample at most as wide as the box; not over an example's own
@@ -803,7 +805,7 @@ html:has(.frame-no-scrollbar) { scrollbar-width: none; }
 
 /* A demo's frame: a page of its own, scrolling inside its window. */
 /* The library's surface behind a demo, as an app would have (the frame has the library's grays). */
-html:has(> body > .frame), html:has(> body > .frame) body { background: var(--ib-color-surface); }
+html:has(> body > .frame), html:has(> body > .frame) body { background: light-dark(var(--ib-color-surface), var(--ib-color-background)); }
 /* No strip kept for a scrollbar: AppShell keeps one on its page so locking it doesn't shift the
    page, but a frame that doesn't scroll would show it as an empty band down the right edge. */
 html:has(> body > .frame) { scrollbar-gutter: auto; }
