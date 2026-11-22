@@ -323,6 +323,9 @@ internal interface IKanbanLanes
     void RemoveLane(KanbanLane lane);
 
     void LaneChanged();
+
+    /// <summary>Whether the board is interactive: a lane then marks its place on the page, which the script reads.</summary>
+    bool Live { get; }
 }
 
 /// <summary>Where a board with lanes is drawing its columns: the row of headers (no lane), or a lane's row of cells.</summary>

@@ -62,6 +62,19 @@ public sealed class IzzyMoveEventArgs : EventArgs
 }
 
 /// <summary>
+/// Data for the <c>iborder</c> event, which IzzyBlazor's script raises when the page draws an
+/// interactive <c>Kanban</c>'s columns or lanes in another order. The board follows it.
+/// </summary>
+public sealed class IzzyOrderEventArgs : EventArgs
+{
+    /// <summary>The columns' zones, in the order they're on the page.</summary>
+    public string[]? Columns { get; set; }
+
+    /// <summary>The lanes' values, in the order the page wrote them.</summary>
+    public string[]? Lanes { get; set; }
+}
+
+/// <summary>
 /// Data for the <c>iblayout</c> event, which IzzyBlazor's script raises when a <c>DataGrid</c>'s
 /// columns are rearranged on an interactive page. Apps use its <c>@bind-Layout</c>.
 /// </summary>
@@ -112,6 +125,7 @@ public sealed class IzzyContextEventArgs : EventArgs
 /// </remarks>
 [EventHandler("onibtoggle", typeof(IzzyToggleEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibmove", typeof(IzzyMoveEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("oniborder", typeof(IzzyOrderEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("oniblayout", typeof(IzzyLayoutEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibtiles", typeof(IzzyTilesEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibcontext", typeof(IzzyContextEventArgs), enableStopPropagation: true, enablePreventDefault: false)]

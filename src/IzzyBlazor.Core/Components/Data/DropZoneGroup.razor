@@ -503,6 +503,29 @@
         }
     }
 
+    /// <summary>
+    /// Puts the zones in an order (a Kanban's columns as the page now draws them), which the
+    /// items' "Move to" menus follow. Zones it doesn't name stay after the others.
+    /// </summary>
+    internal void OrderZones(IReadOnlyList<string> order)
+    {
+        var at = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (var i = 0; i < order.Count; i++)
+        {
+            at.TryAdd(order[i], i);
+        }
+
+        // Stable, so zones it doesn't name keep their own order.
+        var sorted = _zones.OrderBy(z => at.TryGetValue(z.Zone!, out var i) ? i : int.MaxValue).ToList();
+        if (!sorted.SequenceEqual(_zones))
+        {
+            _zones.Clear();
+            _zones.AddRange(sorted);
+            ZonesChanged();
+            RefreshZones();
+        }
+    }
+
     private void RefreshZones(ListView<TItem>? except = null)
     {
         foreach (var zone in _zones.ToList())

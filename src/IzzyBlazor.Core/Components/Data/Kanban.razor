@@ -54,7 +54,8 @@
 
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/kanban.css"]" />
 <ib-kanban @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@(Label ?? TextDefaults.KanbanName)"
-           data-ib-interactive="@(WillBeInteractive ? "" : null)" data-ib-count="@TextDefaults.KanbanCount" data-ib-count-limit="@TextDefaults.KanbanCountOfLimit">
+           data-ib-interactive="@(WillBeInteractive ? "" : null)" data-ib-count="@TextDefaults.KanbanCount" data-ib-count-limit="@TextDefaults.KanbanCountOfLimit"
+           @oniborder="Ordered">
     @if (Searchable)
     {
         @SearchBar
@@ -63,7 +64,7 @@
     <CascadingValue Value="this" IsFixed="true">
         @if (Live)
         {
-            <DropZoneGroup TItem="TItem" Class="@BoardClass" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" ItemsChanged="ItemsChanged" OnMove="MovedAsync">
+            <DropZoneGroup TItem="TItem" Class="@BoardClass" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" ItemsChanged="ItemsChanged" OnMove="MovedAsync" @ref="_liveGroup">
                 @Inner
             </DropZoneGroup>
         }
@@ -309,6 +310,37 @@
 
     // Interactive (or prerendering for it): C# applies the moves and the collapsing.
     internal bool Live => WillBeInteractive;
+
+    bool IKanbanLanes.Live => Live;
+
+    private DropZoneGroup<TItem>? _liveGroup;
+
+    // An interactive page drew its columns or lanes in another order (a keyed list it reordered
+    // or added to): Blazor tells a parent nothing of its children's order, so the script reports
+    // the one on the page. Only an order of the columns and lanes the board has is taken.
+    private void Ordered(IzzyOrderEventArgs order)
+    {
+        var columns = (order.Columns ?? []).Select(KanbanZone.Column).Distinct().ToList();
+        var known = ValueOrder;
+        if (columns.Count == known.Count && !columns.SequenceEqual(known) && columns.All(known.Contains))
+        {
+            _valueOrder = columns;
+        }
+
+        var lanes = (order.Lanes ?? []).ToList();
+        if (lanes.Count == _laneList.Count && !lanes.SequenceEqual(_laneList.Select(l => l.Value)) && _laneList.All(l => lanes.Contains(l.Value!)))
+        {
+            var sorted = _laneList.OrderBy(l => lanes.IndexOf(l.Value!)).ToList();
+            _laneList.Clear();
+            _laneList.AddRange(sorted);
+        }
+
+        // The cards' "Move to" menus list the zones in the group's order.
+        var zones = _laneList.Count == 0
+            ? _valueOrder.Select(c => KanbanZone.Of(c)).ToList()
+            : _laneList.SelectMany(l => _valueOrder.Select(c => KanbanZone.Of(c, l.Value))).ToList();
+        _liveGroup?.OrderZones(zones);
+    }
 
     // Cards open a form: the generated one, or the app's own.
     internal bool Editable => !ReadOnly && (OnSave.HasDelegate || EditDialogForm is not null);

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
 
@@ -46,6 +47,20 @@ public sealed class KanbanLane : ComponentBase, IDisposable
     {
         _collapsed = !_collapsed;
         return CollapsedChanged.InvokeAsync(_collapsed);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        // The board draws the lane. On an interactive page this marks where the page wrote it, so
+        // the board can follow a keyed list the page reorders (the script reports the markers' order).
+        if (Board?.Live == true)
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "hidden", true);
+            builder.AddAttribute(2, "data-ib-lane", Value);
+            builder.CloseElement();
+        }
     }
 
     /// <inheritdoc />

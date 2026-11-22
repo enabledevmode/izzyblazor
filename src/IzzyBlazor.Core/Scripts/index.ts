@@ -115,6 +115,14 @@ export const izzyEvents: IzzyEventDefinition[] = [
     },
   },
   {
+    // An interactive Kanban's columns or lanes are on the page in another order (elements/kanban.ts).
+    name: "iborder",
+    createEventArgs: (event) => {
+      const d = (event as CustomEvent<{ columns: string[]; lanes: string[] }>).detail;
+      return { columns: d?.columns ?? [], lanes: d?.lanes ?? [] };
+    },
+  },
+  {
     // A DataGrid's columns were rearranged (elements/grid-columns.ts).
     name: "iblayout",
     createEventArgs: (event) => ({ layout: (event as CustomEvent<{ layout: string }>).detail?.layout ?? "" }),

@@ -4,13 +4,17 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * <ib-kanban> keeps a static board's column headers right between posts: it counts a column's
  * cards again when one arrives or leaves (the count, its text for screen readers and the color
  * past a limit), and collapses and expands columns. On an interactive page C# does both, and this
- * does nothing.
+ * tells it the order the page draws the columns and lanes in when that changes (`iborder`): the
+ * page may reorder or add to a keyed list, and Blazor tells a parent nothing of its children's order.
  */
 class Kanban extends IzzyElement {
   #observer: MutationObserver | null = null;
 
   protected setup(signal: AbortSignal): void {
-    if (this.hasAttribute("data-ib-interactive")) return;
+    if (this.hasAttribute("data-ib-interactive")) {
+      this.follow();
+      return;
+    }
     this.addEventListener(
       "click",
       (event) => {
@@ -34,6 +38,28 @@ class Kanban extends IzzyElement {
   protected teardown(): void {
     this.#observer?.disconnect();
     this.#observer = null;
+  }
+
+  /** The columns' zones and the lanes' values, in the order they're on the page. */
+  private order(): { columns: string[]; lanes: string[] } {
+    const mine = (el: Element) => el.closest("ib-kanban") === this;
+    return {
+      columns: [...this.querySelectorAll<HTMLElement>(".ib-kanban-column[data-ib-column]")].filter(mine).map((el) => el.dataset.ibColumn ?? ""),
+      lanes: [...this.querySelectorAll<HTMLElement>("[data-ib-lane]")].filter(mine).map((el) => el.dataset.ibLane ?? ""),
+    };
+  }
+
+  private follow(): void {
+    let last = JSON.stringify(this.order());
+    // A render's changes arrive together, so this runs once for each.
+    this.#observer = new MutationObserver(() => {
+      const now = this.order();
+      const text = JSON.stringify(now);
+      if (text === last) return;
+      last = text;
+      this.dispatchEvent(new CustomEvent("iborder", { bubbles: true, detail: now }));
+    });
+    this.#observer.observe(this, { childList: true, subtree: true });
   }
 
   private count(): void {
