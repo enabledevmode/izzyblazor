@@ -109,7 +109,7 @@ public sealed class TemplateCatalog
         // The starters: taken Nov 21, 2026 from each made as MyApp (artifacts/crm-tools/starter-galleries.sh).
         ["blazor"] =
         [
-            new("home", "Home", "The home page: the welcome panel and the app's theme in sample components"),
+            new("home", "Home", "The home page: a greeting and four cards linking to the docs"),
             new("counter", "Counter", "The counter page"),
             new("weather", "Weather", "The weather page: a table of forecasts that sorts and filters"),
             new("contact", "Contact", "The contact page: details beside a form"),
