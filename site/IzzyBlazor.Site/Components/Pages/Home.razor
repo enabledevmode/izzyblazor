@@ -23,7 +23,7 @@
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-hero-sub">
-                @Registry.ComponentCountLabel components for every Blazor render mode, static SSR included.
+                @Registry.ComponentCountLabel components that work in every Blazor render mode, including static SSR.
             </TextBlock>
             <div class="site-hero-actions">
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
@@ -34,8 +34,6 @@
            lays out as it would there. Their pages scroll inside them, so whatever takes focus in a
            part the hero cuts off comes into view. The desktop window is left out below 1024px,
            where only the phone fits. *@
-        @* The window's bar says it's live, in its address, and links to the code at its end; below
-           1024px, with the phone alone, a line under the phone does both. *@
         <div class="site-hero-demo">
             @* The ember (hero-ember-preview, "Behind the demo"): rings centered under the window's top edge,
                which hides their core and clips them, so they rise above it like a sunrise and frame the demo;
@@ -72,12 +70,15 @@
                 <i style="--x:.653;--y:-.17;--s:3px;--d:1.8s;--t:1.05s;--sway:6px"></i>
                 <i style="--x:.547;--y:-.23;--s:3px;--d:1.9s;--t:1.1s;--sway:-12px"></i>
             </div>
+            @* The caption sits on the picture it names (L1): what the app is, and the link that opens it as a page. *@
+            <p class="site-hero-caption">
+                <span>A store dashboard, built with IzzyBlazor</span>
+                <a href="@RunningHref">See it running<Icon Name="Lucide.ArrowRight" /></a>
+            </p>
             <div class="site-hero-stage">
                 <div class="site-hero-window">
-                    <div class="site-hero-window-bar">
-                        <span class="site-hero-window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                        <span class="site-hero-window-url"><i class="site-hero-live-dot" aria-hidden="true"></i>Live · northwind.example</span>
-                        <Anchor Href="@CodeHref" Underline="AnchorUnderline.Hover" Class="site-action site-hero-code">See the code<Icon Name="Lucide.ArrowRight" /></Anchor>
+                    <div class="site-hero-window-bar" aria-hidden="true">
+                        <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
                     </div>
                     <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" loading="lazy" title="Northwind, a store's dashboard built with IzzyBlazor, at a desktop's width"></iframe></div>
                 </div>
@@ -85,10 +86,6 @@
                     <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" title="Northwind, a store's dashboard built with IzzyBlazor, at a phone's width"></iframe></div>
                 </div>
             </div>
-            <p class="site-hero-note">
-                <i class="site-hero-live-dot" aria-hidden="true"></i><span>Live demo</span><span aria-hidden="true">·</span>
-                <Anchor Href="@CodeHref" Underline="AnchorUnderline.Hover" Class="site-action">See the code<Icon Name="Lucide.ArrowRight" /></Anchor>
-            </p>
         </div>
     </div>
 </Section>
@@ -206,6 +203,37 @@
     </Stack>
 </Section>
 
+@* L4, free with an account: after the components, so the offer reads as more on top of a free library. *@
+<Section Class="site-band site-free">
+    <div class="site-free-col">
+        <div class="site-free-intro">
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Free with an account</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Start from a running app instead of a blank page. A free account adds app starters, page blocks and a sample CRM, all generated on your machine as code you own.</TextBlock>
+        </div>
+        <div class="site-free-cards">
+            @foreach (var item in Free)
+            {
+                <article class="site-free-card">
+                    <Image Src="@($"img/{item.Picture}.webp")" DarkSrc="@($"img/{item.Picture}-dark.webp")" Alt="@item.Alt" Ratio="1.6" Class="site-free-picture" />
+                    <div class="site-free-body">
+                        <Heading Level="3" Class="site-free-name"><span>@item.Count</span>@item.Name</Heading>
+                        <p>@item.Line</p>
+                        <Anchor Href="@item.Href" Underline="AnchorUnderline.Hover" Class="site-action">@item.Link<Icon Name="Lucide.ArrowRight" /></Anchor>
+                    </div>
+                </article>
+            }
+        </div>
+        <div class="site-free-actions">
+            <Button Href="@AccountService.SignIn" Size="ControlSize.Lg">Create a free account</Button>
+            <Anchor Href="pricing" Underline="AnchorUnderline.Hover" Class="site-action">See pricing<Icon Name="Lucide.ArrowRight" /></Anchor>
+        </div>
+        <p class="site-free-note">
+            <Icon Name="Lucide.LockOpen" />
+            <span>You don’t need an account for the components, the docs or the IzzyBlazor App starter. They’re open source under MIT and will stay that way.</span>
+        </p>
+    </div>
+</Section>
+
 <Section>
     <Stack Gap="6">
         <Stack Gap="2">
@@ -230,32 +258,70 @@
 </Section>
 
 
-@* The close: how to start, the three ways in (each Get started page has the install command). *@
+@* L6, the close: the three ways in, each with its command. Then L7, the newsletter's band (the footer here has no form). *@
 <Section>
     <Stack Gap="6">
-        <Heading Level="2" Size="TextSize.Xl3">Start from your project</Heading>
-        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
-            <Card Title="New app" Href="docs/get-started/create-app" Description="Start from the starter, in the render modes you choose." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
-            </Card>
-            <Card Title="Existing app" Href="docs/get-started/existing-app" Description="Run izzy init, then use it page by page beside your own." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.PackagePlus" /></CardHeader>
-            </Card>
-            <Card Title="Blocks" Href="docs/cli/blocks" Description="Add a hero, pricing or sign-up to your app with izzy add." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.Cpu" /></CardHeader>
-            </Card>
+        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Start building</Heading>
+        <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
+            @foreach (var way in Ways)
+            {
+                <Card Size="ControlSize.Sm">
+                    <CardBody Gap="3">
+                        <Row Gap="2" Align="Align.Center" Wrap>
+                            <Heading Level="3" Size="TextSize.Md">@way.Title</Heading>
+                            @if (way.Account)
+                            {
+                                <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Soft" Pill>Free account</Badge>
+                            }
+                        </Row>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@way.Line</TextBlock>
+                        <Code Block>@way.Command</Code>
+                        <Anchor Href="@way.Href" Underline="AnchorUnderline.Hover" Class="site-action">@way.Link<Icon Name="Lucide.ArrowRight" /></Anchor>
+                    </CardBody>
+                </Card>
+            }
         </Grid>
     </Stack>
+</Section>
+
+<Section Class="site-band site-news">
+    <div class="site-news-col">
+        <div class="site-news-intro">
+            <Heading Level="2" Size="TextSize.Xl3" Wrap="TextWrap.Balance">One email a month</Heading>
+            <TextBlock Color="Color.Muted">Once a month, we’ll tell you what’s new in IzzyBlazor. Subscribers see new blocks and kits first and hear about the founding price when Pro goes on sale.</TextBlock>
+        </div>
+        <Newsletter Source="home" />
+    </div>
 </Section>
 
 @code {
     // The brand's Ember, on the hero's call to action only (it isn't a component accent).
     private static readonly Accent Ember = Accent.Of("#F26A1B");
 
-    // The hero's dashboard, interactive, with its code.
-    private const string CodeHref = "docs/components/app-shell#ex-home-store";
+    // The hero's dashboard, as a page of its own.
+    private const string RunningHref = "frame/home-store";
 
     private string Description => $"Open-source Blazor components, {Registry.ComponentCountLabel} of them, that work in static SSR, Interactive Server, WebAssembly and Auto. Pick each page's render mode for the page.";
+
+    // L4's cards: a picture, the count beside its name (Izzy CRM is its own count), a line and a link.
+    private sealed record FreeItem(string Picture, string Alt, string Count, string Name, string Line, string Link, string Href);
+
+    private static readonly FreeItem[] Free =
+    [
+        new("templates/sidebar", "The sidebar starter’s home page", "6", "app starters", "Six layouts, from a sidebar app to a docs site, each ready to run as soon as it’s generated.", "Browse templates", "templates"),
+        new("blocks/pricing", "The pricing block", "15", "blocks", "Finished page sections, such as a hero, pricing and an FAQ, that you add to any page with izzy add.", "Browse blocks", "blocks"),
+        new("templates/crm", "Izzy CRM’s dashboard", "Izzy CRM", "", "A complete app with a deal pipeline, contacts, reports and sign-in that you can build on.", "See Izzy CRM", "templates/crm"),
+    ];
+
+    // L6's cards.
+    private sealed record Way(string Title, bool Account, string Line, string Command, string Link, string Href);
+
+    private static readonly Way[] Ways =
+    [
+        new("New app", false, "The base starter works in every render mode, with sign-in if you need it.", "dotnet new starter-blazor -n MyApp", "Start a new app", "docs/get-started/create-app"),
+        new("Existing app", false, "Add IzzyBlazor’s theme and components to a Blazor app you already have.", "izzy init", "Add to an app", "docs/get-started/existing-app"),
+        new("An app shell, blocks or the CRM", true, "Start from an app shell or Izzy CRM, or add finished blocks to the pages you have.", "izzy new starter sidebar -n MyApp", "Create a free account", AccountService.SignIn),
+    ];
 
     // The showcase: each card counts the catalog groups it covers.
     private sealed record ShowGroup(string Key, string Title, string Lead, string[] Groups, string[] Names);
