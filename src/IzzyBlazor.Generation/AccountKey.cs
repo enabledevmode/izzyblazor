@@ -114,6 +114,6 @@ public static class AccountKeys
     /// </summary>
     public static IReadOnlyDictionary<string, string> Public { get; } = new Dictionary<string, string>
     {
-        // The first key is added when the account service is deployed (artifacts/izzyblazor-account-design.md, build step 5).
+        ["k1"] = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEOIUI841NBErd/nha5mx1pQ5OySNmPZmOWW9ZUmiNSXVmPvT0hM/lbUJE5i1sm+A/5ifbjxku7vrArx7LnkdO1w==",
     };
 }
