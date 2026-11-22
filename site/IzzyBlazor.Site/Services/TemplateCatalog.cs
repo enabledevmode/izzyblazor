@@ -85,7 +85,7 @@ public sealed class TemplateCatalog
     public static IReadOnlyList<TemplateScreen> Screens(Template template) =>
         ScreensById.GetValueOrDefault(template.Id) ?? [];
 
-    // Taken Nov 20, 2026 from `izzy new kit crm` running with its sample data, at 1440×900 and 375×812.
+    // Taken Nov 22, 2026 from `izzy new kit crm` running with its sample data, at 1440×900 and 375×812.
     private static readonly Dictionary<string, IReadOnlyList<TemplateScreen>> ScreensById = new(StringComparer.OrdinalIgnoreCase)
     {
         ["crm"] =
@@ -95,6 +95,7 @@ public sealed class TemplateCatalog
             new("contact", "A contact", "A contact's page: their details, deals, activities and notes"),
             new("company", "A company", "A company's page: its details, people and deals"),
             new("pipeline", "Deal pipeline", "The deal pipeline: each deal with its company, stage, value and expected close"),
+            new("board", "Deal pipeline as a board", "The deal pipeline as a board: a column for each stage with its count and total, and a card for each deal"),
             new("deal", "A deal", "A deal's page: its stage, value and history"),
             new("calendar", "Activities", "The week's activities on a calendar"),
             new("reports", "Reports", "The sales overview: charts of the pipeline and the team's results"),
