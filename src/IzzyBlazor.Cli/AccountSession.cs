@@ -108,7 +108,7 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
         {
-            error.WriteLine($"Can't reach {service.Host}. Check the connection and run izzy login again.");
+            error.WriteLine($"Can't sign in at {service.Host} right now. Check the connection and run izzy login again.");
             return 1;
         }
         var address = (string?)start["verification_uri_complete"] ?? (string)start["verification_uri"]!;
