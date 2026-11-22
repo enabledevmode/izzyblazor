@@ -28,6 +28,8 @@ public static class Articles
         [
             new("overview", "CLI overview", "SquareTerminal",
                 "Install izzy, and add blocks and pages to your app as code you own."),
+            new("account", "Your account", "KeyRound",
+                "Sign in with izzy login for the app starters, blocks and kits, and use a key on build servers."),
             new("templates", "Templates", "AppWindow",
                 "Create an app from a starter or an app kit, with its name, folder and options."),
             new("blocks", "Blocks", "LayoutTemplate",

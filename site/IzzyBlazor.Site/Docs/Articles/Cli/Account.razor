@@ -1,0 +1,91 @@
+@page "/docs/cli/account"
+
+@* izzy login, logout and account, and IZZY_KEY (src/IzzyBlazor.Cli/AccountSession.cs; the account service is
+   the private izzyblazor-account repo). What the CLI sends is a promise the Privacy page repeats: keep the
+   three in step. *@
+
+<ArticlePage Section="cli" Slug="account">
+    <Lead>
+        The app starters, the blocks and the kits come with a free IzzyBlazor account. <Code>izzy login</Code> signs
+        your machine in. After that, izzy creates them on your machine, online or offline.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Sign in</Heading>
+        <Code Block Language="bash">izzy login</Code>
+        <TextBlock>
+            izzy shows a code and opens <Anchor Href="https://account.izzyblazor.com">account.izzyblazor.com</Anchor> in
+            your browser. Sign in there with an email link, or create your account the same way. Check that the page
+            shows the same code as your terminal, then approve it.
+        </TextBlock>
+        <TextBlock>
+            On a machine without a browser, such as a server you reach over SSH, add <Code>--no-browser</Code>. Open
+            the address izzy prints on any other device and approve the code there.
+        </TextBlock>
+        <TextBlock>
+            izzy then downloads the account's templates. To list them, run <Code>izzy list</Code>. To create an app
+            from one, see <Anchor Href="docs/cli/templates">Templates</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Work offline</Heading>
+        <TextBlock>
+            izzy keeps your sign-in and the templates in the <Code>.izzy</Code> folder of your home folder. It creates
+            apps and blocks from that copy, so you don't need a connection.
+        </TextBlock>
+        <TextBlock>
+            The sign-in renews by itself when you're online. After you update izzy, it downloads the templates for the
+            new version the next time you create something.
+        </TextBlock>
+
+        <Heading Level="2">What izzy sends</Heading>
+        <TextBlock>
+            izzy creates your code on your machine. It never sends your code, your app's name or which templates you
+            used. When it signs in or renews, it sends your machine's name and izzy's version, which your account page
+            lists so you can sign a machine out.
+        </TextBlock>
+
+        <Heading Level="2">Check or end the sign-in</Heading>
+        <Table Items="Commands" Caption="Account commands" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Command" Width="Length.Rem(9)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            To sign out a machine you no longer have, use your account page. Code you already created stays yours.
+            See the <Anchor Href="docs/cli/license">License</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Build servers</Heading>
+        <TextBlock>
+            A build server can't approve a code. Make a key on your account page and set it on the server as the
+            <Code>IZZY_KEY</Code> environment variable. izzy uses it in place of a sign-in:
+        </TextBlock>
+        <Code Block Language="yaml">@Workflow</Code>
+        <TextBlock>
+            The key is shown once, when you make it. Store it as a secret. To stop a key from working, delete it on
+            your account page.
+        </TextBlock>
+
+        <Heading Level="2">Without an account</Heading>
+        <TextBlock>
+            The components, the IzzyBlazor App starter, <Code>izzy init</Code> and <Code>izzy add crud</Code> need no
+            account. When an item needs one, izzy says so and stops with exit code 4.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private static readonly Row[] Commands =
+    [
+        new("izzy account", "Shows whether this machine is signed in, your plan, and when the sign-in renews."),
+        new("izzy logout", "Signs this machine out and removes the account's templates from it."),
+    ];
+
+    private const string Workflow = """
+        - run: izzy add hero
+          env:
+            IZZY_KEY: ${{ secrets.IZZY_KEY }}
+        """;
+}
