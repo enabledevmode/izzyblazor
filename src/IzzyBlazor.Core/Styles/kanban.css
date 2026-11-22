@@ -41,6 +41,8 @@
     gap: var(--ib-space-3);
     min-inline-size: 0;
     padding: var(--ib-space-3);
+    /* The border shows the column in dark mode, where the sunken surface is nearly the page's own. */
+    border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);
     background-color: var(--ib-color-surface-sunken);
     scroll-snap-align: start;
@@ -238,6 +240,7 @@
   /* A header alone: no surface of its own, level with the cells' cards. */
   .ib-kanban-head {
     padding-block: 0;
+    border-color: transparent;
     background-color: transparent;
   }
 
@@ -273,6 +276,7 @@
     min-inline-size: 0;
     min-block-size: 5rem;
     padding: var(--ib-space-3);
+    border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);
     background-color: var(--ib-color-surface-sunken);
   }
