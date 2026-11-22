@@ -19,7 +19,7 @@ public sealed class ConfirmDialogTests(SiteFixture site) : IClassFixture<SiteFix
         var revoke = page.GetByRole(AriaRole.Button, new() { Name = "Revoke CI pipeline" });
         var dialog = page.GetByRole(AriaRole.Alertdialog, new() { Name = "Revoke CI pipeline?" });
 
-        // Cancelled: nothing happens, and the button is still there.
+        // Canceled: nothing happens, and the button is still there.
         await revoke.ClickAsync();
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Cancel" }).ClickAsync();
         await Assertions.Expect(dialog).ToBeHiddenAsync();

@@ -4,7 +4,7 @@ namespace IzzyBlazor.Generation;
 
 /// <summary>
 /// Evaluates a condition such as <c>(UseServer &amp;&amp; !Empty)</c> or <c>Interactivity == "Auto"</c>: the
-/// subset of <c>dotnet new</c>'s expressions the catalogue uses, so an item's conditions mean the same in both.
+/// subset of <c>dotnet new</c>'s expressions the catalog uses, so an item's conditions mean the same in both.
 /// Names are settings or computed values; a name that isn't one is an error, not false.
 /// </summary>
 internal static class Condition

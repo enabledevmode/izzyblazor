@@ -218,7 +218,7 @@
         _code = _block.Free ? BlockCatalog.Code(_variant) : [];
         _settings = _block.Manifest.Parameters.Where(p => !p.Hidden).ToList();
 
-        // In the catalogue's order: by category, then A to Z, as the sidebar lists them.
+        // In the catalog's order: by category, then A to Z, as the sidebar lists them.
         var order = Blocks.Categories.SelectMany(Blocks.InCategory).ToList();
         var index = order.IndexOf(_block);
         _previous = index > 0 ? order[index - 1] : null;

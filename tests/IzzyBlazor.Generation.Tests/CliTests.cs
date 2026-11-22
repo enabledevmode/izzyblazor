@@ -7,7 +7,7 @@ namespace IzzyBlazor.Generation.Tests;
 
 /// <summary>
 /// The izzy CLI as a developer uses it: a new app, a block shown first as JSON, then added once, recorded in
-/// .izzy/items.json; and the packed tool, installed from a feed, carrying the catalogue with it.
+/// .izzy/items.json; and the packed tool, installed from a feed, carrying the catalog with it.
 /// </summary>
 [Collection(ProjectBuild.Collection)]
 public sealed class CliTests : IDisposable
@@ -25,7 +25,7 @@ public sealed class CliTests : IDisposable
     [Fact]
     public void A_new_app_takes_a_hero_once_and_records_both()
     {
-        // Ids are found in any case, and recorded as the catalogue writes them.
+        // Ids are found in any case, and recorded as the catalog writes them.
         Assert.Equal(0, Izzy(_work, "new", "starter", "Blazor", "-n", "Acme", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
 
@@ -88,7 +88,7 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
-    public async Task The_packed_tool_installs_and_carries_the_catalogue()
+    public async Task The_packed_tool_installs_and_carries_the_catalog()
     {
         var feed = Path.Combine(_work, "feed");
         var tools = Path.Combine(_work, "tools");
@@ -97,7 +97,7 @@ public sealed class CliTests : IDisposable
 
         var izzy = Path.Combine(tools, OperatingSystem.IsWindows() ? "izzy.exe" : "izzy");
         Assert.Contains("hero", await Run(_work, izzy, "list"));
-        // Dot files ship too: --mcp writes .mcp.json from the catalogue.
+        // Dot files ship too: --mcp writes .mcp.json from the catalog.
         await Run(_work, izzy, "new", "starter", "blazor", "-n", "App", "--mcp", "--no-restore");
         Assert.True(File.Exists(Path.Combine(_work, "App", ".mcp.json")));
     }

@@ -126,8 +126,8 @@ export function attach(editor: TaskEditor): void {
   host.addEventListener("click", (event) => {
     const box = event.target as HTMLInputElement;
     if (!box.matches?.("li > input[type=checkbox]") || !editor.surface()?.contains(box)) return;
-    // Cancelled, so every browser leaves it to the editor (Firefox ignores clicks in editable
-    // text); ticked after the click, since cancelling one puts the box back as it was.
+    // Canceled, so every browser leaves it to the editor (Firefox ignores clicks in editable
+    // text); ticked after the click, since canceling one puts the box back as it was.
     event.preventDefault();
     if (editor.surface()!.isContentEditable && boxOf(box.parentElement) === box) setTimeout(() => toggleBox(editor, box));
   });

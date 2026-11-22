@@ -12,13 +12,13 @@ public sealed class ItemDefinition
     public required IReadOnlyDictionary<string, byte[]> Files { get; init; }
 
     /// <summary>
-    /// Whether the Pro catalogue's files were loaded with it (<see cref="Catalog.Load"/> with a Pro root), so its
+    /// Whether the Pro catalog's files were loaded with it (<see cref="Catalog.Load"/> with a Pro root), so its
     /// Pro choices, or the whole item when it's Pro, can be generated.
     /// </summary>
     public bool IncludesPro { get; init; }
 
     /// <summary>
-    /// Reads an item from a catalogue folder: <c>izzy.json</c> beside a <c>files</c> folder whose contents are
+    /// Reads an item from a catalog folder: <c>izzy.json</c> beside a <c>files</c> folder whose contents are
     /// the template, laid out as they'll be in the project.
     /// </summary>
     public static ItemDefinition FromDirectory(string directory)
@@ -96,7 +96,7 @@ public sealed class ItemDefinition
         return new ItemDefinition { Manifest = manifest, Files = files, IncludesPro = kit.IncludesPro };
     }
 
-    // The files under a catalogue folder's "files" folder, by path with forward slashes.
+    // The files under a catalog folder's "files" folder, by path with forward slashes.
     internal static SortedDictionary<string, byte[]> ReadFiles(string directory)
     {
         var filesRoot = Path.Combine(directory, "files");

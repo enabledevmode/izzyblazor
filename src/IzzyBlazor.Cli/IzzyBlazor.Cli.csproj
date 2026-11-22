@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- The izzy CLI: a .NET tool over the generation engine, with the free catalogue inside it. -->
+  <!-- The izzy CLI: a .NET tool over the generation engine, with the free catalog inside it. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackageId>IzzyBlazor.Cli</PackageId>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>izzy</ToolCommandName>
     <Title>IzzyBlazor CLI</Title>
-    <Description>The izzy command: new IzzyBlazor apps, and blocks and pages added to the app you have, from IzzyBlazor's catalogue. Every change can be shown first as a diff or as JSON.</Description>
+    <Description>The izzy command: new IzzyBlazor apps, and blocks and pages added to the app you have, from IzzyBlazor's catalog. Every change can be shown first as a diff or as JSON.</Description>
     <PackageTags>blazor;cli;scaffolding;templates;blocks;izzyblazor</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <IncludeSymbols>false</IncludeSymbols>
-    <!-- The catalogue's dotfiles (.mcp.json, .dockerignore) are templates too: pack them. -->
+    <!-- The catalog's dotfiles (.mcp.json, .dockerignore) are templates too: pack them. -->
     <NoDefaultExcludes>true</NoDefaultExcludes>
     <!-- Roslyn's messages in English only: the tool doesn't show them, and the rest are megabytes. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
@@ -29,14 +29,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The free catalogue, beside the tool's dll: catalog/<item-id>/izzy.json and files/. -->
+    <!-- The free catalog, beside the tool's dll: catalog/<item-id>/izzy.json and files/. -->
     <None Include="$(RepoRoot)catalog/**/*" LinkBase="catalog" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" Visible="false" />
     <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
     <None Include="$(RepoRoot)docs/nuget-readme-cli.md" Pack="true" PackagePath="\README.md" Visible="false" />
     <None Include="$(RepoRoot)brand/nuget/icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
-  <!-- The catalogue beside the built tool: cleared, then copied, so a removed item leaves the tool too. -->
+  <!-- The catalog beside the built tool: cleared, then copied, so a removed item leaves the tool too. -->
   <Target Name="CopyCatalog" AfterTargets="Build">
     <ItemGroup>
       <CatalogFile Include="$(RepoRoot)catalog/**/*" />

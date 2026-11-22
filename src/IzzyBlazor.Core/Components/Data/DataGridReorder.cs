@@ -163,7 +163,7 @@ public abstract partial class GridViewBase<TItem>
             await OnMove.InvokeAsync(args);
             if (args.Cancel)
             {
-                _moveAnnouncement = string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveCancelled, LabelOf(item));
+                _moveAnnouncement = string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveCanceled, LabelOf(item));
                 return;
             }
 

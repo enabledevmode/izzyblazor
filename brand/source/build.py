@@ -12,7 +12,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "out/izzyblazor-brand"
 FD = "node_modules/@fontsource"
 
 INK, PAPER, EMBER, AMBER = "#14161A", "#F5F4F1", "#F26A1B", "#FFB020"
-STEEL, GREY_L, GREY_D, TRACK = "#8A8F98", "#5A6069", "#A9AEB6", "#2C3038"
+STEEL, GRAY_L, GRAY_D, TRACK = "#8A8F98", "#5A6069", "#A9AEB6", "#2C3038"
 TAGLINE = "Blazor components. No circuit required."
 SUBHEAD = "A complete component library for every render mode."
 MODES = ["Static", "Interactive"]
@@ -85,8 +85,8 @@ def knob(cx, cy, r, mode="color", halo=True, core=True, halo_op=0.25, mono=INK):
 
 # ---------- wordmark ----------
 SCHEMES = {
-    "light": dict(izzy=INK, blazor=GREY_L, halo_op=0.22, mode="color"),
-    "dark": dict(izzy=PAPER, blazor=GREY_D, halo_op=0.32, mode="color"),
+    "light": dict(izzy=INK, blazor=GRAY_L, halo_op=0.22, mode="color"),
+    "dark": dict(izzy=PAPER, blazor=GRAY_D, halo_op=0.32, mode="color"),
     "mono-ink": dict(izzy=INK, blazor=INK, mode="mono", mono=INK),
     "mono-white": dict(izzy="#FFFFFF", blazor="#FFFFFF", mode="mono", mono="#FFFFFF"),
 }
@@ -329,7 +329,7 @@ def card(w, h, wm_size, tag_size, sub_size, badge_h, left, path, glow_r=None, sh
     body += text("b700", TAGLINE, tag_size, left, y, PAPER, -0.015)[0]
     if show_sub:
         y += sub_size * 1.7
-        body += text("b500", SUBHEAD, sub_size, left, y, GREY_D)[0]
+        body += text("b500", SUBHEAD, sub_size, left, y, GRAY_D)[0]
     if show_badge:
         y += badge_h * 0.9
         bs, _ = mode_badge(left, y, badge_h, None)
@@ -352,7 +352,7 @@ def readme_banner(scheme):
     base = (h - block) / 2 - b[1]
     wm, b, ww = placed_wordmark(116, w / 2, base, scheme, "middle")
     fill = INK if scheme == "light" else PAPER
-    t = text("b500", TAGLINE, tag_size, w / 2, base + b[3] + tag_size * 1.7, GREY_L if scheme == "light" else GREY_D, anchor="middle")[0]
+    t = text("b500", TAGLINE, tag_size, w / 2, base + b[3] + tag_size * 1.7, GRAY_L if scheme == "light" else GRAY_D, anchor="middle")[0]
     return svg_doc(w, h, wm + t)
 for sc in ("light", "dark"):
     p = save(f"github/readme-banner-{sc}.svg", readme_banner(sc))
@@ -361,7 +361,7 @@ for sc in ("light", "dark"):
 # hero 1600x800 (export 2x), dark and light
 def hero(scheme="dark"):
     dark = scheme == "dark"
-    fg, sub, panel, line = (PAPER, GREY_D, "#1E2126", "#3A3F48") if dark else (INK, GREY_L, "#FFFFFF", "#D6D3CC")
+    fg, sub, panel, line = (PAPER, GRAY_D, "#1E2126", "#3A3F48") if dark else (INK, GRAY_L, "#FFFFFF", "#D6D3CC")
     accent = EMBER if dark else "#E0590F"
     w, h = 1600, 800; left = 120; body = glow(w - 160, h / 2, 140)
     base = 250

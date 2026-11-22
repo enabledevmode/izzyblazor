@@ -381,7 +381,7 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
-    public void Cancelling_a_row_by_its_link_forgets_what_was_typed()
+    public void Canceling_a_row_by_its_link_forgets_what_was_typed()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         JSInterop.Mode = JSRuntimeMode.Loose;

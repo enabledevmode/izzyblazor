@@ -1,6 +1,6 @@
 // The free testimonials block: one customer's quote with their name and role, written into the
 // project as a component you own (Components/Blocks/Testimonials.razor) and added at the end of a
-// page. Its Cards, Logos and Stats layouts are Pro: their files live only in the Pro catalogue.
+// page. Its Cards, Logos and Stats layouts are Pro: their files live only in the Pro catalog.
 {
   "id": "testimonials",
   "name": "Testimonials",

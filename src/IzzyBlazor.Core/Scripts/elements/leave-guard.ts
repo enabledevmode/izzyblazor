@@ -6,7 +6,7 @@ import { IzzyElement, defineElement } from "../izzy-element";
  *
  * - A link (any but those opening elsewhere, downloading, changing only the #fragment, or not
  *   http) and, on static pages, another form's post: caught in the capture phase, before Blazor's
- *   enhanced navigation or interactive router (both skip a cancelled event). The guard's dialog
+ *   enhanced navigation or interactive router (both skip a canceled event). The guard's dialog
  *   asks; Leave clicks the link or submits the form again, and lets it through. On interactive
  *   pages Leave tells C# instead (a change event on the guard's hidden input, with the address),
  *   which navigates past its own location-changing handler.

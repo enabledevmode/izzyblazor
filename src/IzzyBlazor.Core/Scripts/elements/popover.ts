@@ -206,7 +206,7 @@ class PopoverRoot extends IzzyElement {
     if (!panel || typeof panel.showPopover !== "function") return;
     // A render from before the user's latest open or close would undo it (see toggle.ts).
     if (this.#unreported !== null) {
-      // Still on its way to the reporting toggle event; or cancelled (a beforetoggle prevented).
+      // Still on its way to the reporting toggle event; or canceled (a beforetoggle prevented).
       if (panel.matches(":popover-open") === this.#unreported) return;
       this.#unreported = null;
     }

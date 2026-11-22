@@ -1223,7 +1223,7 @@
       "examples": [
         { "id": "slider-usage", "title": "Showing the value", "lead": "To show the value in a tooltip over the thumb, set `ValueTooltip`; to label the ends, `ShowEnds`. `ValueFormat` sets how values read, both shown and announced. `[Range]` sets the ends.",
           "notes": {
-            "noscript": "A plain range input with its ends labelled: no fill, and no tooltip.",
+            "noscript": "A plain range input with its ends labeled: no fill, and no tooltip.",
             "static": "IzzyBlazor's script fills the track to the thumb, and the tooltip follows as the user drags."
           } },
         { "id": "slider-marks", "title": "Marks", "lead": "To point out values on the track, set `Marks`, each with an optional label; `ShowStepMarks` puts a dot at every step.",
@@ -1267,7 +1267,7 @@
           } },
         { "id": "range-slider-window", "title": "Naming the thumbs",
           "notes": {
-            "noscript": "Plain range inputs with marks and labelled ends; no fill, and no tooltips."
+            "noscript": "Plain range inputs with marks and labeled ends; no fill, and no tooltips."
           } }
       ]
     },

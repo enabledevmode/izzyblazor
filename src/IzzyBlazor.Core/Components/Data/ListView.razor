@@ -143,7 +143,7 @@
                              data-ib-sorted="@(InGroup && Group!.Sorted ? "" : null)"
                              data-ib-whole="@(DragWholeItem ? "" : null)"
                              data-ib-moved="@TextDefaults.MovedTo"
-                             data-ib-cancelled="@(Live ? TextDefaults.MoveCancelled : null)">
+                             data-ib-canceled="@(Live ? TextDefaults.MoveCanceled : null)">
                     @ItemsList
                     @if (InGroup)
                     {
@@ -687,7 +687,7 @@
 
     // A drag on an interactive page. The script holds the dragged item where it was dropped until a
     // render carries this count, so it's counted once the move is done (after an OnMove that awaits
-    // a save), whatever comes of it: moved, cancelled or ignored.
+    // a save), whatever comes of it: moved, canceled or ignored.
     private async Task DropAsync(IzzyMoveEventArgs e)
     {
         if (InGroup)
@@ -749,7 +749,7 @@
         await OnMove.InvokeAsync(args);
         if (args.Cancel)
         {
-            _announcement = string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveCancelled, LabelOf(item));
+            _announcement = string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveCanceled, LabelOf(item));
             return;
         }
 

@@ -1161,8 +1161,8 @@ public class IzzyText
     /// <summary>Announced after a move to a zone whose items are sorted, where the place isn't the one dropped at: "Moved Ada to Done".</summary>
     public virtual string MovedToZoneOnly { get; set; } = "Moved {0} to {1}";
 
-    /// <summary>Announced when a move is cancelled: "Ada wasn't moved".</summary>
-    public virtual string MoveCancelled { get; set; } = "{0} wasn't moved";
+    /// <summary>Announced when a move is canceled: "Ada wasn't moved".</summary>
+    public virtual string MoveCanceled { get; set; } = "{0} wasn't moved";
 
     /// <summary>A TileLayout tile's move menu: one column to the left.</summary>
     public virtual string MoveLeft { get; set; } = "Move left";

@@ -32,7 +32,7 @@ public sealed class RangeSliderTests(SiteFixture site) : IClassFixture<SiteFixtu
         await high.FocusAsync();
         await page.Keyboard.PressAsync("ArrowDown");
         await example.GetByRole(AriaRole.Button, new() { Name = "Show headphones" }).ClickAsync();
-        await Assertions.Expect(example.Locator("li")).ToHaveTextAsync(["Travel noise-cancelling · $140", "Open-back studio · $210"]);
+        await Assertions.Expect(example.Locator("li")).ToHaveTextAsync(["Travel noise-canceling · $140", "Open-back studio · $210"]);
         await Assertions.Expect(high).ToHaveValueAsync("290");
     }
 
@@ -50,7 +50,7 @@ public sealed class RangeSliderTests(SiteFixture site) : IClassFixture<SiteFixtu
         await example.GetByRole(AriaRole.Button, new() { Name = "Show headphones" }).ClickAsync();
 
         example = page.Locator("[data-ex='range-slider-usage']");
-        await Assertions.Expect(example.Locator("li")).ToHaveTextAsync(["Travel noise-cancelling · $140", "Open-back studio · $210", "Premium noise-cancelling · $330"]);
+        await Assertions.Expect(example.Locator("li")).ToHaveTextAsync(["Travel noise-canceling · $140", "Open-back studio · $210", "Premium noise-canceling · $330"]);
         await Assertions.Expect(example.GetByRole(AriaRole.Slider, new() { Name = "Minimum" })).ToHaveValueAsync("120");
     }
 }

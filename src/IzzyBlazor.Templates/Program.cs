@@ -1,6 +1,6 @@
 using IzzyBlazor.Generation;
 
-// Exports every starter and kit in the catalogue folder (args[0]) as a dotnet new template folder under args[1].
+// Exports every starter and kit in the catalog folder (args[0]) as a dotnet new template folder under args[1].
 if (args.Length != 2)
 {
     Console.Error.WriteLine("Usage: IzzyBlazor.Templates <catalog folder> <output folder>");
@@ -9,7 +9,7 @@ if (args.Length != 2)
 var count = 0;
 if (Directory.Exists(args[0]))
 {
-    // Through the catalogue, so a kit is exported over its base.
+    // Through the catalog, so a kit is exported over its base.
     foreach (var item in Catalog.Load(args[0]).Items.Values)
     {
         if (!item.Manifest.Kind.MakesProject()) continue;

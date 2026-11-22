@@ -150,7 +150,7 @@ public class DropZoneGroupTests : BunitContext
     }
 
     [Fact]
-    public void A_cancelled_live_move_stays_and_says_so()
+    public void A_canceled_live_move_stays_and_says_so()
     {
         Live();
         var cut = RenderBoard(name: null, cancel: true);

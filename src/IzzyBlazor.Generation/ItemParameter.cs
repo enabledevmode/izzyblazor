@@ -17,7 +17,7 @@ public sealed class ItemParameter
 
     /// <summary>
     /// Choices only Pro can generate (<c>"x-tiers": { "Rows": "pro" }</c>), such as a block's Pro layouts; the
-    /// rest are free. Their files are in the Pro catalogue, so the free engine refuses them.
+    /// rest are free. Their files are in the Pro catalog, so the free engine refuses them.
     /// </summary>
     public IReadOnlyList<string> ProChoices { get; init; } = [];
 

@@ -59,7 +59,7 @@ internal static class SliderScale
 
     /// <summary>
     /// Draws the marks and, with <paramref name="ends"/>, the ends' labels (marks with no dot) where
-    /// no labelled mark already sits, under the track's thumbs. Hidden from screen readers, which
+    /// no labeled mark already sits, under the track's thumbs. Hidden from screen readers, which
     /// hear the slider's own scale.
     /// </summary>
     public static RenderFragment? Draw(IReadOnlyList<SliderMark> marks, bool ends, double min, double max, Func<double, string> said)

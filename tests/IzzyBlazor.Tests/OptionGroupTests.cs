@@ -46,7 +46,7 @@ public class OptionGroupTests : BunitContext
     }
 
     [Fact]
-    public void A_combobox_list_has_a_labelled_group_for_each_and_options_numbered_through()
+    public void A_combobox_list_has_a_labeled_group_for_each_and_options_numbered_through()
     {
         string[] cities = ["Lima", "Oslo", "Kyoto", "Rome"];
         var cut = Render<Combobox<string?>>(p => p

@@ -1,6 +1,6 @@
 // The free FAQ block: questions that open to their answers, written into the project as a component
 // you own (Components/Blocks/Faq.razor) and added at the end of a page. Its Split layout is Pro:
-// that file lives only in the Pro catalogue.
+// that file lives only in the Pro catalog.
 {
   "id": "faq",
   "name": "FAQ",

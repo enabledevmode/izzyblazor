@@ -111,7 +111,7 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
     }
 
     [Fact]
-    public async Task Cancelling_on_a_static_page_leaves_the_other_rows_links_clean()
+    public async Task Canceling_on_a_static_page_leaves_the_other_rows_links_clean()
     {
         var (browser, page) = await OpenAsync("static");
         await using var _ = browser;

@@ -191,7 +191,7 @@
             await InvokeAsync(StateHasChanged);
             return new(items.Select((item, i) => new VirtualRow(window.StartIndex + i, item)), total);
         }
-        // Only Virtualize's own cancelling is expected: a provider's timeout is a failure like any other.
+        // Only Virtualize's own canceling is expected: a provider's timeout is a failure like any other.
         catch (Exception ex) when (ex is not OperationCanceledException || !window.CancellationToken.IsCancellationRequested)
         {
             if (version != _loadVersion)

@@ -118,7 +118,7 @@ public class OverlayRenderTests : BunitContext
     }
 
     [Fact]
-    public void Dialog_renders_closed_with_labelled_title_and_close_button()
+    public void Dialog_renders_closed_with_labeled_title_and_close_button()
     {
         var cut = Render<Dialog>(p => p
             .Add(d => d.Id, "confirm")

@@ -11,7 +11,7 @@ internal static class ProjectBuild
 
     public static string RepoRoot { get; } = FindRepoRoot();
 
-    /// <summary>A catalogue item from /catalog, through the catalogue so a kit is over its base.</summary>
+    /// <summary>A catalog item from /catalog, through the catalog so a kit is over its base.</summary>
     public static ItemDefinition Item(string id) => Catalog.Load(Path.Combine(RepoRoot, "catalog"))[id];
 
     /// <summary>The settings for blazor with its ports and GUID given, so nothing is random.</summary>

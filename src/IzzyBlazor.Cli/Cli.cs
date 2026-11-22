@@ -11,15 +11,15 @@ namespace IzzyBlazor.Cli;
 /// The izzy commands. Exit codes: 0 done, 1 an error, 2 files exist with other content (nothing written), 3 a Pro
 /// item or choice.
 /// </summary>
-/// <param name="catalogRoot">The free catalogue folder.</param>
+/// <param name="catalogRoot">The free catalog folder.</param>
 /// <param name="workingDirectory">Where relative paths start and the project is looked for.</param>
 /// <param name="output">Results.</param>
 /// <param name="error">Errors and warnings.</param>
-/// <param name="proRoot">The Pro catalogue, for working on it (IZZY_PRO_CATALOG); null for the free catalogue only.</param>
+/// <param name="proRoot">The Pro catalog, for working on it (IZZY_PRO_CATALOG); null for the free catalog only.</param>
 sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null)
 {
     const string Help = """
-        izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalogue.
+        izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalog.
 
         Usage:
           izzy list [--kind starter|kit|page|block|section|recipe] [--json]

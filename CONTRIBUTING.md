@@ -353,7 +353,7 @@ are defined on Render modes; link there instead of redefining them.
 1. It covers something a person or an app really does, not an edge condition or a race.
 2. If it broke, someone would care, and nothing else would catch it. Restating the markup doesn't count.
 3. It doesn't rely on delays, slowed responses or load, and gives the same result every run.
-4. It's the only test of that behaviour, with no copy per mode unless the modes run different code.
+4. It's the only test of that behavior, with no copy per mode unless the modes run different code.
 
 Fixing a bug doesn't earn a test by itself. A flaky test is deleted or simplified, not engineered around.
 

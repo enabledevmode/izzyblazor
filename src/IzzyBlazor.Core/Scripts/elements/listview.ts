@@ -65,7 +65,7 @@ class ListView extends IzzyElement {
   }
 
   /** The nearest of these items in the next row up or down, closest across. */
-  private rowNeighbour(items: HTMLElement[], from: HTMLElement, down: boolean): HTMLElement | undefined {
+  private rowNeighbor(items: HTMLElement[], from: HTMLElement, down: boolean): HTMLElement | undefined {
     const at = from.getBoundingClientRect();
     const middle = (r: DOMRect) => r.left + r.width / 2;
     let best: HTMLElement | undefined;
@@ -74,7 +74,7 @@ class ListView extends IzzyElement {
     for (const item of items) {
       if (item === from) continue;
       const r = item.getBoundingClientRect();
-      // A pixel of slack: dividers and rounding can make neighbours overlap.
+      // A pixel of slack: dividers and rounding can make neighbors overlap.
       if (down ? r.top < at.bottom - 1 : r.bottom > at.top + 1) continue;
       const row = Math.round(down ? r.top - at.bottom : at.top - r.bottom);
       const across = Math.abs(middle(r) - middle(at));
@@ -88,7 +88,7 @@ class ListView extends IzzyElement {
   }
 
   /** The item a key goes to from `from`, among those `can` lets it land on. */
-  private neighbour(key: string, from: HTMLElement, can: (item: HTMLElement) => boolean): HTMLElement | undefined {
+  private neighbor(key: string, from: HTMLElement, can: (item: HTMLElement) => boolean): HTMLElement | undefined {
     const all = this.items;
     const allowed = all.filter((item) => item !== from && can(item));
     const index = all.indexOf(from);
@@ -99,9 +99,9 @@ class ListView extends IzzyElement {
     const after = allowed.filter((item) => all.indexOf(item) > index);
     switch (key) {
       case "ArrowDown":
-        return this.rowNeighbour(allowed, from, true);
+        return this.rowNeighbor(allowed, from, true);
       case "ArrowUp":
-        return this.rowNeighbour(allowed, from, false);
+        return this.rowNeighbor(allowed, from, false);
       case "ArrowRight":
         return !sideBySide() ? undefined : rtl ? before[before.length - 1] : after[0];
       case "ArrowLeft":
@@ -140,7 +140,7 @@ class ListView extends IzzyElement {
     const enabled = (el: HTMLElement) => !el.matches(".ib-listview-disabled") && this.controls(el).length > 0;
     const kind = KINDS.find((k) => control.matches(k));
     const hasKind = (el: HTMLElement) => enabled(el) && this.controls(el).some((c) => c.matches(kind!));
-    const next = (kind && this.neighbour(event.key, item, hasKind)) || this.neighbour(event.key, item, enabled);
+    const next = (kind && this.neighbor(event.key, item, hasKind)) || this.neighbor(event.key, item, enabled);
     const to = next && this.match(control, next);
     if (!to) return;
     event.preventDefault();
@@ -158,7 +158,7 @@ class ListView extends IzzyElement {
     if (!event.shiftKey || event.ctrlKey || event.metaKey || !event.key.startsWith("Arrow")) return false;
 
     const boxOf = (el: Element) => el.querySelector<HTMLInputElement>(`:scope > ${BOX}:not(:disabled)`);
-    const next = this.neighbour(event.key, item, (el) => !el.matches(".ib-listview-disabled") && !!boxOf(el));
+    const next = this.neighbor(event.key, item, (el) => !el.matches(".ib-listview-disabled") && !!boxOf(el));
     const to = next && boxOf(next);
     if (!to) return false;
     event.preventDefault();

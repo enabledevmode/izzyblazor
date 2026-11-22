@@ -1,6 +1,6 @@
 // The free features block: a grid of icons, titles and sentences, written into the project as a
 // component you own (Components/Blocks/Features.razor) and added at the end of a page. Its Rows
-// layout is Pro: that file lives only in the Pro catalogue.
+// layout is Pro: that file lives only in the Pro catalog.
 {
   "id": "features",
   "name": "Features",

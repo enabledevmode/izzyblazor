@@ -57,7 +57,7 @@ class Confirm extends IzzyElement {
       { signal }
     );
 
-    // Cancelled from a menu's item: the item is hidden again, so focus goes to the menu's button.
+    // Canceled from a menu's item: the item is hidden again, so focus goes to the menu's button.
     dialog.addEventListener(
       "close",
       () => {

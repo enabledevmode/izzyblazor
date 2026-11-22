@@ -75,10 +75,10 @@
                 @Binding
             </FormMappingScope>
         }
-        @if (_cancelledSay is not null)
+        @if (_canceledSay is not null)
         {
             @* A posted move the page refused: the script said it moved, and the card is back. *@
-            <div class="ib-visually-hidden" role="status">@_cancelledSay</div>
+            <div class="ib-visually-hidden" role="status">@_canceledSay</div>
         }
         @if (CurrentColumnEdit is { Length: > 0 } columnKey)
         {
@@ -601,9 +601,9 @@
     internal KanbanPost? Posted { get; private set; }
 
     private DropZoneGroup<TItem>? _group;
-    // A posted move OnMove cancelled: the board shows the cards where they were.
-    private bool _cancelled;
-    private string? _cancelledSay;
+    // A posted move OnMove canceled: the board shows the cards where they were.
+    private bool _canceled;
+    private string? _canceledSay;
 
     private RenderFragment Binding => builder =>
     {
@@ -620,7 +620,7 @@
         Posted = post.Posted ? post : null;
         <EditForm Model="post" FormName="@KanbanPostBinding.FormName" OnSubmit="PostedAsync" Enhance class="ib-kanban-form">
             <DropZoneGroup TItem="TItem" Class="@BoardClass" Items="Items" ItemKey="ItemKey" ZoneOf="_zoneOf" Name="@KanbanPostBinding.Prefix"
-                           Order="@(Posted is null || _cancelled ? null : post.ToListOrder())" SubmitOnMove @ref="_group">
+                           Order="@(Posted is null || _canceled ? null : post.ToListOrder())" SubmitOnMove @ref="_group">
                 @Inner
             </DropZoneGroup>
         </EditForm>
@@ -704,8 +704,8 @@
         await OnMove.InvokeAsync(args);
         if (args.Cancel)
         {
-            _cancelled = true;
-            _cancelledSay = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveCancelled, ItemLabel?.Invoke(item) ?? ItemText?.Invoke(item) ?? key);
+            _canceled = true;
+            _canceledSay = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.MoveCanceled, ItemLabel?.Invoke(item) ?? ItemText?.Invoke(item) ?? key);
             return;
         }
 

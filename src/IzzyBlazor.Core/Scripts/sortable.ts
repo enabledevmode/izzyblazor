@@ -6,12 +6,12 @@
  *
  * It never moves nodes. While dragging, the item follows the pointer by a transform, and the
  * others slide aside to open a space where it lands: down a column (as DevExtreme's "push"), or
- * each into the place of its neighbour in rows that wrap (a grid, as SortableJS and dnd-kit). An
+ * each into the place of its neighbor in rows that wrap (a grid, as SortableJS and dnd-kit). An
  * empty zone is outlined, having nothing to move, as is one whose list isn't shown. When the pointer comes up, onDrop gets the item's old and new index and a
  * `settle` that clears the transforms; the caller moves the node itself and settles at once (a
  * static page), or asks the renderer to and settles when it has (an interactive one), so the
  * items stay where they were dropped until their nodes move.
- * Escape, a cancelled pointer or a lost capture put everything back.
+ * Escape, a canceled pointer or a lost capture put everything back.
  *
  * An element with data-ib-follows belongs to the item before it (a grid row's open detail row):
  * the two move as one item, and indexes count items, not elements.
@@ -273,7 +273,7 @@ export function trackDrag(options: SortOptions): void {
   };
 
   // Rows that wrap: the item takes the place (as at the start) nearest its middle, and the items
-  // between move one place along to open it, each into its neighbour's.
+  // between move one place along to open it, each into its neighbor's.
   const slideGrid = () => {
     const box = list.getBoundingClientRect();
     const own = item.getBoundingClientRect();
@@ -403,7 +403,7 @@ export function trackDrag(options: SortOptions): void {
       item.addEventListener("click", swallow, { capture: true, once: true });
       setTimeout(() => item.removeEventListener("click", swallow, { capture: true }), 0);
     };
-    // Cancelled by Escape, the pointer is still down: its click comes after it's up (WebKit
+    // Canceled by Escape, the pointer is still down: its click comes after it's up (WebKit
     // would open the handle's menu).
     if (escaped) document.addEventListener("pointerup", swallowClick, { capture: true, once: true });
     else swallowClick();

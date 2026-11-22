@@ -6,7 +6,7 @@ namespace IzzyBlazor.Generation;
 
 /// <summary>
 /// What <c>izzy init</c> reads from an app before setting up IzzyBlazor in it: whether IzzyBlazor can join it,
-/// what kind of app it is, and the parts of it the setup changes. The catalogue's <c>init</c> item does the
+/// what kind of app it is, and the parts of it the setup changes. The catalog's <c>init</c> item does the
 /// rest with these as facts and tokens.
 /// </summary>
 public static partial class Setup

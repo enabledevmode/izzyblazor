@@ -13,7 +13,7 @@ public sealed class DotnetNewTests : IDisposable
 {
     readonly string _work = Directory.CreateTempSubdirectory("izzy-dotnet-new-").FullName;
 
-    // Each starter and kit, as its catalogue folder and id: through the catalogue, so a kit is over its base.
+    // Each starter and kit, as its catalog folder and id: through the catalog, so a kit is over its base.
     public static TheoryData<string, string> Starters()
     {
         var data = new TheoryData<string, string>();

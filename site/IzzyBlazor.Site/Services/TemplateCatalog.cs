@@ -2,7 +2,7 @@ using IzzyBlazor.Generation;
 
 namespace IzzyBlazor.Site.Services;
 
-/// <summary>A starter or an app kit in the catalogue (<c>catalog/&lt;id&gt;/izzy.json</c>), for the Templates pages.</summary>
+/// <summary>A starter or an app kit in the catalog (<c>catalog/&lt;id&gt;/izzy.json</c>), for the Templates pages.</summary>
 public sealed record Template(ItemDefinition Definition)
 {
     /// <summary>The manifest, a kit's over its base.</summary>
@@ -39,7 +39,7 @@ public sealed record Template(ItemDefinition Definition)
 /// <summary>A screenshot of a starter or kit: its file name under <c>img/templates/{id}/</c> without the extension, what it shows, and whether it was taken at a phone's width.</summary>
 public sealed record TemplateScreen(string File, string Caption, string Alt, bool Phone = false);
 
-/// <summary>The starters and app kits, read from the catalogue copied beside the site (<c>catalog/</c> in its output).</summary>
+/// <summary>The starters and app kits, read from the catalog copied beside the site (<c>catalog/</c> in its output).</summary>
 public sealed class TemplateCatalog
 {
     /// <summary>The group of empty apps.</summary>

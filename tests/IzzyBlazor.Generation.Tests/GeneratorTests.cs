@@ -92,7 +92,7 @@ public class GeneratorTests
     public void Wrong_settings_say_what_is_allowed()
     {
         var item = Item(("a.razor", "x\n"));
-        Assert.Contains("Settings: Flag, Mode, PageName", Assert.Throws<GenerationException>(() => Run(item, ("Colour", "red"))).Message);
+        Assert.Contains("Settings: Flag, Mode, PageName", Assert.Throws<GenerationException>(() => Run(item, ("Color", "red"))).Message);
         Assert.Contains("one of None, Server, Auto", Assert.Throws<GenerationException>(() => Run(item, ("Mode", "Wasm"))).Message);
         Assert.Contains("true or false", Assert.Throws<GenerationException>(() => Run(item, ("Flag", "yes"))).Message);
     }

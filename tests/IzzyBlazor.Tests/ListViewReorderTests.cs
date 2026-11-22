@@ -115,7 +115,7 @@ public class ListViewReorderTests : BunitContext
     }
 
     [Fact]
-    public void A_cancelled_live_move_keeps_the_order()
+    public void A_canceled_live_move_keeps_the_order()
     {
         Live();
         var changed = false;
@@ -152,7 +152,7 @@ public class ListViewReorderTests : BunitContext
     }
 
     [Fact]
-    public void A_cancelled_or_locked_drop_keeps_the_order_and_still_renders_its_count()
+    public void A_canceled_or_locked_drop_keeps_the_order_and_still_renders_its_count()
     {
         // The script holds the dragged item until the render with its count: it must come either way.
         Live();

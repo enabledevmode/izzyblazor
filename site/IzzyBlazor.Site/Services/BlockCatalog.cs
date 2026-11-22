@@ -2,7 +2,7 @@ using IzzyBlazor.Generation;
 
 namespace IzzyBlazor.Site.Services;
 
-/// <summary>A block in the catalogue (<c>catalog/&lt;id&gt;/izzy.json</c>), for the Blocks pages.</summary>
+/// <summary>A block in the catalog (<c>catalog/&lt;id&gt;/izzy.json</c>), for the Blocks pages.</summary>
 public sealed record Block(ItemDefinition Definition)
 {
     /// <summary>The manifest.</summary>
@@ -57,7 +57,7 @@ public sealed record BlockVariant(Block Block, IReadOnlyList<VariationOption> Pi
 }
 
 /// <summary>
-/// The blocks, read from the catalogue copied beside the site (<c>catalog/</c> in its output). Each
+/// The blocks, read from the catalog copied beside the site (<c>catalog/</c> in its output). Each
 /// block's code is generated from its template as the CLI would; its previews are that code too,
 /// generated into <c>Blocks/Previews</c> (<see cref="PreviewFiles"/>, kept current by a test).
 /// </summary>

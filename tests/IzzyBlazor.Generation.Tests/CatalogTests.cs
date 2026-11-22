@@ -4,7 +4,7 @@ using IzzyBlazor.Generation;
 namespace IzzyBlazor.Generation.Tests;
 
 /// <summary>
-/// Free and Pro in one block: a Pro layout's file lives only in the Pro catalogue, which the server loads over
+/// Free and Pro in one block: a Pro layout's file lives only in the Pro catalog, which the server loads over
 /// the free one. Without it the engine refuses the Pro layout.
 /// </summary>
 public sealed class CatalogTests : IDisposable
@@ -40,7 +40,7 @@ public sealed class CatalogTests : IDisposable
             .Creates.Single().Text!;
 
     [Fact]
-    public void A_Pro_layout_generates_only_with_the_Pro_catalogue()
+    public void A_Pro_layout_generates_only_with_the_Pro_catalog()
     {
         Write("free/features/izzy.json", Manifest);
         Write("free/features/files/layouts/Grid.razor", "<Grid />\n");
@@ -57,7 +57,7 @@ public sealed class CatalogTests : IDisposable
 
     // Pro markup in a free file would ship to everyone: no condition in catalog/ may name a Pro choice.
     [Fact]
-    public void The_free_catalogue_holds_no_Pro_markup()
+    public void The_free_catalog_holds_no_Pro_markup()
     {
         var catalog = Catalog.Load(Path.Combine(ProjectBuild.RepoRoot, "catalog"));
         foreach (var item in catalog.Items.Values)
@@ -66,7 +66,7 @@ public sealed class CatalogTests : IDisposable
         {
             var conditions = Regex.Matches(System.Text.Encoding.UTF8.GetString(bytes), @"#(?:if|elif)\b.*");
             Assert.False(conditions.Any(c => c.Value.Contains($"\"{choice}\"")),
-                $"{item.Manifest.Id}/{path} has a condition on the Pro choice {choice}; put that layout in its own file in the Pro catalogue.");
+                $"{item.Manifest.Id}/{path} has a condition on the Pro choice {choice}; put that layout in its own file in the Pro catalog.");
         }
     }
 

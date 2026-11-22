@@ -4,7 +4,7 @@
 // templates loop over them; the settings it leaves out get their defaults there (Crud.Prepare).
 // Grid (C4, free, the default): one page whose DataGrid adds, edits and deletes in a dialog. Pages
 // (C1-C3, Pro): a list, a detail page and one form for new and edit; their files are in the private
-// Pro catalogue (izzyblazor-pro-catalog/crud), never here. Both read and write through I{Model}Store,
+// Pro catalog (izzyblazor-pro-catalog/crud), never here. Both read and write through I{Model}Store,
 // kept in memory or over the app's DbContext. Every page works as static SSR, and interactive too.
 {
   "id": "crud",

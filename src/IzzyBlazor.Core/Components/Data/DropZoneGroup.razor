@@ -453,7 +453,7 @@
             await OnMove.InvokeAsync(args);
             if (args.Cancel)
             {
-                from.Announce(string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveCancelled, from.LabelOf(item)));
+                from.Announce(string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveCanceled, from.LabelOf(item)));
                 RefreshZones();
                 return;
             }

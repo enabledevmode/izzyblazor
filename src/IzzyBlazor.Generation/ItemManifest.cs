@@ -15,7 +15,7 @@ public sealed class ItemManifest
     /// <summary>What it creates: a whole project, a page, a block on a page, and so on.</summary>
     public required ItemKind Kind { get; init; }
 
-    /// <summary>The catalogue group, such as Starters or Marketing.</summary>
+    /// <summary>The catalog group, such as Starters or Marketing.</summary>
     public string? Category { get; init; }
 
     /// <summary>Free items run in the CLI; Pro items run on IzzyBlazor's server.</summary>

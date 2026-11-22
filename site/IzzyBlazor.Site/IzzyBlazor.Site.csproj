@@ -25,7 +25,7 @@
     <!-- Built first, run by GenerateApiMetadata below; not referenced as code. It runs on the build
          machine, so it's built without the site's runtime (dotnet publish -r linux-x64 on Windows). -->
     <ProjectReference Include="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" ReferenceOutputAssembly="false" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" Private="false" />
-    <!-- The Blocks pages read the catalogue's manifests and generate each block's code as the CLI does. -->
+    <!-- The Blocks pages read the catalog's manifests and generate each block's code as the CLI does. -->
     <ProjectReference Include="..\..\src\IzzyBlazor.Generation\IzzyBlazor.Generation.csproj" />
     <!-- The MCP server at /mcp (Services/Mcp). -->
     <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
@@ -65,7 +65,7 @@
     </ItemGroup>
   </Target>
 
-  <!-- The catalogue (catalog/<id>/izzy.json and files/), copied beside the site: BlockCatalog reads
+  <!-- The catalog (catalog/<id>/izzy.json and files/), copied beside the site: BlockCatalog reads
        it. A plain copy, not items, so the Razor SDK doesn't take the templates' .razor.css and
        .razor.js for the site's own. Cleared first, so a block removed from catalog/ leaves the
        site too. -->

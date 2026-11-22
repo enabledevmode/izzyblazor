@@ -88,7 +88,7 @@ class Sortable extends IzzyElement {
       host.addEventListener("touchmove", (event) => this.sorting && event.preventDefault(), { signal, passive: false });
     }
     // A touch lifted and let go in place is still a tap to the browser, whose click comes later
-    // than the drag's own swallowing: cancelling the touchend stops it.
+    // than the drag's own swallowing: canceling the touchend stops it.
     host.addEventListener("touchend", (event) => {
       if (!this.dropped) return;
       this.dropped = false;
@@ -287,7 +287,7 @@ class Sortable extends IzzyElement {
       clearTimeout(timer);
       this.settling = false;
       settle();
-      if (!answered) this.say((this.dataset.ibCancelled ?? "").replace("{0}", item.dataset.ibLabel ?? ""));
+      if (!answered) this.say((this.dataset.ibCanceled ?? "").replace("{0}", item.dataset.ibLabel ?? ""));
       // Blazor may have moved the item's node (or drawn it in another zone), which drops focus
       // from inside it, or the focus rescue (focus.ts) has passed it to a neighbor as the node
       // went; if the user has gone elsewhere meanwhile, focus stays there.
