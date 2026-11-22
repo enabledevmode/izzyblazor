@@ -1,0 +1,269 @@
+@page "/pricing"
+@layout HomeLayout
+@using System.ComponentModel.DataAnnotations
+@inject AccountService Account
+
+<PageMeta Title="Pricing · IzzyBlazor"
+          Description="Every component is free and open source. A free account adds app starters, page blocks and a complete sample app, and Pro adds more of everything." />
+
+@* PR1, before Pro is on sale (design board, page A · Access): the three levels, the founding price with the
+   form that reserves it, what each level makes, Enterprise, and the questions. The three cards share their
+   rows (site.css, .site-pricing-levels), so prices, actions and lists line up whatever each one holds. *@
+<Section Spacing="SectionSpacing.None">
+    <div class="site-pricing-col site-pricing-top">
+        <div class="site-pricing-intro">
+            <Heading Level="1" Wrap="TextWrap.Balance" Class="site-pricing-title">Everything free stays free.</Heading>
+            <TextBlock Color="Color.Muted" Class="site-pricing-lead">
+                Every component is open source under the MIT license, and you don’t need an account to use them. A free account adds app starters, page blocks and a complete sample app. Pro adds more of everything for developers who build with IzzyBlazor every day.
+            </TextBlock>
+        </div>
+        <div class="site-pricing-preview">
+            <Badge Variant="BadgeVariant.Outline" Pill>Preview</Badge>
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">IzzyBlazor is in preview, and Pro goes on sale with the beta. You can reserve the founding price now.</TextBlock>
+        </div>
+        <div class="site-pricing-levels">
+            @foreach (var level in Levels)
+            {
+                var pro = level.Name == "Pro";
+                <article class="site-pricing-level" data-pick="@(level.Pick ? "true" : null)" aria-labelledby="level-@level.Id">
+                    <div class="site-pricing-level-name">
+                        <div>
+                            <Heading Level="2" Size="TextSize.Lg" id="@($"level-{level.Id}")">@level.Name</Heading>
+                            @if (pro)
+                            {
+                                <Badge Variant="BadgeVariant.Outline" Size="BadgeSize.Sm" Pill>Founding price</Badge>
+                            }
+                        </div>
+                        <p>@level.For</p>
+                    </div>
+                    <div class="site-pricing-level-price">
+                        <p>
+                            <span class="site-pricing-amount">@level.Price</span>
+                            <span class="site-pricing-unit">@level.Unit[0],<br />@level.Unit[1]</span>
+                        </p>
+                        @if (level.PriceNote is not null)
+                        {
+                            <p class="site-pricing-note">@level.PriceNote</p>
+                        }
+                    </div>
+                    <div class="site-pricing-level-action">
+                        @if (pro && _reserved is not null)
+                        {
+                            <Button Size="ControlSize.Lg" StartIcon="Lucide.Check" Disabled>Reserved</Button>
+                            <p class="site-pricing-note">We’ll email @_reserved at launch.</p>
+                        }
+                        else
+                        {
+                            @if (level.Pick || pro)
+                            {
+                                <Button Href="@level.Href" Size="ControlSize.Lg">@level.Action</Button>
+                            }
+                            else
+                            {
+                                <Button Href="@level.Href" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">@level.Action</Button>
+                            }
+                            <p class="site-pricing-note" data-mono="@(level.NoteIsCode ? "true" : null)">@level.Note</p>
+                        }
+                    </div>
+                    <div class="site-pricing-level-list">
+                        @if (level.Includes is not null)
+                        {
+                            <p>@level.Includes</p>
+                        }
+                        <List Plain Icon="Lucide.Check" IconColor="Color.SuccessText" Gap="2">
+                            @foreach (var item in level.Items)
+                            {
+                                <ListItem>@item</ListItem>
+                            }
+                        </List>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</Section>
+
+<Section Spacing="SectionSpacing.None" Bg="Color.FillSubtle" Class="site-pricing-band" id="reserve">
+    <div class="site-pricing-col site-pricing-founding">
+        <div>
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-pricing-founding-title">The founding price</Heading>
+            <TextBlock Color="Color.Muted">
+                Pro launches at $199 a year per developer instead of $299. If you renew each year, you keep paying $199 for as long as you have Pro, even after the price goes up. The founding price is available while the Pro catalog fills out and ends when the catalog is complete.
+            </TextBlock>
+        </div>
+        <Card>
+            @if (_reserved is not null)
+            {
+                <Alert Status="Status.Success" Title="Reserved.">We’ll email @_reserved when Pro goes on sale and hold the $199 price for you.</Alert>
+            }
+            else
+            {
+                <Form Model="Model" FormName="reserve" Honeypot OnValidSubmit="Reserve" OnSpam="Caught" NativeValidation="false" RequiredMark="RequiredMark.None" Gap="3">
+                    @if (_failed)
+                    {
+                        <Alert Status="Status.Danger">We couldn’t save your reservation. Try again in a few minutes.</Alert>
+                    }
+                    <TextField @bind-Value="Model!.Email" Label="Email address" Type="TextFieldType.Email" AutoComplete="email" />
+                    <Button Submit Size="ControlSize.Lg" FullWidth>Reserve the founding price</Button>
+                    <p class="site-pricing-note">Reserving is free, and you won’t pay anything until Pro goes on sale.</p>
+                </Form>
+            }
+        </Card>
+    </div>
+</Section>
+
+<Section Spacing="SectionSpacing.None" Class="site-pricing-band">
+    <div class="site-pricing-col site-pricing-make">
+        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-pricing-h2">What you can make</Heading>
+        <table class="site-pricing-table">
+            <caption class="ib-visually-hidden">What each level lets you make</caption>
+            <thead>
+                <tr>
+                    <th scope="col"><span class="ib-visually-hidden">Item</span></th>
+                    <th scope="col">Open</th>
+                    <th scope="col">Free account</th>
+                    <th scope="col">Pro</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Makes)
+                {
+                    <tr>
+                        <th scope="row">@row.Item</th>
+                        @Cell("Open", row.Open)
+                        @Cell("Free account", row.Free)
+                        @Cell("Pro", row.Pro)
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="site-pricing-col site-pricing-enterprise">
+        <div>
+            <div>
+                <Heading Level="2" Class="site-pricing-enterprise-title">Enterprise</Heading>
+                <p>For teams that need guaranteed support response times, accessibility conformance reports or long-term support releases.</p>
+            </div>
+            <Button Href="mailto:israel@izzyblazor.com?subject=IzzyBlazor%20Enterprise" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Contact us</Button>
+        </div>
+    </div>
+</Section>
+
+<Section Spacing="SectionSpacing.None" Class="site-pricing-band">
+    <div class="site-pricing-col site-pricing-questions">
+        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-pricing-h2">Questions people ask</Heading>
+        <div>
+            @foreach (var (question, answer) in Questions)
+            {
+                <div>
+                    <Heading Level="3" Size="TextSize.Md">@question</Heading>
+                    <p>@answer</p>
+                </div>
+            }
+        </div>
+    </div>
+</Section>
+
+@code {
+    private const string Yes = "yes", No = "no";
+
+    // Each level: who it's for, its price and unit, the line under the price, its action and the line under
+    // that, and what it adds.
+    private static readonly Level[] Levels =
+    [
+        new("open", "Open", "For every Blazor project.", "$0", ["forever", "no account"], null,
+            "Get started", "docs/get-started", "dotnet new starter-blazor", true, false, null,
+            [
+                "Every component, under the MIT license",
+                "The docs, plus the docs MCP server for coding agents",
+                "The IzzyBlazor App starter, with dotnet new",
+                "A grid page for any model, with izzy add crud",
+                "Docs and pictures for every template and block",
+                "Inline docs and previews in the IDE plugins",
+            ]),
+        new("free", "Free account", "For starting real apps faster.", "$0", ["forever", "free account"], null,
+            "Create a free account", AccountService.SignIn, "Code is generated on your machine, offline.", false, true, "Everything in Open, plus:",
+            [
+                "Six app starters, from a sidebar app to a docs site",
+                "15 page blocks, including hero, pricing and FAQ sections",
+                "Izzy CRM, a complete sample app to build on",
+            ]),
+        new("pro", "Pro", "For building with IzzyBlazor every day.", "$199", ["a year", "per developer"], "Instead of $299, for as long as you renew.",
+            "Reserve the founding price", "pricing#reserve", "It’s free, and you pay nothing until launch.", false, false, "Everything in the free account, plus:",
+            [
+                "More variants of every block",
+                "More app kits",
+                "CRUD as full list, detail and form pages",
+                "izzy upgrade",
+                "Insert blocks and create items from your IDE, with forms and wizards",
+                "The full-site accessibility audit",
+            ]),
+    ];
+
+    // A row of the table: "yes" draws a check, "no" a dash, anything else is the cell's words.
+    private static readonly Make[] Makes =
+    [
+        new("Every component", Yes, Yes, Yes),
+        new("Docs, and the docs MCP for coding agents", Yes, Yes, Yes),
+        new("IzzyBlazor App, the base starter", Yes, Yes, Yes),
+        new("CRUD pages (izzy add crud)", "A grid page", "A grid page", "List, detail and form pages"),
+        new("App-shell starters", No, "6", "6"),
+        new("Blocks", No, "15", "15, with more variants"),
+        new("App kits", No, "Izzy CRM", "Izzy CRM and more kits"),
+        new("izzy upgrade", No, No, Yes),
+        new("IDE plugins: inline docs and previews", Yes, Yes, Yes),
+        new("Generate and customize with the CLI", Yes, Yes, Yes),
+        new("Generate and customize from the IDE, with forms and wizards", No, No, Yes),
+        new("Accessibility audit", "One page", "One page", "The whole site"),
+    ];
+
+    private static readonly (string Question, string Answer)[] Questions =
+    [
+        ("Are the components really free?", "Yes. Every component is open source under the MIT license, and you can use them in any project, including commercial ones. You don’t need an account or a key, and there are no limits now or later."),
+        ("Why does a free account need an email?", "The account is how izzy knows you can generate starters and blocks, so it doesn’t have to ask every time. You sign in with a link we email you. There are no passwords."),
+        ("What do you do with my email?", "We use it to run your account: to sign you in and, if you buy Pro, to bill you. We only send product news if you ask for it, and you can turn it off at any time. We never sell or share your address."),
+        ("Does generated code need a license to run?", "No. izzy writes the code into your project, and it belongs to you. Nothing checks a license when it builds or runs, and the code never contacts us."),
+        ("Can I use it offline?", "Yes. Once you’ve run izzy login, starters and blocks are generated on your own machine without a connection. The components themselves never need one."),
+        ("What happens to my code if I stop paying?", "Nothing happens to it. The code you’ve generated is yours and keeps working. You stop getting new Pro items and izzy upgrade, and you keep your free account."),
+        ("Is it per developer or per project?", "Per developer. One Pro key covers every project you build, at work and at home."),
+        ("Can my company buy several?", "Yes. You can buy a key for each developer in a single order. If you need an invoice or have ten or more developers, contact us."),
+    ];
+
+    [SupplyParameterFromForm(FormName = "reserve")]
+    private Reservation? Model { get; set; }
+
+    // The address that was just reserved: the form's answer, and the Pro card's.
+    private string? _reserved;
+    private bool _failed;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private async Task Reserve()
+    {
+        var email = Model!.Email!.Trim();
+        if (await Account.ReserveAsync(email)) _reserved = email;
+        else _failed = true;
+    }
+
+    // A caught bot gets a person's answer, and nothing is saved.
+    private void Caught() => _reserved = Model!.Email?.Trim();
+
+    // A level's cell: on a phone the level's name sits above it (site.css reads data-level).
+    private static RenderFragment Cell(string level, string value) => value switch
+    {
+        Yes => @<td data-level="@level"><Icon Name="Lucide.Check" Class="site-pricing-yes" /><span class="ib-visually-hidden">Included</span></td>,
+        No => @<td data-level="@level"><Icon Name="Lucide.Minus" Class="site-pricing-no" /><span class="ib-visually-hidden">Not included</span></td>,
+        _ => @<td data-level="@level">@value</td>,
+    };
+
+    private sealed record Level(string Id, string Name, string For, string Price, string[] Unit, string? PriceNote,
+        string Action, string Href, string Note, bool NoteIsCode, bool Pick, string? Includes, string[] Items);
+
+    private sealed record Make(string Item, string Open, string Free, string Pro);
+
+    public sealed class Reservation
+    {
+        [Required(ErrorMessage = "Enter an email address, like name@example.com."), EmailAddress(ErrorMessage = "Enter an email address, like name@example.com."), StringLength(254)]
+        public string? Email { get; set; }
+    }
+}

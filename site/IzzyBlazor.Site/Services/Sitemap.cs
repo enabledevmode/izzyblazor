@@ -16,6 +16,7 @@ public static class Sitemap
     public static IEnumerable<string> Paths(Registry registry, BlockCatalog? blocks = null, TemplateCatalog? templates = null)
     {
         yield return "";
+        yield return "pricing";
         yield return "docs";
         foreach (var section in Articles.Sections)
         {

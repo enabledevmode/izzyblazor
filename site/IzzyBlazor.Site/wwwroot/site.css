@@ -1074,3 +1074,99 @@ html:has(> body > .frame) body { margin: 0; }
 .site-template-screen { display: block; border: 1px solid var(--ib-color-border); overflow: hidden; }
 .site-template-phones { aspect-ratio: 16 / 10; }
 .site-template-phones .site-template-screen { height: 100%; aspect-ratio: 375 / 812; }
+
+/*
+ * The pricing page (PR1 on the design board): a 1120px column, its numbers from the sheet. Sections are
+ * divided by a hairline; the founding-price band is the one gray one.
+ */
+.site-pricing-col { max-inline-size: 70rem; margin-inline: auto; }
+.site-pricing-band { border-block-start: 1px solid var(--ib-color-border); }
+.site-pricing-top { display: grid; gap: 2.25rem; padding-block: 2.5rem 3.5rem; }
+.site-pricing-intro { display: grid; gap: 1rem; justify-items: center; text-align: center; }
+.site-pricing-title { font-size: 2rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.025em; }
+.site-pricing-lead { max-inline-size: 40em; font-size: 1rem; line-height: 1.6; }
+.site-pricing-preview { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .625rem; text-align: center; }
+.site-pricing-note { margin: 0; font-size: .8125rem; line-height: 1.6; color: var(--ib-color-muted); }
+.site-pricing-note[data-mono] { font-family: var(--ib-font-mono); }
+.site-pricing-h2 { font-size: 1.375rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.015em; }
+
+/* The levels: one column on a phone; from 64rem three cards that share four rows (name, price, action,
+   list), so each row starts at the same height in all three. */
+.site-pricing-levels { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: start; }
+.site-pricing-level {
+  display: flex; flex-direction: column; gap: 1.25rem; min-inline-size: 0; padding: 1.5rem;
+  border: 1px solid var(--ib-color-border); border-radius: 1rem; background: var(--ib-color-surface);
+}
+.site-pricing-level[data-pick] { border: 2px solid var(--ib-color-primary); }
+.site-pricing-level p { margin: 0; }
+.site-pricing-level-name { display: grid; gap: .375rem; }
+.site-pricing-level-name > div { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.site-pricing-level-name > p { font-size: .9375rem; line-height: 1.6; }
+.site-pricing-level-price { display: grid; gap: .5rem; align-content: start; }
+.site-pricing-level-price > p:first-child { display: flex; align-items: center; gap: .625rem; }
+.site-pricing-amount { font-size: 2.5rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.site-pricing-unit { font-size: .875rem; line-height: 1.3; color: var(--ib-color-muted); }
+.site-pricing-level-action { display: grid; gap: .625rem; align-content: start; }
+.site-pricing-level-list { display: grid; gap: .75rem; align-content: start; padding-block-start: 1.25rem; border-block-start: 1px solid var(--ib-color-border); font-size: .875rem; }
+.site-pricing-level-list > p { font-size: .8125rem; font-weight: 600; color: var(--ib-color-muted); }
+
+/* The founding price: the explanation, with the form under it on a phone and beside it from 64rem. */
+.site-pricing-founding { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; align-items: center; padding-block: 2.5rem; }
+.site-pricing-founding > div:first-child { display: grid; gap: .625rem; }
+.site-pricing-founding-title { font-size: 1.375rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.015em; }
+/* A reserved address or a form's answer lands here: below the sticky header, not under it. */
+#reserve { scroll-margin-block-start: 4rem; }
+
+/* What you can make. On a phone a row is the item's name, then the three levels side by side, each
+   under its name; from 48rem it's the table as written. */
+.site-pricing-make { display: grid; gap: 1.5rem; padding-block: 3rem; }
+.site-pricing-table { inline-size: 100%; border-collapse: collapse; font-size: .875rem; text-align: start; }
+.site-pricing-table :is(th, td) { text-align: start; vertical-align: middle; }
+.site-pricing-table .ib-icon { display: block; inline-size: 1.125rem; block-size: 1.125rem; }
+.site-pricing-yes { color: var(--ib-color-success-text); }
+.site-pricing-no { color: var(--ib-color-subtle); }
+@media (max-width: 47.99rem) {
+  .site-pricing-table thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); }
+  .site-pricing-table tbody { display: block; }
+  .site-pricing-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .625rem .5rem; padding-block: .875rem; border-block-start: 1px solid var(--ib-color-border); }
+  .site-pricing-table tbody th { grid-column: 1 / -1; font-weight: 600; }
+  .site-pricing-table td { display: flex; flex-direction: column; gap: .25rem; align-items: flex-start; }
+  .site-pricing-table td::before { content: attr(data-level); font-size: .6875rem; font-weight: 600; color: var(--ib-color-muted); }
+}
+@media (min-width: 48rem) {
+  .site-pricing-table thead th { padding: .75rem 1rem; font-weight: 600; inline-size: 22%; }
+  .site-pricing-table thead th:first-child { inline-size: auto; padding-inline-start: 0; }
+  .site-pricing-table tbody tr { border-block-start: 1px solid var(--ib-color-border); }
+  .site-pricing-table tbody th { padding: .875rem 1rem .875rem 0; font-weight: 500; }
+  .site-pricing-table td { padding: .875rem 1rem; }
+}
+
+.site-pricing-enterprise { padding-block-end: 3rem; }
+.site-pricing-enterprise > div {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1.5rem;
+  border: 1px solid var(--ib-color-border); border-radius: 1rem; background: var(--ib-color-surface);
+}
+.site-pricing-enterprise > div > div { flex: 1 1 16rem; display: grid; gap: .25rem; }
+.site-pricing-enterprise-title { font-size: 1.0625rem; font-weight: 600; }
+.site-pricing-enterprise p { margin: 0; font-size: .9375rem; line-height: 1.6; color: var(--ib-color-muted); }
+
+.site-pricing-questions { display: grid; gap: 2.25rem; padding-block: 3rem 3.5rem; }
+.site-pricing-questions > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.75rem 4rem; }
+.site-pricing-questions > div > div { display: grid; gap: .5rem; align-content: start; }
+.site-pricing-questions p { margin: 0; font-size: .9375rem; line-height: 1.6; color: var(--ib-color-muted); }
+
+@media (min-width: 64rem) {
+  .site-pricing-top { padding-block: 4.5rem; }
+  .site-pricing-title { font-size: 3rem; }
+  .site-pricing-lead { font-size: 1.125rem; }
+  .site-pricing-h2 { font-size: 1.75rem; }
+  .site-pricing-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); gap: 1.25rem; }
+  .site-pricing-level { display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 1.25rem; padding: 1.75rem; }
+  .site-pricing-level-action { justify-items: start; }
+  .site-pricing-founding { grid-template-columns: minmax(0, 1fr) 25rem; gap: 4rem; padding-block: 3.5rem; }
+  .site-pricing-founding-title { font-size: 1.5rem; }
+  .site-pricing-make { padding-block: 4.5rem; }
+  .site-pricing-enterprise { padding-block-end: 4.5rem; }
+  .site-pricing-questions { padding-block: 4.5rem 5.5rem; }
+  .site-pricing-questions > div { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.25rem 4rem; }
+}

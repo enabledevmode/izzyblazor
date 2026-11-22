@@ -180,6 +180,11 @@ public static class SiteApp
         builder.Services.AddHttpContextAccessor();
         builder.Services.Configure<AgentReportOptions>(builder.Configuration.GetSection("AgentReports"));
         builder.Services.AddHttpClient(GitHubDiscussionsReportSink.ClientName, client => client.Timeout = TimeSpan.FromSeconds(15));
+        builder.Services.AddHttpClient<AccountService>(client =>
+        {
+            client.BaseAddress = new Uri((builder.Configuration["Account:Service"] ?? AccountService.Address).TrimEnd('/') + "/");
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<AgentReportLimiter>();
         builder.Services.AddSingleton<GitHubDiscussionsReportSink>();
