@@ -17,7 +17,8 @@ namespace IzzyBlazor.Cli;
 /// <param name="error">Errors and warnings.</param>
 /// <param name="proRoot">The private catalog, with the account items' files and the Pro items (IZZY_PRO_CATALOG); null for the public catalog only.</param>
 /// <param name="access">What the private catalog holds: all of it, or an account's copy.</param>
-sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null, ItemTier access = ItemTier.Pro)
+/// <param name="account">This machine's IzzyBlazor account, whose copy of the catalog is used when <paramref name="proRoot"/> is null.</param>
+sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null, ItemTier access = ItemTier.Pro, AccountSession? account = null)
 {
     const string Help = """
         izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalog.
@@ -29,6 +30,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
+          izzy login [--no-browser]
+          izzy logout
+          izzy account
 
         izzy add crud makes a page whose grid adds, edits and deletes a model's records (list, detail and
         form pages are --mode pages, Pro), for a model class in your app read from its source: no build needed.
@@ -37,6 +41,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         Settings are the item's, as izzy describe <item> lists them, such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
+        izzy login signs this machine in to your free IzzyBlazor account, which the app starters, the blocks
+        and the kits come with. After that they are created on this machine, online or not. In CI, set IZZY_KEY
+        to a key from your account page instead.
         """;
 
     static readonly JsonSerializerOptions Json = new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
@@ -57,6 +64,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 output.Write(Help.ReplaceLineEndings("\n") + "\n");
                 return 0;
             }
+            // Only a command that generates may call the account service (to renew the sign-in, or for the
+            // templates after an update).
+            _generates = args.Words[0] is "add" or "new";
             return args.Words[0] switch
             {
                 "list" => List(args),
@@ -64,7 +74,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "add" => Add(args),
                 "new" => New(args),
                 "init" => Init(args),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, new, init."),
+                "login" => Login(args),
+                "logout" => Account(args, "izzy logout").Logout(output),
+                "account" => Account(args, "izzy account").Status(output),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, new, init, login, logout, account."),
             };
         }
         catch (ProRequiredException e)
@@ -74,7 +87,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         catch (AccountRequiredException e)
         {
-            error.WriteLine(e.Message);
+            error.WriteLine(account is { SignedIn: false } ? $"{e.Message} Run izzy login." : e.Message);
             return 4;
         }
         catch (Exception e) when (e is GenerationException or UsageException)
@@ -84,7 +97,24 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
     }
 
-    Catalog Catalog => field ??= Catalog.Load(catalogRoot, proRoot, access);
+    bool _generates;
+
+    Catalog Catalog => field ??= proRoot is null && account?.Catalog(error, _generates) is { } copy
+        ? Catalog.Load(catalogRoot, copy, ItemTier.Account)
+        : Catalog.Load(catalogRoot, proRoot, access);
+
+    int Login(Args args)
+    {
+        var session = Account(args, "izzy login [--no-browser]", "no-browser");
+        return session.Login(output, error, browser: !args.Switch("no-browser"));
+    }
+
+    AccountSession Account(Args args, string usage, string? allowed = null)
+    {
+        Words(args, 1, usage);
+        if (args.Options.FirstOrDefault(o => o.Name != allowed) is { Name: { } unknown }) throw new UsageException($"Unknown option --{unknown}. Usage: {usage}");
+        return account ?? throw new UsageException("This izzy has no account service.");
+    }
 
     int List(Args args)
     {
