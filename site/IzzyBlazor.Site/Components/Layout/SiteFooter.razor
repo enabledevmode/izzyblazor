@@ -1,15 +1,56 @@
-<AppFooter ContentWidth="ContentWidth">
-    <Row Gap="4" Justify="Justify.Between" Align="Align.Center" Wrap PaddingY="4" Class="site-footer">
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">IzzyBlazor is MIT licensed. This site runs in static SSR.</TextBlock>
-        <NavMenu Orientation="Orientation.Horizontal" aria-label="Footer">
-            <NavItem Href="https://github.com/enabledevmode/izzyblazor">GitHub</NavItem>
-            <NavItem Href="https://github.com/enabledevmode/izzyblazor/releases">Release notes</NavItem>
-            <NavItem Href="https://www.nuget.org/packages/IzzyBlazor">NuGet</NavItem>
-            <NavItem Href="izzyblazor.api.json">API metadata</NavItem>
-        </NavMenu>
-    </Row>
+@* The footer every page shares (design board, page A · Access, HF): the wordmark and what IzzyBlazor is, the
+   newsletter's form, three columns of links and a closing row. The landing page leaves the form out, since
+   its own band above the footer has it. *@
+<AppFooter ContentWidth="Length.Rem(SiteWidths.Home)">
+    <div class="site-footer">
+        <div class="site-footer-top">
+            <div class="site-footer-about">
+                <div class="site-footer-brand">
+                    <SiteLogo />
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Blazor components for every render mode, open source under the MIT license.</TextBlock>
+                </div>
+                @if (Newsletter)
+                {
+                    <div class="site-footer-news">
+                        <Heading Level="2" Size="TextSize.Sm">The IzzyBlazor email</Heading>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">A monthly email with what’s new and early news of blocks and kits.</TextBlock>
+                        <Newsletter Source="footer" />
+                    </div>
+                }
+            </div>
+            <div class="site-footer-links">
+                @foreach (var (title, links) in Columns)
+                {
+                    <nav aria-labelledby="@($"footer-{title.ToLowerInvariant()}")">
+                        <Heading Level="2" Size="TextSize.Xs" id="@($"footer-{title.ToLowerInvariant()}")">@title</Heading>
+                        <ul>
+                            @foreach (var (text, href) in links)
+                            {
+                                <li><Anchor Href="@href" Underline="AnchorUnderline.Hover" HideExternalIcon>@text</Anchor></li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+        <div class="site-footer-end">
+            <span>© 2026 IzzyBlazor</span>
+            <span>Made with IzzyBlazor, static SSR</span>
+        </div>
+    </div>
 </AppFooter>
 
 @code {
-    [Parameter] public Length? ContentWidth { get; set; }
+    /// <summary>Shows the newsletter's form. Off on the landing page, whose band has it.</summary>
+    [Parameter] public bool Newsletter { get; set; } = true;
+
+    private const string GitHub = "https://github.com/enabledevmode/izzyblazor";
+
+    private static readonly (string Title, (string Text, string Href)[] Links)[] Columns =
+    [
+        ("Library", [("Docs", "docs"), ("Components", "docs/components"), ("Blocks", "blocks"), ("Templates", "templates")]),
+        // The site has no changelog page yet: the releases on GitHub stand in (VersionMenu too).
+        ("IzzyBlazor", [("Pricing", "pricing"), ("Changelog", GitHub + "/releases"), ("GitHub", GitHub)]),
+        ("Legal", [("Privacy", "privacy"), ("Terms", "terms")]),
+    ];
 }

@@ -433,9 +433,48 @@
 .site-article > .ib-prevnext, .site-article > nav:last-child { margin-block-start: var(--ib-space-8); }
 .site-pagehead { margin-block-end: var(--ib-space-2); }
 
-.site-footer { width: 100%; }
-/* The footer's links wrap on a phone, rather than scrolling sideways as a horizontal NavMenu does. */
-.site-footer .ib-nav-horizontal { flex-wrap: wrap; overflow-x: visible; }
+/* The footer (design board, HF): on the subtle fill, 56px above and 40px below its content (40 and 32 on
+   phones). The about column (up to 420px) and three 140px link columns sit at the two ends; on phones they
+   stack, with the link columns three across. */
+:is(.site-shell, .site-shell-home) > .ib-shell-footer { background: var(--ib-color-fill-subtle); }
+/* AppFooter pads 16px above and below already. */
+.site-footer { width: 100%; padding-block: var(--ib-space-6) var(--ib-space-4); }
+.site-footer-top { display: flex; flex-direction: column; gap: var(--ib-space-8); }
+.site-footer-about { display: flex; flex-direction: column; gap: var(--ib-space-7); min-width: 0; }
+.site-footer-brand { display: flex; flex-direction: column; gap: var(--ib-space-3); }
+.site-footer-brand > .site-logo { align-self: flex-start; }
+.site-footer-brand > p { max-width: 26em; line-height: 1.6; }
+.site-footer-news { display: flex; flex-direction: column; gap: var(--ib-space-2); }
+.site-footer-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ib-space-4); }
+.site-footer-links > nav { display: flex; flex-direction: column; gap: 0.625rem; min-width: 0; }
+.site-footer-links ul { display: flex; flex-direction: column; gap: 0.625rem; margin: 0; padding: 0; list-style: none; }
+.site-footer-links a { font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
+.site-footer-links a:hover { color: var(--ib-color-on-surface); }
+.site-footer-end {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--ib-space-3);
+  margin-block-start: var(--ib-space-10);
+  padding-block-start: var(--ib-space-6);
+  border-block-start: 1px solid var(--ib-color-border);
+  font-size: var(--ib-text-xs);
+  color: var(--ib-color-muted);
+}
+@media (width >= 1024px) {
+  .site-footer { padding-block: var(--ib-space-10) var(--ib-space-6); }
+  .site-footer-top { flex-direction: row; justify-content: space-between; gap: var(--ib-space-12); }
+  .site-footer-about { max-width: 26.25rem; }
+  .site-footer-links { grid-template-columns: repeat(3, 8.75rem); gap: var(--ib-space-6); }
+}
+
+/* Privacy and Terms: one reading column. */
+.site-legal { display: flex; flex-direction: column; gap: var(--ib-space-4); max-inline-size: 44rem; margin-inline: auto; padding-block: var(--ib-space-12) var(--ib-space-16); }
+.site-legal > h2 { margin-block-start: var(--ib-space-6); }
+
+/* The newsletter's form: the field and Subscribe on one row. */
+.site-newsletter-form { display: flex; flex-direction: column; gap: var(--ib-space-2); scroll-margin-block-start: 6rem; }
+.site-newsletter-row { display: flex; align-items: flex-start; gap: var(--ib-space-2); }
 
 /* Pictograms: an icon on a tile tinted with the accent. */
 .site-picto {
@@ -782,7 +821,6 @@ html:has(.frame-no-scrollbar) { scrollbar-width: none; }
  * The examples' mode (ModeSwitch): a menu in the docs header from 768px, and a label over a
  * full-width pair of links at the top of the drawer below that.
  */
-.site-modeswitch-header { margin-inline: var(--ib-space-1); }
 .site-modeswitch-drawer { display: flex; flex-direction: column; gap: var(--ib-space-2); margin-block-end: var(--ib-space-4); }
 .site-modeswitch-label { font-size: var(--ib-text-sm); font-weight: 600; }
 @media (width >= 768px) { .site-modeswitch-drawer { display: none; } }
@@ -863,10 +901,7 @@ html:has(> body > .frame) body { margin: 0; }
 
 /* The header's search button: room for the word and the shortcut, which shows only with script
    (it needs site.js); its box stays without, so the button is one width either way. */
-.site-search-button { width: 15rem; justify-content: flex-start; color: var(--ib-color-muted); font-weight: 400; }
-/* Four areas in the header: between Md and Lg the search box gives them the room, and drops its
-   shortcut's keys, which no longer fit beside the word (Ctrl + K is three boxes wide). */
-@media (768px <= width < 1024px) { .site-search-button { width: 10rem; } .site-search-key { display: none; } }
+.site-search-button { width: 13.75rem; justify-content: flex-start; color: var(--ib-color-muted); font-weight: 400; }
 .site-search-button .ib-btn-label { display: flex; flex: 1 1 auto; align-items: center; justify-content: space-between; gap: var(--ib-space-2); }
 @media (scripting: none) {
   .site-search-key { visibility: hidden; }
@@ -917,6 +952,12 @@ html:has(> body > .frame) body { margin: 0; }
 /* SiteNav itself has no box (display: contents): the gap goes on its bar. Header gap 12px + item
    padding 12px + 16px = 40px. */
 .site-header-nav > .ib-site-nav-bar { margin-inline-start: var(--ib-space-4); }
+/* The tools at the end: 2px apart, 4px after the search field and 8px before Sign in. */
+.site-header-tools { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.site-header-tools > .site-search-button { margin-inline-end: var(--ib-space-1); }
+.site-header-tools > .site-header-signin { margin-inline-start: 0.625rem; }
+/* GitHub, last in the menu panel, on a row of its own under Sign in. */
+.site-header-github { flex-basis: 100%; padding-block-start: var(--ib-space-2); font-size: var(--ib-text-sm); font-weight: 500; color: var(--ib-color-on-surface); }
 
 /* The version, at the top of the docs sidebar: the version and "Latest" at the start of
    the button, the chevron at its end; in the menu, "Latest" muted at the end of its item. */

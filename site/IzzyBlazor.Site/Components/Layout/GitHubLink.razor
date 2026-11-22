@@ -1,8 +1,11 @@
 @* The repository, as an icon link (its label is also the tooltip). *@
 <IconButton Icon="Brands.GitHub" Label="IzzyBlazor on GitHub" Href="https://github.com/enabledevmode/izzyblazor"
-            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" VisibleFrom="VisibleFrom" />
+            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" VisibleFrom="VisibleFrom" HiddenFrom="HiddenFrom" />
 
 @code {
     /// <summary>Shown from this width up only.</summary>
     [Parameter] public Breakpoint? VisibleFrom { get; set; }
+
+    /// <summary>Hidden from this width up.</summary>
+    [Parameter] public Breakpoint? HiddenFrom { get; set; }
 }

@@ -1,0 +1,95 @@
+@page "/privacy"
+@layout HomeLayout
+
+<PageMeta Title="Privacy · IzzyBlazor"
+          Description="What IzzyBlazor's site, the izzy command and an IzzyBlazor account collect, why, and how to have it removed." />
+
+@* Written from what the code does: this site (SiteApp's cookies, no analytics), the account service (its
+   tables, in ../izzyblazor-account/Data/AccountDb.cs) and izzy (login, the yearly-free key, generation offline).
+   Change this page when any of those change. *@
+<Section Spacing="SectionSpacing.None">
+    <article class="site-legal">
+        <Heading Level="1">Privacy</Heading>
+        <TextBlock Color="Color.Muted">Last updated November 22, 2026</TextBlock>
+        <TextBlock Size="TextSize.Lg">
+            IzzyBlazor collects as little as it can. You can read the docs and use the components without an account,
+            and this site runs no analytics and shows no ads. This page lists what we do keep and why.
+        </TextBlock>
+
+        <Heading Level="2">This site</Heading>
+        <List Gap="2">
+            <ListItem>
+                <strong>Cookies for your settings only.</strong> The site remembers your color scheme, whether examples
+                run static or interactive, and the order of the docs sidebar. These cookies hold the setting and
+                nothing about you.
+            </ListItem>
+            <ListItem>
+                <strong>Server logs.</strong> Like any web server, ours records requests, including IP addresses, to
+                keep the site running and to stop abuse. We don't use them to follow what you read.
+            </ListItem>
+            <ListItem><strong>No analytics, ads or trackers.</strong> No other company's script watches your visit.</ListItem>
+        </List>
+
+        <Heading Level="2">The components and izzy</Heading>
+        <TextBlock>
+            The components and the code izzy creates never contact us. Nothing checks a license when your app builds
+            or runs. izzy creates code on your own machine and contacts the account service only when you run
+            <Code>izzy login</Code> and when it renews that sign-in.
+        </TextBlock>
+
+        <Heading Level="2">An account</Heading>
+        <TextBlock>If you create an account, we keep:</TextBlock>
+        <List Gap="2">
+            <ListItem>Your email address, your name if you give one, and whether you asked for product news.</ListItem>
+            <ListItem>
+                Each machine you sign in with <Code>izzy login</Code>: the machine's name, its operating system, izzy's
+                version and when it was last used. The account page lists them, and you can sign any of them out.
+            </ListItem>
+            <ListItem>The names of the keys you create for build servers, and when each was last used.</ListItem>
+            <ListItem>A log of what happened on your account, such as sign-ins and keys created, so you and we can see what was done.</ListItem>
+        </List>
+        <TextBlock>
+            Signing in sets a cookie that keeps you signed in. We don't keep a password: you sign in with a link sent
+            to your email address.
+        </TextBlock>
+
+        <Heading Level="2">Email</Heading>
+        <List Gap="2">
+            <ListItem><strong>Sign-in links and account messages</strong> go to your account's address.</ListItem>
+            <ListItem>
+                <strong>The IzzyBlazor email.</strong> If you subscribe, we keep your address and which form you used,
+                and send the email once a month after you confirm. Every email has a link that unsubscribes you.
+            </ListItem>
+            <ListItem>
+                <strong>The founding price.</strong> If you reserve it, we keep your address and email you when Pro
+                goes on sale.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Who else handles it</Heading>
+        <TextBlock>
+            We never sell or share your address. Two companies process data for us: Fly.io hosts this site and the
+            account service, and our email provider delivers the messages we send. When Pro goes on sale, a payment
+            provider will handle payments, and this page will name it. We won't see or keep your card number.
+        </TextBlock>
+
+        <Heading Level="2">Removing your data</Heading>
+        <List Gap="2">
+            <ListItem>
+                Deleting your account, from its settings, removes the account, its machines and keys, and your address
+                from every list. Code you've created stays yours.
+            </ListItem>
+            <ListItem>Unsubscribing stops the IzzyBlazor email.</ListItem>
+            <ListItem>
+                For a copy of what we hold, or to have something corrected or removed, write to
+                <Anchor Href="mailto:privacy@izzyblazor.com">privacy@izzyblazor.com</Anchor>.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Changes</Heading>
+        <TextBlock>
+            When what we collect changes, this page changes with it, and the date at the top shows when. If a change
+            affects an account you already have, we'll email you first.
+        </TextBlock>
+    </article>
+</Section>

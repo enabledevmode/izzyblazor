@@ -3,7 +3,7 @@
 @*
     The site's Static · Interactive choice: how every page's examples run. It's a site preference,
     so it sits in the docs header beside the color-scheme switch, as a menu whose button shows the
-    current mode; on phones it's a segmented pair of links at the top of the drawer. Both are links
+    current mode's icon; on phones it's a segmented pair of links at the top of the drawer. Both are links
     that load the page again in that mode, the current one marked; site.js keeps the place on the
     page. Every example renders in the page's mode (ExampleViewer) and says which at the end of its
     row.
@@ -37,10 +37,8 @@
     {
         <Menu Placement="IzzyBlazor.Placement.BottomEnd" PanelWidth="Length.Rem(21)">
             <Trigger>
-                @* "Static" alone says nothing out of context: the name is "Examples: Static". *@
-                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="@Icon(_mode)" EndIcon="Lucide.ChevronDown" @attributes="context">
-                    <VisuallyHidden>Examples: </VisuallyHidden>@ModeChip.Name(_mode)
-                </Button>
+                @* The mode's icon alone, as the buttons beside it: the name, which is the tooltip too, says "Examples: Static". *@
+                <IconButton Icon="@Icon(_mode)" Label="@($"Examples: {ModeChip.Name(_mode)}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
             </Trigger>
             <ChildContent>
                 <MenuRadioGroup Label="Examples run" Value="@_mode">

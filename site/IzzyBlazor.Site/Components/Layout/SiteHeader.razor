@@ -1,10 +1,12 @@
 @inject ApiMetadata Api
 @inject NavigationManager Navigation
 
-@* The header every page shares: the brand, the four areas after it, then search, the examples' mode
-   (docs pages; in the drawer below Md), GitHub and the scheme switch. The version is in the docs sidebar (VersionMenu) and on home's hero.
-   Below Md, GitHub moves to the top of the menu (SiteNavHeader: the sidebar's drawer on docs pages,
-   SiteNav's panel on the others) and search becomes an icon button. *@
+@* The header every page shares (design board, page A · Access, HF): the brand, the five areas after it, then
+   search, the examples' mode (docs pages), GitHub, the scheme switch and Sign in. The version is in the docs
+   sidebar (VersionMenu) and on home's hero.
+   Below Lg the areas leave the row: on docs pages they go to the top of the sidebar (its drawer below Md), on
+   the others to the menu button's panel, which ends with Sign in and GitHub. Search is a field from Xl and an
+   icon button below. *@
 
 <AppHeader ContentWidth="ContentWidth">
     @if (Sidebar)
@@ -18,28 +20,42 @@
     </AppBrand>
     @* Pages with no sidebar (home) use SiteNav's own menu button; it goes first, where the other
        pages have SidebarToggle, so the button doesn't change sides between pages. *@
-    <SiteNav Label="Site" MenuButtonPosition="MenuButtonPosition.Start" Class="site-header-nav">
+    <SiteNav Label="Site" Breakpoint="Breakpoint.Lg" MenuButtonPosition="MenuButtonPosition.Start" Class="site-header-nav">
         <NavItem Href="docs" Current="@(Area == DocsArea.Articles)">Docs</NavItem>
         <NavItem Href="docs/components" Current="@(Area == DocsArea.Components)">Components</NavItem>
         <NavItem Href="blocks" Current="@(Area == DocsArea.Blocks)">Blocks</NavItem>
         <NavItem Href="templates" Current="@(Area == DocsArea.Templates)">Templates</NavItem>
         <NavItem Href="pricing">Pricing</NavItem>
-        <SiteNavHeader>
-            <Box Grow />
-            <GitHubLink />
-        </SiteNavHeader>
+        @if (Sidebar)
+        {
+            @* The drawer's top, on phones: the header has no room for GitHub there. *@
+            <SiteNavHeader>
+                <Box Grow />
+                <GitHubLink HiddenFrom="Breakpoint.Md" />
+            </SiteNavHeader>
+        }
+        else
+        {
+            <SiteNavFooter>
+                <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" FullWidth>Sign in</Button>
+                <Anchor Href="https://github.com/enabledevmode/izzyblazor" Underline="AnchorUnderline.None" HideExternalIcon Class="site-header-github">GitHub</Anchor>
+            </SiteNavFooter>
+        }
     </SiteNav>
     <Box Grow />
-    @* Search, then the two icon buttons close together: 8px, then 4px. *@
-    <Row Gap="1" Align="Align.Center" Class="site-header-tools">
+    @* Search, 4px, the icon buttons 2px apart, then 8px to Sign in. *@
+    <div class="site-header-tools">
         <SiteSearch />
         @if (Examples)
         {
             <ModeSwitch />
         }
-        <GitHubLink VisibleFrom="Breakpoint.Md" />
+        <GitHubLink VisibleFrom="@(Sidebar ? Breakpoint.Md : Breakpoint.Lg)" />
         <ColorSchemeSwitch />
-    </Row>
+        @* Outline, and plain on a phone, where the row is full. *@
+        <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Sm" Class="site-header-signin">Sign in</Button>
+        <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" HiddenFrom="Breakpoint.Sm" Class="site-header-signin">Sign in</Button>
+    </div>
 </AppHeader>
 
 @code {

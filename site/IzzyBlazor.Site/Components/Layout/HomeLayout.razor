@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject NavigationManager Navigation
 
 @* The design's column (SiteWidths.Home, boards D3 and D4): the hero and every section on the same
    1216px, centered. The header is the docs' (SiteWidths.Bars), so it doesn't move between pages. *@
@@ -7,5 +8,6 @@
     <AppMain>
         @Body
     </AppMain>
-    <SiteFooter />
+    @* The landing page has the newsletter in a band of its own. *@
+    <SiteFooter Newsletter="@(Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].Length > 0)" />
 </AppShell>

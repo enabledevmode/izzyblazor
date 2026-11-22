@@ -1,0 +1,71 @@
+@using System.ComponentModel.DataAnnotations
+@inject AccountService Account
+@inject NavigationManager Navigation
+
+@* The newsletter's form (design board, page A · Access: L7 and the footer): one email field and Subscribe. The
+   account service keeps the address and sends the link that confirms it. One per page: the landing page has it
+   in a band, every other page in the footer (SiteFooter), so one name serves both (site-newsletter: examples have forms of their own).
+   It posts to the page it's on. With no script the page loads again at its top, so the form's address ends in
+   #newsletter and the answer is in view. *@
+<div id="newsletter" class="site-newsletter-form">
+    @if (_answer == Subscription.Sent)
+    {
+        <Alert Status="Status.Success" Title="Check your inbox to confirm.">We sent a confirmation link to @_email. You’ll start getting emails once you click it.</Alert>
+    }
+    else if (_answer == Subscription.Already)
+    {
+        <Alert Status="Status.Info" Title="You’re already subscribed."><Anchor Href="@AccountService.Email">Manage your subscription</Anchor></Alert>
+    }
+    else
+    {
+        <Form Model="Model" FormName="site-newsletter" Honeypot OnValidSubmit="Subscribe" OnSpam="Caught" NativeValidation="false"
+              RequiredMark="RequiredMark.None" Gap="2" action="@Here">
+            @if (_answer == Subscription.Failed)
+            {
+                <Alert Status="Status.Danger">We couldn’t subscribe you. Try again in a few minutes.</Alert>
+            }
+            <div class="site-newsletter-row">
+                <TextField @bind-Value="Model!.Email" Label="Email address" HideLabel Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" Grow />
+                <Button Submit>Subscribe</Button>
+            </div>
+        </Form>
+    }
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-newsletter-note">
+        You can unsubscribe at any time, and we never share your address. <Anchor Href="privacy" InheritColor>Privacy</Anchor>
+    </TextBlock>
+</div>
+
+@code {
+    /// <summary>Which form this is, kept with the address: <c>home</c> (the band) or <c>footer</c>.</summary>
+    [Parameter, EditorRequired] public string Source { get; set; } = "footer";
+
+    [SupplyParameterFromForm(FormName = "site-newsletter")]
+    private Subscriber? Model { get; set; }
+
+    private Subscription? _answer;
+    private string? _email;
+
+    // This page, with its query, so the post comes back to it.
+    private string Here => "/" + Navigation.ToBaseRelativePath(Navigation.Uri).Split('#')[0] + "#newsletter";
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private async Task Subscribe()
+    {
+        _email = Model!.Email!.Trim();
+        _answer = await Account.SubscribeAsync(_email, Source);
+    }
+
+    // A caught bot gets a person's answer, and nothing is sent.
+    private void Caught()
+    {
+        _email = Model!.Email?.Trim();
+        _answer = Subscription.Sent;
+    }
+
+    public sealed class Subscriber
+    {
+        [Required(ErrorMessage = "Enter an email address, like name@example.com."), EmailAddress(ErrorMessage = "Enter an email address, like name@example.com."), StringLength(254)]
+        public string? Email { get; set; }
+    }
+}

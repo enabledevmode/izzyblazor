@@ -17,6 +17,8 @@ public static class Sitemap
     {
         yield return "";
         yield return "pricing";
+        yield return "privacy";
+        yield return "terms";
         yield return "docs";
         foreach (var section in Articles.Sections)
         {
