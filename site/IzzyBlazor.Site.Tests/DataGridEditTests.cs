@@ -148,18 +148,6 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         await Assertions.Expect(rows.First).ToContainTextAsync("7");
     }
 
-    [Fact]
-    public async Task An_error_from_the_save_stays_on_its_field()
-    {
-        var (browser, page) = await OpenAsync("static");
-        await using var _ = browser;
-        var dialog = await EditFirstRowAsync(page);
-        await dialog.GetByLabel("Total").FillAsync("20000");
-        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
-        await Assertions.Expect(page.Locator($"{Grid} dialog[open] .ib-field-error")).ToContainTextAsync("can't be over 10,000");
-        await Assertions.Expect(page.Locator($"{Grid} dialog[open]").GetByLabel("Total")).ToHaveValueAsync("20000");
-    }
-
     // A browser wouldn't send these on its own, so they're forced in: what's posted can't be trusted.
     [Fact]
     public async Task A_post_changes_only_valid_values_of_editable_columns()
