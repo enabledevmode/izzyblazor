@@ -36,7 +36,7 @@ public sealed record Template(ItemDefinition Definition)
     public IEnumerable<ItemParameter> Options => Manifest.Parameters.Where(p => !p.Hidden && !Manifest.Fixed.ContainsKey(p.Name));
 }
 
-/// <summary>A screenshot of a kit: its file name under <c>img/templates/{id}/</c> without the extension, what it shows, and whether it was taken at a phone's width.</summary>
+/// <summary>A screenshot of a starter or kit: its file name under <c>img/templates/{id}/</c> without the extension, what it shows, and whether it was taken at a phone's width.</summary>
 public sealed record TemplateScreen(string File, string Caption, string Alt, bool Phone = false);
 
 /// <summary>The starters and app kits, read from the catalogue copied beside the site (<c>catalog/</c> in its output).</summary>
@@ -78,9 +78,9 @@ public sealed class TemplateCatalog
     public static string GroupAnchor(string group) => Heading.SlugOf(group);
 
     /// <summary>
-    /// A kit's screenshots, in the order its page shows them. Each is four files under
+    /// A starter's or kit's screenshots, in the order its page shows them. Each is four files under
     /// <c>wwwroot/img/templates/{id}/</c>: <c>{file}.webp</c>, <c>{file}-dark.webp</c> and a
-    /// <c>-thumb</c> of each, taken from the kit running with its sample data.
+    /// <c>-thumb</c> of each, taken from the app running with its sample data.
     /// </summary>
     public static IReadOnlyList<TemplateScreen> Screens(Template template) =>
         ScreensById.GetValueOrDefault(template.Id) ?? [];
@@ -105,6 +105,51 @@ public sealed class TemplateCatalog
             new("phone-dashboard", "My day on a phone", "My day at a phone's width", Phone: true),
             new("phone-pipeline", "Deal pipeline on a phone", "The deal pipeline at a phone's width", Phone: true),
             new("phone-contact", "A contact on a phone", "A contact's page at a phone's width", Phone: true),
+        ],
+        // The starters: taken Nov 21, 2026 from each made as MyApp (artifacts/crm-tools/starter-galleries.sh).
+        ["blazor"] =
+        [
+            new("home", "Home", "The home page: the welcome panel and the app's theme in sample components"),
+            new("counter", "Counter", "The counter page"),
+            new("weather", "Weather", "The weather page: a table of forecasts that sorts and filters"),
+            new("contact", "Contact", "The contact page: details beside a form"),
+            new("phone-home", "Home on a phone", "The home page at a phone's width", Phone: true),
+            new("phone-weather", "Weather on a phone", "The weather page at a phone's width", Phone: true),
+        ],
+        ["sidebar"] =
+        [
+            new("home", "Home", "The home page in the sidebar shell: the welcome panel and the app's theme in sample components"),
+            new("phone-home", "Home on a phone", "The home page at a phone's width, the sidebar behind a menu button", Phone: true),
+        ],
+        ["topnav"] =
+        [
+            new("home", "Home", "The home page under the top navigation bar"),
+            new("phone-home", "Home on a phone", "The home page at a phone's width", Phone: true),
+        ],
+        ["rail"] =
+        [
+            new("home", "Sidebar open", "The home page with the full-height sidebar open"),
+            new("collapsed", "Sidebar collapsed", "The home page with the sidebar collapsed to a rail of icons"),
+            new("phone-home", "Home on a phone", "The home page at a phone's width", Phone: true),
+        ],
+        ["docs"] =
+        [
+            new("home", "Home", "The docs site's home page"),
+            new("article", "An article", "An article: the pages list, the article, and On this page beside it"),
+            new("phone-article", "An article on a phone", "An article at a phone's width", Phone: true),
+        ],
+        ["inbox"] =
+        [
+            new("home", "Home", "The home page in the list and detail shell"),
+            new("list", "The list", "The tickets list, with nothing chosen"),
+            new("ticket", "A ticket", "A ticket open beside the list"),
+            new("phone-list", "The list on a phone", "The tickets list at a phone's width", Phone: true),
+            new("phone-ticket", "A ticket on a phone", "A ticket at a phone's width, with a link back to the list", Phone: true),
+        ],
+        ["site"] =
+        [
+            new("home", "Home", "The site's home page under its navigation bar, with the footer's links"),
+            new("phone-home", "Home on a phone", "The home page at a phone's width", Phone: true),
         ],
     };
 }
