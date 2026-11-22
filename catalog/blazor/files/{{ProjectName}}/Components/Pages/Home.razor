@@ -125,10 +125,14 @@
             <ItemActions><Icon Name="Lucide.ArrowUpRight" Size="IconSize.Sm" Color="Color.Muted" /></ItemActions>
         </ListView>
         <Heading Level="3" Size="TextSize.Sm" MarginTop="2">Add to your app</Heading>
-@*#if (SidebarNav) *@
+@*#if (ShellStarter && SidebarNav) *@
         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
-@*#else *@
+@*#elif (ShellStarter) *@
         <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
+@*#elif (SidebarNav) *@
+        <Grid Columns="new() { Base = 1, Xl = 3 }" Gap="4">
+@*#else *@
+        <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
 @*#endif *@
             @foreach (var command in Commands)
             {
@@ -197,8 +201,13 @@
 
     private static readonly Command[] Commands =
     [
-        new("izzy add crud Product", "A list, form and detail page for Product."),
+        new("izzy add crud Product", "A grid page for Product."),
+@*#if (ShellStarter) *@
         new("izzy add hero", "A hero block for the top of a page."),
+@*#else *@
+        new("izzy login", "Sign in free, and izzy adds app shells, 15 blocks and Izzy CRM to this app."),
+        new("izzy add hero", "After izzy login: a hero block for the top of a page."),
+@*#endif *@
     ];
 
     private sealed record Day(string Name, int Count);
