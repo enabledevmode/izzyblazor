@@ -21,9 +21,9 @@ public sealed class HeroBlockTests : IDisposable
 
         var changes = Generator.Generate(hero, settings, ProjectInfo.FromDirectory(_work));
         Assert.Equal(["Components/Blocks/Hero.razor", "wwwroot/images/hero-screenshot.svg"], changes.Creates.Select(c => c.Path));
-        Assert.Equal(["Components/Pages/Home.razor", "Components/_Imports.razor"], changes.Inserts.Select(i => i.Path));
-        var warning = Assert.Single(changes.Warnings);
-        Assert.Contains("Components/Pages/Home.razor already has a level-1 heading", warning);
+        // Home is the welcome page: the hero goes in, and the page's own heading gives way to the hero's.
+        Assert.Equal(["Components/Pages/Home.razor", "Components/Pages/Home.razor", "Components/_Imports.razor"], changes.Inserts.Select(i => i.Path));
+        Assert.Empty(changes.Warnings);
 
         var component = changes.Creates[0].Text!;
         Assert.Contains("<Grid Columns=", component);
@@ -35,9 +35,11 @@ public sealed class HeroBlockTests : IDisposable
         ChangesetWriter.Apply(changes, _work);
         var home = File.ReadAllText(Path.Combine(_work, "Components", "Pages", "Home.razor"));
         Assert.Contains("<PageTitle>Home</PageTitle>\n\n<Hero />\n", home.Replace("\r\n", "\n"));
+        Assert.Contains("<Heading Level=\"2\" id=\"welcome-title\"", home);
+        Assert.DoesNotContain("Level=\"1\"", home);
         Assert.Contains("@using Acme.Components\n@using Acme.Components.Blocks\n", File.ReadAllText(Path.Combine(_work, "Components", "_Imports.razor")).Replace("\r\n", "\n"));
 
-        // Again: everything is in place, so nothing changes; the h1 is still worth saying.
+        // Again: everything is in place, so nothing changes.
         var again = Generator.Generate(hero, settings, ProjectInfo.FromDirectory(_work));
         Assert.Empty(again.Creates);
         Assert.Empty(again.Inserts);

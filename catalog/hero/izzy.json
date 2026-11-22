@@ -70,11 +70,13 @@
     // The page's main heading comes first: after <PageTitle>, or under the page's own heading for an h2.
     { "file": "{{Into}}", "pattern": "<PageTitle>", "position": "after", "place": true, "if": "HeadingLevel == \"1\"", "text": "\n<{{Name}} />\n" },
     { "file": "{{Into}}", "pattern": "<PageHeader[^>]*/>|</PageHeader>|</h1>", "position": "after", "place": true, "if": "HeadingLevel == \"2\"", "text": "<{{Name}} />\n" },
+    // On a starter's welcome page the hero's headline is the page's heading, so "Your app is running." becomes a level 2.
+    { "file": "{{Into}}", "anchor": "<Heading Level=\"1\" id=\"welcome-title\"", "position": "replace", "if": "HeadingLevel == \"1\"", "text": "<Heading Level=\"2\" id=\"welcome-title\"" },
     { "file": "Components/_Imports.razor", "anchor": "@using {{UiNamespace}}", "position": "after", "text": "@using {{UiNamespace}}.Blocks\n" }
   ],
   "checks": [
     {
-      "if": "HeadingLevel == \"1\"", "file": "{{Into}}", "pattern": "<h1[ >]|Level=\"1\"|<PageHeader(?![^>]*TitleLevel=\"[2-6]\")",
+      "if": "HeadingLevel == \"1\"", "file": "{{Into}}", "pattern": "<h1[ >]|Level=\"1\"(?! id=\"welcome-title\")|<PageHeader(?![^>]*TitleLevel=\"[2-6]\")",
       "message": "{{Into}} already has a level-1 heading, and the hero's headline is one too. Remove one, or set HeadingLevel to 2."
     }
   ]
