@@ -2,7 +2,7 @@
 @inject TemplateCatalog Templates
 
 @* Every starter and app kit, under its group's heading: a card with a picture of it, its name, its
-   summary and, for a Pro one, a "Pro" label (the only label: T1). *@
+   summary and, a "Pro" label on a Pro one and "No account" on the open one (IzzyBlazor App). *@
 
 <PageMeta Title="Templates · IzzyBlazor" Description="Whole apps you create with one command and then own: starters, an empty app in the layout you want, and app kits, a working app to build on." />
 
@@ -55,7 +55,11 @@
                         <CardMedia Width="Length.Px(120)"><TemplatePicture Template="template" /></CardMedia>
                         @if (!template.Free)
                         {
-                            <CardActions><Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Pill>Pro</Badge></CardActions>
+                            <CardActions><Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Solid" Pill>Pro</Badge></CardActions>
+                        }
+                        else if (!template.Account)
+                        {
+                            <CardActions><Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Soft" Pill>No account</Badge></CardActions>
                         }
                     </Card>
                 }

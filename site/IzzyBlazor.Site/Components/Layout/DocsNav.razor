@@ -76,7 +76,7 @@ else
                     @block.Name
                     @if (!block.Free)
                     {
-                        <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Pill Class="site-nav-pro">Pro</Badge>
+                        <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Solid" Pill Class="site-nav-pro">Pro</Badge>
                     }
                 </NavItem>
             }
@@ -95,7 +95,11 @@ else
                     @template.Name
                     @if (!template.Free)
                     {
-                        <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Pill Class="site-nav-pro">Pro</Badge>
+                        <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Solid" Pill Class="site-nav-pro">Pro</Badge>
+                    }
+                    else if (!template.Account)
+                    {
+                        <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Soft" Pill Class="site-nav-pro">No account</Badge>
                     }
                 </NavItem>
             }

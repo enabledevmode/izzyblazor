@@ -62,10 +62,16 @@ public sealed class TemplateCatalog
                 .Select(d => new Template(d))
                 .ToDictionary(t => t.Id, StringComparer.OrdinalIgnoreCase)
             : [];
-        All = _byId.Values.OrderBy(t => t.IsKit).ThenBy(t => t.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        All = _byId.Values.OrderBy(t => t.IsKit)
+            .ThenBy(t => Array.IndexOf(Order, t.Id.ToLowerInvariant()) is >= 0 and var place ? place : Order.Length)
+            .ThenBy(t => t.Name, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
-    /// <summary>Every template: the starters, then the kits, each A to Z.</summary>
+    // The starters' order, as the design lists them (board T1): the open one first, then the shells from the
+    // plainest. One that isn't named here follows them, A to Z.
+    private static readonly string[] Order = ["blazor", "sidebar", "topnav", "rail", "docs", "inbox", "site"];
+
+    /// <summary>Every template: the starters in the design's order (IzzyBlazor App first), then the kits.</summary>
     public IReadOnlyList<Template> All { get; }
 
     /// <summary>The groups that have a template, in order.</summary>

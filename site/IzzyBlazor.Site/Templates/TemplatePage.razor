@@ -24,7 +24,11 @@
                 <Heading Level="1" Size="TextSize.Xl3">@_template.Name</Heading>
                 @if (!_template.Free)
                 {
-                    <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Pill>Pro</Badge>
+                    <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Solid" Pill>Pro</Badge>
+                }
+                else if (!_template.Account)
+                {
+                    <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Soft" Pill>No account</Badge>
                 }
             </Row>
             <div class="site-lead">@_template.Manifest.Summary</div>
