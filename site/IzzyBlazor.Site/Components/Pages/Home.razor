@@ -13,9 +13,8 @@
 </PageMeta>
 
 @* The brand's hero (design board D4, option A): Paper in light mode, Ink in dark. A centered column
-   (the headline with its ember line, what it is and the two ways in) over the app the library builds, live: a desktop window as wide as the page, its phone
-   over the window's lower start corner, both cut off by the hero's end. Each is a frame of the same
-   page, scaled down as pictures are. The glowing knob rises from behind the window. *@
+   (the headline with its ember line, what it is and the two ways in) over the app the library builds, as pictures: a desktop window, its phone
+   over the window's lower start corner, both cut off by the hero's end. The glowing knob rises from behind the window. *@
 <Section Spacing="SectionSpacing.None" Class="site-hero">
     <div class="site-hero-grid">
         <div class="site-hero-intro">
@@ -30,10 +29,9 @@
                 <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
             </div>
         </div>
-        @* Both frames are the page /frame/home-store, at a desktop's width and a phone's, so each
-           lays out as it would there. Their pages scroll inside them, so whatever takes focus in a
-           part the hero cuts off comes into view. The desktop window is left out below 1024px,
-           where only the phone fits. *@
+        @* Pictures of the page /frame/home-store, at a desktop's width and a phone's (HomePosterTests takes them),
+           each in the light and the dark scheme. The desktop window is left out below 1024px, where only the
+           phone fits. *@
         <div class="site-hero-demo">
             @* The ember (hero-ember-preview, "Behind the demo"): rings centered under the window's top edge,
                which hides their core and clips them, so they rise above it like a sunrise and frame the demo;
@@ -80,10 +78,10 @@
                     <div class="site-hero-window-bar" aria-hidden="true">
                         <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
                     </div>
-                    <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" loading="lazy" title="Northwind, a store's dashboard built with IzzyBlazor, at a desktop's width"></iframe></div>
+                    <Image Src="img/home/store-desktop-light.webp" DarkSrc="img/home/store-desktop-dark.webp" Alt="The store dashboard: revenue, orders and top products" Lazy="false" />
                 </div>
                 <div class="site-hero-phone">
-                    <div class="site-hero-screen"><iframe class="ex-frame" src="frame/home-store?mode=static&amp;scrollbar=none" title="Northwind, a store's dashboard built with IzzyBlazor, at a phone's width"></iframe></div>
+                    <Image Src="img/home/store-phone-tall-light.webp" DarkSrc="img/home/store-phone-tall-dark.webp" Alt="The same dashboard on a phone" Lazy="false" />
                 </div>
             </div>
         </div>
