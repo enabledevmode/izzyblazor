@@ -37,8 +37,8 @@ public sealed record BrandPalette(
     private static readonly Rgb White = Rgb.Parse("#ffffff");
     private static readonly Rgb Ink = Rgb.Parse("#111111");
     private static readonly Rgb[] FillStrong = [Rgb.Parse("#dfdfe3"), Rgb.Parse("#dce2ea"), Rgb.Parse("#e0ddd5")];
-    private static readonly Rgb[] DarkSurface = [Rgb.Parse("#0d0d0f"), Rgb.Parse("#0f1218"), Rgb.Parse("#0e0f10")];
-    private static readonly Rgb[] DarkFillStrong = [Rgb.Parse("#232326"), Rgb.Parse("#262b34"), Rgb.Parse("#25272a")];
+    private static readonly Rgb[] DarkSurface = [Rgb.Parse("#161618"), Rgb.Parse("#151920"), Rgb.Parse("#161718")];
+    private static readonly Rgb[] DarkFillStrong = [Rgb.Parse("#2b2b2f"), Rgb.Parse("#262b34"), Rgb.Parse("#2c2e32")];
 
     /// <summary>Derives the palette from a hex color (<c>#rgb</c> or <c>#rrggbb</c>).</summary>
     /// <exception cref="ArgumentException">The value isn't a hex color.</exception>

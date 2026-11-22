@@ -91,7 +91,10 @@
        even-height controls center on whole pixels, the same distance from the top and the line. */
     padding: calc(env(safe-area-inset-top, 0px) + 1px) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) 0 max(var(--ib-space-4), env(safe-area-inset-left, 0px));
     border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
-    --ib-shell-tone: var(--ib-color-surface);
+    /* The shell's parts are the surface in light mode (white, with cards told apart by their
+       borders) and the page in dark mode, where depth goes lighter: cards, tables and fields
+       are a step above the shell they sit in. */
+    --ib-shell-tone: light-dark(var(--ib-color-surface), var(--ib-color-background));
     background-color: var(--ib-shell-header-bg, var(--ib-shell-tone));
     color: var(--ib-shell-header-fg, var(--ib-color-on-surface));
   }
@@ -177,7 +180,7 @@
     min-height: 0;
     contain: size;
     border-inline-end: 1px solid var(--ib-shell-divider, var(--ib-color-border));
-    --ib-shell-tone: var(--ib-color-surface);
+    --ib-shell-tone: light-dark(var(--ib-color-surface), var(--ib-color-background));
     background-color: var(--ib-shell-sidebar-bg, var(--ib-shell-tone));
     color: var(--ib-shell-sidebar-fg, var(--ib-color-on-surface));
   }
@@ -290,7 +293,7 @@
   .ib-shell-main {
     grid-area: main;
     min-width: 0;
-    --ib-shell-tone: var(--ib-color-surface);
+    --ib-shell-tone: light-dark(var(--ib-color-surface), var(--ib-color-background));
     background-color: var(--ib-shell-main-bg, var(--ib-shell-tone));
     color: var(--ib-shell-main-fg, var(--ib-color-on-surface));
   }
@@ -311,7 +314,7 @@
     width: var(--ib-aside-w, 15rem);
     min-height: 0;
     border-inline-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
-    --ib-shell-tone: var(--ib-color-surface);
+    --ib-shell-tone: light-dark(var(--ib-color-surface), var(--ib-color-background));
     background-color: var(--ib-shell-aside-bg, var(--ib-shell-tone));
     color: var(--ib-shell-aside-fg, var(--ib-color-on-surface));
   }
@@ -388,7 +391,7 @@
     padding: var(--ib-space-4);
     padding-bottom: calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--ib-shell-divider, var(--ib-color-border));
-    --ib-shell-tone: var(--ib-color-surface);
+    --ib-shell-tone: light-dark(var(--ib-color-surface), var(--ib-color-background));
     background-color: var(--ib-shell-footer-bg, var(--ib-shell-tone));
     color: var(--ib-shell-footer-fg, var(--ib-color-on-surface));
   }

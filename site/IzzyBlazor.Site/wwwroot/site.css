@@ -392,7 +392,8 @@
       "footer footer footer footer footer";
   }
   /* The empty side columns read as the same surface as the columns between them. */
-  .ib-shell.site-shell { background: var(--ib-color-surface); }
+  /* The gutters beside the centered shell: the shell's own tone (the surface in light mode, the page in dark). */
+  .ib-shell.site-shell { background: light-dark(var(--ib-color-surface), var(--ib-color-background)); }
   .site-shell .site-article { padding-inline: var(--ib-space-8); }
   /* The header's and footer's content line up with the sidebar's text, 1.5rem in from the columns'
      edges (SiteWidths.TextInset), also where the columns fill the window. */

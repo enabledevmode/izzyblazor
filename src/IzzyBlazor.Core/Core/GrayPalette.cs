@@ -106,16 +106,18 @@ public sealed class GrayPalette
         Rgb Shade(double l, double factor, double cap = 0.03) => Snap(FromLch(l, Math.Min(c * factor, cap), hue));
         var dark = new Dictionary<string, Rgb>
         {
+            // The built-in dark sets' lightness: the surface a clear step above a near-black page, then
+            // the overlay and the fills above it.
             ["background"] = Shade(0.150, 0.5),
-            ["surface"] = Shade(0.160, 0.6),
-            ["fill-subtle"] = Shade(0.192, 0.6),
-            ["fill"] = Shade(0.223, 0.7),
-            ["fill-strong"] = Shade(0.257, 0.8),
-            ["surface-overlay"] = Shade(0.206, 0.6),
-            ["border"] = Shade(0.303, 0.8),
+            ["surface"] = Shade(0.201, 0.6),
+            ["fill-subtle"] = Shade(0.236, 0.6),
+            ["fill"] = Shade(0.262, 0.7),
+            ["fill-strong"] = Shade(0.291, 0.8),
+            ["surface-overlay"] = Shade(0.232, 0.6),
+            ["border"] = Shade(0.323, 0.8),
         };
 
-        // Below the page in dark mode, which sits close under the surface.
+        // Just under the page in dark mode, a step below the surface.
         dark["surface-sunken"] = Shade(0.135, 0.5);
 
         Rgb DarkText(double l, double factor, double cap, double target, params string[] on)
