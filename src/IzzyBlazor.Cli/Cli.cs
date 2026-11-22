@@ -74,6 +74,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "add" => Add(args),
                 "new" => New(args),
                 "init" => Init(args),
+                "bundle" => Bundle(args),
                 "login" => Login(args),
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account").Status(output),
@@ -102,6 +103,19 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     Catalog Catalog => field ??= proRoot is null && account?.Catalog(error, _generates) is { } copy
         ? Catalog.Load(catalogRoot, copy, ItemTier.Account)
         : Catalog.Load(catalogRoot, proRoot, access);
+
+    // izzy bundle <file>: an account's copy of the private catalog as a zip, for the release workflow to send to
+    // the account service. Not in the help: it needs the private catalog, which only IzzyBlazor's own builds have.
+    int Bundle(Args args)
+    {
+        Words(args, 2, "izzy bundle <file>");
+        NoSettings(args);
+        if (proRoot is null) throw new UsageException("izzy bundle needs the private catalog (IZZY_PRO_CATALOG).");
+        var file = Path.GetFullPath(args.Words[1], workingDirectory);
+        File.WriteAllBytes(file, AccountBundle.Export(catalogRoot, proRoot));
+        output.WriteLine($"Wrote {file}.");
+        return 0;
+    }
 
     int Login(Args args)
     {

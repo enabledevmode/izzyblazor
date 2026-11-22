@@ -89,6 +89,21 @@ jobs:
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts
 
+      # izzy downloads the account's templates for its own version from the account service, so each
+      # release sends its bundle there (the service signs it). The bundle is never an artifact here:
+      # this repo is public and the templates are not. Skipped, with a warning, until the service
+      # and its ACCOUNT_UPLOAD_TOKEN secret exist.
+      - name: Account catalog
+        env:
+          ACCOUNT_UPLOAD_TOKEN: ${{ secrets.ACCOUNT_UPLOAD_TOKEN }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        shell: bash
+        run: |
+          if [ -z "$ACCOUNT_UPLOAD_TOKEN" ] || [ -z "$IZZY_PRO_CATALOG" ]; then echo "::warning::No ACCOUNT_UPLOAD_TOKEN or private catalog: the account catalog for $VERSION was not published."; exit 0; fi
+          dotnet src/IzzyBlazor.Cli/bin/Release/net10.0/IzzyBlazor.Cli.dll bundle "$RUNNER_TEMP/account.zip"
+          curl --fail-with-body -sS -X PUT -H "Authorization: Bearer $ACCOUNT_UPLOAD_TOKEN" --data-binary @"$RUNNER_TEMP/account.zip" "https://account.izzyblazor.com/v1/admin/catalog/$VERSION"
+          rm "$RUNNER_TEMP/account.zip"
+
       - name: Release notes
         # docs/releases/<tag>.md, when there is one, heads the GitHub release's notes.
         run: |
