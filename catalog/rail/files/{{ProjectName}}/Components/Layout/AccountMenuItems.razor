@@ -1,9 +1,0 @@
-@* The account menu's items, under the sidebar's account row and, on phones, the header's avatar: headed by
-   your email, then your account and Log out, which posts AccountMenu's form. *@
-<AuthorizeView>
-    <MenuGroup Label="@(context.User.Identity?.Name ?? "Account")">
-        <MenuItem Href="Account/Manage" Icon="Lucide.User">Manage account</MenuItem>
-    </MenuGroup>
-    <MenuDivider />
-    <MenuItem Submit Form="logout-form" Icon="Lucide.LogOut">Log out</MenuItem>
-</AuthorizeView>

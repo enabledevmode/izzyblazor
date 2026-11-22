@@ -9,14 +9,15 @@ namespace IzzyBlazor.Cli;
 
 /// <summary>
 /// The izzy commands. Exit codes: 0 done, 1 an error, 2 files exist with other content (nothing written), 3 a Pro
-/// item or choice.
+/// item or choice, 4 an item that comes with a free account.
 /// </summary>
 /// <param name="catalogRoot">The free catalog folder.</param>
 /// <param name="workingDirectory">Where relative paths start and the project is looked for.</param>
 /// <param name="output">Results.</param>
 /// <param name="error">Errors and warnings.</param>
-/// <param name="proRoot">The Pro catalog, for working on it (IZZY_PRO_CATALOG); null for the free catalog only.</param>
-sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null)
+/// <param name="proRoot">The private catalog, with the account items' files and the Pro items (IZZY_PRO_CATALOG); null for the public catalog only.</param>
+/// <param name="access">What the private catalog holds: all of it, or an account's copy.</param>
+sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null, ItemTier access = ItemTier.Pro)
 {
     const string Help = """
         izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalog.
@@ -71,6 +72,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             error.WriteLine($"{e.Message} Pro items arrive with IzzyBlazor Pro.");
             return 3;
         }
+        catch (AccountRequiredException e)
+        {
+            error.WriteLine(e.Message);
+            return 4;
+        }
         catch (Exception e) when (e is GenerationException or UsageException)
         {
             error.WriteLine(e.Message);
@@ -78,7 +84,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
     }
 
-    Catalog Catalog => field ??= Catalog.Load(catalogRoot, proRoot);
+    Catalog Catalog => field ??= Catalog.Load(catalogRoot, proRoot, access);
 
     int List(Args args)
     {
@@ -103,7 +109,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         foreach (var m in items)
         {
             var pro = m.Parameters.Where(p => p.ProChoices.Count > 0).Select(p => $"{p.Name} {string.Join(", ", p.ProChoices)}").ToList();
-            output.WriteLine($"{m.Id.PadRight(width)}  {Lower(m.Kind),-7}  {m.Summary}{(pro.Count > 0 ? $" (Pro: {string.Join("; ", pro)})" : "")}");
+            output.WriteLine($"{m.Id.PadRight(width)}  {Lower(m.Kind),-7}  {m.Summary}{(m.Tier == ItemTier.Account ? " (free account)" : "")}{(pro.Count > 0 ? $" (Pro: {string.Join("; ", pro)})" : "")}");
         }
         return 0;
     }
@@ -130,7 +136,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             });
             return 0;
         }
-        output.WriteLine($"{m.Name} ({m.Id}), {Lower(m.Kind)}{(m.Tier == ItemTier.Pro ? ", Pro" : "")}");
+        output.WriteLine($"{m.Name} ({m.Id}), {Lower(m.Kind)}{m.Tier switch { ItemTier.Pro => ", Pro", ItemTier.Account => ", free account", _ => "" }}");
         if (m.Summary is not null) output.WriteLine(m.Summary);
         output.WriteLine();
         output.WriteLine(m.Kind.MakesProject() ? $"{m.NewCommand()} -n <name> [settings]" : $"izzy add {m.Id} [settings]");

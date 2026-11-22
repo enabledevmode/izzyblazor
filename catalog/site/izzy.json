@@ -5,6 +5,7 @@
   "id": "site",
   "name": "Content site",
   "kind": "starter",
+  "tier": "account",
   "category": "Starters",
   "summary": "A website shell with links in the header, a centered page column and a footer, and no sidebar.",
   "components": ["Anchor"],

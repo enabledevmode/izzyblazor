@@ -128,4 +128,11 @@ The project doesn't take pull requests for now.
 MIT. Bundled Lucide icons are ISC licensed; the brand logos (from Tabler Icons, plus a few drawn for
 IzzyBlazor) are MIT licensed; the bundled Inter font is under the SIL Open Font License. See
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+The starters, blocks and kits that come with an IzzyBlazor account are not MIT. Their templates are not in this
+repository, and the code generated from them is yours to use in any app under the
+[IzzyBlazor Template License](LICENSE-TEMPLATES), which also covers the block previews and pictures the docs site
+keeps here (`site/IzzyBlazor.Site/Blocks/Previews`, `wwwroot/img/blocks`, `wwwroot/img/templates`). The
+`blazor` starter and the grid page of `izzy add crud` are MIT.
+
 IzzyBlazor is an independent project and is not affiliated with Microsoft.

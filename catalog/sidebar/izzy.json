@@ -4,6 +4,7 @@
   "id": "sidebar",
   "name": "Sidebar app",
   "kind": "starter",
+  "tier": "account",
   "category": "Starters",
   "summary": "An app shell with a header and a sidebar that becomes a drawer on phones.",
   "base": {

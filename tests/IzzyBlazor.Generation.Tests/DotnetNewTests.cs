@@ -20,7 +20,8 @@ public sealed class DotnetNewTests : IDisposable
         var roots = new[] { Path.Combine(AppContext.BaseDirectory, "Items"), Path.Combine(RepoRoot(), "catalog") };
         foreach (var root in roots.Where(Directory.Exists))
             foreach (var item in Catalog.Load(root).Items.Values)
-                if (item.Manifest.Kind.MakesProject()) data.Add(root, item.Manifest.Id);
+                // Account starters and kits come from izzy new only.
+                if (item.Manifest.Kind.MakesProject() && item.Manifest.Tier == ItemTier.Free) data.Add(root, item.Manifest.Id);
         return data;
     }
 

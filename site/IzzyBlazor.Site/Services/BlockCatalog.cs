@@ -17,8 +17,11 @@ public sealed record Block(ItemDefinition Definition)
     /// <summary>The category heading it's listed under, such as "Heroes".</summary>
     public string Category => Manifest.Category ?? "Other";
 
-    /// <summary>Free blocks ship with the CLI; Pro ones are generated on IzzyBlazor's server.</summary>
-    public bool Free => Manifest.Tier == ItemTier.Free;
+    /// <summary>Free to use, with or without an account; Pro ones are generated on IzzyBlazor's server.</summary>
+    public bool Free => Manifest.Tier != ItemTier.Pro;
+
+    /// <summary>Comes with a free IzzyBlazor account: its template isn't in the CLI or the site.</summary>
+    public bool Account => Manifest.Tier == ItemTier.Account;
 
     /// <summary>Its page.</summary>
     public string Href => $"blocks/{Id}";
@@ -57,9 +60,10 @@ public sealed record BlockVariant(Block Block, IReadOnlyList<VariationOption> Pi
 }
 
 /// <summary>
-/// The blocks, read from the catalog copied beside the site (<c>catalog/</c> in its output). Each
-/// block's code is generated from its template as the CLI would; its previews are that code too,
-/// generated into <c>Blocks/Previews</c> (<see cref="PreviewFiles"/>, kept current by a test).
+/// The blocks, read from the catalog copied beside the site (<c>catalog/</c> in its output): their
+/// manifests, since an account block's template is in the private catalog and never in the site. Each
+/// block's previews are the code <c>izzy add</c> writes, generated into <c>Blocks/Previews</c>
+/// (<see cref="PreviewFiles"/>) by a test that runs where the private catalog is.
 /// </summary>
 public sealed class BlockCatalog
 {
@@ -68,13 +72,14 @@ public sealed class BlockCatalog
 
     private readonly Dictionary<string, Block> _byId;
 
-    /// <summary>Reads every block under <paramref name="catalogRoot"/>.</summary>
-    public BlockCatalog(string catalogRoot)
+    /// <summary>
+    /// Reads every block under <paramref name="catalogRoot"/>, with its template files from
+    /// <paramref name="privateRoot"/> when given (the tests that generate the previews).
+    /// </summary>
+    public BlockCatalog(string catalogRoot, string? privateRoot = null)
     {
         _byId = Directory.Exists(catalogRoot)
-            ? Directory.EnumerateDirectories(catalogRoot)
-                .Where(d => File.Exists(Path.Combine(d, "izzy.json")))
-                .Select(ItemDefinition.FromDirectory)
+            ? Catalog.Load(catalogRoot, privateRoot).Items.Values
                 .Where(d => d.Manifest.Kind == ItemKind.Block)
                 .Select(d => new Block(d))
                 .ToDictionary(b => b.Id, StringComparer.OrdinalIgnoreCase)
@@ -125,18 +130,17 @@ public sealed class BlockCatalog
         return combos.Select(c => new BlockVariant(block, c));
     }
 
-    /// <summary>The code files <c>izzy add</c> writes for a variant (Razor, then C#), by path, as a new app named MyApp gets them.</summary>
-    public static IReadOnlyList<(string Path, string Text)> Code(BlockVariant variant)
+    /// <summary>
+    /// The code files <c>izzy add</c> writes with the default settings (Razor, then C#), generated from the
+    /// template: what the manifest's <c>writes</c> must list. Needs the block's files.
+    /// </summary>
+    public static IReadOnlyList<string> GeneratedWrites(Block block)
     {
-        var changes = Generator.Generate(variant.Block.Definition, variant.Settings(preview: false), ProjectInfo.ForNewProject("MyApp"));
-        var code = changes.Creates.Where(c => c.Path.EndsWith(".razor", StringComparison.Ordinal))
+        var changes = Generator.Generate(block.Definition, new Dictionary<string, string>(), ProjectInfo.ForNewProject("MyApp"));
+        return changes.Creates.Where(c => c.Path.EndsWith(".razor", StringComparison.Ordinal))
             .Concat(changes.Creates.Where(c => c.Path.EndsWith(".cs", StringComparison.Ordinal)))
-            .Select(c => (c.Path, c.Text!)).ToList();
-        return code.Count > 0 ? code : [(RecipeTitle, Recipe(variant.Block, variant.Settings(preview: false)))];
+            .Select(c => c.Path).ToList();
     }
-
-    /// <summary>The title over a recipe's code, which goes on your page rather than in a file of its own.</summary>
-    public const string RecipeTitle = "Your page, at the line you give with --at";
 
     // A recipe's markup, as izzy add --at puts it on a page: generated onto an empty one.
     static string Recipe(Block block, IReadOnlyDictionary<string, string> settings)
@@ -148,13 +152,13 @@ public sealed class BlockCatalog
     }
 
     /// <summary>The files <c>izzy add</c> writes, such as <c>Components/Blocks/Hero.razor</c>: its code files, with the default name.</summary>
-    public static IReadOnlyList<string> Writes(Block block) =>
-        Code(Variant(block, _ => null)).Select(c => c.Path).Where(p => p != RecipeTitle).ToList();
+    public static IReadOnlyList<string> Writes(Block block) => block.Manifest.Writes;
 
     /// <summary>
     /// The generated preview components, by path under the site: each variant's Razor, named for it, with
     /// the preview settings; and the block's own wwwroot files (its placeholder images). None for a Pro
-    /// block: its template never reaches the site's source, so its page shows its picture.
+    /// block: its template never reaches the site's source, so its page shows its picture. Needs the
+    /// block's files (a catalog read with its private root).
     /// </summary>
     public static IEnumerable<(string Path, byte[] Content)> PreviewFiles(Block block)
     {

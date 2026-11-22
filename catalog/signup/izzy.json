@@ -5,6 +5,8 @@
   "id": "signup",
   "name": "Sign-up",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/SignUp.razor"],
   "category": "Calls to action",
   "summary": "One email field and one button for a waitlist or a newsletter, with what they'll get and the reassurance right under it.",
   "components": ["Section", "SectionHeader", "Container", "Column", "Grid", "Card", "Form", "Alert", "TextField", "Checkbox", "Button", "Stack", "TextBlock", "Anchor"],

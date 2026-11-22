@@ -40,11 +40,12 @@
   </ItemGroup>
 
   <!-- The catalog beside the tests too, as the site has it (its CopyCatalog), so the site the
-       tests run has its Blocks pages. -->
+       tests run has its Blocks pages. Cleared first, so a file removed from catalog/ leaves here too. -->
   <Target Name="CopyCatalog" AfterTargets="Build">
     <ItemGroup>
       <CatalogFile Include="..\..\catalog\**\*" />
     </ItemGroup>
+    <RemoveDir Directories="$(OutDir)catalog" ContinueOnError="true" />
     <Copy SourceFiles="@(CatalogFile)" DestinationFiles="@(CatalogFile->'$(OutDir)catalog\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>
 

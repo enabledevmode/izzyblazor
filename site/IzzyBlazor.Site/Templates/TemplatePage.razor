@@ -34,9 +34,16 @@
             <div class="site-lead">@_template.Manifest.Summary</div>
             <div class="site-block-command">
                 <Code Block Language="bash">@($"{_template.Manifest.NewCommand()} -n MyApp")</Code>
+                @if (_template.Account)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Free with an IzzyBlazor account.</TextBlock>
+                }
+                else
+                {
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">
                     Or, with the <Anchor Href="docs/get-started/create-app">templates package</Anchor> installed: <code>dotnet new @TemplateExport.ShortName(_template.Manifest) -n MyApp</code>
                 </TextBlock>
+                }
             </div>
         </Stack>
 
@@ -96,7 +103,16 @@
         @if (_options.Count > 0)
         {
             <Heading Level="2" id="options">Options</Heading>
-            <TextBlock>Each option is a flag on <code>izzy new</code> and on <code>dotnet new</code>:</TextBlock>
+            <TextBlock>
+                @if (_template.Account)
+                {
+                    <text>Each option is a flag on <code>izzy new</code>:</text>
+                }
+                else
+                {
+                    <text>Each option is a flag on <code>izzy new</code> and on <code>dotnet new</code>:</text>
+                }
+            </TextBlock>
             <Code Block Language="bash">@OptionExample</Code>
             <Table Items="_options" Caption="@($"{_template.Name} options")" Size="ControlSize.Sm" Class="site-params site-settings" Bordered="false" SmallScreen="TableSmallScreen.Stack">
                 <Columns>

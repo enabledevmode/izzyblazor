@@ -5,6 +5,8 @@
   "id": "access-denied",
   "name": "Access denied page",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Account/Pages/AccessDenied.razor"],
   "category": "Empty and error states",
   "summary": "Where people land without the role a page needs: which role, who can give it, and a way to switch accounts.",
   "components": ["Container", "Column", "EmptyState", "Button", "TextBlock"],

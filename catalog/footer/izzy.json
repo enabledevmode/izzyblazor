@@ -5,6 +5,8 @@
   "id": "footer",
   "name": "Footer",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/SiteFooter.razor"],
   "category": "Headers and footers",
   "summary": "The end of every page: your name, the copyright and the links people look for at the bottom.",
   "components": ["Section", "Container", "Stack", "Row", "AppBrand", "TextBlock", "Spacer", "Anchor"],

@@ -1,9 +1,11 @@
-// The free hero: the top of a landing page, written into the project as a component you own
+// The hero: the top of a landing page, written into the project as a component you own
 // (Components/Blocks/Hero.razor) and placed on a page after its <PageTitle>.
 {
   "id": "hero",
   "name": "Hero",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/Hero.razor"],
   "category": "Heroes",
   "summary": "The top of a landing page: a headline, a sentence, two buttons and a screenshot or image.",
   "components": ["Section", "Container", "Grid", "Stack", "Box", "Tag", "Heading", "TextBlock", "Button", "BrowserFrame", "Image"],

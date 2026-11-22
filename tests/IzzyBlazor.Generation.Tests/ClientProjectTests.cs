@@ -13,7 +13,7 @@ public sealed class ClientProjectTests : IDisposable
 {
     readonly string _work = Directory.CreateTempSubdirectory("izzy-client-").FullName;
 
-    [Fact]
+    [AccountFact]
     public async Task Blocks_go_where_the_pages_are_and_the_app_builds()
     {
         ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("blazor"),

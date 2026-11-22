@@ -6,6 +6,7 @@
   "id": "crm",
   "name": "Izzy CRM",
   "kind": "kit",
+  "tier": "account",
   "category": "App kits",
   "summary": "A whole CRM, every page static: contacts, companies, a deal pipeline, activities and reports, with a team, roles, an audit log and sample data.",
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "none", "Auto": "none" },

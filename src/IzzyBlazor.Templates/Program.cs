@@ -12,7 +12,8 @@ if (Directory.Exists(args[0]))
     // Through the catalog, so a kit is exported over its base.
     foreach (var item in Catalog.Load(args[0]).Items.Values)
     {
-        if (!item.Manifest.Kind.MakesProject()) continue;
+        // Only what needs no account ships through dotnet new; the rest comes from izzy new.
+        if (!item.Manifest.Kind.MakesProject() || item.Manifest.Tier != ItemTier.Free) continue;
         TemplateExport.WriteTemplateFolder(item, Path.Combine(args[1], item.Manifest.Id));
         count++;
     }

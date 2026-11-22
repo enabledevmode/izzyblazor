@@ -11,8 +11,24 @@ internal static class ProjectBuild
 
     public static string RepoRoot { get; } = FindRepoRoot();
 
-    /// <summary>A catalog item from /catalog, through the catalog so a kit is over its base.</summary>
-    public static ItemDefinition Item(string id) => Catalog.Load(Path.Combine(RepoRoot, "catalog"))[id];
+    /// <summary>
+    /// The private catalog, which holds the account items' files: IZZY_PRO_CATALOG, else izzyblazor-pro-catalog
+    /// beside this repo. Null where there is none (a fork, a clone without it): tests of account items skip.
+    /// </summary>
+    public static string? PrivateCatalog { get; } = FindPrivateCatalog();
+
+    static string? FindPrivateCatalog()
+    {
+        var folder = Environment.GetEnvironmentVariable("IZZY_PRO_CATALOG") is { Length: > 0 } given
+            ? given : Path.Combine(RepoRoot, "..", "izzyblazor-pro-catalog");
+        return Directory.Exists(Path.Combine(folder, "crm")) ? Path.GetFullPath(folder) : null;
+    }
+
+    /// <summary>
+    /// A catalog item from /catalog, through the catalog so a kit is over its base, with an account's access
+    /// where the private catalog is.
+    /// </summary>
+    public static ItemDefinition Item(string id) => Catalog.Load(Path.Combine(RepoRoot, "catalog"), PrivateCatalog, ItemTier.Account)[id];
 
     /// <summary>The settings for blazor with its ports and GUID given, so nothing is random.</summary>
     public static Dictionary<string, string> StarterSettings(string settings = "")

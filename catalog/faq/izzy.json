@@ -5,6 +5,8 @@
   "id": "faq",
   "name": "FAQ",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/Faq.razor"],
   "category": "FAQ",
   "summary": "The questions that stop people signing up, each opening to its answer, with a way to ask your own.",
   "components": ["Section", "SectionHeader", "Container", "Column", "TextBlock", "Accordion", "Anchor", "Icon"],

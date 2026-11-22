@@ -18,11 +18,11 @@ public sealed class CliTests : IDisposable
     {
         var output = new StringWriter();
         var error = new StringWriter();
-        var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), directory, output, error).Run(args);
+        var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), directory, output, error, ProjectBuild.PrivateCatalog, ItemTier.Account).Run(args);
         return (exit, output.ToString(), error.ToString());
     }
 
-    [Fact]
+    [AccountFact]
     public void A_new_app_takes_a_hero_once_and_records_both()
     {
         // Ids are found in any case, and recorded as the catalog writes them.
@@ -57,7 +57,7 @@ public sealed class CliTests : IDisposable
     }
 
     // An editor's cursor: --at puts the hero on that line, and the page it names is the one checked for an h1.
-    [Fact]
+    [AccountFact]
     public void At_a_line_the_hero_goes_there_instead_of_Home()
     {
         Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Acme", "--no-restore").Exit);
@@ -72,7 +72,7 @@ public sealed class CliTests : IDisposable
     }
 
     // Words a person writes can hold quotes, an ampersand or an @: they stay text in markup and in C# strings.
-    [Fact]
+    [AccountFact]
     public void A_setting_s_words_are_escaped_where_they_land()
     {
         Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Acme", "--no-restore").Exit);

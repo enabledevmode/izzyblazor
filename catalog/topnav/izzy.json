@@ -4,6 +4,7 @@
   "id": "topnav",
   "name": "Top navigation app",
   "kind": "starter",
+  "tier": "account",
   "category": "Starters",
   "summary": "An app shell with its links across the header, folding into a menu on phones, and a centered page column.",
   "base": {

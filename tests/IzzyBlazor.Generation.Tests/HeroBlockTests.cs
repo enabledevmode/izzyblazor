@@ -12,7 +12,7 @@ public sealed class HeroBlockTests : IDisposable
 {
     readonly string _work = Directory.CreateTempSubdirectory("izzy-hero-").FullName;
 
-    [Fact]
+    [AccountFact]
     public async Task The_hero_goes_into_a_new_app_once_and_it_builds()
     {
         ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("blazor"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme")), _work);

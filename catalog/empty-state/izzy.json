@@ -5,6 +5,7 @@
   "id": "empty-state",
   "name": "Empty state",
   "kind": "block",
+  "tier": "account",
   "category": "Empty and error states",
   "summary": "What a list shows when it's empty: the one action that fills it, or a way to clear the search.",
   "components": ["EmptyState", "Button"],

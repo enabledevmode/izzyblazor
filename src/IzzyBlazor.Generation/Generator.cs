@@ -37,7 +37,7 @@ public static class Generator
                 settings = new Dictionary<string, string>(settings) { [token.Groups[1].Value] = at.Path };
         }
         var values = Resolve(manifest, settings, Facts(project));
-        if (!item.IncludesPro) RefusePro(manifest, values);
+        Refuse(item, values);
         var tokens = Tokens(manifest, values, project);
         // What a person wrote, as opposed to a name we check or a value the item fixes: escaped where it lands.
         var typed = manifest.Parameters
@@ -180,10 +180,15 @@ public static class Generator
         };
     }
 
-    static void RefusePro(ItemManifest manifest, Dictionary<string, object> values)
+    // What the item's access doesn't reach: an account item without its files, a Pro item or a Pro choice.
+    static void Refuse(ItemDefinition item, Dictionary<string, object> values)
     {
+        var manifest = item.Manifest;
+        if (item.Access == ItemTier.Pro) return;
         if (manifest.Tier == ItemTier.Pro)
             throw new ProRequiredException($"{manifest.Id} is a Pro item.");
+        if (manifest.Tier == ItemTier.Account && item.Access != ItemTier.Account)
+            throw new AccountRequiredException($"{manifest.Name} ({manifest.Id}) comes with a free IzzyBlazor account.");
         foreach (var p in manifest.Parameters)
             if (p.ProChoices.Contains(values[p.Name] as string))
                 throw new ProRequiredException($"{p.Name} {values[p.Name]} is a Pro choice of {manifest.Id}. Free choices: {string.Join(", ", p.Choices.Except(p.ProChoices))}.");

@@ -26,6 +26,20 @@ jobs:
       - name: Install asset tools
         run: npm ci
 
+      # The account items' templates (shells, blocks, the CRM kit) are in the private catalog. With the
+      # PRO_CATALOG_TOKEN secret (read access to its contents) it is checked out and the tests that
+      # generate from it run; without it (a fork's pull request) they skip.
+      - name: Private catalog
+        env:
+          PRO_CATALOG_TOKEN: ${{ secrets.PRO_CATALOG_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::warning::No PRO_CATALOG_TOKEN: tests of account items are skipped."; exit 0; fi
+          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/enabledevmode/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
+          # The clone's config holds the token: gone before any build tool runs.
+          rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
+          echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
+
       - name: Build
         run: dotnet build izzyblazor.sln --configuration Release
 
@@ -88,6 +102,20 @@ jobs:
 
       - name: Install asset tools
         run: npm ci
+
+      # The account items' templates (shells, blocks, the CRM kit) are in the private catalog. With the
+      # PRO_CATALOG_TOKEN secret (read access to its contents) it is checked out and the tests that
+      # generate from it run; without it (a fork's pull request) they skip.
+      - name: Private catalog
+        env:
+          PRO_CATALOG_TOKEN: ${{ secrets.PRO_CATALOG_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::warning::No PRO_CATALOG_TOKEN: tests of account items are skipped."; exit 0; fi
+          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/enabledevmode/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
+          # The clone's config holds the token: gone before any build tool runs.
+          rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
+          echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
 
       - name: Build
         run: dotnet build izzyblazor.sln --configuration Release

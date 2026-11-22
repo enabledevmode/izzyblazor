@@ -1,0 +1,74 @@
+IzzyBlazor Template License
+
+Copyright (c) 2026 Israel Dryer. All rights reserved.
+
+This license covers the IzzyBlazor templates: the starters, blocks, kits and
+other catalog items that IzzyBlazor provides to people with an IzzyBlazor
+account, free or Pro, and the files that make them up ("Templates"). It also
+covers the code the IzzyBlazor tools generate from them ("Generated Code").
+
+The IzzyBlazor component library, the izzy command-line tool, the "blazor"
+starter and the grid mode of "izzy add crud" are not covered by this license.
+They are under the MIT License in the public IzzyBlazor repository.
+
+1. The Templates
+
+The Templates are proprietary. You may not copy, publish, sell, sublicense or
+share them, in whole or in part, except as Generated Code under section 2.
+Nothing in this license gives you access to the Templates; access comes with
+your IzzyBlazor account.
+
+2. Generated Code
+
+Generated Code that you receive through your own IzzyBlazor account is yours
+to use. You may:
+
+  a. use it in any number of applications, sites and services, personal,
+     internal or commercial, including work you do for clients;
+  b. change it in any way;
+  c. distribute it as part of those applications, in source or compiled
+     form, including in open-source projects, and hand it to the client or
+     employer the application belongs to.
+
+No attribution is required, and the Generated Code needs no notice or header.
+These rights do not end when your account or subscription ends: Generated Code
+you received while it was active stays yours to use under this license.
+
+3. What you may not do
+
+You may not distribute, sell or offer the Generated Code, changed or not:
+
+  a. as a template, starter, kit, block, theme, boilerplate or scaffold;
+  b. as part of a component library, template collection, design kit or
+     code generator;
+  c. in any other form whose main purpose is to let others build their own
+     applications from it.
+
+You may not share your account or license key, or use the IzzyBlazor tools to
+generate code for people who would need their own account to generate it.
+
+4. The same terms for every account
+
+These terms are the same for a free account and for Pro. What differs is which
+Templates an account can generate from.
+
+5. Ownership
+
+Israel Dryer keeps all rights in the Templates. This license gives you rights
+in the Generated Code as section 2 says, and your own changes and additions
+are yours.
+
+6. No warranty
+
+THE TEMPLATES AND THE GENERATED CODE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE TEMPLATES OR THE GENERATED CODE OR THEIR
+USE.
+
+7. Ending
+
+If you break section 1 or 3, your rights under this license end, and you must
+stop distributing what broke it. Sections 5 and 6 continue.

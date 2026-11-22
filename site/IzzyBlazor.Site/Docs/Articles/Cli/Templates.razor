@@ -1,7 +1,8 @@
 @page "/docs/cli/templates"
 
-@* izzy new starter|kit <id>: starters and kits, the name and folder, options, --dry-run, and the same
-   templates in dotnet new (Cli.cs New, TemplateExport.ShortName). *@
+@* izzy new starter|kit <id>: starters and kits, the name and folder, options, --dry-run, and the one
+   starter that dotnet new has too (Cli.cs New, TemplateExport.ShortName; Templates/Program.cs exports
+   only what needs no account). *@
 
 <ArticlePage Section="cli" Slug="templates">
     <Lead>
@@ -58,12 +59,12 @@
 
         <Heading Level="2">With dotnet new</Heading>
         <TextBlock>
-            Every starter and kit is also a <Code>dotnet new</Code> template, with the same options. Its name there is
-            the kind and the template's name, joined with a hyphen:
+            The IzzyBlazor App starter is also a <Code>dotnet new</Code> template, with the same options:
         </TextBlock>
         <Code Block Language="bash">@DotnetNew</Code>
         <TextBlock>
             To install the templates package, see <Anchor Href="docs/get-started/create-app">Create an app</Anchor>.
+            The other starters and the kits are free with an IzzyBlazor account, and come from <Code>izzy new</Code>.
         </TextBlock>
 
         <Heading Level="2">Next steps</Heading>
@@ -78,5 +79,5 @@
     private const string Starter = "izzy new starter sidebar -n MyApp";
     private const string Kit = "izzy new kit crm -n MyApp";
     private const string Run = "cd MyApp\ndotnet run";
-    private const string DotnetNew = "dotnet new starter-sidebar -n MyApp\ndotnet new kit-crm -n MyApp";
+    private const string DotnetNew = "dotnet new starter-blazor -n MyApp";
 }

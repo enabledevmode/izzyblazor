@@ -12,10 +12,12 @@ public sealed class ItemDefinition
     public required IReadOnlyDictionary<string, byte[]> Files { get; init; }
 
     /// <summary>
-    /// Whether the Pro catalog's files were loaded with it (<see cref="Catalog.Load"/> with a Pro root), so its
-    /// Pro choices, or the whole item when it's Pro, can be generated.
+    /// The most it can generate: <see cref="ItemTier.Free"/> from the public catalog alone;
+    /// <see cref="ItemTier.Account"/> with its files from an account's copy of the private catalog;
+    /// <see cref="ItemTier.Pro"/> with the whole private catalog, so its Pro choices, or the item itself when
+    /// it's Pro, generate too (<see cref="Catalog.Load"/>).
     /// </summary>
-    public bool IncludesPro { get; init; }
+    public ItemTier Access { get; init; }
 
     /// <summary>
     /// Reads an item from a catalog folder: <c>izzy.json</c> beside a <c>files</c> folder whose contents are
@@ -73,7 +75,7 @@ public sealed class ItemDefinition
 
         var manifest = new ItemManifest
         {
-            Id = k.Id, Name = k.Name, Kind = k.Kind, Category = k.Category, Tier = k.Tier, Summary = k.Summary,
+            Id = k.Id, Name = k.Name, Kind = k.Kind, Category = k.Category, Tier = k.Tier, Summary = k.Summary, Writes = k.Writes,
             Components = [.. b.Components.Union(k.Components).Order(StringComparer.Ordinal)],
             Modes = k.Modes.Count > 0 ? k.Modes : b.Modes,
             Schema = schema,
@@ -93,7 +95,7 @@ public sealed class ItemDefinition
             Base = spec,
             Fixed = fixedValues,
         };
-        return new ItemDefinition { Manifest = manifest, Files = files, IncludesPro = kit.IncludesPro };
+        return new ItemDefinition { Manifest = manifest, Files = files, Access = kit.Access };
     }
 
     // The files under a catalog folder's "files" folder, by path with forward slashes.

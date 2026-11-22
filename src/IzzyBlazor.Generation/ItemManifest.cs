@@ -18,11 +18,17 @@ public sealed class ItemManifest
     /// <summary>The catalog group, such as Starters or Marketing.</summary>
     public string? Category { get; init; }
 
-    /// <summary>Free items run in the CLI; Pro items run on IzzyBlazor's server.</summary>
+    /// <summary>Free and account items run in the CLI; Pro items run on IzzyBlazor's server.</summary>
     public ItemTier Tier { get; init; } = ItemTier.Free;
 
     /// <summary>One sentence on what it's for.</summary>
     public string? Summary { get; init; }
+
+    /// <summary>
+    /// The code files it writes with its default settings, such as <c>Components/Blocks/Hero.razor</c>, for its
+    /// docs page, which has the manifest and not the files. None for an item that goes on a page of yours.
+    /// </summary>
+    public IReadOnlyList<string> Writes { get; init; } = [];
 
     /// <summary>The IzzyBlazor components it uses.</summary>
     public IReadOnlyList<string> Components { get; init; } = [];
@@ -104,6 +110,7 @@ public sealed class ItemManifest
             Category = (string?)root["category"],
             Tier = root["tier"] is { } tier ? ParseEnum<ItemTier>((string)tier!, "tier") : ItemTier.Free,
             Summary = (string?)root["summary"],
+            Writes = (root["writes"] as JsonArray)?.Select(c => (string)c!).ToList() ?? [],
             Components = (root["components"] as JsonArray)?.Select(c => (string)c!).ToList() ?? [],
             Modes = (root["modes"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>(),
             Schema = schema,
@@ -194,6 +201,11 @@ public enum ItemTier
 {
     /// <summary>Anyone; runs in the CLI.</summary>
     Free,
+    /// <summary>
+    /// A free IzzyBlazor account; runs in the CLI. The manifest is in the public catalog and the item's
+    /// files are in the private one, which an account brings.
+    /// </summary>
+    Account,
     /// <summary>A Pro key; runs on IzzyBlazor's server.</summary>
     Pro,
 }

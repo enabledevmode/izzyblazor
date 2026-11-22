@@ -6,6 +6,7 @@
   "id": "docs",
   "name": "Docs site",
   "kind": "starter",
+  "tier": "account",
   "category": "Starters",
   "summary": "A documentation site: a sidebar of sections, an article column, the article's headings beside it, and previous and next links.",
   "components": ["AppAside", "Breadcrumb", "OnThisPage", "PrevNext", "SidebarToggle"],

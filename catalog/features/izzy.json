@@ -5,6 +5,8 @@
   "id": "features",
   "name": "Features",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/Features.razor"],
   "category": "Features",
   "summary": "What the product does: a heading over a grid of features, each an icon, a title and one sentence.",
   "components": ["Section", "SectionHeader", "Container", "Column", "Grid", "Center", "Icon", "Heading", "TextBlock"],

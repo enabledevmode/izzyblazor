@@ -4,6 +4,8 @@
   "id": "team",
   "name": "Team",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/Team.razor"],
   "category": "Team",
   "summary": "The people behind the product: a photo or initials, a name and a role for each, and a link to open roles.",
   "components": ["Section", "SectionHeader", "Container", "Column", "Grid", "Avatar", "TextBlock", "Anchor", "Icon"],

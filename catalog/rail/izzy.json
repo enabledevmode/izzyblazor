@@ -5,6 +5,7 @@
   "id": "rail",
   "name": "Collapsible sidebar app",
   "kind": "starter",
+  "tier": "account",
   "category": "Starters",
   "summary": "An app shell with a full-height sidebar that collapses to an icon rail, the brand at its top and the account at its foot.",
   "components": ["SidebarAccount", "SidebarToggle", "Tooltip"],

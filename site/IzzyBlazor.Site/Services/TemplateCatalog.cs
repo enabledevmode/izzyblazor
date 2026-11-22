@@ -20,8 +20,11 @@ public sealed record Template(ItemDefinition Definition)
     /// <summary>The heading it's listed under.</summary>
     public string Group => IsKit ? TemplateCatalog.Kits : TemplateCatalog.Starters;
 
-    /// <summary>Free templates ship with the CLI and the dotnet new package.</summary>
-    public bool Free => Manifest.Tier == ItemTier.Free;
+    /// <summary>Free to use, with or without an account.</summary>
+    public bool Free => Manifest.Tier != ItemTier.Pro;
+
+    /// <summary>Comes with a free IzzyBlazor account, through <c>izzy new</c>; the others are in the dotnet new package too.</summary>
+    public bool Account => Manifest.Tier == ItemTier.Account;
 
     /// <summary>Its page.</summary>
     public string Href => $"templates/{Id}";

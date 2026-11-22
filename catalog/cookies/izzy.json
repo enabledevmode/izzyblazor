@@ -6,6 +6,8 @@
   "id": "cookies",
   "name": "Cookie consent",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/CookieNotice.razor", "Components/Pages/Cookies.razor", "Consent.cs"],
   "category": "Legal and privacy",
   "summary": "Ask before any cookie that isn't essential: a notice until the visitor chooses, a settings page, and a way for your code to check.",
   "components": ["Card", "Heading", "TextBlock", "Anchor", "Button", "Stack", "Grid", "Spacer", "Form", "Switch", "Row", "Column"],

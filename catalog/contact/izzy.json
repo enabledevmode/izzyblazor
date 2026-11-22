@@ -5,6 +5,8 @@
   "id": "contact",
   "name": "Contact",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/ContactSection.razor"],
   "category": "Contact",
   "summary": "Three ways to reach you beside a short form: checked on the server, answered with a toast, guarded by a honeypot.",
   "components": ["Section", "SectionHeader", "Container", "Grid", "Column", "Row", "Center", "Icon", "Heading", "TextBlock", "Anchor", "Box", "Form", "FormErrors", "TextField", "TextArea", "Button"],

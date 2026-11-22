@@ -49,7 +49,7 @@ public sealed class StarterBuildTests : IDisposable
         { "inbox", "Interactivity=WebAssembly;AllInteractive=true;Auth=Individual" },
     };
 
-    [Theory]
+    [AccountTheory]
     [MemberData(nameof(Shells))]
     public async Task The_shell_starter_builds(string id, string settings)
     {
@@ -59,7 +59,7 @@ public sealed class StarterBuildTests : IDisposable
         await ProjectBuild.BuildAsync(_work, $"{id} {settings}");
     }
 
-    [Fact]
+    [AccountFact]
     public async Task The_crm_kit_builds()
     {
         var changes = Generator.Generate(ProjectBuild.Item("crm"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme"));

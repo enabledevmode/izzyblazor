@@ -55,6 +55,18 @@ public sealed class CatalogTests : IDisposable
         Assert.Equal("<Grid />\n", Features(both, "Grid"));
     }
 
+    // An account item's files in the public catalog would ship to everyone: there it is its manifest only,
+    // and without the private catalog it is listed and refused.
+    [Fact]
+    public void An_account_item_is_public_only_as_its_manifest()
+    {
+        var catalog = Catalog.Load(Path.Combine(ProjectBuild.RepoRoot, "catalog"));
+        var account = catalog.Items.Values.Where(i => i.Manifest.Tier == ItemTier.Account).ToList();
+        Assert.Contains(account, i => i.Manifest.Id == "crm");
+        Assert.Equal(["blazor"], catalog.Items.Values.Where(i => i.Manifest.Kind.MakesProject() && i.Manifest.Tier == ItemTier.Free).Select(i => i.Manifest.Id));
+        Assert.Throws<AccountRequiredException>(() => Generator.Generate(catalog["hero"], new Dictionary<string, string>(), ProjectInfo.ForNewProject("Acme")));
+    }
+
     // Pro markup in a free file would ship to everyone: no condition in catalog/ may name a Pro choice.
     [Fact]
     public void The_free_catalog_holds_no_Pro_markup()

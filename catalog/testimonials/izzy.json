@@ -5,6 +5,8 @@
   "id": "testimonials",
   "name": "Testimonials",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/Testimonials.razor"],
   "category": "Testimonials and logos",
   "summary": "Show that others use and like it: one customer's words, with their name, role and avatar.",
   "components": ["Section", "Container", "Blockquote", "Avatar"],

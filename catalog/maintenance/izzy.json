@@ -6,6 +6,8 @@
   "id": "maintenance",
   "name": "Maintenance page",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Pages/Maintenance.razor", "Maintenance.cs"],
   "category": "Empty and error states",
   "summary": "Take the app down for planned work: every request gets a page saying when it's back, with status 503.",
   "components": ["Container", "Column", "EmptyState", "Button", "TextBlock", "IzzyTheme"],

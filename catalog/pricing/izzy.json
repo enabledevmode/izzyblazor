@@ -4,6 +4,8 @@
   "id": "pricing",
   "name": "Pricing",
   "kind": "block",
+  "tier": "account",
+  "writes": ["Components/Blocks/Pricing.razor"],
   "category": "Pricing",
   "summary": "Plans side by side: what each costs, who it's for and what it includes, with a monthly or yearly switch.",
   "components": ["Section", "SectionHeader", "Container", "Column", "TabNav", "Grid", "Card", "Row", "Heading", "Badge", "TextBlock", "VisuallyHidden", "Button", "Divider", "List", "Anchor"],
