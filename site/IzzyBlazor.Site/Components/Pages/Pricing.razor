@@ -49,18 +49,18 @@
                     <div class="site-pricing-level-action">
                         @if (pro && _reserved is not null)
                         {
-                            <Button Size="ControlSize.Lg" StartIcon="Lucide.Check" Disabled>Reserved</Button>
+                            <Button Size="ControlSize.Lg" StartIcon="Lucide.Check" FullWidth Disabled>Reserved</Button>
                             <p class="site-pricing-note">We’ll email @_reserved at launch.</p>
                         }
                         else
                         {
                             @if (level.Pick || pro)
                             {
-                                <Button Href="@level.Href" Size="ControlSize.Lg">@level.Action</Button>
+                                <Button Href="@level.Href" Size="ControlSize.Lg" FullWidth>@level.Action</Button>
                             }
                             else
                             {
-                                <Button Href="@level.Href" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">@level.Action</Button>
+                                <Button Href="@level.Href" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>@level.Action</Button>
                             }
                             <p class="site-pricing-note" data-mono="@(level.NoteIsCode ? "true" : null)">@level.Note</p>
                         }
@@ -91,7 +91,7 @@
                 Pro launches at $199 a year per developer instead of $299. If you renew each year, you keep paying $199 for as long as you have Pro, even after the price goes up. The founding price is available while the Pro catalog fills out and ends when the catalog is complete.
             </TextBlock>
         </div>
-        <Card>
+        <Card Size="ControlSize.Lg">
             @if (_reserved is not null)
             {
                 <Alert Status="Status.Success" Title="Reserved.">We’ll email @_reserved when Pro goes on sale and hold the $199 price for you.</Alert>
@@ -103,7 +103,7 @@
                     {
                         <Alert Status="Status.Danger">We couldn’t save your reservation. Try again in a few minutes.</Alert>
                     }
-                    <TextField @bind-Value="Model!.Email" Label="Email address" Type="TextFieldType.Email" AutoComplete="email" />
+                    <TextField @bind-Value="Model!.Email" Label="Email address" Type="TextFieldType.Email" AutoComplete="email" Placeholder="you@example.com" />
                     <Button Submit Size="ControlSize.Lg" FullWidth>Reserve the founding price</Button>
                     <p class="site-pricing-note">Reserving is free, and you won’t pay anything until Pro goes on sale.</p>
                 </Form>
