@@ -96,13 +96,16 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
         return Directory.Exists(CatalogFolder) ? CatalogFolder : null;
     }
 
+    // The account page lists each machine with its system, so two with like names can be told apart.
+    static string Os => OperatingSystem.IsMacOS() ? "macOS" : OperatingSystem.IsWindows() ? "Windows" : "Linux";
+
     /// <summary>izzy login: the device sign-in. A code in the terminal, approved in the browser.</summary>
     public int Login(TextWriter output, TextWriter error, bool browser)
     {
         JsonNode start;
         try
         {
-            using var response = _http.PostAsJsonAsync("v1/device/start", new JsonObject { ["machine"] = Environment.MachineName, ["version"] = version }).GetAwaiter().GetResult();
+            using var response = _http.PostAsJsonAsync("v1/device/start", new JsonObject { ["machine"] = Environment.MachineName, ["version"] = version, ["os"] = Os }).GetAwaiter().GetResult();
             response.EnsureSuccessStatusCode();
             start = JsonNode.Parse(response.Content.ReadAsStringAsync().GetAwaiter().GetResult())!;
         }
