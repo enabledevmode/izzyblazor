@@ -39,6 +39,7 @@
     - Every card's ⋯ button is named "Actions for" and the card's label, and its menu moves the
       card, so nothing needs dragging.
     - A move is announced from the column it lands in: "Moved Budget to Done, position 1 of 3".
+    - With Searchable, how many cards match is announced as the search changes: "Cards shown: 4".
     - The button that collapses a column is named by the column, as in "Review cards", and says
       whether the cards are shown.
 
@@ -1208,6 +1209,29 @@
         _view = shows is null && order is null && !ReadOnly ? null : new ZoneView<TItem>(shows, order, ReadOnly);
     }
 
+    // How many cards the search shows, on the board's columns; nothing while there's no search.
+    private string? SearchSaid
+    {
+        get
+        {
+            if (_view?.Shows is not { } shows || Items is null)
+            {
+                return null;
+            }
+
+            var count = 0;
+            foreach (var item in Items)
+            {
+                if (shows(item) && _columnList.Exists(c => c.Value == ColumnOf!(item)))
+                {
+                    count++;
+                }
+            }
+
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.KanbanSearchCount, count);
+        }
+    }
+
     private void OnSearch(ChangeEventArgs e)
     {
         _typed = e.Value?.ToString() ?? "";
@@ -1227,6 +1251,8 @@
                         <input type="search" class="ib-field-input" aria-label="@label" placeholder="@label" value="@(_typed ?? Query(SearchKey))" autocomplete="off" @oninput="OnSearch" />
                     </div>
                 </div>
+                @* Says how many cards match as the search changes, for people who can't see the board change. *@
+                <div class="ib-visually-hidden" role="status">@SearchSaid</div>
             }
             else
             {

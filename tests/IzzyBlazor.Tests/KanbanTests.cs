@@ -225,6 +225,8 @@ public class KanbanTests : BunitContext
         cut.Find("input[type=search]").Input("INVOICE");
         Assert.Equal(new[] { "Ada invoice", "Zoe invoice" }, In(0));
         Assert.Equal("Cards: 2", cut.FindAll(".ib-kanban-column")[0].QuerySelector(".ib-kanban-count-text")!.TextContent);
+        // Said for people who can't see the board change.
+        Assert.Equal("Cards shown: 3", cut.Find(".ib-kanban-toolbar [role=status]").TextContent);
 
         // Zoe's menu moves her to Done; Brian, who isn't shown, is still on the board.
         cut.FindAll(".ib-kanban-column")[0].QuerySelectorAll("li")[1].QuerySelector("button[data-ib-move=to][data-ib-zone='Done']")!.Click();

@@ -1233,6 +1233,9 @@ public class IzzyText
     /// <summary>The label of the column field in a Kanban's form.</summary>
     public virtual string KanbanColumnField { get; set; } = "Column";
 
+    /// <summary>Announced when a Kanban's search changes what it shows: "Cards shown: 4". {0} is how many match.</summary>
+    public virtual string KanbanSearchCount { get; set; } = "Cards shown: {0}";
+
     /// <summary>The button after a Kanban's columns that opens the form for a new one.</summary>
     public virtual string KanbanAddColumn { get; set; } = "Add column";
 
