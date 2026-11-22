@@ -214,6 +214,18 @@
     display: none;
   }
 
+  /* A card dragged over the strip: it lands at the column's end. */
+  .ib-kanban-column[data-ib-drop="inside"] {
+    outline: 2px dashed var(--ib-color-primary);
+    outline-offset: -2px;
+  }
+
+  @media (forced-colors: active) {
+    .ib-kanban-column[data-ib-drop="inside"] {
+      outline-color: Highlight;
+    }
+  }
+
   /* Lanes: a row of the columns' headers, then each lane's header over its row of cells. Every
      row has the same tracks, so the cells line up under the headers, and the board scrolls them
      sideways together. */

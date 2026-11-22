@@ -7,7 +7,7 @@
  * It never moves nodes. While dragging, the item follows the pointer by a transform, and the
  * others slide aside to open a space where it lands: down a column (as DevExtreme's "push"), or
  * each into the place of its neighbour in rows that wrap (a grid, as SortableJS and dnd-kit). An
- * empty zone is outlined, having nothing to move. When the pointer comes up, onDrop gets the item's old and new index and a
+ * empty zone is outlined, having nothing to move, as is one whose list isn't shown. When the pointer comes up, onDrop gets the item's old and new index and a
  * `settle` that clears the transforms; the caller moves the node itself and settles at once (a
  * static page), or asks the renderer to and settles when it has (an interactive one), so the
  * items stay where they were dropped until their nodes move.
@@ -165,6 +165,7 @@ export function trackDrag(options: SortOptions): void {
         width: tb.width,
         rtl: style.direction === "rtl",
         wraps: !!t.list.parentElement?.classList.contains("ib-sortable-horizontal"),
+        shown: t.list.getClientRects().length > 0,
       });
     }
     if (options.targets) lifted = unclip(list);
@@ -288,10 +289,10 @@ export function trackDrag(options: SortOptions): void {
   // Another zone opens a space where the item lands. A column: the items its middle hasn't passed
   // move down by its height, as in its own list. Rows that wrap: the place nearest its middle, and
   // the items from there on move one place along (the last to where one more would go). False for
-  // an empty zone, which markTarget outlines.
+  // an empty zone, or one whose list isn't shown, which markTarget outlines.
   const openSpace = (t: DropTarget): boolean => {
     const zone = columns.get(t.list);
-    if (!zone || !zone.els.length) return false;
+    if (!zone || !zone.els.length || !zone.shown) return false;
     const own = item.getBoundingClientRect();
     const tb = t.list.getBoundingClientRect();
     const middleX = own.left + own.width / 2 - tb.left;
@@ -321,12 +322,14 @@ export function trackDrag(options: SortOptions): void {
     receiving = null;
   };
 
-  // An empty zone: its own element (around its list and empty text) is outlined.
+  // An empty zone: its own element (around its list and empty text) is outlined. A zone whose
+  // list isn't shown (a board's collapsed column): its box is, and the item goes to its end.
   const markTarget = (t: DropTarget) => {
-    const zone = t.list.parentElement ?? t.area;
+    const hidden = columns.get(t.list)?.shown === false;
+    const zone = hidden ? t.area : (t.list.parentElement ?? t.area);
     zone.setAttribute("data-ib-drop", "inside");
     zoneMarked = zone;
-    to = 0;
+    to = hidden ? (columns.get(t.list)?.els.length ?? 0) : 0;
   };
 
   const autoScroll = () => {
@@ -535,6 +538,8 @@ interface Zone {
   width: number;
   rtl: boolean;
   wraps: boolean;
+  /** Whether its list is drawn: a board's collapsed column hides it. */
+  shown: boolean;
 }
 
 /** The index of the place whose middle is nearest a point (all relative to the list). */
