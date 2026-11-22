@@ -31,6 +31,17 @@ public class ShellRenderTests : BunitContext
     }
 
     [Theory]
+    [InlineData("/", "page")]
+    [InlineData("/settings", null)]
+    public void An_empty_link_is_the_home_page(string current, string? ariaCurrent)
+    {
+        // The starters' Home link is Href="", which the browser resolves to the app's root.
+        GoTo(current);
+        var a = Render<NavItem>(p => p.Add(n => n.Href, "").AddChildContent("Home")).Find("a");
+        Assert.Equal(ariaCurrent, a.GetAttribute("aria-current"));
+    }
+
+    [Theory]
     [InlineData("/docs/theming", true, "true")]
     [InlineData("/docs", true, "page")]
     [InlineData("/docs/components/button", false, null)]
