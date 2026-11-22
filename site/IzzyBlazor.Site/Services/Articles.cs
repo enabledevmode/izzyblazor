@@ -36,6 +36,8 @@ public static class Articles
                 "A page to list, add, edit and delete a model's records, from a class in your app."),
             new("changes", "Previewing changes", "FileDiff",
                 "See a change first as a diff or JSON, keep the files you've changed, and read the exit codes."),
+            new("license", "License", "Scale",
+                "What you can do with the code izzy creates, and which parts are MIT licensed."),
         ]),
         new("theming", "Theming", "Palette",
         [
