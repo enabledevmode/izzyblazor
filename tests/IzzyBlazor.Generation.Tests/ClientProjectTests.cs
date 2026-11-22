@@ -23,7 +23,8 @@ public sealed class ClientProjectTests : IDisposable
         Assert.Equal(("Acme/", "Acme.Client/", true), (project.Host, project.Client, project.LayoutInBrowser));
 
         var paths = new List<string>();
-        foreach (var (id, settings) in new[] { ("hero", "HeadingLevel=2"), ("features", ""), ("legal", ""), ("cookies", ""), ("maintenance", "") })
+        // The hero goes under a page's own heading (Weather's); Home is the welcome page, whose heading is inside its opening card.
+        foreach (var (id, settings) in new[] { ("hero", "HeadingLevel=2;Into=Components/Pages/Weather.razor"), ("features", ""), ("legal", ""), ("cookies", ""), ("maintenance", "") })
         {
             var values = settings.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Split('=')).ToDictionary(s => s[0], s => s[1]);
             var changes = Generator.Generate(ProjectBuild.Item(id), values, ProjectInfo.FromProject(Path.Combine(_work, "Acme", "Acme.csproj")));

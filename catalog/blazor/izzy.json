@@ -41,7 +41,7 @@
       },
       "Starter": {
         "type": "string", "default": "", "x-hidden": true,
-        "description": "The name of the shell starter made over this one, such as Docs site: its Home is the welcome page, and it has no sample pages. Empty for IzzyBlazor App itself."
+        "description": "The name of the shell starter made over this one, such as Docs site: it has no sample pages, and the welcome page names it. Empty for IzzyBlazor App itself."
       },
       "Empty": {
         "type": "boolean", "default": false,
@@ -132,7 +132,6 @@
         "{{ProjectName}}.Client/Pages/Auth.razor"
       ]
     },
-    { "if": "!ShellStarter", "paths": ["{{ProjectName}}/wwwroot/img/izzyblazor-*.svg"] },
     {
       "if": "ShellStarter",
       "paths": [
