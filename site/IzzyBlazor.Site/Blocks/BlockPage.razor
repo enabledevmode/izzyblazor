@@ -24,42 +24,12 @@
             </Breadcrumb>
             <Row Gap="3" Align="Align.Center" Wrap>
                 <Heading Level="1" Size="TextSize.Xl3">@_block.Name</Heading>
-                @if (_block.Free)
+                @if (!_block.Free)
                 {
-                    <Badge Status="Status.Success">Free</Badge>
-                }
-                else
-                {
-                    <Badge Variant="BadgeVariant.Outline">Pro</Badge>
+                    <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Pill>Pro</Badge>
                 }
             </Row>
             <div class="site-lead">@_block.Manifest.Summary</div>
-            <div class="site-block-command">
-                <Code Block Language="bash">izzy add @_block.Id</Code>
-                @if (_block.Free)
-                {
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                        @if (_block.Account)
-                        {
-                            <text>Free with an IzzyBlazor account. </text>
-                        }
-                        @WritesText
-                    </TextBlock>
-                }
-                else
-                {
-                    <Row Gap="2" Align="Align.Center" Wrap Class="site-block-pro">
-                        <Icon Name="Lucide.Lock" Size="IconSize.Sm" />
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                            Needs a Pro license key. <code>izzy add</code> asks for it the first time.
-                            @if (SiteLinks.Pricing is { } pricing)
-                            {
-                                <Anchor Href="@pricing">See pricing</Anchor>
-                            }
-                        </TextBlock>
-                    </Row>
-                }
-            </div>
         </Stack>
 
         <Heading Level="2" id="preview">Preview</Heading>
@@ -117,6 +87,26 @@
         }
         </div>
 
+        @* T3: the card that adds it, then its settings. *@
+        <div class="site-block-get">
+        @if (!_block.Free)
+        {
+            <GetIt Title="Add it to your project" Pro Command="@($"izzy add {_block.Id}")" />
+        }
+        else if (_block.Account)
+        {
+            <GetIt Title="Add it to your project" Account Step="Add the block" Command="@($"izzy add {_block.Id}")">
+                <LoginNote>The account is free. <Anchor Href="@AccountService.SignIn" InheritColor>Create a free account</Anchor></LoginNote>
+                <StepNote>@WritesText</StepNote>
+            </GetIt>
+        }
+        else
+        {
+            <GetIt Title="Add it to your project" Command="@($"izzy add {_block.Id}")">
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@WritesText</TextBlock>
+            </GetIt>
+        }
+        <div class="site-block-settings">
         <Heading Level="2">Settings</Heading>
         <TextBlock>
             Each setting is a flag on <code>izzy add</code>. The flag syntax isn't final; for now it looks like this:
@@ -142,6 +132,8 @@
                 <TemplateColumn Title="Description">@context!.Description</TemplateColumn>
             </Columns>
         </Table>
+        </div>
+        </div>
 
         <Heading Level="2">Mode support</Heading>
         <ModeSupportTable Name="@_block.Name" Rows="Everything" />

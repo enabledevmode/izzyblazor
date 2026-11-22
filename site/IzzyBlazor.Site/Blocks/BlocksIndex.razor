@@ -2,7 +2,7 @@
 @inject BlockCatalog Blocks
 
 @* Every block, under its category's heading: a card with a render of it, its name, its summary and,
-   for a free one, a "Free" chip (Pro has none). A filter (a GET form, so it works with JavaScript
+   for a Pro one, a "Pro" label (the only label: T1). A filter (a GET form, so it works with JavaScript
    off) narrows them by category and tier, once there's more than one category. *@
 
 <PageMeta Title="Blocks · IzzyBlazor" Description="Page sections and screens you add to your app with one command and then own: heroes, features, pricing and whole app pages, built from IzzyBlazor components." />
@@ -81,9 +81,9 @@
                         <Card Title="@block.Name" TitleLevel="3" Description="@block.Manifest.Summary" Href="@block.Href" Class="site-block-card"
                               Orientation="new() { Base = Orientation.Horizontal, Md = Orientation.Vertical }">
                             <CardMedia Width="Length.Px(120)"><BlockPicture Block="block" /></CardMedia>
-                            @if (block.Free)
+                            @if (!block.Free)
                             {
-                                <CardActions><Badge Status="Status.Success">Free</Badge></CardActions>
+                                <CardActions><Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Pill>Pro</Badge></CardActions>
                             }
                         </Card>
                     }

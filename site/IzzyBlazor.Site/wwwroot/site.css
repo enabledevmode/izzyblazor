@@ -132,8 +132,8 @@
    meta (the user's choice, from its cookie, there at the first paint, before any script sets the
    attribute), else the system's. */
 :root {
-  /* 860px of rings, centered 100px under the window's top edge (300px and 40px below 1024px). */
-  --site-hero-glow-size: 53.75rem;
+  /* 520px of rings (L1), centered 100px under the window's top edge (300px and 40px below 1024px). */
+  --site-hero-glow-size: 32.5rem;
   --site-hero-glow-drop: 100px;
   --site-hero-glow: 0.85;
   --site-hero-rings: inline;
@@ -203,22 +203,45 @@
   .site-hero-actions { flex-direction: column; align-self: stretch; }
 }
 
-/* The demo under the text. Below 1024px, with the phone alone, a line under it says it's live
-   and links to the code; from 1024px the window's bar does. */
-.site-hero-demo { display: flex; flex-direction: column; align-items: center; gap: var(--ib-space-4); width: 100%; }
-.site-hero-note {
+/* The demo under the text: its caption, then the frames. */
+.site-hero-demo { display: flex; flex-direction: column; align-items: center; gap: 0.875rem; width: 100%; }
+/* The caption (L1): a pill on the picture's top, 14px above it, with the link that opens the app. */
+.site-hero-caption {
+  position: relative;
+  z-index: 2;
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--ib-space-2);
+  justify-content: center;
+  gap: 0.625rem;
   margin: 0;
+  padding: 0.375rem 0.375rem 0.375rem 0.875rem;
+  border: 1px solid var(--ib-color-border);
+  border-radius: 9999px;
+  background: var(--ib-color-surface);
+  box-shadow: var(--ib-shadow-xs);
   font-size: var(--ib-text-sm);
   color: var(--ib-color-muted);
 }
-.site-hero-live-dot { flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: #2f9e44; }
+.site-hero-caption > a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ib-space-1);
+  height: 1.75rem;
+  padding-inline: 0.625rem;
+  border-radius: 9999px;
+  background: var(--ib-color-fill);
+  font-weight: 500;
+  color: var(--ib-color-on-surface);
+  text-decoration: none;
+}
+.site-hero-caption > a:hover { background: var(--ib-color-fill-hover, var(--ib-color-fill)); text-decoration: underline; }
+.site-hero-caption .ib-icon { width: 0.875rem; height: 0.875rem; }
 
 /* The app's frames lay out at a desktop's and a phone's width and are scaled down by --s, as a
    picture would be. Negative margins give back the space the scale takes away. */
-.site-hero-stage { --s: 0.75; position: relative; display: flex; justify-content: center; }
+/* Alone on phones and tablets, the phone is 220px wide (L1): 390px of page at 0.523, plus its bezel. */
+.site-hero-stage { --s: 0.523; position: relative; display: flex; justify-content: center; }
 .site-hero-stage iframe {
   display: block;
   border: 0;
@@ -267,49 +290,30 @@
 }
 /* Focus in the desktop window brings it above the phone, so nothing focused there is covered. */
 .site-hero-window:focus-within { z-index: 2; }
-/* The bar: the dots, the address centered, See the code at the end. */
+/* The bar: the three dots. */
 .site-hero-window-bar {
-  display: grid;
+  display: flex;
   flex: none;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 22rem) minmax(0, 1fr);
   align-items: center;
-  gap: var(--ib-space-4);
-  height: 2.25rem;
+  height: 1.75rem;
   padding-inline: var(--ib-space-3);
   border-bottom: 1px solid light-dark(#d6d3cc, #2c2f36);
 }
-.site-hero-code { justify-self: end; font-size: var(--ib-text-xs); white-space: nowrap; }
 .site-hero-window-dots { display: flex; gap: 0.375rem; }
 .site-hero-window-dots i { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: light-dark(#c9c5bd, #3a3e46); }
-.site-hero-window-url {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ib-space-2);
-  padding: 0.125rem var(--ib-space-3);
-  border-radius: var(--ib-radius-md);
-  background: light-dark(#f5f4f1, #0d0e11);
-  color: light-dark(#5a6069, #9a9ea6);
-  font-size: var(--ib-text-xs);
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 @media (min-width: 64rem) {
   /* As the design draws it (D4, option A): the window as wide as the page's column (1216px, 0.95
      of its page's 1280px), scaled by --w, with the phone 28px outside its lower start corner; both run into the hero's end, which cuts them off 800px down at full size (the
      stat cards and the whole chart row show; the fade falls below the row, before the orders table). The frames keep their whole screens, so the page
      in them lays out as on a real one (a phone's fixed button stays at its bottom); their boxes
      cut them, and scroll to bring anything focused below the cut into view. */
-  .site-hero-grid { gap: var(--ib-space-14); }
-  .site-hero-note { display: none; }
-  .site-hero-stage { --w: 0.68; container: hero-stage / inline-size; display: block; width: 100%; }
+  .site-hero-grid { gap: var(--ib-space-13); }
+  .site-hero-stage { --w: 0.68; container: hero-stage / inline-size; display: block; width: 100%; max-width: 70rem; }
   .site-hero-window {
     --s: var(--w);
     display: flex;
     flex-direction: column;
-    height: calc(800px * var(--w));
+    height: calc(686px * var(--w));
     border-block-end: 0;
     border-end-start-radius: 0;
     border-end-end-radius: 0;
@@ -327,8 +331,8 @@
     position: absolute;
     /* 28px outside the window; less where the screen's edge is closer than that. */
     left: calc(-1 * min(1.75rem, (100vw - 100cqi) / 2 - 0.5rem));
-    top: calc(263px * var(--w));
-    height: calc(537px * var(--w));
+    top: calc(274px * var(--w));
+    height: calc(412px * var(--w));
     overflow: hidden;
     padding-block-end: 0;
     border-end-start-radius: 0;
@@ -466,6 +470,45 @@
   .site-footer-top { flex-direction: row; justify-content: space-between; gap: var(--ib-space-12); }
   .site-footer-about { max-width: 26.25rem; }
   .site-footer-links { grid-template-columns: repeat(3, 8.75rem); gap: var(--ib-space-6); }
+}
+
+/* The landing page's section headings from L4 on: 40px (28 on phones). */
+.site-h2.site-h2 { font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.5rem); line-height: 1.2; letter-spacing: -0.02em; }
+
+/* L4, free with an account: the intro, three picture cards (one column on phones), the actions and the quiet
+   line, 32px apart. A card: a 16:10 picture from its top left over a hairline, then the count beside its name,
+   a muted line and a link at the card's foot. */
+.site-free.site-free { padding-block: 3.5rem; }
+.site-news.site-news { padding-block: 3rem; }
+@media (width >= 1024px) { .site-free.site-free { padding-block: 6rem; } .site-news.site-news { padding-block: 4.5rem; } }
+.site-free-col { display: flex; flex-direction: column; gap: var(--ib-space-8); }
+.site-free-intro { display: flex; flex-direction: column; gap: var(--ib-space-3); }
+.site-free-intro > p { max-width: 40em; }
+.site-free-cards { display: grid; gap: var(--ib-space-4); }
+@media (width >= 1024px) { .site-free-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.site-free-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ib-color-border); border-radius: 0.875rem; background: var(--ib-color-surface); }
+.site-free-picture { border-block-end: 1px solid var(--ib-color-border); border-radius: 0; background: var(--ib-color-fill); }
+.site-free-picture img { object-position: top left; }
+.site-free-body { display: flex; flex: 1; flex-direction: column; gap: var(--ib-space-2); padding: 1.125rem 1.25rem 1.25rem; }
+.site-free-body > p { flex: 1; margin: 0; font-size: var(--ib-text-sm); line-height: 1.6; color: var(--ib-color-muted); }
+.site-free-body > .site-action { align-self: flex-start; font-size: var(--ib-text-sm); color: var(--ib-color-on-surface); }
+.site-free-name.site-free-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ib-space-2); font-size: var(--ib-text-md); font-weight: 600; }
+.site-free-name > span { font-size: 1.875rem; line-height: 1; letter-spacing: -0.02em; }
+.site-free-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ib-space-5); }
+.site-free-actions > .site-action { color: var(--ib-color-on-surface); }
+.site-free-note { display: flex; align-items: flex-start; gap: var(--ib-space-2); margin: 0; font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
+.site-free-note .ib-icon { flex: none; width: 1rem; height: 1rem; margin-block-start: 0.125rem; }
+@media (width < 640px) {
+  .site-free-actions { flex-direction: column; align-items: stretch; gap: var(--ib-space-3); }
+  .site-free-actions > .site-action { align-self: flex-start; }
+}
+
+/* L7, the newsletter's band: 1120px, the words beside the form (stacked on phones), 64px apart. */
+.site-news-col { display: grid; gap: var(--ib-space-6); max-inline-size: 70rem; margin-inline: auto; }
+.site-news-intro { display: flex; flex-direction: column; gap: 0.625rem; }
+@media (width >= 1024px) { .site-news-col { grid-template-columns: 1fr 1fr; align-items: center; gap: var(--ib-space-14); } }
+@media (width < 640px) {
+  .site-news .site-newsletter-row { flex-direction: column; align-items: stretch; }
 }
 
 /* Privacy and Terms: one reading column. */
@@ -980,17 +1023,9 @@ html:has(> body > .frame) body { margin: 0; }
 /* The form takes the row's free width, so its fields sit side by side rather than stacking. */
 .site-filter-row > :first-child { flex: 1 1 auto; min-width: 0; }
 
-/* The Blocks sidebar: a free block says so in small success text, not a chip. */
-/* The label fills the row, so "Free" sits at its end, where a chip would. */
-.ib-nav-text:has(> .site-nav-free) { display: flex; flex: 1; align-items: baseline; gap: var(--ib-space-2); }
-.site-nav-free {
-  flex: none;
-  margin-inline-start: auto;
-  white-space: nowrap;
-  font-size: var(--ib-text-xs);
-  font-weight: var(--ib-weight-medium);
-  color: var(--ib-color-success-text);
-}
+/* The Blocks and Templates sidebars: a Pro item's label sits at the row's end (the only label: T1). */
+.ib-nav-text:has(> .site-nav-pro) { display: flex; flex: 1; align-items: center; gap: var(--ib-space-2); }
+.site-nav-pro { flex: none; margin-inline-start: auto; }
 
 /* The Blocks index. */
 .site-blocks-how {
@@ -1033,9 +1068,39 @@ html:has(> body > .frame) body { margin: 0; }
 }
 
 /* A block's page. */
-.site-block-command { display: flex; flex-direction: column; gap: var(--ib-space-2); max-width: 40rem; }
-.site-block-command .ib-code-block, .site-block-command pre { margin: 0; }
-.site-block-pro > .ib-icon { color: var(--ib-color-muted); }
+/* An item's page (T2): the "Get it" card first on phones; from 1280px it's a 420px column at the end, staying in
+   view beside the pictures and options. */
+.site-item { display: flex; flex-direction: column; gap: var(--ib-space-7); }
+.site-item-main { display: flex; flex-direction: column; gap: var(--ib-space-4); min-width: 0; }
+.site-item-main > h2 { margin-block-start: var(--ib-space-6); }
+.site-item-main > h2:first-child { margin-block-start: 0; }
+@media (width >= 1280px) {
+  .site-item { display: grid; grid-template-columns: minmax(0, 1fr) 26.25rem; gap: var(--ib-space-8); align-items: start; }
+  .site-item-main { grid-area: 1 / 1; }
+  .site-item-get { grid-area: 1 / 2; position: sticky; top: calc(var(--ib-shell-header-h, 3.5rem) + var(--ib-space-6)); }
+}
+/* A block's page (T3): the card that adds it, then its settings. The sheet puts them side by side; the real
+   settings table (four columns, long defaults) needs the page's width, so they stack. */
+.site-block-get { display: flex; flex-direction: column; gap: var(--ib-space-8); margin-block-start: var(--ib-space-6); }
+.site-block-get > .site-getit { max-width: 33rem; }
+.site-block-settings { display: flex; flex-direction: column; gap: var(--ib-space-4); min-width: 0; }
+/* The card's numbered steps: a 24px number, then the step's name, command and note. */
+.site-getit .ib-code-block, .site-getit pre { margin: 0; }
+.site-steps { display: flex; flex-direction: column; gap: var(--ib-space-4); margin: 0; padding: 0; list-style: none; }
+.site-steps > li { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); align-items: start; gap: var(--ib-space-2) 0.875rem; }
+.site-steps > li > span {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.5rem; height: 1.5rem; border-radius: 50%;
+  background: var(--ib-color-fill); font-size: var(--ib-text-xs); font-weight: 600;
+}
+/* The step's parts are the grid's: its name and note beside the number, its command across the card, so a
+   long command has the card's whole width. */
+.site-steps > li > div { display: contents; }
+.site-steps > li > div > * { grid-column: 2; }
+.site-steps > li > div > .ib-code-block { grid-column: 1 / -1; }
+.site-steps strong { align-self: center; }
+.site-steps strong { font-size: var(--ib-text-sm); font-weight: 600; }
+.site-steps p { margin: 0; font-size: var(--ib-text-xs); line-height: 1.6; color: var(--ib-color-muted); }
 .site-block-switches {
   display: flex;
   flex-wrap: wrap;

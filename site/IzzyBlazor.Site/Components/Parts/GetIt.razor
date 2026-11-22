@@ -1,0 +1,73 @@
+@* How to get a template or a block (design board, page A · Access, T2 and T3): the command in a Card. An item
+   that comes with an account leads with izzy login, as numbered steps, since the command alone fails on a
+   machine that hasn't signed in. A Pro item says so and points at the founding price. The site can't see the
+   account's sign-in, so this is always the signed-out form. *@
+<Card Class="site-getit">
+    <CardBody Gap="3">
+        <Heading Level="2" Size="TextSize.Md" id="get-it">@Title</Heading>
+        @if (Pro)
+        {
+            <Code Block>@Command</Code>
+            <Alert Status="Status.Info" Title="Needs Pro">
+                It needs the Pro plan. Pro goes on sale with the beta. Reserve the founding price of $199 a year, and we’ll email you when it does.
+            </Alert>
+            <Row><Button Href="pricing" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Reserve the founding price</Button></Row>
+        }
+        else if (Account)
+        {
+            <ol class="site-steps">
+                <li>
+                    <span aria-hidden="true">1</span>
+                    <div>
+                        <strong>Sign in once on this machine</strong>
+                        <Code Block>izzy login</Code>
+                        <p>@LoginNote</p>
+                    </div>
+                </li>
+                <li>
+                    <span aria-hidden="true">2</span>
+                    <div>
+                        <strong>@Step</strong>
+                        <Code Block>@Command</Code>
+                        @if (StepNote is not null)
+                        {
+                            <p>@StepNote</p>
+                        }
+                    </div>
+                </li>
+            </ol>
+            @ChildContent
+        }
+        else
+        {
+            <Code Block>@Command</Code>
+            @ChildContent
+        }
+    </CardBody>
+</Card>
+
+@code {
+    /// <summary>The card's heading: "Get it", or "Add it to your project".</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>The command that makes the item.</summary>
+    [Parameter, EditorRequired] public string Command { get; set; } = "";
+
+    /// <summary>The item comes with an account: izzy login is step 1.</summary>
+    [Parameter] public bool Account { get; set; }
+
+    /// <summary>The item needs Pro.</summary>
+    [Parameter] public bool Pro { get; set; }
+
+    /// <summary>Step 2's name: "Create the app", "Add the block".</summary>
+    [Parameter] public string Step { get; set; } = "";
+
+    /// <summary>The line under izzy login.</summary>
+    [Parameter] public RenderFragment? LoginNote { get; set; }
+
+    /// <summary>The line under step 2's command.</summary>
+    [Parameter] public RenderFragment? StepNote { get; set; }
+
+    /// <summary>What closes the card.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -74,9 +74,9 @@ else
             {
                 <NavItem Href="@block.Href">
                     @block.Name
-                    @if (block.Free)
+                    @if (!block.Free)
                     {
-                        <span class="site-nav-free">Free</span>
+                        <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Pill Class="site-nav-pro">Pro</Badge>
                     }
                 </NavItem>
             }
@@ -93,9 +93,9 @@ else
             {
                 <NavItem Href="@template.Href">
                     @template.Name
-                    @if (template.Free)
+                    @if (!template.Free)
                     {
-                        <span class="site-nav-free">Free</span>
+                        <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Pill Class="site-nav-pro">Pro</Badge>
                     }
                 </NavItem>
             }
