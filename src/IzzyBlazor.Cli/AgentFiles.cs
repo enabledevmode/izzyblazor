@@ -44,10 +44,18 @@ static class AgentFiles
             var exists = File.Exists(full);
             if (exists && File.ReadAllText(full).ReplaceLineEndings("\n") == text) return;
             changed++;
+            if (!dryRun)
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(full)!);
+                    File.WriteAllText(full, text);
+                }
+                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+                {
+                    error.WriteLine($"warning: {path} couldn't be written: {e.Message}");
+                    return;
+                }
             output.WriteLine($"{(dryRun ? (exists ? "Would change" : "Would create") : exists ? "Changed" : "Created")} {path}");
-            if (dryRun) return;
-            Directory.CreateDirectory(Path.GetDirectoryName(full)!);
-            File.WriteAllText(full, text);
         }
 
         foreach (var path in SkillPaths) Put(path, Skill);
@@ -55,17 +63,20 @@ static class AgentFiles
         {
             var full = Path.Combine(directory, path);
             JsonObject root;
+            JsonObject servers;
             try
             {
                 root = File.Exists(full) ? JsonNode.Parse(File.ReadAllText(full)) as JsonObject ?? throw new JsonException() : [];
+                // A key written twice throws here, when it is first looked up.
+                if (root[key] is null) root[key] = new JsonObject();
+                servers = root[key] as JsonObject ?? throw new JsonException();
             }
-            catch (JsonException)
+            catch (Exception e) when (e is JsonException or ArgumentException or IOException or UnauthorizedAccessException)
             {
                 // Comments or a slip in a file of the user's: theirs to edit.
-                error.WriteLine($"warning: {path} isn't plain JSON, so it was kept. Add two servers under \"{key}\": \"izzyblazor\", {Docs(httpType).ToJsonString()}, and \"izzy\", {Izzy().ToJsonString()}.");
+                error.WriteLine($"warning: {path} isn't plain JSON with its servers under \"{key}\", so it was kept. Add two servers there: \"izzyblazor\", {Docs(httpType).ToJsonString()}, and \"izzy\", {Izzy().ToJsonString()}.");
                 continue;
             }
-            if (root[key] is not JsonObject servers) root[key] = servers = [];
             servers["izzyblazor"] = Docs(httpType);
             servers["izzy"] = Izzy();
             Put(path, root.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");

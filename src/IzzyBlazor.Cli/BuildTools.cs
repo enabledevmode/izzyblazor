@@ -28,6 +28,12 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
 
     readonly Lock _one = new();
 
+    /// <summary>Waits for a command that is running to finish, before the server's process ends.</summary>
+    public void Finish()
+    {
+        lock (_one) { }
+    }
+
     /// <summary>A server over <paramref name="transport"/> with these tools.</summary>
     public McpServer Server(ITransport transport, string version)
     {
@@ -47,13 +53,13 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
     [Description("The catalog as JSON: each item's id, kind (starter, kit, page, block, section, recipe), category, summary and tier (open, account for a free account, pro), and any setting choices that are Pro. Call it before writing a page or section by hand.")]
     public string ListItems(
         [Description("Only this kind: starter, kit, page, block, section or recipe. Leave out for all.")] string? kind = null) =>
-        Run(["list", "--json", .. Option("kind", kind)]);
+        Run(["list", "--json", .. Option("kind", kind)], data: true);
 
     [McpServerTool(Name = "describe_item", Title = "Describe an IzzyBlazor catalog item", ReadOnly = true, Idempotent = true, OpenWorld = false)]
     [Description("An item as JSON: its summary, the components it uses, render mode support, accessibility notes and its settings as a JSON schema (each with its choices, default and description). The settings' names are what add_item, new_app and init_app take.")]
     public string DescribeItem(
         [Description("The item's id, from list_items.")] string item) =>
-        Run(["describe", item, "--json"]);
+        Run(["describe", item, "--json"], data: true);
 
     [McpServerTool(Name = "add_item", Title = "Add a catalog item to the app", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]
     [Description("Adds a page, block, section or recipe to the app: creates its files, places it on a page and adds the packages it needs. Answers with the files created and changed and any warnings. With dryRun it writes nothing and answers with a diff. Adding the same item again with the same settings changes nothing.")]
@@ -86,7 +92,7 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
         [Description("The item's settings by name, as describe_item lists them.")] Dictionary<string, JsonElement>? settings = null,
         [Description("Writes nothing and lists the files it would create.")] bool dryRun = false,
         [Description("Replaces files that exist with other content. Ask the user first.")] bool overwrite = false) =>
-        Run(["new", kind, item, .. Option("name", name), .. Option("output", output), .. Settings(settings), .. dryRun ? ["--dry-run"] : Array.Empty<string>(), .. overwrite ? ["--overwrite"] : Array.Empty<string>()]);
+        Run(["new", kind, item, .. Option("name", name), .. Option("output", output), .. Settings(settings, "name", "output"), .. dryRun ? ["--dry-run"] : Array.Empty<string>(), .. overwrite ? ["--overwrite"] : Array.Empty<string>()]);
 
     [McpServerTool(Name = "init_app", Title = "Set up IzzyBlazor in the app", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]
     [Description("Sets up IzzyBlazor in an app that doesn't have it: a Blazor Web App, or an MVC or Razor Pages app, which gets a Blazor root beside its pages. It adds the package, the stylesheet, the theme and the services, then builds the app and says how to fix a name clash. describe_item init lists the settings (Preset, Brand, Interactivity, KeepCss, Mcp). With dryRun it writes nothing and answers with a diff.")]
@@ -98,13 +104,15 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
 
     // One command at a time: two would write the same project. An error is the agent's to act on, so the
     // command's own message goes back as the tool's error.
-    string Run(string[] arguments)
+    string Run(string[] arguments, bool data = false)
     {
         if (!signedIn())
             throw new McpException("izzy's tools come with a free IzzyBlazor account, and this machine isn't signed in. Ask the user to run `izzy login` in a terminal, then call the tool again.");
         (int Exit, string Out, string Error) result;
         lock (_one) result = izzy(arguments);
-        var text = string.Join("\n", new[] { result.Out.Trim(), result.Error.Trim() }.Where(t => t.Length > 0));
+        // JSON goes back as it is: a warning after it would break it.
+        var text = data && result.Exit == 0 ? result.Out.Trim()
+            : string.Join("\n", new[] { result.Out.Trim(), result.Error.Trim() }.Where(t => t.Length > 0));
         return result.Exit switch
         {
             0 => text.Length > 0 ? text : "Done.",
@@ -118,12 +126,14 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
     static string[] Flags(bool dryRun, bool overwrite) =>
         [.. dryRun ? ["--dry-run", "--diff"] : Array.Empty<string>(), .. overwrite ? ["--overwrite"] : Array.Empty<string>()];
 
-    static IEnumerable<string> Settings(Dictionary<string, JsonElement>? settings)
+    static IEnumerable<string> Settings(Dictionary<string, JsonElement>? settings, params string[] own)
     {
         foreach (var (key, value) in settings ?? [])
         {
             var name = key.TrimStart('-');
             if (name.Length == 0 || name.Any(c => c == '=' || char.IsWhiteSpace(c))) throw new McpException($"\"{key}\" isn't a setting's name.");
+            // The CLI's own options are the tool's own arguments, never settings.
+            if (Args.Reserved(name.ToLowerInvariant()) || own.Contains(name, StringComparer.OrdinalIgnoreCase)) throw new McpException($"{key} isn't a setting: it is one of the tool's own arguments, where the tool has it.");
             yield return $"--{name}=" + value.ValueKind switch
             {
                 JsonValueKind.String => value.GetString(),

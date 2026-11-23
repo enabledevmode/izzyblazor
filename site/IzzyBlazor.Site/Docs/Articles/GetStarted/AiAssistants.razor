@@ -14,7 +14,7 @@
         <Heading Level="2">Set up your project</Heading>
         <Code Block Language="bash">izzy agent</Code>
         <TextBlock>
-            Run it in your app's folder. It needs the <Anchor Href="docs/cli/overview">izzy CLI</Anchor>. It writes three things:
+            Run it in your app's folder. It needs the <Anchor Href="docs/cli/overview">izzy CLI</Anchor>. It sets up three things:
         </TextBlock>
         <List Gap="2">
             <ListItem>
@@ -28,16 +28,17 @@
         </List>
         <TextBlock>
             Both servers go in <Code>.mcp.json</Code>, <Code>.vscode/mcp.json</Code> and <Code>.cursor/mcp.json</Code>.
-            If you already have one of these files, izzy keeps your servers and adds its two. Run
-            <Code>izzy agent</Code> again after you update izzy to get the new skill. To see what it would write, add
+            If you already have one of these files, izzy keeps your servers and adds its two. If the file has
+            comments, izzy leaves it alone and prints the lines to add. Run <Code>izzy agent</Code> again after you
+            update izzy: it replaces the skill with the new one. To see what it would write, add
             <Code>--dry-run</Code>.
         </TextBlock>
 
         <Heading Level="2">The izzy server</Heading>
         <TextBlock>
             <Code>izzy mcp</Code> runs izzy's commands as tools on your machine, so your assistant gets the same result
-            you get in a terminal. It needs a free account: run <Code>izzy login</Code> once. Pro items are listed, and
-            adding one needs Pro.
+            you get in a terminal. Every tool needs a free account: run <Code>izzy login</Code> once. The tools list
+            Pro items too, and add them when you have Pro.
         </TextBlock>
         <Table Items="BuildTools" Caption="The izzy server's tools" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
@@ -46,7 +47,7 @@
             </Columns>
         </Table>
         <TextBlock>
-            The tools that write take <Code>dryRun</Code>, which answers with a diff and writes nothing. They don't
+            The tools that write take <Code>dryRun</Code>, which answers with the changes and writes nothing. They don't
             replace a file you've changed unless the assistant sets <Code>overwrite</Code>.
         </TextBlock>
         <TextBlock>
@@ -56,7 +57,8 @@
         <Heading Level="2">The docs server</Heading>
         <TextBlock>
             The server's URL is <Code>@Endpoint</Code>. It uses the Streamable HTTP transport and doesn't need a login or
-            key. Its tools only read the docs. Its answers cover the release this site documents.
+            key. Its tools read the docs, except <Code>report_gap</Code>, which posts a public report when you agree
+            to it. Its answers cover the release this site documents.
         </TextBlock>
 
         <Heading Level="2">Claude Code</Heading>
@@ -110,7 +112,7 @@
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/get-started/create-app">Create an app</Anchor>: <Code>--mcp</Code> sets up a new app as <Code>izzy agent</Code> does.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/create-app">Create an app</Anchor>: <Code>--mcp</Code> connects a new app to the docs server.</ListItem>
             <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what components do on static and interactive pages.</ListItem>
         </List>
     </ChildContent>
@@ -129,11 +131,13 @@
         new("get_type", "An enum's values, a type's members, or the shared style props"),
         new("get_example", "An example's whole .razor source"),
         new("get_article", "An article or a component's Overview, with its examples' source"),
+        new("find_known_issues", "Troubleshooting articles, render mode limits and open GitHub issues about a problem"),
+        new("report_gap", "Posts what the assistant had to work around as a public GitHub discussion, after you agree"),
     ];
 
     private static readonly Tool[] BuildTools =
     [
-        new("list_items", "Lists the starters, kits, pages and blocks, and what each needs: nothing, a free account or Pro"),
+        new("list_items", "Lists the starters, kits, pages and blocks, and which are Pro"),
         new("describe_item", "Lists an item's settings, the components it uses and its render mode support"),
         new("add_item", "Adds a block or a page to your app, at its own place or at a line"),
         new("add_crud", "Creates a page to display, add, edit and delete a model's records"),

@@ -45,7 +45,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         Files that exist with other content are never replaced without --overwrite.
         izzy agent writes what a coding agent reads in your project: the IzzyBlazor skill, and the docs server
         and izzy mcp in the MCP settings of Claude Code, Copilot, Cursor and Visual Studio. izzy mcp is the
-        server those settings start: izzy's commands as tools, for an agent, with a free account.
+        server those settings start: izzy's commands as tools, for an agent, with a free account. izzy agent
+        replaces the skill with this izzy's, and keeps the other servers a settings file has.
         izzy login signs this machine in to your free IzzyBlazor account, which the app starters, the blocks
         and the kits come with. After that they are created on this machine, online or not. In CI, set IZZY_KEY
         to a key from your account page instead.
@@ -151,6 +152,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         finally
         {
+            // The client closed the input: a command still writing finishes first.
+            tools.Finish();
             server.DisposeAsync().AsTask().GetAwaiter().GetResult();
             transport.DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
@@ -302,10 +305,18 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var flags = Flags(args);
         var project = ProjectInfo.ForNewProject(name) with { ReadFile = path => ReadFile(directory, path) };
         var changes = Generator.Generate(item, Settings(item.Manifest, args), project);
+        // --mcp: the agent files are izzy agent's to write, with izzy's own server and the skill beside the
+        // docs server the starter's files name.
+        var agent = changes.Settings.GetValueOrDefault("Mcp") == "true";
+        if (agent)
+            changes = new Changeset
+            {
+                Creates = [.. changes.Creates.Where(c => !c.Path.EndsWith("mcp.json", StringComparison.Ordinal))], Inserts = changes.Inserts,
+                Packages = changes.Packages, Conflicts = [.. changes.Conflicts.Where(c => !c.EndsWith("mcp.json", StringComparison.Ordinal))],
+                Warnings = changes.Warnings, Settings = changes.Settings, Restore = changes.Restore,
+            };
         var exit = Finish(item, changes, project, directory, existing: false, flags);
-        // --mcp: the starter's own settings name the docs server; izzy adds its own server and the skill.
-        if (exit == 0 && !flags.DryRun && changes.Settings.GetValueOrDefault("Mcp") == "true")
-            AgentFiles.Write(directory, dryRun: false, flags.Json ? TextWriter.Null : output, error);
+        if (exit == 0 && agent) AgentFiles.Write(directory, flags.DryRun, flags.Json ? TextWriter.Null : output, error);
         return exit;
     }
 

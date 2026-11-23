@@ -19,17 +19,17 @@ Names, parameters and defaults are IzzyBlazor's own, not Bootstrap's, MudBlazor'
 
 ## Static first
 
-- Check which render mode the page runs in before you rely on `OnClick`, `@bind` or any event handler. On a static page they never run.
+- Check which render mode the page runs in before you rely on `OnClick` or any other event handler. On a static page handlers never run, and the page keeps no state between requests: put state in the URL or post it.
 - `get_component` lists what each component does on a static page. Most open, close, sort, page and validate there, through links, posted forms and IzzyBlazor's own script.
-- On a static page a form posts: give it a `FormName` and read the values with `[SupplyParameterFromForm]`. Read `get_article` `docs/common/forms` first.
-- Don't make a page interactive to get one behavior. Read `get_article` `docs/common/render-modes` and make only the part that needs it interactive.
+- On a static page a form posts. Use `<Form Model="..." FormName="...">`, put `[SupplyParameterFromForm(FormName = "...")]` with the same name on a nullable model property, set it with `Model ??= new()`, and keep `@bind-Value` on each field: it is what posts the value. Never name a field `action`, `method` or `enctype`. Read `get_article` `docs/common/forms` first.
+- Don't make a page interactive to get one behavior. Read `get_article` `docs/common/render-modes` and `docs/architecture/interactive-parts`, and make only the part that needs it interactive.
 - When something works interactively but not on a static page, read the troubleshooting articles (`get_article` with an empty path lists them) before changing the render mode.
 
 ## Use the catalog before writing a page by hand
 
 The catalog has starters, app kits, pages and blocks (hero, pricing, FAQ, contact, footer and more) that are already accessible and work in every render mode.
 
-1. `list_items` shows what exists and what each needs: nothing, a free account, or Pro.
+1. `list_items` shows what exists and which items are Pro. The tools themselves need a free account.
 2. `describe_item` gives an item's settings.
 3. `add_item` with `dryRun: true` shows the changes as a diff. Run it again without `dryRun` to write them.
 4. `add_crud` makes a page that lists, adds, edits and deletes a model class's records.
@@ -41,14 +41,15 @@ If a tool answers that the user must run `izzy login`, tell them: it is a free a
 
 - Use the layout components (`Stack`, `Row`, `Grid`, `Box`) and the style parameters (`get_type` `StyledComponentBase`) before writing CSS.
 - Colors, sizes and spacing come from the theme's `--ib-*` variables. Don't hard-code a color: it breaks dark mode. `get_article` `docs/theming/tokens` lists them.
-- Give every field a `Label`. Give an icon-only button an accessible name.
+- A field in a `Form` takes its label from the model property (`[Display(Name = "...")]`, else its name). Outside a form, give it a `Label`. An `IconButton` needs a `Label`.
+- A file that uses components needs `@using IzzyBlazor` (usually in `_Imports.razor`). Without it they render as unknown elements, with no error.
 
 ## When IzzyBlazor can't do it
 
 1. Call `find_known_issues`. It often has the fix.
 2. If it isn't known, tell the user what you worked around and offer to report it.
-3. Call `report_gap` only after they agree, with a minimal `.razor` repro that uses sample names, never their code or data.
+3. Call `report_gap` only after they agree and know the report is public, with a minimal `.razor` repro that uses sample names, never their code or data.
 
 ## Finish
 
-Build the app (`dotnet build`) and fix what it reports. A component name that clashes with one of the app's own is fixed by writing the app's full name where it is used.
+Build the app (`dotnet build`) and fix what it reports. A component of the app's with the name of one of IzzyBlazor's is fixed by writing the app's full name where it is used. A type clash (CS0104, such as the app's own `Status`) is fixed by qualifying one of them or adding an alias to `_Imports.razor`.

@@ -53,6 +53,15 @@ sealed class Args
         return value;
     }
 
-    /// <summary>Whether a switch was given, removing it.</summary>
-    public bool Switch(string name) => Options.RemoveAll(o => o.Name == name) > 0;
+    /// <summary>Whether a switch was given, removing it; <c>--overwrite=false</c> is not given.</summary>
+    public bool Switch(string name)
+    {
+        var given = Options.Where(o => o.Name == name).ToList();
+        Options.RemoveAll(o => o.Name == name);
+        return given.Count > 0 && !given.Any(o => string.Equals(o.Value, "false", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>The names the CLI takes for itself, which no item's setting may be given under.</summary>
+    public static bool Reserved(string name) =>
+        Switches.Contains(name) || Short.ContainsKey(name) || name is "project" or "at" or "kind";
 }
