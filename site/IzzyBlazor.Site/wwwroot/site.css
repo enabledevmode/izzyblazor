@@ -76,7 +76,8 @@
   letter-spacing: -0.03em;
 }
 .site-hero-title span { color: var(--site-ember-text); }
-.site-hero-sub.site-hero-sub { max-width: 36em; font-size: 1.0625rem; line-height: 1.6; }
+/* Balanced, so its lines are about one length and narrower than the 36em they may take. */
+.site-hero-sub.site-hero-sub { max-width: 36em; font-size: 1.0625rem; line-height: 1.6; text-wrap: balance; }
 .site-hero-actions { display: flex; gap: var(--ib-space-3); }
 /* Standalone links (an action, not a link in a sentence): Medium, an arrow, no underline until
    hover. In the accent (Ember text) on their own. */
