@@ -2,7 +2,7 @@
 
 **Blazor components. No circuit required.**
 
-**160+ components, interactive in every render mode, even static SSR.**
+**170+ components, interactive in every render mode, even static SSR.**
 
 Most Blazor components need a server circuit or a WebAssembly download to be interactive. IzzyBlazor's components are interactive in every render mode, even static SSR.
 

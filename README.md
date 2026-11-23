@@ -10,7 +10,7 @@
 Most Blazor components need a server circuit or a WebAssembly download to be interactive. IzzyBlazor's
 components are interactive in every render mode, even static SSR.
 
-IzzyBlazor is an open-source library of 160+ components for .NET 10 and later: forms, data grids, charts,
+IzzyBlazor is an open-source library of 170+ components for .NET 10 and later: forms, data grids, charts,
 scheduling, dialogs and complete app layouts.
 
 ## Interactivity shouldn't need a circuit or a download
@@ -95,7 +95,7 @@ an account for the components, the docs or the starter above.
 
 ## What's included
 
-160+ components, in the same groups as the docs:
+170+ components, in the same groups as the docs:
 
 - **Layout:** Box, Row, Column, Stack, Grid, Container, PageHeader, SectionHeader, Section, Center, Spacer, Divider, TileLayout, Splitter, AppShell (header, collapsible sidebar, aside, footer), AppSidebar
 - **Typography:** Heading, TextBlock, Prose, RichText, Markdown, Anchor, Code (with syntax highlighting), Diff, CodeExample, Blockquote, Kbd, Highlight

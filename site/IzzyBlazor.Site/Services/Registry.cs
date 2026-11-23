@@ -58,10 +58,11 @@ public sealed class Registry
     public IReadOnlyList<RegistryComponent> AllComponents { get; }
 
     /// <summary>
-    /// The component count as "N+", for links and marketing copy: the last ten it's more than, so 160
-    /// reads "150+" and 161 "160+" (Israel, Nov 12: "150+" until there are more than 160).
+    /// The component count as "N+", for links and marketing copy: the last ten it has reached, so 170
+    /// reads "170+" and 169 "160+" (Israel, Nov 23). The one place the count comes from: the site's pages
+    /// read it, and RegistryTests holds the README, the NuGet readme and the package description to it.
     /// </summary>
-    public string ComponentCountLabel => Components.Count < 10 ? $"{Components.Count}" : $"{(Components.Count - 1) / 10 * 10}+";
+    public string ComponentCountLabel => Components.Count < 10 ? $"{Components.Count}" : $"{Components.Count / 10 * 10}+";
 
     public static Registry Load(ApiMetadata api)
     {

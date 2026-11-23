@@ -20,6 +20,30 @@ public class RegistryTests
         Assert.True(unknown.Count == 0, $"Not public components: {string.Join(", ", unknown)}");
     }
 
+    // The count in text the site can't fill in: GitHub and NuGet show these files as written. Everything on the
+    // site reads Registry.ComponentCountLabel. When the count reaches the next ten this fails; to rewrite the
+    // files, set IZZY_UPDATE_COUNTS=1 and run this test.
+    [Fact]
+    public void The_written_component_counts_match_the_registry()
+    {
+        var root = Path.Combine(SiteFolder(), "..", "..");
+        var count = new System.Text.RegularExpressions.Regex(@"\b\d+\+(?= (?:open-source )?components\b)");
+        var update = Environment.GetEnvironmentVariable("IZZY_UPDATE_COUNTS") == "1";
+        var stale = new List<string>();
+        foreach (var file in (string[])["README.md", "docs/nuget-readme.md", "src/IzzyBlazor/IzzyBlazor.csproj"])
+        {
+            var path = Path.Combine(root, file);
+            var text = File.ReadAllText(path);
+            Assert.True(count.IsMatch(text), $"{file} no longer states the component count.");
+            var current = count.Replace(text, Registry.ComponentCountLabel);
+            if (current == text) continue;
+            if (update) File.WriteAllText(path, current);
+            else stale.Add(file);
+        }
+
+        Assert.True(stale.Count == 0, $"The component count is {Registry.ComponentCountLabel}; set IZZY_UPDATE_COUNTS=1 and run this test to rewrite: {string.Join(", ", stale)}");
+    }
+
     // A Usage snippet is read at a glance, with no sideways scrolling on a laptop: the code column
     // holds about 105 characters at a 1280px window. A tag that won't fit puts one attribute on
     // each line. Both the doc comments' snippets and the hand-written Overviews' Usage are checked.
