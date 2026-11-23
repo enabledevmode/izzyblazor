@@ -23,7 +23,10 @@ public static class Sitemap
         yield return "docs";
         foreach (var section in Articles.Sections)
         {
-            yield return section.Href;
+            if (section.OpensAt is null)
+            {
+                yield return section.Href;
+            }
             foreach (var article in section.Articles)
             {
                 yield return section.HrefOf(article);

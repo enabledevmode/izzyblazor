@@ -542,6 +542,12 @@ public static class SiteApp
                 },
                 "application/json", "orders.json"))
             .RequireRateLimiting(PagesRateLimit);
+        // A section that opens at one of its articles (Get started, since Nov 23, 2026) has no index page.
+        foreach (var section in Articles.Sections.Where(s => s.OpensAt is not null))
+        {
+            var target = $"/{section.Href}/{section.OpensAt}";
+            app.MapGet($"/{section.Href}", () => Results.Redirect(target, permanent: true));
+        }
         // Accessibility was one article under Common features until Nov 10, 2026; it's a section now.
         app.MapGet("/docs/common/accessibility", () => Results.Redirect("/docs/accessibility/overview", permanent: true));
         // Chart types that were topics on Chart's pages until Nov 7, 2026 have pages of their own.

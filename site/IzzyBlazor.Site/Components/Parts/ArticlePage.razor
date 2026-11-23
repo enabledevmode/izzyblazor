@@ -12,7 +12,10 @@
         <Stack Gap="4" Class="site-pagehead">
             <Breadcrumb>
                 <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
-                <BreadcrumbItem Href="@found.Section.Href">@found.Section.Title</BreadcrumbItem>
+                @if (found.Section.OpensAt is null)
+                {
+                    <BreadcrumbItem Href="@found.Section.Href">@found.Section.Title</BreadcrumbItem>
+                }
             </Breadcrumb>
             <Heading Level="1" Size="TextSize.Xl3">@found.Article.Title</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted">@Lead</TextBlock>

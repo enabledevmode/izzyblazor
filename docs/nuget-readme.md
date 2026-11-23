@@ -67,7 +67,7 @@ For WebAssembly and Auto render modes, reference `IzzyBlazor.Core` in your `.Cli
 
 Visit **[izzyblazor.com](https://izzyblazor.com)** for live component examples, render-mode guidance, and API documentation.
 
-- [Getting started](https://izzyblazor.com/docs/get-started): installation and setup
+- [Getting started](https://izzyblazor.com/docs/get-started/create-app): installation and setup
 - [Components](https://izzyblazor.com/docs/components): examples, supported modes, and APIs
 - [Style props](https://izzyblazor.com/docs/common/style-props): typed, responsive styling
 - [Theming](https://izzyblazor.com/docs/theming): colors, fonts, and theme configuration

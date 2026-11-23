@@ -23,7 +23,7 @@ public static class Articles
                 "Find the IzzyBlazor counterpart of each MudBlazor component, which members are renamed, and what behaves differently."),
             new("ai-assistants", "AI assistants", "Bot",
                 "Connect Claude, Copilot or Cursor to IzzyBlazor's MCP server for components, parameters and examples."),
-        ]),
+        ]) { OpensAt = "create-app" },
         new("cli", "The izzy CLI", "SquareTerminal",
         [
             new("overview", "CLI overview", "SquareTerminal",
@@ -153,6 +153,13 @@ public sealed record ArticleSection(string Slug, string Title, string Icon, IRea
     /// Troubleshooting, whose titles are whole symptoms.
     /// </summary>
     public bool IndexOnly { get; init; }
+
+    /// <summary>
+    /// An article that the section's address opens in place of its index (a redirect, SiteApp): for Get started,
+    /// whose first article is where a new reader begins. Its articles' breadcrumbs then stop at Docs, and the
+    /// sitemap leaves the address out.
+    /// </summary>
+    public string? OpensAt { get; init; }
 
     public string Href => $"docs/{Slug}";
 

@@ -39,7 +39,8 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
         string[] expected =
         [
             "", "docs", "docs/components",
-            .. Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf).Prepend(s.Href)),
+            // A section that opens at one of its articles redirects, so its own address is left out.
+            .. Articles.Sections.SelectMany(s => s.OpensAt is null ? s.Articles.Select(s.HrefOf).Prepend(s.Href) : s.Articles.Select(s.HrefOf)),
             .. site.Registry.Components.SelectMany(c => new[] { Registry.OverviewHref(c), Registry.ApiPageHref(c) }),
         ];
         Assert.Empty(expected.Except(paths));

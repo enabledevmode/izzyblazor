@@ -138,7 +138,7 @@ the gaps that remain.
 
 **[izzyblazor.com](https://izzyblazor.com)** includes live component examples, render-mode guidance, and API documentation.
 
-- [Getting started](https://izzyblazor.com/docs/get-started): setup, packages and render modes
+- [Getting started](https://izzyblazor.com/docs/get-started/create-app): setup, packages and render modes
 - [Pricing](https://izzyblazor.com/pricing): what's open, what a free account adds, and Pro
 - [Components](https://izzyblazor.com/docs/components): examples, mode support and API for each
 - [Style props](https://izzyblazor.com/docs/common/style-props) and [Theming](https://izzyblazor.com/docs/theming): responsive values, colors, tokens and themes
