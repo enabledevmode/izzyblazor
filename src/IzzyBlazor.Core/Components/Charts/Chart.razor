@@ -622,6 +622,14 @@
         }
 
         // A view that reached the latest item follows new data, keeping as many items.
+        // Dates with an offset are placed by when they happened, on the first one's clock: readings
+        // across a clock change, or from several zones, would double back by their own clocks.
+        var clock = arguments.FirstOrDefault(a => a is DateTimeOffset) is DateTimeOffset firstDate ? firstDate.Offset : (TimeSpan?)null;
+        if (clock is { } offset && arguments.Any(a => a is DateTimeOffset d && d.Offset != offset))
+        {
+            arguments = arguments.Select(a => ChartLayout.AtOffset(a, offset)).ToList();
+        }
+
         if (_follow is { } keep && arguments.Count > 0) _view = new ChartView(arguments[Math.Max(0, arguments.Count - keep)], null);
         var series = ChartTrends.Add(raw.Select(OnAxis).ToList(), arguments, TextDefaults, bands: drill is not null);
         // Off by default when every series writes its values beside them; labels of other text keep it.
@@ -703,7 +711,7 @@
             ArgumentLog = _argumentAxis?.Logarithmic ?? false,
             ArgumentReverse = _argumentAxis?.Reverse ?? false,
             SkipGaps = _argumentAxis?.SkipGaps ?? false,
-            View = _view,
+            View = _view is { } ends && clock is { } axisClock ? new ChartView(ChartLayout.AtOffset(ends.From, axisClock), ChartLayout.AtOffset(ends.To, axisClock)) : _view,
             MinZoomSpan = Math.Max(1, _argumentAxis?.MinZoomSpan ?? 2),
             Zoom = zoom,
             Bands = drill is not null,

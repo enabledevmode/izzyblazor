@@ -669,6 +669,27 @@ public class ChartRenderTests : BunitContext
     }
 
     [Fact]
+    public void Readings_across_a_clock_change_run_in_the_order_they_happened()
+    {
+        // Nov 1, 2026, US Eastern: the hour from 1:00 comes twice, at -04:00 and then at -05:00.
+        (DateTimeOffset At, int Load)[] readings =
+        [
+            (new(2026, 11, 1, 1, 0, 0, TimeSpan.FromHours(-4)), 10),
+            (new(2026, 11, 1, 1, 30, 0, TimeSpan.FromHours(-4)), 20),
+            (new(2026, 11, 1, 1, 0, 0, TimeSpan.FromHours(-5)), 30),
+            (new(2026, 11, 1, 1, 30, 0, TimeSpan.FromHours(-5)), 40),
+        ];
+        var cut = Render<Chart<(DateTimeOffset At, int Load)>>(p => p
+            .Add(c => c.Items, readings)
+            .Add(c => c.Title, "Load")
+            .Add(c => c.Argument, r => r.At)
+            .AddChildContent<ChartArgumentAxis>(a => a.Add(x => x.SkipGaps, true))
+            .AddChildContent<ChartLineSeries<(DateTimeOffset At, int Load)>>(s => s.Add(x => x.Value, r => r.Load)));
+
+        Assert.Equal(["10", "20", "30", "40"], cut.FindAll(".ib-chart-table tbody tr td").Select(d => d.TextContent.Trim()));
+    }
+
+    [Fact]
     public void A_histogram_counts_its_values_in_round_bins_whose_bars_touch()
     {
         // Ten orders' days to delivery: Sturges' rule gives 5 bins, 2 days wide from 0.

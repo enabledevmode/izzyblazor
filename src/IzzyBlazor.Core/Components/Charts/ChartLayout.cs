@@ -2574,6 +2574,9 @@ internal static class ChartLayout
         };
     }
 
+    /// <summary>A date with an offset, moved to an axis's one clock; anything else as it is.</summary>
+    internal static object? AtOffset(object? value, TimeSpan offset) => value is DateTimeOffset d ? d.ToOffset(offset) : value;
+
     internal static double? ToDouble(object? value, ArgumentKind kind) => value switch
     {
         null => null,
