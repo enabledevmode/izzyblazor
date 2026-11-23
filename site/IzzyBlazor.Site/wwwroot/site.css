@@ -746,6 +746,17 @@ html:has(> body > .frame) body { margin: 0; }
 .frame-page:has(> .ib-shell) { padding: 0; }
 
 /* Reference tables in articles scroll sideways on phones rather than widening the page. */
+/* An article's diagram: a place (browser, server) is a tinted box, and what runs there a plain one. */
+.site-diagram { margin: var(--ib-space-5) 0; }
+.site-diagram-scroll { overflow-x: auto; }
+.site-diagram svg { display: block; width: 100%; min-width: 35rem; max-width: 40rem; height: auto; font-size: 13px; }
+.site-diagram text { fill: currentColor; }
+.site-diagram .site-diagram-label { fill: var(--ib-color-muted); font-size: 12px; }
+.site-diagram-place { fill: var(--ib-color-fill-subtle); stroke: var(--ib-color-border); }
+.site-diagram-node { fill: var(--ib-color-surface); stroke: var(--ib-color-border); }
+.site-diagram-line { fill: none; stroke: var(--ib-color-muted); stroke-width: 1.5; }
+.site-diagram-head { fill: var(--ib-color-muted); }
+.site-diagram figcaption { margin-top: var(--ib-space-2); color: var(--ib-color-muted); font-size: var(--ib-text-sm); }
 .site-table { overflow-x: auto; }
 .site-table table { min-width: 32rem; }
 .site-table code { white-space: nowrap; }

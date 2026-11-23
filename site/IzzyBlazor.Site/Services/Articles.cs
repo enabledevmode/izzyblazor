@@ -73,6 +73,11 @@ public static class Articles
             new("text", "Text and other languages", "Languages",
                 "The words components use, changed app-wide or per component, in one language or several."),
         ]),
+        new("architecture", "Architecture", "Network",
+        [
+            new("data-access", "Data access by render mode", "Database",
+                "Load data through an interface: a store over EF Core for pages on the server, and one that calls your API for pages in the browser."),
+        ]),
         new("accessibility", "Accessibility", "Accessibility",
         [
             new("overview", "Accessibility overview", "Accessibility",

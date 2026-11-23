@@ -10,16 +10,7 @@
   "category": "App kits",
   "summary": "A whole CRM, every page static: contacts, companies, a deal pipeline, activities and reports, with a team, roles, an audit log and sample data.",
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "none", "Auto": "none" },
-  "modesNote": {
-    "text": "Izzy CRM's pages read the database on the server, so they can't run in the browser as they are. To run pages in WebAssembly or Auto:",
-    "steps": [
-      "Put the data behind interfaces, such as IContacts and IDeals, so that no page uses the database context.",
-      "Add API endpoints for those interfaces, with the same role checks the pages have now.",
-      "Move the pages you want in the browser to a client project, with a version of each interface that calls the API.",
-      "Keep the sign-in pages static on the server, and send the sign-in state to the browser, as Microsoft's Blazor Web App template does.",
-      "Give the posted forms on those pages interactive handlers."
-    ]
-  },
+  "modesNote": "Izzy CRM's pages read the database on the server, so they can't run in the browser as generated.",
   "base": {
     "item": "blazor",
     "fixed": {

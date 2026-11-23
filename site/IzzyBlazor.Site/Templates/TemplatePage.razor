@@ -160,16 +160,12 @@
                     <DescriptionItem Term="@mode">@(level == "none" ? (_template.Manifest.ModesNote is null ? "Not supported" : "Needs changes*") : level == "full" ? "Supported" : "Partly supported")</DescriptionItem>
                 }
             </DescriptionList>
-            @* A mode it can't run in as generated, with what it takes to get there. *@
+            @* A mode it can't run in as generated: why, and the article with what to add. *@
             @if (_template.Manifest.ModesNote is { } note)
             {
-                <TextBlock>* @note.Text</TextBlock>
-                <List Ordered>
-                    @foreach (var step in note.Steps)
-                    {
-                        <ListItem>@step</ListItem>
-                    }
-                </List>
+                <TextBlock>
+                    * @note <Anchor Href="docs/architecture/data-access">Data access by render mode</Anchor> shows what to add.
+                </TextBlock>
             }
         }
         </div>
