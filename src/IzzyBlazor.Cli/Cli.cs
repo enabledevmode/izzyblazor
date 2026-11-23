@@ -30,6 +30,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
+          izzy agent [--project <path>] [--dry-run]
+          izzy mcp
           izzy login [--no-browser]
           izzy logout
           izzy account
@@ -41,6 +43,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         Settings are the item's, as izzy describe <item> lists them, such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
+        izzy agent writes what a coding agent reads in your project: the IzzyBlazor skill, and the docs server
+        and izzy mcp in the MCP settings of Claude Code, Copilot, Cursor and Visual Studio. izzy mcp is the
+        server those settings start: izzy's commands as tools, for an agent, with a free account.
         izzy login signs this machine in to your free IzzyBlazor account, which the app starters, the blocks
         and the kits come with. After that they are created on this machine, online or not. In CI, set IZZY_KEY
         to a key from your account page instead.
@@ -74,11 +79,13 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "add" => Add(args),
                 "new" => New(args),
                 "init" => Init(args),
+                "agent" => Agent(args),
+                "mcp" => Mcp(args),
                 "bundle" => Bundle(args),
                 "login" => Login(args),
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account").Status(output),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, new, init, login, logout, account."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, new, init, agent, mcp, login, logout, account."),
             };
         }
         catch (ProRequiredException e)
@@ -116,6 +123,51 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         output.WriteLine($"Wrote {file}.");
         return 0;
     }
+
+    // izzy agent: the skill and the MCP settings, in the app's folder (the solution's, as izzy init --mcp).
+    int Agent(Args args)
+    {
+        Words(args, 1, "izzy agent [--project <path>] [--dry-run]");
+        var project = ProjectInfo.FromProject(FindProject(args.Take("project")));
+        var dryRun = args.Switch("dry-run");
+        NoSettings(args);
+        AgentFiles.Write(project.Directory!, dryRun, output, error);
+        output.Write(AgentFiles.Others.ReplaceLineEndings("\n") + "\n");
+        return 0;
+    }
+
+    // izzy mcp: the commands as tools over this process's input and output, until the client closes it.
+    // Each call is a new Cli, so a sign-in made while the server runs is seen by the next call.
+    int Mcp(Args args)
+    {
+        Words(args, 1, "izzy mcp");
+        NoSettings(args);
+        var tools = BuildTools();
+        var transport = new ModelContextProtocol.Server.StdioServerTransport("izzy");
+        var server = tools.Server(transport, Generator.IzzyBlazorVersion);
+        try
+        {
+            server.RunAsync().GetAwaiter().GetResult();
+        }
+        finally
+        {
+            server.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            transport.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+        return 0;
+    }
+
+    /// <summary>The tools of izzy mcp over this catalog, folder and account.</summary>
+    internal BuildTools BuildTools() => new(
+        arguments =>
+        {
+            var o = new StringWriter();
+            var e = new StringWriter();
+            var exit = arguments is ["mcp", ..] ? 1 : new Cli(catalogRoot, workingDirectory, o, e, proRoot, access, account).Run(arguments);
+            return (exit, o.ToString(), e.ToString());
+        },
+        // The private catalog on this machine (IzzyBlazor's own builds) stands for a sign-in.
+        () => proRoot is not null || account is null || account.SignedIn);
 
     int Login(Args args)
     {
@@ -250,7 +302,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var flags = Flags(args);
         var project = ProjectInfo.ForNewProject(name) with { ReadFile = path => ReadFile(directory, path) };
         var changes = Generator.Generate(item, Settings(item.Manifest, args), project);
-        return Finish(item, changes, project, directory, existing: false, flags);
+        var exit = Finish(item, changes, project, directory, existing: false, flags);
+        // --mcp: the starter's own settings name the docs server; izzy adds its own server and the skill.
+        if (exit == 0 && !flags.DryRun && changes.Settings.GetValueOrDefault("Mcp") == "true")
+            AgentFiles.Write(directory, dryRun: false, flags.Json ? TextWriter.Null : output, error);
+        return exit;
     }
 
     // IzzyBlazor into the app here: the init item over what Setup reads from the app, the full names of the
@@ -290,10 +346,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                     ? "Move them into @layer bootstrap { } in app.css to keep them for your pages"
                     : "Remove them, or keep them only for the pages that need them")
                 + ": https://izzyblazor.com/docs/get-started/existing-app#keep-bootstrap");
-        // An AI assistant's config of the user's own is theirs: kept, with the server to add named.
-        var configs = generated.Conflicts.Where(c => c.EndsWith("mcp.json", StringComparison.Ordinal)).ToList();
-        foreach (var config in configs)
-            warnings.Add($"{config} is there already, so it was kept: add IzzyBlazor's docs server to it, \"izzyblazor\": {{ \"type\": \"http\", \"url\": \"https://izzyblazor.com/mcp\" }}.");
+        // --mcp: the agent files are izzy agent's to write, which keeps what a settings file of the user's has.
+        var agent = generated.Settings.GetValueOrDefault("Mcp") == "true";
+        var configs = generated.Creates.Select(c => c.Path).Concat(generated.Conflicts).Where(c => c.EndsWith("mcp.json", StringComparison.Ordinal)).ToList();
         var changes = new Changeset
         {
             Creates = [.. generated.Creates.Where(c => !configs.Contains(c.Path))],
@@ -307,6 +362,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var writes = !flags.DryRun && (changes.Conflicts.Count == 0 || flags.Overwrite)
             && (changes.Creates.Count > 0 || changes.Inserts.Count > 0 || changes.Packages.Count > 0);
         var exit = Finish(item, changes, project, project.Directory!, existing: true, flags);
+        if (exit == 0 && agent) AgentFiles.Write(project.Directory!, flags.DryRun, flags.Json ? TextWriter.Null : output, error);
         return exit == 0 && writes && build ? Build(project, flags.Json) : exit;
     }
 
@@ -454,6 +510,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         foreach (var (option, value) in args.Options)
         {
             var p = manifest.Parameters.FirstOrDefault(p => p.Option.Equals(option, StringComparison.OrdinalIgnoreCase))
+                ?? manifest.Parameters.FirstOrDefault(p => p.Name.Equals(option, StringComparison.OrdinalIgnoreCase))
                 ?? throw new UsageException($"{manifest.Id} has no setting --{option}. Settings: {string.Join(", ", manifest.Parameters.Where(p => !p.Hidden).Select(p => "--" + p.Option))}.");
             settings[p.Name] = value ?? (p.Type == ParameterType.Bool ? "true"
                 : throw new UsageException($"--{option} needs a value{(p.Choices.Count > 0 ? ": " + string.Join(", ", p.Choices) : "")}."));

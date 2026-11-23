@@ -33,7 +33,7 @@
       },
       "Mcp": {
         "type": "boolean", "default": false,
-        "description": "Connects AI assistants to IzzyBlazor's docs server (izzyblazor.com/mcp): .mcp.json for Claude Code and Visual Studio, .vscode/mcp.json for VS Code and .cursor/mcp.json for Cursor."
+        "description": "Sets up AI assistants as izzy agent does: the IzzyBlazor skill, and the docs server (izzyblazor.com/mcp) and izzy mcp in .mcp.json for Claude Code and Visual Studio, .vscode/mcp.json for VS Code and .cursor/mcp.json for Cursor."
       }
     }
   },
