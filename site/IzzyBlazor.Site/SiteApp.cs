@@ -199,6 +199,10 @@ public static class SiteApp
         {
             client.BaseAddress = new Uri((builder.Configuration["Account:Service"] ?? AccountService.Address).TrimEnd('/') + "/");
             client.Timeout = TimeSpan.FromSeconds(10);
+            // The token this site and the account service share (the Fly secret Account__SiteToken on both):
+            // the service takes a visitor's address from this site only.
+            if (builder.Configuration["Account:SiteToken"] is { Length: > 0 } token)
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         });
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<AgentReportLimiter>();

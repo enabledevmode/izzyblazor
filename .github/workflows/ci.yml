@@ -23,12 +23,10 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install asset tools
-        run: npm ci
-
       # The account items' templates (shells, blocks, the CRM kit) are in the private catalog. With the
       # PRO_CATALOG_TOKEN secret (read access to its contents) it is checked out and the tests that
       # generate from it run; without it (a fork's pull request) they skip.
+      # Before npm ci: a tool installed there could otherwise watch for the token.
       - name: Private catalog
         env:
           PRO_CATALOG_TOKEN: ${{ secrets.PRO_CATALOG_TOKEN }}
@@ -39,6 +37,9 @@ jobs:
           # The clone's config holds the token: gone before any build tool runs.
           rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
           echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
+
+      - name: Install asset tools
+        run: npm ci
 
       - name: Build
         run: dotnet build izzyblazor.sln --configuration Release
@@ -100,12 +101,10 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install asset tools
-        run: npm ci
-
       # The account items' templates (shells, blocks, the CRM kit) are in the private catalog. With the
       # PRO_CATALOG_TOKEN secret (read access to its contents) it is checked out and the tests that
       # generate from it run; without it (a fork's pull request) they skip.
+      # Before npm ci: a tool installed there could otherwise watch for the token.
       - name: Private catalog
         env:
           PRO_CATALOG_TOKEN: ${{ secrets.PRO_CATALOG_TOKEN }}
@@ -116,6 +115,9 @@ jobs:
           # The clone's config holds the token: gone before any build tool runs.
           rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
           echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
+
+      - name: Install asset tools
+        run: npm ci
 
       - name: Build
         run: dotnet build izzyblazor.sln --configuration Release

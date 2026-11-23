@@ -5,9 +5,10 @@ name: Release
 # so no NuGet key is stored anywhere. The nuget.org policy names this file (release.yml),
 # the enabledevmode/izzyblazor repository and the "release" environment.
 #
-# Two jobs: "build" checks, builds, tests and packs with read-only access, so the npm and build
-# tools never run where a publishing token can be had; "publish" only takes the packages it made,
-# logs in to NuGet and pushes. Who may push v* tags, and approval for the "release" environment,
+# "build" checks, builds, tests and packs with read-only access, so the npm and build tools never
+# run where a publishing token can be had (the private catalog is cloned before npm installs
+# anything, and its token is gone by then); "account-catalog" sends the account's templates to the
+# account service; "publish" only takes the packages build made, logs in to NuGet and pushes. Who may push v* tags, and approval for the "release" environment,
 # are repository settings: this file can't enforce them, since a tag runs its own copy of it.
 # A third, "docs", deploys the docs site to Fly.io after the packages are pushed.
 
@@ -50,12 +51,10 @@ jobs:
           node-version: 22
           package-manager-cache: false
 
-      - name: Install asset tools
-        run: npm ci
-
       # The account items' templates (shells, blocks, the CRM kit) are in the private catalog. With the
       # PRO_CATALOG_TOKEN secret (read access to its contents) it is checked out and the tests that
       # generate from it run; without it (a fork's pull request) they skip.
+      # Before npm ci: a tool installed there could otherwise watch for the token.
       - name: Private catalog
         env:
           PRO_CATALOG_TOKEN: ${{ secrets.PRO_CATALOG_TOKEN }}
@@ -66,6 +65,9 @@ jobs:
           # The clone's config holds the token: gone before any build tool runs.
           rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
           echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
+
+      - name: Install asset tools
+        run: npm ci
 
       - name: Build
         run: dotnet build izzyblazor.sln --configuration Release
@@ -89,21 +91,6 @@ jobs:
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts
 
-      # izzy downloads the account's templates for its own version from the account service, so each
-      # release sends its bundle there (the service signs it). The bundle is never an artifact here:
-      # this repo is public and the templates are not. Skipped, with a warning, until the service
-      # and its ACCOUNT_UPLOAD_TOKEN secret exist.
-      - name: Account catalog
-        env:
-          ACCOUNT_UPLOAD_TOKEN: ${{ secrets.ACCOUNT_UPLOAD_TOKEN }}
-          VERSION: ${{ steps.tag.outputs.version }}
-        shell: bash
-        run: |
-          if [ -z "$ACCOUNT_UPLOAD_TOKEN" ] || [ -z "$IZZY_PRO_CATALOG" ]; then echo "::warning::No ACCOUNT_UPLOAD_TOKEN or private catalog: the account catalog for $VERSION was not published."; exit 0; fi
-          dotnet src/IzzyBlazor.Cli/bin/Release/net10.0/IzzyBlazor.Cli.dll bundle "$RUNNER_TEMP/account.zip"
-          curl --fail-with-body -sS -X PUT -H "Authorization: Bearer $ACCOUNT_UPLOAD_TOKEN" --data-binary @"$RUNNER_TEMP/account.zip" "https://account.izzyblazor.com/v1/admin/catalog/$VERSION"
-          rm "$RUNNER_TEMP/account.zip"
-
       - name: Release notes
         # docs/releases/<tag>.md, when there is one, heads the GitHub release's notes.
         run: |
@@ -117,6 +104,52 @@ jobs:
             artifacts/*.snupkg
             artifacts/release-notes.md
           if-no-files-found: error
+
+  account-catalog:
+    # izzy downloads the account's templates for its own version from the account service, so each
+    # release sends its bundle there (the service signs it). A job of its own: it holds the upload
+    # token, and nothing from npm runs here, only the CLI's own build. The bundle is never an
+    # artifact: this repo is public and the templates are not. Skipped, with a warning, without the
+    # ACCOUNT_UPLOAD_TOKEN and PRO_CATALOG_TOKEN secrets.
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.402  # pinned: 10.0.403 download 409s from Microsoft origin; revert to 10.0.x once fixed
+
+      - name: Private catalog
+        env:
+          PRO_CATALOG_TOKEN: ${{ secrets.PRO_CATALOG_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::warning::No PRO_CATALOG_TOKEN: the account catalog for $VERSION was not published."; exit 0; fi
+          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/enabledevmode/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
+          rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
+          echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
+
+      - name: Build izzy
+        if: env.IZZY_PRO_CATALOG != ''
+        run: dotnet build src/IzzyBlazor.Cli --configuration Release
+
+      - name: Send the bundle
+        if: env.IZZY_PRO_CATALOG != ''
+        env:
+          ACCOUNT_UPLOAD_TOKEN: ${{ secrets.ACCOUNT_UPLOAD_TOKEN }}
+        shell: bash
+        run: |
+          if [ -z "$ACCOUNT_UPLOAD_TOKEN" ]; then echo "::warning::No ACCOUNT_UPLOAD_TOKEN: the account catalog for $VERSION was not published."; exit 0; fi
+          dotnet src/IzzyBlazor.Cli/bin/Release/net10.0/IzzyBlazor.Cli.dll bundle "$RUNNER_TEMP/account.zip"
+          curl --fail-with-body -sS -X PUT -H "Authorization: Bearer $ACCOUNT_UPLOAD_TOKEN" --data-binary @"$RUNNER_TEMP/account.zip" "https://account.izzyblazor.com/v1/admin/catalog/$VERSION"
+          rm "$RUNNER_TEMP/account.zip"
 
   publish:
     needs: build
