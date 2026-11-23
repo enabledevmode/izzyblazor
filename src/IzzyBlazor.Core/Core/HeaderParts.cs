@@ -36,6 +36,17 @@ internal sealed class HeaderHost
         }
     }
 
+    public void Remove(string kind)
+    {
+        if (_moved.Remove(kind))
+        {
+            foreach (var render in _charts.ToArray())
+            {
+                render();
+            }
+        }
+    }
+
     public void Listen(Action render) => _charts.Add(render);
 
     public void Unlisten(Action render) => _charts.Remove(render);

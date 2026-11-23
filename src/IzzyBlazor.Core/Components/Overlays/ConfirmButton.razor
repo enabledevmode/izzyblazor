@@ -75,7 +75,9 @@
         }
         else
         {
-            <Button Submit Accent="Accent" Form="@Form" Name="@Name" Value="@Value" FormAction="@FormAction" DisabledUntil="@DisabledUntil" DisabledUntilValue="@DisabledUntilValue">@ResolvedConfirmText</Button>
+            @* formnovalidate is the submitting button's to carry: on the trigger, which submits nothing, it would do nothing. *@
+            <Button Submit Accent="Accent" Form="@Form" Name="@Name" Value="@Value" FormAction="@FormAction" DisabledUntil="@DisabledUntil" DisabledUntilValue="@DisabledUntilValue"
+                    formnovalidate="@(AdditionalAttributes?.ContainsKey("formnovalidate") == true)">@ResolvedConfirmText</Button>
         }
     </DialogFooter>
 </Dialog>

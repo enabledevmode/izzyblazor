@@ -48,7 +48,12 @@ function update(element: HTMLTimeElement, now: Date): number {
     const words = relativeText(value, now, threshold, locale);
     // Standing alone (data-ib-cap), it starts with a capital: "Yesterday".
     const text = element.hasAttribute("data-ib-cap") ? words[0].toLocaleUpperCase(locale) + words.slice(1) : words;
-    if (element.textContent !== text) element.textContent = text;
+    if (element.textContent !== text) {
+      // On an interactive page Blazor keeps this text node and writes later values to it: change it in place.
+      const node = element.firstChild;
+      if (node instanceof Text && element.childNodes.length === 1) node.data = text;
+      else element.textContent = text;
+    }
     const title = new Intl.DateTimeFormat(locale, { dateStyle: "full", timeStyle: "short" }).format(value);
     if (element.title !== title) element.title = title;
   } catch {

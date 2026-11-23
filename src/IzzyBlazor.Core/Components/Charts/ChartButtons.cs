@@ -9,7 +9,7 @@ namespace IzzyBlazor;
 /// <see cref="For"/>, or else the one chart in its tile or card; there, the chart's own row of
 /// buttons is left out. It needs script: with JavaScript off it isn't shown.
 /// </summary>
-public abstract class ChartButtonBase : IzzyComponentBase
+public abstract class ChartButtonBase : IzzyComponentBase, IDisposable
 {
     private protected ChartButtonBase()
     {
@@ -42,12 +42,22 @@ public abstract class ChartButtonBase : IzzyComponentBase
         }
     }
 
+    /// <summary>The chart draws its own button again once this one is gone.</summary>
+    public void Dispose()
+    {
+        if (For is null && Replaces is { } kind)
+        {
+            Host?.Remove(kind);
+        }
+    }
+
     /// <summary>Opens a button of the chart tools' look, with what the script needs to find its chart.</summary>
-    private protected void Open(RenderTreeBuilder builder, string act, string label, bool iconOnly, string? extraClass = null)
+    private protected void Open(RenderTreeBuilder builder, string act, string label, bool iconOnly, string? extraClass = null, bool own = true)
     {
         var (cls, _) = BuildRootAttributes();
         builder.OpenElement(0, "button");
-        builder.AddMultipleAttributes(1, AdditionalAttributes);
+        // The attributes given to the component go on its first button only: an id on two would be a doubled id.
+        if (own) builder.AddMultipleAttributes(1, AdditionalAttributes);
         builder.AddAttribute(2, "type", "button");
         builder.AddAttribute(3, "class", new ClassBuilder()
             .Add("ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm")
@@ -161,7 +171,7 @@ public sealed class ChartZoom : ChartButtonBase
         builder.CloseComponent();
         builder.CloseElement();
 
-        Open(builder, "zoom-in", TextDefaults.ChartZoomIn, iconOnly: true);
+        Open(builder, "zoom-in", TextDefaults.ChartZoomIn, iconOnly: true, own: false);
         builder.AddAttribute(20, "aria-keyshortcuts", "+");
         builder.OpenComponent<Icon>(21);
         builder.AddComponentParameter(22, nameof(Icon.Name), Lucide.ZoomIn);
