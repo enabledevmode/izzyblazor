@@ -266,10 +266,11 @@ public sealed partial record DataRequest<TItem>
     /// <inheritdoc />
     public bool Equals(DataRequest<TItem>? other) =>
         other is not null && Sort.SequenceEqual(other.Sort) && Equals(Filter, other.Filter) && Search == other.Search
-        && Skip == other.Skip && Take == other.Take && Cursor == other.Cursor && NeedsTotal == other.NeedsTotal;
+        && Skip == other.Skip && Take == other.Take && Cursor == other.Cursor && NeedsTotal == other.NeedsTotal
+        && Equals(Parent, other.Parent) && Equals(FilterBranch, other.FilterBranch);
 
     /// <inheritdoc />
-    public override int GetHashCode() => HashCode.Combine(Sort.Count, Filter, Search, Skip, Take, Cursor, NeedsTotal);
+    public override int GetHashCode() => HashCode.Combine(Sort.Count, Filter, Search, Skip, Take, Cursor, NeedsTotal, Parent);
 
     private bool PrintMembers(StringBuilder builder)
     {

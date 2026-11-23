@@ -179,5 +179,28 @@
     private static string? Format(double? value) =>
         value?.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
 
+
+    // Min and Max given here are the field's own rules, checked on the server too: the browser's limits
+    // don't hold against a crafted post. A model's [Range] stays the validator's.
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => Min is not null || Max is not null;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value)
+    {
+        if (ToDouble(value) is not { } number)
+        {
+            return null;
+        }
+
+        var (low, high) = (Min, Max);
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        var label = ResolvedLabel ?? FieldIdentifier.FieldName;
+        return low is { } l && high is { } h && (number < l || number > h) ? string.Format(culture, TextDefaults.RangeOutside, label, l.ToString(culture), h.ToString(culture))
+            : low is { } least && number < least ? string.Format(culture, TextDefaults.NumberTooLow, label, least.ToString(culture))
+            : high is { } most && number > most ? string.Format(culture, TextDefaults.NumberTooHigh, label, most.ToString(culture))
+            : null;
+    }
+
     private static double? ToDouble(object? value) => NumberTypes.ToDouble(value);
 }

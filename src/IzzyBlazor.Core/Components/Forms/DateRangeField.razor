@@ -299,7 +299,8 @@
                 : null;
         }
 
-        string Said(DateOnly day) => day.ToString("d", culture);
+        // The field's inputs and calendar are Gregorian whatever the culture's own calendar: its messages too.
+        string Said(DateOnly day) => day.ToString("d", CalendarGrid.Gregorian(culture));
         string Say(string text, object argument) => string.Format(culture, text, ResolvedLabel, argument);
 
         // A post of two empty inputs can bind to a range with no ends, which [Required] would pass.
@@ -348,7 +349,9 @@
 
         if (DateDisabled is not null && !AllowDisabledInRange)
         {
-            for (var number = range.Start!.Value.DayNumber + 1; number < range.End!.Value.DayNumber; number++)
+            // Ten years of days at most: a posted range from year 1 to 9999 would ask about millions.
+            var last = Math.Min(range.End!.Value.DayNumber, range.Start!.Value.DayNumber + 3660);
+            for (var number = range.Start!.Value.DayNumber + 1; number < last; number++)
             {
                 if (DateDisabled(DateOnly.FromDayNumber(number)))
                 {

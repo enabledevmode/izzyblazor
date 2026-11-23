@@ -81,7 +81,7 @@
   }
 
   .ib-lightbox-counter {
-    font-size: var(--ib-font-size-sm);
+    font-size: var(--ib-text-sm);
     font-variant-numeric: tabular-nums;
   }
 
@@ -157,7 +157,7 @@
     justify-self: center;
     max-width: 60rem;
     padding-block: var(--ib-space-3);
-    font-size: var(--ib-font-size-sm);
+    font-size: var(--ib-text-sm);
     text-align: center;
   }
 

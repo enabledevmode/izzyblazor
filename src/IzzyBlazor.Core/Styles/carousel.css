@@ -246,9 +246,9 @@
     height: 3rem;
     overflow: hidden;
     border-radius: var(--ib-radius-sm);
-    background: var(--ib-color-surface-fill);
+    background: var(--ib-color-fill);
     color: var(--ib-color-muted);
-    font-size: var(--ib-font-size-sm);
+    font-size: var(--ib-text-sm);
     position: relative;
     opacity: 0.6;
     transition: opacity var(--ib-duration-fast) var(--ib-ease);

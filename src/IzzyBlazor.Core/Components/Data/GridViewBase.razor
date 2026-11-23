@@ -1089,7 +1089,8 @@
     };
 
     // Cells have no Edit button, but a new row in them still has Save and Cancel.
-    private bool HasActionCell => RowActions && (ActionColumn is not null || CanDelete || (CanEdit && (!CellMode || CanAdd)));
+    // With RowActions off the app draws its own ways in (a link to ?edit=42), and the row still needs its Save and Cancel.
+    private bool HasActionCell => RowActions ? ActionColumn is not null || CanDelete || (CanEdit && (!CellMode || CanAdd)) : RowEditKey is not null;
 
     /// <summary>
     /// Remembers how each person has arranged the columns, in a cookie under this name, so the server

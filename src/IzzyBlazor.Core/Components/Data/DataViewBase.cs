@@ -709,7 +709,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         var maxPage = pageSize is > 0 and var size0 ? int.MaxValue / size0 : int.MaxValue;
         var asked = int.TryParse(pageRaw, out var number) ? Math.Clamp(number, 1, maxPage) : 1;
         // A static fallback for a long list stops somewhere, or ?page=999999 would draw it all.
-        var shownPages = !growing ? 1 : ByTotal ? Math.Min(asked, Math.Max(1, MaxGrownRows / pageSize!.Value)) : asked;
+        var shownPages = !growing ? 1 : Math.Min(asked, Math.Max(1, MaxGrownRows / pageSize!.Value));
         var page = growing || VirtualRows || (byCursor && cursor is null) ? 1 : asked;
         var request = Shape(new DataRequest<TItem>
         {
@@ -865,7 +865,9 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         }
 
         (_cursor, _next, _previous) = byCursor ? (cursor, next, previous) : (null, null, null);
-        if (ByTotal && growing && (shownPages + 1) * pageSize!.Value > MaxGrownRows)
+        // At that stop a static page has no more to offer (its link would ask for the same rows again); an
+        // interactive one goes on adding a page at a time, unless it draws by the total.
+        if (growing && (ByTotal || !RendererInfo.IsInteractive) && (shownPages + 1) * pageSize!.Value > MaxGrownRows)
         {
             _next = null;
         }

@@ -88,7 +88,7 @@
               data-ib-view-key="@ViewKey" data-ib-new="@(Editable ? EditHref(NewKey) : null)" data-ib-movable="@(Movable ? "" : null)" data-ib-start-key="@StartKey" data-ib-edit-key="@EditKey" data-ib-day-start="@DayStart" data-ib-scheduler-id="@(_partLinks.Any(l => l.HasParts) ? PartsId : null)">
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/scheduler.css"]" />
     @{
-        var culture = CultureInfo.CurrentCulture;
+        var culture = CalendarGrid.Gregorian(CultureInfo.CurrentCulture);
         var (view, date) = (CurrentView, CurrentDate);
         var (first, days) = SchedulerLayout.Range(view, date, FirstDay, AgendaDays);
         var last = first.AddDays(days - 1);
@@ -1226,7 +1226,7 @@
 
     RenderFragment ISchedulerToolbar.TodayPart => __builder =>
     {
-        var culture = CultureInfo.CurrentCulture;
+        var culture = CalendarGrid.Gregorian(CultureInfo.CurrentCulture);
         var (view, date) = (CurrentView, CurrentDate);
         var period = PeriodOf(view).ToLower(culture);
         @* On a narrow screen, a calendar leaf with today's number in place of the word (Android's calendar); its name is the same. *@
@@ -1235,7 +1235,7 @@
 
     RenderFragment ISchedulerToolbar.ArrowsPart => __builder =>
     {
-        var culture = CultureInfo.CurrentCulture;
+        var culture = CalendarGrid.Gregorian(CultureInfo.CurrentCulture);
         var (view, date) = (CurrentView, CurrentDate);
         var period = PeriodOf(view).ToLower(culture);
         @* A pair: side by side with no gap, each narrower than an icon button so the two chevrons read as one control. *@
@@ -1251,7 +1251,7 @@
 
     RenderFragment ISchedulerToolbar.PeriodPart => __builder =>
     {
-        var culture = CultureInfo.CurrentCulture;
+        var culture = CalendarGrid.Gregorian(CultureInfo.CurrentCulture);
         var (view, date) = (CurrentView, CurrentDate);
         var period = PeriodOf(view).ToLower(culture);
         var (first, days) = SchedulerLayout.Range(view, date, FirstDay, AgendaDays);
@@ -1281,7 +1281,7 @@
 
     RenderFragment? ISchedulerToolbar.CategoriesPart => Kinds.Count == 0 ? null : __builder =>
     {
-        var culture = CultureInfo.CurrentCulture;
+        var culture = CalendarGrid.Gregorian(CultureInfo.CurrentCulture);
         var (view, date) = (CurrentView, CurrentDate);
         var period = PeriodOf(view).ToLower(culture);
             @* Each category shows or hides its appointments: a link with it in or out of the address. *@
@@ -1306,7 +1306,7 @@
 
     RenderFragment? ISchedulerToolbar.ViewsPart => Views.Count < 2 ? null : __builder =>
     {
-        var culture = CultureInfo.CurrentCulture;
+        var culture = CalendarGrid.Gregorian(CultureInfo.CurrentCulture);
         var (view, date) = (CurrentView, CurrentDate);
         var period = PeriodOf(view).ToLower(culture);
             @* Each view links by Href, as the arrows do: never with the form's keys, which an

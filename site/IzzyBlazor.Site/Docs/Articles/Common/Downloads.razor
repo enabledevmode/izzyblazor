@@ -24,7 +24,10 @@
             <ListItem>The file contains the rows the user sees, from every page, and the columns shown, in their order.</ListItem>
             <ListItem>It's a link, so it works on static pages and with JavaScript off.</ListItem>
             <ListItem>
-                The fields you pass to <Code>DataExport</Code> set what can be written, whatever the URL asks for. See
+                The fields you pass to <Code>DataExport</Code> set what can be written, filtered and searched, whatever
+                the URL asks for. <Code>DataFields.Of&lt;Order&gt;()</Code> is every property of the type: when it has
+                some a download shouldn't hold, pass only the others
+                (<Code>DataFields.Of&lt;Order&gt;().Where(f =&gt; f.Key != "internalnote").ToList()</Code>). See
                 <Anchor Href="docs/components/data-grid/export">DataGrid export</Anchor>.
             </ListItem>
             <ListItem>

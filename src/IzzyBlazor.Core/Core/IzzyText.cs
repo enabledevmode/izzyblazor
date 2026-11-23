@@ -538,6 +538,12 @@ public class IzzyText
     /// <summary>A RangeSlider with an end outside its Min and Max; {0} is its label, {1} and {2} the ends.</summary>
     public virtual string RangeOutside { get; set; } = "{0} must be between {1} and {2}.";
 
+    /// <summary>A number under its field's Min; {0} is its label, {1} the least it can be.</summary>
+    public virtual string NumberTooLow { get; set; } = "{0} must be {1} or more.";
+
+    /// <summary>A number over its field's Max; {0} is its label, {1} the most it can be.</summary>
+    public virtual string NumberTooHigh { get; set; } = "{0} must be {1} or less.";
+
     /// <summary>DateRangeField's caption for its first date.</summary>
     public virtual string DateRangeStart { get; set; } = "Start";
 

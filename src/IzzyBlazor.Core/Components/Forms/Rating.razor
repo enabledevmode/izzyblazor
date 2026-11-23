@@ -115,6 +115,16 @@
     // radio satisfies the group's required.
     private bool HasNone => IsNullable && !IsRequired;
 
+    // A posted rating over Max (or under none) isn't one of its stars: refused on the server too.
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => true;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value) =>
+        Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture) is var number && (number < 0 || number > Max)
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.RangeOutside, ResolvedLabel ?? FieldIdentifier.FieldName, 0, Max)
+            : null;
+
     private double? Number => CurrentValue is null ? null : Convert.ToDouble(CurrentValue, System.Globalization.CultureInfo.InvariantCulture);
 
     // The star a value checks: the nearest whole one, or none for an empty value or zero.

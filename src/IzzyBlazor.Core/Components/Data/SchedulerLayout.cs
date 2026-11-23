@@ -50,10 +50,18 @@ internal static class SchedulerLayout
         SchedulerView.Day => (date, 1),
         SchedulerView.Week => (WeekStart(date, firstDay), 7),
         // The working days of the week the date is in, as the Week view shows it.
-        SchedulerView.WorkWeek => (WeekStart(date, firstDay).AddDays(((int)DayOfWeek.Monday - (int)firstDay + 7) % 7), 5),
+        SchedulerView.WorkWeek => (WorkWeekStart(date, firstDay), 5),
         SchedulerView.Month => (WeekStart(new DateOnly(date.Year, date.Month, 1), firstDay), 42),
         _ => (date, Math.Max(1, agendaDays)),
     };
+
+    // The Monday in the date's week. Where weeks start midweek (a Wednesday), that Monday comes after a
+    // Wednesday, Thursday or Friday: theirs is the Monday before, so the five days hold the date.
+    private static DateOnly WorkWeekStart(DateOnly date, DayOfWeek firstDay)
+    {
+        var monday = WeekStart(date, firstDay).AddDays(((int)DayOfWeek.Monday - (int)firstDay + 7) % 7);
+        return monday > date && date.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday) ? monday.AddDays(-7) : monday;
+    }
 
     /// <summary>The day nearest a date that its view shows: a Saturday in a work week is that week's Friday.</summary>
     public static DateOnly Shown(SchedulerView view, DateOnly date, DayOfWeek firstDay, int agendaDays)

@@ -64,7 +64,9 @@
     nothing, and a sort on it is ignored. Search covers their searchable fields, which may not be the
     grid's text columns. Text doesn't carry `FilterCase`, so a grid that sets it needs the same `Case` on
     those fields. `ExportHref` gives the same address for a button of your own, and a column with
-    `Exportable="false"` stays out of the file.
+    `Exportable="false"` stays out of the address the grid writes. That address is the reader's to edit:
+    what a file can hold, and what can be filtered and searched, is the endpoint's fields, so give it only
+    the fields a download may have (`DataFields.Of<T>()` is every property of the type).
 
     `ActionColumn` holds a row's actions in a last column: EditAction, DeleteAction and your own
     RowActions, each a button, or with Overflow="RowActionOverflow.Always" in a ⋯ menu, which works

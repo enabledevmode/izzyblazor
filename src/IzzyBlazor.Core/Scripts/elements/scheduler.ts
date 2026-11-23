@@ -86,6 +86,7 @@ class Scheduler extends IzzyElement {
     // a press (read-only), focus goes to it (a dialog, read by its title; closing it puts focus
     // back); opened by hovering, focus stays where it is.
     let untrack: (() => void) | undefined;
+    signal.addEventListener("abort", () => untrack?.());
     this.addEventListener("toggle", (e) => {
       const card = e.target as HTMLElement;
       if (!card.classList?.contains("ib-sched-card")) return;
