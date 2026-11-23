@@ -123,7 +123,8 @@ internal static class SankeyLayout
 
         Depths(nodes);
         var columns = Columns(nodes, align, order);
-        var py = Math.Min(padding, height / Math.Max(1, columns.Max(c => c.Count) - 1));
+        // Half the height at most goes to the gaps, so a crowded column's nodes keep some.
+        var py = Math.Min(padding, height * 0.5 / Math.Max(1, columns.Max(c => c.Count) - 1));
         Initialize(columns, height, py);
         for (var i = 0; i < Iterations; i++)
         {

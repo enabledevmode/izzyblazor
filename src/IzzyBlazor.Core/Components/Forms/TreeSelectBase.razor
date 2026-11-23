@@ -214,6 +214,21 @@
     /// <summary>The keys of the chosen values.</summary>
     private protected abstract IReadOnlyCollection<string> ChosenKeys { get; }
 
+    /// <summary>The keys a value holds.</summary>
+    private protected abstract IEnumerable<string> KeysOf(TValue value);
+
+    // A posted key that isn't an item's is refused on the server: the browser only offers the
+    // tree's items, but a crafted post can send anything. With ChildrenProvider a key may be in a
+    // branch still to load, so there is no list to hold a value to.
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => ChildrenProvider is null;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value) =>
+        ChildrenProvider is null && AllItems.Select(KeyOf).ToHashSet() is { Count: > 0 } known && KeysOf(value).Any(key => !known.Contains(key))
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ValueInvalid, ResolvedLabel ?? FieldIdentifier.FieldName)
+            : null;
+
     /// <summary>Takes the tree's selection as the value, on an interactive page.</summary>
     private protected abstract void Choose(Selection selection);
 

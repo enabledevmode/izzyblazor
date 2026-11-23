@@ -1336,7 +1336,7 @@ internal static class ChartLayout
         // The first axis's ticks, if they run evenly from end to end: the steps to match.
         var first = model.ValueLabels;
         var steps = first.Count - 1;
-        var even = steps >= 1 && Math.Abs(first[0].Pos) < 1e-9 && Math.Abs(first[^1].Pos - 1) < 1e-9 && input.SecondaryMin is null && input.SecondaryMax is null;
+        var even = steps >= 1 && Math.Abs(first[0].Pos) < 1e-9 && Math.Abs(first[^1].Pos - 1) < 1e-9 && input.SecondaryMin is null && input.SecondaryMax is null && !input.ValueLog;
         double lo, hi;
         var ticks = new List<double>();
         if (even)
@@ -1369,6 +1369,12 @@ internal static class ChartLayout
             (lo, hi) = input.SecondaryMin is not null && input.SecondaryMax is not null ? (min, max) : ChartScale.Nice(min, max, count);
             if (input.SecondaryMin is { } a) lo = a;
             if (input.SecondaryMax is { } b) hi = b;
+            // A set end the other end landed on: the free end moves a step off, as the first axis's.
+            if (!(hi > lo))
+            {
+                var pad = lo == 0 ? 1 : Math.Abs(lo) * 0.1;
+                (lo, hi) = input.SecondaryMax is null ? (lo, lo + pad) : (hi - pad, hi);
+            }
             var spec = ChartScale.TickSpec(lo, hi, count);
             var format = input.SecondaryFormat ?? "N" + ChartScale.Decimals(spec.Step);
             model.SecondaryRange = (lo, hi);
@@ -1681,7 +1687,12 @@ internal static class ChartLayout
     private static (double, double) Nice(double min, double max, int count, ChartInput input)
     {
         var (a, b) = ChartScale.Nice(min, max, count);
-        return (input.ValueMin ?? a, input.ValueMax ?? b);
+        var (lo, hi) = (input.ValueMin ?? a, input.ValueMax ?? b);
+        if (hi > lo) return (lo, hi);
+
+        // A set end the other end landed on (Max 0 over values all 0): the free end moves a step off.
+        var pad = lo == 0 ? 1 : Math.Abs(lo) * 0.1;
+        return input.ValueMax is null ? (lo, lo + pad) : (hi - pad, hi);
     }
 
     // A log scale's ends: the powers of ten around the values, unless set.

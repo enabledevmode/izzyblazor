@@ -263,7 +263,7 @@ export function heat(
   frame.addEventListener(
     "keydown",
     (event) => {
-      const rtl = getComputedStyle(chart).direction === "rtl";
+      const rtl = getComputedStyle(frame).direction === "rtl";
       const i = current >= 0 ? current : first();
       const col = i % cols;
       let next: number;

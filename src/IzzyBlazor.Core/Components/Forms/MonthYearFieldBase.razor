@@ -55,7 +55,7 @@
                     <ChildContent>
                         <ib-period-grid class="ib-calendar"
                                         @attributes="@PeriodAttributes(IsYear, Format(CurrentValue), FormatLimit(Min, Range?.Minimum), FormatLimit(Max, Range?.Maximum))"
-                                        data-ib-change="@(ChooseLabel is null ? (IsYear ? TextDefaults.CalendarChangeYear : TextDefaults.CalendarChangeMonth) : null)"
+                                        data-ib-change="@(ChooseLabel is null ? (IsYear ? TextDefaults.CalendarChangeYear : TextDefaults.CalendarChangeMonth) : ChooseLabel + ", {0}")"
                                         data-ib-choose="@ChooseText">
                             <div class="ib-calendar-view">
                                 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />

@@ -11,7 +11,9 @@
  */
 
 @layer izzy.components {
+  /* Right to left, the plot keeps its direction, as a chart's frame does. */
   .ib-heat {
+    direction: ltr;
     --ib-heat-gap: 2px;
     --ib-heat-r: var(--ib-radius-sm);
     display: grid;
@@ -120,6 +122,7 @@
      or named ranges. */
   .ib-heat-scale {
     display: grid;
+    direction: ltr;
     /* The end bounds sit flush with the ends, so a key is a bound and a half wide, plus a gap. */
     width: calc(var(--n, 5) * max(2.5rem, var(--ib-heat-bw, 0px) * 1.5 + 0.5rem));
     max-width: 100%;

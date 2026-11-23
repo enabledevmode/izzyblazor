@@ -56,17 +56,6 @@ class Grid extends IzzyElement {
     if (!table) return;
     this.#table = table;
     table.setAttribute("role", "grid");
-    // A group's box ticks the rows drawn under it, and they report their own changes.
-    this.#on(table, "change", (event) => {
-      const box = event.target as HTMLInputElement;
-      if (box.matches(".ib-table-group-select") && box.closest("table") === this.#table) {
-        // Each click comes back here, and would change the box along the way.
-        const on = box.checked;
-        for (const own of this.#underGroup(box)) if (!own.disabled && own.checked !== on) own.click();
-      }
-      this.#syncSelected();
-    });
-
     // Cells scroll into view by focus, so the scroll box needs no Tab stop of its own. Still
     // focusable: focus goes there after Retry, and on to a cell.
     this.#box = table.closest<HTMLElement>(".ib-table-scroll");

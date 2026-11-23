@@ -382,7 +382,7 @@ internal static class HeatmapLayout
     {
         var n = dates.Length;
         // Hours over two days are many columns but not a month: they're named as times.
-        var span = (dates[^1] - dates[0]).TotalDays;
+        var span = Math.Abs((dates[^1] - dates[0]).TotalDays);
         var daily = n > 31 && span > 31 && span / (n - 1) <= 7.5;
         if (!daily)
         {
@@ -422,10 +422,13 @@ internal static class HeatmapLayout
     private static string[] DateTexts(DateTime[] dates, CultureInfo culture)
     {
         var n = dates.Length;
-        var spacing = n > 1 ? (dates[^1] - dates[0]).TotalDays / (n - 1) : 1;
+        // Items may come newest first.
+        var spacing = n > 1 ? Math.Abs((dates[^1] - dates[0]).TotalDays) / (n - 1) : 1;
+        // Hours over more than a day: the day too, or the same time names several columns.
+        var days = dates.Select(d => d.Date).Distinct().Skip(1).Any();
         return dates.Select((d, i) => spacing switch
         {
-            < 0.99 => d.ToString("t", culture),
+            < 0.99 => days ? d.ToString("MMM d", culture) + ", " + d.ToString("t", culture) : d.ToString("t", culture),
             < 20 => d.ToString("MMM d", culture),
             < 300 => d.ToString(i == 0 || d.Year != dates[i - 1].Year && d.Month == 1 ? "MMM yyyy" : "MMM", culture),
             _ => d.ToString("yyyy", culture),

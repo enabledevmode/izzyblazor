@@ -110,7 +110,7 @@
 
   /* Where the browser can, black or white, whichever reads best on the tile's own color. */
   @supports (color: contrast-color(red)) {
-    .ib-treemap-tile:is(*, .ib-i1) { color: contrast-color(var(--ib-heat-bg, var(--ib-treemap-fill))); }
+    .ib-treemap-tile:is(*, .ib-heatmap .ib-i1) { color: contrast-color(var(--ib-heat-bg, var(--ib-treemap-fill))); }
   }
 
   /* The tile or group the tooltip (or the keyboard) is on, outlined and lighter: a third white in light

@@ -131,6 +131,7 @@
 
   /* The number at the scale's end ends there, so it stays inside the chart however wide. */
   .ib-bullet-end > span { translate: -100% 0; }
+  .ib-bullet-end > span:dir(rtl) { translate: 0 0; }
 
   .ib-bullet-axis { grid-column: 2; }
   .ib-bullet-axis .ib-bullet-ticks { margin-block-start: var(--ib-space-1); }

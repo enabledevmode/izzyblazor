@@ -102,6 +102,10 @@
         ChoiceCollection<TValue, TItemValue>.Items(CurrentValue).Select(v => ChoiceOptions.Value(v)).ToHashSet();
 
     /// <inheritdoc />
+    private protected override IEnumerable<string> KeysOf(TValue value) =>
+        ChoiceCollection<TValue, TItemValue>.Items(value).Select(v => ChoiceOptions.Value(v));
+
+    /// <inheritdoc />
     private protected override void Choose(Selection selection)
     {
         // In the tree's order; then values whose items it doesn't hold (in branches loaded since, or

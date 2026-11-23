@@ -75,10 +75,12 @@
     private protected override bool Multiple => false;
 
     // A value that isn't nullable holds its default when nothing is chosen: chosen only if an item has it.
-    private bool HasValue => !string.IsNullOrEmpty(CurrentValueAsString)
-                             && (default(TValue) is null
-                                 || !EqualityComparer<TValue>.Default.Equals(CurrentValue, default)
-                                 || AllItems.Any(item => KeyOf(item) == CurrentValueAsString));
+    // An item may stand for the empty value itself (a TreeList's "Top level"): chosen while empty.
+    private bool HasValue => string.IsNullOrEmpty(CurrentValueAsString)
+        ? AllItems.Any(item => KeyOf(item).Length == 0)
+        : default(TValue) is null
+          || !EqualityComparer<TValue>.Default.Equals(CurrentValue, default)
+          || AllItems.Any(item => KeyOf(item) == CurrentValueAsString);
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -95,7 +97,10 @@
     private protected override string KeyOf(TItem item) => FormatValueAsString(ItemValue!(item)) ?? "";
 
     /// <inheritdoc />
-    private protected override IReadOnlyCollection<string> ChosenKeys => HasValue ? [CurrentValueAsString!] : [];
+    private protected override IReadOnlyCollection<string> ChosenKeys => HasValue ? [CurrentValueAsString ?? ""] : [];
+
+    /// <inheritdoc />
+    private protected override IEnumerable<string> KeysOf(TValue value) => FormatValueAsString(value) is { Length: > 0 } key ? [key] : [];
 
     /// <inheritdoc />
     private protected override IEnumerable<string> ChosenTexts => ChosenText is { } text ? [text] : [];
