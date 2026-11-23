@@ -2,7 +2,8 @@
 
 @* Connecting an AI assistant to IzzyBlazor: izzy agent (the skill and both servers, src/IzzyBlazor.Cli/AgentFiles.cs),
    izzy mcp's tools (BuildTools.cs), the docs MCP server at /mcp (Services/Mcp), llms.txt and the API metadata.
-   The client settings were the documented ones for each client in Oct 2026; the skill folders in Nov 2026. *@
+   The client settings were the documented ones for each client in Oct 2026 (VS Code's rechecked Nov 23, 2026: .vscode/mcp.json
+   is its deprecated format, to be removed Feb 2027; drop it from AgentFiles then); the skill folders in Nov 2026. *@
 
 <ArticlePage Section="get-started" Slug="ai-assistants">
     <Lead>
@@ -70,10 +71,14 @@
 
         <Heading Level="2">VS Code and Visual Studio</Heading>
         <TextBlock>
-            In VS Code, add the server to <Code>.vscode/mcp.json</Code>. In Visual Studio, add it to <Code>.mcp.json</Code>
-            next to the solution. Then use it from Copilot's agent mode:
+            Add the server to <Code>.mcp.json</Code> at the root of your project, next to the solution. Then use it
+            from Copilot's agent mode:
         </TextBlock>
-        <Code Block Language="json" Title=".vscode/mcp.json">@VsCodeJson</Code>
+        <Code Block Language="json" Title=".mcp.json">@VsCodeJson</Code>
+        <TextBlock>
+            VS Code versions from before November 2026 read <Code>.vscode/mcp.json</Code> instead, with
+            <Code>servers</Code> in place of <Code>mcpServers</Code>. <Code>izzy agent</Code> writes both files.
+        </TextBlock>
 
         <Heading Level="2">Cursor</Heading>
         <Code Block Language="json" Title=".cursor/mcp.json">@CursorJson</Code>
@@ -147,7 +152,7 @@
 
     private const string VsCodeJson = """
         {
-          "servers": {
+          "mcpServers": {
             "izzyblazor": {
               "type": "http",
               "url": "https://izzyblazor.com/mcp"
