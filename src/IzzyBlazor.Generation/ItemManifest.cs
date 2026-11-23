@@ -36,6 +36,12 @@ public sealed class ItemManifest
     /// <summary>Support per render mode (Static SSR, Server, WebAssembly, Auto), as the docs and the MCP mode check read it.</summary>
     public IReadOnlyDictionary<string, string> Modes { get; init; } = new Dictionary<string, string>();
 
+    /// <summary>
+    /// What it takes to run it in the modes it doesn't support (<c>modesNote</c>): a sentence and the steps,
+    /// for its docs page. Null when it has none.
+    /// </summary>
+    public ModesNote? ModesNote { get; init; }
+
     /// <summary>The settings, as a JSON Schema object; the IDE forms and the MCP tools take it as is.</summary>
     public JsonObject Schema { get; init; } = new() { ["type"] = "object", ["properties"] = new JsonObject() };
 
@@ -113,6 +119,9 @@ public sealed class ItemManifest
             Writes = (root["writes"] as JsonArray)?.Select(c => (string)c!).ToList() ?? [],
             Components = (root["components"] as JsonArray)?.Select(c => (string)c!).ToList() ?? [],
             Modes = (root["modes"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>(),
+            ModesNote = root["modesNote"] is JsonObject note
+                ? new ModesNote(Required(note, "text"), (note["steps"] as JsonArray)?.Select(step => (string)step!).ToList() ?? [])
+                : null,
             Schema = schema,
             Parameters = ItemParameter.FromSchema(schema),
             Computed = (root["computed"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>(),
@@ -329,3 +338,5 @@ public sealed record VariationOption(string Label, string Value)
     public string Slug => Label.ToLowerInvariant().Replace(' ', '-');
 }
 
+/// <summary>What it takes to run an item in the render modes it doesn't support: a sentence, then the steps in order.</summary>
+public sealed record ModesNote(string Text, IReadOnlyList<string> Steps);

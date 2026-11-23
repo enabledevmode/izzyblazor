@@ -78,6 +78,7 @@ public sealed class ItemDefinition
             Id = k.Id, Name = k.Name, Kind = k.Kind, Category = k.Category, Tier = k.Tier, Summary = k.Summary, Writes = k.Writes,
             Components = [.. b.Components.Union(k.Components).Order(StringComparer.Ordinal)],
             Modes = k.Modes.Count > 0 ? k.Modes : b.Modes,
+            ModesNote = k.Modes.Count > 0 ? k.ModesNote : b.ModesNote,
             Schema = schema,
             Parameters = ItemParameter.FromSchema(schema),
             Computed = computed,

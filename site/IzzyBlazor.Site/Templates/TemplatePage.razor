@@ -157,9 +157,20 @@
             <DescriptionList>
                 @foreach (var (mode, level) in _template.Manifest.Modes)
                 {
-                    <DescriptionItem Term="@mode">@(level == "none" ? "Not supported" : level == "full" ? "Supported" : "Partly supported")</DescriptionItem>
+                    <DescriptionItem Term="@mode">@(level == "none" ? (_template.Manifest.ModesNote is null ? "Not supported" : "Needs changes*") : level == "full" ? "Supported" : "Partly supported")</DescriptionItem>
                 }
             </DescriptionList>
+            @* A mode it can't run in as generated, with what it takes to get there. *@
+            @if (_template.Manifest.ModesNote is { } note)
+            {
+                <TextBlock>* @note.Text</TextBlock>
+                <List Ordered>
+                    @foreach (var step in note.Steps)
+                    {
+                        <ListItem>@step</ListItem>
+                    }
+                </List>
+            }
         }
         </div>
         </div>
