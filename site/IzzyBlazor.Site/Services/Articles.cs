@@ -75,12 +75,16 @@ public static class Articles
         ]),
         new("architecture", "Architecture", "Network",
         [
+            new("interactive-parts", "Interactive parts on static pages", "Puzzle",
+                "Keep a page static and give a render mode to the one component that needs C# between requests."),
             new("data-access", "Data access by render mode", "Database",
                 "Load data through an interface: a store over EF Core for pages on the server, and one that calls your API for pages in the browser."),
             new("data-access-server", "Data access on the server", "Server",
                 "The store over EF Core that Static and Interactive Server pages ask, with a context for each call."),
             new("data-access-browser", "Data access in the browser", "AppWindow",
-                "The client store and endpoints that WebAssembly and Auto pages need, a store in both projects, and the checks that move to the server."),
+                "WebAssembly and Auto pages call your API through a client store, and the endpoint repeats the page's checks."),
+            new("sign-in", "Sign-in across render modes", "LogIn",
+                "Sign-in pages stay static to set the cookie, and each render mode learns who the user is in its own way."),
         ]),
         new("accessibility", "Accessibility", "Accessibility",
         [

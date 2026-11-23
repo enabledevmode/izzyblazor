@@ -31,7 +31,7 @@
             </ListItem>
             <ListItem>
                 <strong>Register a store in both projects.</strong> The page prerenders on the server, and an Auto page
-                runs there until the WebAssembly runtime has downloaded. So the server registers
+                runs there on the first visit, while the WebAssembly runtime downloads. So the server registers
                 <Code>EfCustomerStore</Code> and the client registers <Code>HttpCustomerStore</Code>. With only the
                 client's, prerendering fails. See Microsoft's
                 <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/components/prerender" External>Prerender components</Anchor>.
@@ -56,7 +56,8 @@
         <List Gap="2">
             <ListItem>
                 <strong>Who can call it.</strong> Give the endpoint the policy that the page's <Code>[Authorize]</Code>
-                names, with <Code>RequireAuthorization</Code>. See Microsoft's
+                names, with <Code>RequireAuthorization</Code>. See
+                <Anchor Href="docs/architecture/sign-in">Sign-in across render modes</Anchor> and Microsoft's
                 <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/security/" External>Blazor authentication and authorization</Anchor>.
             </ListItem>
             <ListItem>

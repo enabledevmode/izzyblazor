@@ -1,0 +1,167 @@
+@page "/docs/architecture/sign-in"
+
+@* Sign-in across render modes: sign-in pages are static because a cookie needs the response, how each
+   render mode learns who the user is, reading the user one way everywhere, and what the server still has to
+   check. The code is the starter's (catalog/blazor, --auth Individual). Patterns only: the framework's own
+   details are linked on Microsoft Learn. *@
+
+<ArticlePage Section="architecture" Slug="sign-in">
+    <Lead>
+        Signing in sets a cookie, and the server reads it on every request. An
+        <Anchor Href="docs/common/render-modes">interactive page</Anchor> keeps running between requests, so it has to be
+        told who the user is when it starts.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Sign-in pages are static</Heading>
+        <TextBlock>
+            Setting a cookie needs an HTTP response, and only a static page or an endpoint has one. So the pages that
+            sign in, register and sign out stay static, even in an app that is interactive everywhere else. The starter
+            marks its account pages. Created with <Code>--all-interactive</Code>, its <Code>App.razor</Code> leaves the
+            render mode off for them:
+        </TextBlock>
+        <Code Block Language="razor" Title="Components/Account/Pages/_Imports.razor">@Exclude</Code>
+        <Code Block Language="razor" Title="Components/App.razor">@AppMode</Code>
+        <TextBlock>
+            Signing out is a form that posts to an endpoint, for the same reason. See Microsoft's
+            <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/components/render-modes#static-ssr-pages-in-an-interactive-app" External>Static SSR pages in an interactive app</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">How each render mode learns who the user is</Heading>
+        <figure class="site-diagram">
+            <div class="site-diagram-scroll ib-scroll">@((MarkupString)Flow)</div>
+            <figcaption>The cookie reaches the server with each request, and a circuit reads it once, as it starts. A page in the browser gets the user's name and roles with its first HTML.</figcaption>
+        </figure>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Render mode</th><th>The user comes from</th><th>How long it's kept</th></tr></thead>
+                <tbody>
+                    <tr><td>Static</td><td>The cookie, read on each request</td><td>One request</td></tr>
+                    <tr><td>Interactive Server</td><td>The cookie, read when the circuit starts</td><td>As long as the circuit, checked again on a timer</td></tr>
+                    <tr><td>WebAssembly, and Auto once it runs in the browser</td><td>The prerendered page, which contains the user's name and roles</td><td>Until the next full page load</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <List Gap="2">
+            <ListItem>
+                <strong>A circuit outlives a request.</strong> If a user signs out in another tab or loses a role, an open
+                circuit still has the old user. The starter registers
+                <Code>IdentityRevalidatingAuthenticationStateProvider</Code>, which checks the user's security stamp every
+                30 minutes and signs the circuit out if it changed. Shorten its <Code>RevalidationInterval</Code> if that's
+                too long for your app.
+            </ListItem>
+            <ListItem>
+                <strong>The browser gets a copy, not the cookie.</strong> The server writes the user's name and roles into
+                the prerendered page, and the client reads them back. Register both halves:
+            </ListItem>
+        </List>
+        <Code Block Language="csharp" Title="Registering the user's state">@Registration</Code>
+
+        <Heading Level="2">Read the user the same way everywhere</Heading>
+        <TextBlock>
+            <Code>AuthorizeView</Code>, <Code>[Authorize]</Code> and the cascading <Code>AuthenticationState</Code> work in
+            every render mode, so a component that uses them can move between render modes:
+        </TextBlock>
+        <Code Block Language="razor">@ReadUser</Code>
+        <TextBlock>
+            Don't read <Code>HttpContext</Code> for the user outside a static page. An interactive component has no
+            current request, so it's null or out of date there.
+        </TextBlock>
+
+        <Heading Level="2">What the server still checks</Heading>
+        <List Gap="2">
+            <ListItem>
+                <strong>Pages.</strong> <Code>[Authorize]</Code> on a page stops it rendering for the wrong user, in every
+                render mode. On static pages the server redirects to the sign-in page before the page renders. On
+                interactive pages, <Code>AuthorizeRouteView</Code> in <Code>Routes</Code> shows the redirect or its "not
+                authorized" content.
+            </ListItem>
+            <ListItem>
+                <strong>Endpoints and rows.</strong> In the browser, <Code>[Authorize]</Code> only hides the page, and the
+                copy of the user there is for showing a name or hiding a link. The browser sends the cookie with calls
+                to the app's own URL, and the endpoint decides. See
+                <Anchor Href="docs/architecture/data-access-browser#checks-that-move-to-the-server">Checks that move to the server</Anchor>.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/get-started/create-app">Create an app</Anchor>: <Code>--auth Individual</Code> adds these pages and registrations to the starter.</ListItem>
+            <ListItem><Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/security/" External>Blazor authentication and authorization</Anchor>: Microsoft's guide to the pieces named here.</ListItem>
+            <ListItem><Anchor Href="docs/architecture/data-access">Data access by render mode</Anchor>: the stores and endpoints these checks protect.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Exclude = """
+        @attribute [ExcludeFromInteractiveRouting]
+        """;
+
+    private const string AppMode = """
+        <Routes @rendermode="PageRenderMode" />
+
+        @code {
+            [CascadingParameter]
+            private HttpContext HttpContext { get; set; } = default!;
+
+            // Every page is interactive except those marked [ExcludeFromInteractiveRouting].
+            private IComponentRenderMode? PageRenderMode =>
+                HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+        }
+        """;
+
+    private const string Registration = """
+        // Program.cs (server)
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents()
+            .AddInteractiveWebAssemblyComponents()
+            .AddAuthenticationStateSerialization();
+        builder.Services.AddCascadingAuthenticationState();
+        // For the pages on a circuit:
+        builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+        // Program.cs (client)
+        builder.Services.AddAuthorizationCore();
+        builder.Services.AddCascadingAuthenticationState();
+        builder.Services.AddAuthenticationStateDeserialization();
+        """;
+
+    private const string ReadUser = """
+        <AuthorizeView Policy="Sales">
+            <Authorized>
+                <Button Href="orders/new">New order</Button>
+            </Authorized>
+        </AuthorizeView>
+
+        @code {
+            [CascadingParameter]
+            private Task<AuthenticationState>? State { get; set; }
+
+            private async Task<string?> UserName() =>
+                State is null ? null : (await State).User.Identity?.Name;
+        }
+        """;
+
+    // The diagram: a place (browser, server) is a tinted box, what runs there a white one. Colors are in site.css.
+    private const string Flow = """
+        <svg viewBox="0 0 640 150" role="img" aria-label="The browser stores the sign-in cookie and sends it with each request. The server reads the user from it for each static page, and once when a circuit starts. For a page in the browser, the server sends the user's name and roles back inside the page's HTML.">
+            <defs><marker id="site-diagram-arrow-d" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="site-diagram-head" d="M0 0 8 4 0 8z"/></marker></defs>
+            <rect class="site-diagram-place" x="1" y="1" width="220" height="148" rx="8"/>
+            <text class="site-diagram-label" x="14" y="24">Browser</text>
+            <rect class="site-diagram-node" x="16" y="40" width="190" height="40" rx="6"/>
+            <text x="111" y="65" text-anchor="middle">Sign-in cookie</text>
+            <rect class="site-diagram-node" x="16" y="96" width="190" height="40" rx="6"/>
+            <text x="111" y="121" text-anchor="middle">Page in the browser</text>
+            <rect class="site-diagram-place" x="400" y="1" width="239" height="148" rx="8"/>
+            <text class="site-diagram-label" x="413" y="24">Server</text>
+            <rect class="site-diagram-node" x="415" y="40" width="209" height="40" rx="6"/>
+            <text x="519" y="65" text-anchor="middle">Static page, or a new circuit</text>
+            <rect class="site-diagram-node" x="415" y="96" width="209" height="40" rx="6"/>
+            <text x="519" y="121" text-anchor="middle">Prerendered HTML</text>
+            <text class="site-diagram-label" x="310" y="52" text-anchor="middle">the cookie</text>
+            <path class="site-diagram-line" d="M206 60H413" marker-end="url(#site-diagram-arrow-d)"/>
+            <text class="site-diagram-label" x="310" y="108" text-anchor="middle">name and roles</text>
+            <path class="site-diagram-line" d="M415 116H208" marker-end="url(#site-diagram-arrow-d)"/>
+        </svg>
+        """;
+}

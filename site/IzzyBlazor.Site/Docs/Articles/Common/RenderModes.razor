@@ -42,10 +42,14 @@
                 HTML, so nothing is broken while its scripts load.
             </ListItem>
         </List>
+        <figure class="site-diagram">
+            <div class="site-diagram-scroll ib-scroll">@((MarkupString)Where)</div>
+            <figcaption>Where a page's components run once it has loaded. Auto uses Interactive Server on the first visit, and WebAssembly on later visits, once the runtime is cached.</figcaption>
+        </figure>
         <TextBlock>
             An interactive page is prerendered: the server sends its HTML first, and C# takes over once the circuit or the
             WebAssembly runtime is ready. Blazor's own script loads on static pages too, and runs enhanced navigation and
-            form posts.
+            the form posts of forms that ask for it, as IzzyBlazor's <Code>Form</Code> does by default.
         </TextBlock>
 
         <Heading Level="2">One component in each render mode</Heading>
@@ -71,14 +75,15 @@
         <Heading Level="2">Choose a render mode</Heading>
         <TextBlock>
             Keep a page static unless it needs C# to answer the user's clicks, and make only those pages interactive. You can
-            set a render mode for each page, or for the whole app on <Code>Routes</Code>.
+            set a render mode for each page, for the whole app on <Code>Routes</Code>, or for
+            <Anchor Href="docs/architecture/interactive-parts">one component on a static page</Anchor>.
         </TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
                 <thead><tr><th>Render mode</th><th>Pick it for</th></tr></thead>
                 <tbody>
                     <tr><td>Static</td><td>Most pages: lists, details, forms that save, settings. Sorting, filters and paging work through the URL, and forms work through a form post. Static pages need no circuit, so they scale and deploy like plain web pages.</td></tr>
-                    <tr><td>Interactive Server</td><td>Pages that run C# on each change, such as an <code>OnClick</code> handler, a value bound with <code>Live</code>, or a search on the server as the user types. Each open page keeps a circuit on the server.</td></tr>
+                    <tr><td>Interactive Server</td><td>Pages that run C# on each change, such as an <code>OnClick</code> handler, a value bound with <code>Live</code>, or a list that updates as other users work. Each open page keeps a circuit on the server.</td></tr>
                     <tr><td>Interactive WebAssembly or Auto</td><td>The same kind of page, when its components should run in the browser instead of keeping a circuit on the server. These pages live in a <code>.Client</code> project.</td></tr>
                 </tbody>
             </table>
@@ -162,6 +167,7 @@
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: one form for static and interactive pages.</ListItem>
+            <ListItem><Anchor Href="docs/architecture/interactive-parts">Interactive parts on static pages</Anchor>: a render mode on one component, and when a circuit is worth it.</ListItem>
             <ListItem><Anchor Href="docs/architecture/data-access">Data access by render mode</Anchor>: how a page loads data on the server and in the browser.</ListItem>
             <ListItem><Anchor Href="docs/common/session-recovery">Session recovery</Anchor>: what an interactive page keeps when its session pauses and resumes.</ListItem>
             <ListItem><Anchor Href="docs/components">All components</Anchor>: what each one does in each render mode.</ListItem>
@@ -170,6 +176,37 @@
 </ArticlePage>
 
 @code {
+    // Where components run: a mode is a tinted box, the browser's part above the server's. Colors are in site.css.
+    private const string Where = """
+        <svg viewBox="0 0 640 150" role="img" aria-label="Static: the browser shows HTML, and components run on the server for each request. Interactive Server: the browser shows HTML and sends events, and components stay running on the server over a circuit. WebAssembly: components run in the browser and call the server's API when they need data. Auto is Interactive Server on the first visit and WebAssembly afterwards.">
+            <defs><marker id="site-diagram-arrow-m" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="site-diagram-head" d="M0 0 8 4 0 8z"/></marker></defs>
+            <rect class="site-diagram-place" x="1" y="1" width="198" height="148" rx="8"/>
+            <text class="site-diagram-label" x="14" y="24">Static</text>
+            <rect class="site-diagram-node" x="15" y="36" width="170" height="36" rx="6"/>
+            <text x="100" y="59" text-anchor="middle">Browser: HTML</text>
+            <rect class="site-diagram-node" x="15" y="108" width="170" height="36" rx="6"/>
+            <text x="100" y="131" text-anchor="middle">Server: components</text>
+            <path class="site-diagram-line" d="M41 74V106" marker-end="url(#site-diagram-arrow-m)"/>
+            <text class="site-diagram-label" x="53" y="94">each request</text>
+            <rect class="site-diagram-place" x="221" y="1" width="198" height="148" rx="8"/>
+            <text class="site-diagram-label" x="234" y="24">Interactive Server</text>
+            <rect class="site-diagram-node" x="235" y="36" width="170" height="36" rx="6"/>
+            <text x="320" y="59" text-anchor="middle">Browser: HTML, events</text>
+            <rect class="site-diagram-node" x="235" y="108" width="170" height="36" rx="6"/>
+            <text x="320" y="131" text-anchor="middle">Server: components</text>
+            <path class="site-diagram-line" d="M261 74V106" marker-end="url(#site-diagram-arrow-m)" marker-start="url(#site-diagram-arrow-m)"/>
+            <text class="site-diagram-label" x="273" y="94">a circuit, kept open</text>
+            <rect class="site-diagram-place" x="441" y="1" width="198" height="148" rx="8"/>
+            <text class="site-diagram-label" x="454" y="24">WebAssembly</text>
+            <rect class="site-diagram-node" x="455" y="36" width="170" height="36" rx="6"/>
+            <text x="540" y="59" text-anchor="middle">Browser: components</text>
+            <rect class="site-diagram-node" x="455" y="108" width="170" height="36" rx="6"/>
+            <text x="540" y="131" text-anchor="middle">Server: API</text>
+            <path class="site-diagram-line" d="M481 74V106" marker-end="url(#site-diagram-arrow-m)"/>
+            <text class="site-diagram-label" x="493" y="94">HTTP, when needed</text>
+        </svg>
+        """;
+
     private const string Interactive = """
         @page "/orders/{Id:int}/edit"
         @rendermode InteractiveServer

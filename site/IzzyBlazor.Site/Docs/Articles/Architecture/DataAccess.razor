@@ -8,7 +8,7 @@
 <ArticlePage Section="architecture" Slug="data-access">
     <Lead>
         A page that runs on the server can read your database. A page that runs in the browser can't, so it calls an
-        API. If your pages load data through an interface, the same page works in both places.
+        API. The page's <Anchor Href="docs/common/render-modes">render mode</Anchor> decides which. If your pages load data through an interface, the same page works in both places.
     </Lead>
     <ChildContent>
         <Heading Level="2">One interface for every mode</Heading>
@@ -31,7 +31,7 @@
                     <tr><td>Static</td><td>On the server</td><td>A store over your <code>DbContext</code></td></tr>
                     <tr><td>Interactive Server</td><td>On the server, for as long as its circuit</td><td>The same store, with a context for each call</td></tr>
                     <tr><td>WebAssembly</td><td>In the browser, after prerendering on the server</td><td>A client store that calls your endpoints, and the server’s store while prerendering</td></tr>
-                    <tr><td>Auto</td><td>On the server first, then in the browser</td><td>Both stores, each registered in its own project</td></tr>
+                    <tr><td>Auto</td><td>On the server on the first visit, in the browser on later ones</td><td>Both stores, each registered in its own project</td></tr>
                 </tbody>
             </table>
         </Prose>

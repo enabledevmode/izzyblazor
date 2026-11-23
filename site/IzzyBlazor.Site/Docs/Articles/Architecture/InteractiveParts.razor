@@ -1,0 +1,143 @@
+@page "/docs/architecture/interactive-parts"
+
+@* Interactive parts on static pages: what stays static, a render mode on one component, what crosses into
+   it, navigation and posts without a reload, and when a circuit is worth it. Patterns only: the framework's
+   own details are linked on Microsoft Learn. *@
+
+<ArticlePage Section="architecture" Slug="interactive-parts">
+    <Lead>
+        Most of a page can stay static. Give a render mode to the one component that needs C# to answer the user, and
+        the rest of the page still loads and scales like a web page.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">What stays static</Heading>
+        <TextBlock>
+            IzzyBlazor's components respond in the browser on static pages: dialogs and tabs open, tables sort and filter
+            through the URL, and a Combobox with <Code>Search</Code> asks the server as the user types.
+            <Anchor Href="docs/common/render-modes">Render modes</Anchor> lists what each component does on static pages
+            and where a static page stores its state. Two more things need no interactive part:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem><strong>Saving a form.</strong> A <Anchor Href="docs/common/forms">Form</Anchor> posts, and the server validates the model.</ListItem>
+            <ListItem><strong>Data that takes a while to load.</strong> With <Code>[StreamRendering]</Code>, the server sends the page first and the data when it's ready. See Microsoft's <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/components/rendering#streaming-rendering" External>Streaming rendering</Anchor>.</ListItem>
+        </List>
+
+        <Heading Level="2">A render mode on one component</Heading>
+        <TextBlock>
+            When one part of a page does need C# between requests, put the render mode on that component, not on the
+            page:
+        </TextBlock>
+        <figure class="site-diagram">
+            <div class="site-diagram-scroll ib-scroll">@((MarkupString)OnePart)</div>
+            <figcaption>The page is static HTML. Only the interactive part has a circuit.</figcaption>
+        </figure>
+        <Code Block Language="razor" Title="Order.razor">@Page</Code>
+        <List Gap="2">
+            <ListItem>
+                <strong>Pass simple values in.</strong> Parameters cross from the static page as JSON, so pass an id, a
+                string or a small record. Content between the component's tags can't cross, and neither can a
+                callback. The interactive component loads its own data from the id.
+            </ListItem>
+            <ListItem>
+                <strong>Everything inside it is interactive.</strong> A component's children run in its render mode. Keep
+                the interactive part small, and leave the page's header, navigation and details outside it.
+            </ListItem>
+            <ListItem>
+                <strong>A browser part lives in the client project.</strong> A component with
+                <Code>InteractiveWebAssembly</Code> or <Code>InteractiveAuto</Code> goes in the <Code>.Client</Code>
+                project, and loads its data through
+                <Anchor Href="docs/architecture/data-access-browser">a client store</Anchor>.
+            </ListItem>
+            <ListItem>
+                <strong>Leave the app's render mode unset.</strong> This works when <Code>Routes</Code> has no render mode
+                of its own. In an app that is interactive throughout, a page opts out with
+                <Code>[ExcludeFromInteractiveRouting]</Code>, and <Code>App.razor</Code> leaves the render mode off for
+                it, as <Anchor Href="docs/architecture/sign-in#sign-in-pages-are-static">the sign-in pages</Anchor> do.
+            </ListItem>
+        </List>
+        <TextBlock>
+            See Microsoft's
+            <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/components/render-modes" External>ASP.NET Core Blazor render modes</Anchor>
+            for what a render mode can be applied to and what parameters it accepts.
+        </TextBlock>
+
+        <Heading Level="2">The two halves share the request</Heading>
+        <TextBlock>
+            A static component can't call an interactive one, and the interactive one can't re-render the static page
+            around it. They share what a request carries:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem><strong>The URL.</strong> The interactive part navigates to change a value in the URL, and the server renders the static parts for the new URL.</ListItem>
+            <ListItem><strong>The database.</strong> The interactive part saves, and the static parts read the saved rows on the next request.</ListItem>
+            <ListItem><strong>A cookie.</strong> For a preference both halves read, such as a layout the user chose.</ListItem>
+        </List>
+
+        <Heading Level="2">Navigation and form posts without a full reload</Heading>
+        <TextBlock>
+            Blazor's script runs on static pages too. It fetches the next page and swaps in what changed, so a link
+            doesn't reload the browser tab. Neither does a form post from IzzyBlazor's <Code>Form</Code>, which turns
+            this on by default; a plain <Code>&lt;form&gt;</Code> needs <Code>data-enhance</Code>. None of this needs a
+            circuit. See Microsoft's
+            <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/fundamentals/navigation#enhanced-navigation-and-form-handling" External>Enhanced navigation and form handling</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">When a circuit is worth it</Heading>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>The part</th><th>Why it's interactive</th></tr></thead>
+                <tbody>
+                    <tr><td>A chat, a feed or a dashboard that updates by itself</td><td>The server pushes changes to the page with no request from the user.</td></tr>
+                    <tr><td>An editor where each change recalculates others</td><td>C# runs on every change, faster than a post per change.</td></tr>
+                    <tr><td>A wizard whose steps depend on unsaved answers</td><td>The state lives in memory until the last step saves it.</td></tr>
+                    <tr><td>A grid edited cell by cell, with selection and bulk actions</td><td>Many small C# events on one screen.</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            The circuit opens when the page's first Interactive Server component starts, and closes when none remain. A
+            page with none has no circuit. So the cost follows the pages that need it, not the whole app.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what each render mode is, and what components do in each.</ListItem>
+            <ListItem><Anchor Href="docs/architecture/data-access">Data access by render mode</Anchor>: how each half of the page loads its data.</ListItem>
+            <ListItem><Anchor Href="docs/common/session-recovery">Session recovery</Anchor>: what an interactive part does when its connection drops.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Page = """
+        @page "/orders/{Id:int}"
+
+        <PageHeader Title="Order" />
+        <OrderDetails Id="Id" />
+
+        <OrderChat OrderId="Id" @rendermode="InteractiveServer" />
+
+        @code {
+            [Parameter] public int Id { get; set; }
+        }
+        """;
+
+    // The diagram: a place (browser, server) is a tinted box, what runs there a white one. Colors are in site.css.
+    private const string OnePart = """
+        <svg viewBox="0 0 640 150" role="img" aria-label="In the browser, the page is HTML with one interactive part inside it. The interactive part stays connected to its component on the server over a circuit. The rest of the page has no connection.">
+            <defs><marker id="site-diagram-arrow-c" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="site-diagram-head" d="M0 0 8 4 0 8z"/></marker></defs>
+            <rect class="site-diagram-place" x="1" y="1" width="300" height="148" rx="8"/>
+            <text class="site-diagram-label" x="14" y="24">Browser: the page</text>
+            <rect class="site-diagram-node" x="16" y="40" width="270" height="40" rx="6"/>
+            <text x="151" y="65" text-anchor="middle">Header and details (HTML)</text>
+            <rect class="site-diagram-node" x="16" y="92" width="270" height="44" rx="6"/>
+            <text x="151" y="119" text-anchor="middle">OrderChat (interactive)</text>
+            <rect class="site-diagram-place" x="400" y="1" width="239" height="148" rx="8"/>
+            <text class="site-diagram-label" x="413" y="24">Server</text>
+            <rect class="site-diagram-node" x="415" y="92" width="209" height="44" rx="6"/>
+            <text x="519" y="119" text-anchor="middle">OrderChat's state</text>
+            <text class="site-diagram-label" x="350" y="104" text-anchor="middle">circuit</text>
+            <path class="site-diagram-line" d="M288 114H413" marker-start="url(#site-diagram-arrow-c)" marker-end="url(#site-diagram-arrow-c)"/>
+            <text class="site-diagram-label" x="519" y="65" text-anchor="middle">nothing kept for the rest</text>
+        </svg>
+        """;
+}
