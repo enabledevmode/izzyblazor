@@ -29,7 +29,7 @@
                 Most components need a server circuit or a WebAssembly download to be interactive. IzzyBlazor’s components are interactive in every render mode, even static SSR.
             </TextBlock>
             <div class="site-hero-actions">
-                <Button Href="docs/get-started/create-app" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
+                <Button Href="docs/get-started/create-app" Size="ControlSize.Lg">Get started</Button>
                 <Button Href="@AccountService.SignIn" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create a free account</Button>
             </div>
         </div>
@@ -276,10 +276,6 @@
 </Section>
 
 @code {
-    // The brand's Ember, on the calls to action only (it isn't a component accent): site.css's
-    // --ib-color-ember and --ib-color-on-ember, a deeper one under white text in the light scheme.
-    private static readonly Accent Ember = Accent.Token("ember");
-
     // The hero's dashboard, as a page of its own.
     private const string RunningHref = "frame/home-store";
 

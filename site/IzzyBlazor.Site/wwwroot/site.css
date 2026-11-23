@@ -3,9 +3,6 @@
 :root.site {
   --site-ember-soft: light-dark(#fdebdf, rgb(242 106 27 / 0.18));
   --site-ember-text: light-dark(#b8440a, #ff8f4d);
-  /* The calls to action (Accent.Token("ember")): a deeper Ember under white text in the light scheme. */
-  --ib-color-ember: light-dark(#c2410c, #f26a1b);
-  --ib-color-on-ember: light-dark(#fff, #14161a);
 }
 
 /* Docs pages always show the page's scrollbar, so moving between a short page and a long one
