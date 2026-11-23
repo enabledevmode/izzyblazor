@@ -18,7 +18,7 @@
       "Route": { "type": "string", "default": "privacy", "x-priority": "important", "description": "The page's address, without the leading slash." },
       "Email": { "type": "string", "default": "privacy@example.com", "description": "Where questions about the policy go." },
       "Routable": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the page's route and title; the docs previews leave them out." },
-      "Name": { "type": "string", "default": "Privacy", "description": "The page component's name." }
+      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Privacy", "description": "The page component's name." }
     }
   },
   "accessibility": [

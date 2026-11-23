@@ -77,7 +77,8 @@ internal static partial class TemplateText
             var lineStart = match.Index == 0 ? 0 : text.LastIndexOf('\n', match.Index - 1) + 1;
             var before = text.AsSpan(lineStart, match.Index - lineStart);
             if (code || match.Index > codeFrom || DirectiveLine().IsMatch(before))
-                return InString(before, out var interpolated) ? CSharpString(value, interpolated) : value;
+                // Outside a string (a comment, mostly) a value stays on its line: a line break would end the comment.
+                return InString(before, out var interpolated) ? CSharpString(value, interpolated) : value.ReplaceLineEndings(" ");
             return Attribute(before) switch
             {
                 Place.Literal => Markup(value, attribute: true),

@@ -19,8 +19,8 @@
       "PolicyHref": { "type": "string", "default": "privacy", "description": "Where \"Cookie policy\" goes, such as the privacy page from izzy add legal." },
       "Floating": { "type": "boolean", "default": true, "x-hidden": true, "description": "Pins the notice to the window; the docs previews show it in place." },
       "Routable": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the settings page's route and title; the docs previews leave them out." },
-      "Name": { "type": "string", "default": "CookieNotice", "description": "The notice's component name." },
-      "PageName": { "type": "string", "default": "Cookies", "description": "The settings page's component name." },
+      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "CookieNotice", "description": "The notice's component name." },
+      "PageName": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Cookies", "description": "The settings page's component name." },
       "Into": { "type": "string", "default": "Components/Layout/MainLayout.razor", "description": "The layout the notice is placed in, at the end of its AppShell. When every page runs in the browser, it goes in App.razor after Routes instead, rendered on the server." }
     }
   },

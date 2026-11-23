@@ -6,6 +6,7 @@ namespace IzzyBlazor.Generation;
 public static class ChangesetWriter
 {
     static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
+    static readonly UTF8Encoding Strict = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
     /// <summary>
     /// Creates the files and makes the inserts. Refuses, writing nothing, when a file to create already exists
@@ -23,9 +24,19 @@ public static class ChangesetWriter
         foreach (var group in changeset.Inserts.GroupBy(i => i.Path))
         {
             var full = FullPath(projectDirectory, group.Key);
+            full = ProjectInfo.Existing(full) ?? full;
             var bytes = File.ReadAllBytes(full);
             var bom = bytes is [0xEF, 0xBB, 0xBF, ..];
-            var text = Encoding.UTF8.GetString(bom ? bytes[3..] : bytes);
+            string text;
+            try
+            {
+                text = Strict.GetString(bom ? bytes[3..] : bytes);
+            }
+            catch (DecoderFallbackException)
+            {
+                // Read as UTF-8, its other characters would come back as question marks.
+                throw new GenerationException($"{group.Key} isn't saved as UTF-8; nothing was written. Save it as UTF-8 and generate again.");
+            }
             if (Inserts.Hash(text) != group.First().OriginalHash)
                 throw new GenerationException($"{group.Key} changed after these changes were made; nothing was written. Generate again.");
             var updated = Encoding.UTF8.GetBytes(Merge(text, group));
@@ -142,7 +153,7 @@ public static class ChangesetWriter
     {
         var fullRoot = Path.GetFullPath(root);
         var full = Path.GetFullPath(Path.Combine(fullRoot, path));
-        if (!full.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase)) throw new GenerationException($"{path} is outside the project.");
+        if (!ProjectInfo.Inside(fullRoot, full)) throw new GenerationException($"{path} is outside the project.");
         return full;
     }
 }

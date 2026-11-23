@@ -17,7 +17,7 @@
     "properties": {
       "StatusPage": { "type": "string", "default": "", "description": "Your status page's address, for See the status page. Empty leaves the button out; it's kept in appsettings.json." },
       "Route": { "type": "string", "default": "maintenance", "description": "Where the page is always shown, without the leading slash, so you can check it before turning maintenance on." },
-      "Name": { "type": "string", "default": "Maintenance", "description": "The page's component name." },
+      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Maintenance", "description": "The page's component name." },
       "Standalone": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the page as a whole document; the docs previews show only its content." }
     }
   },

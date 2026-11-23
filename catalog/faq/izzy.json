@@ -25,7 +25,7 @@
       "ContactPrompt": { "type": "string", "default": "Can't find your answer?", "description": "The line over the contact link." },
       "ContactText": { "type": "string", "default": "Contact support", "description": "The contact link. Empty leaves both lines out." },
       "ContactHref": { "type": "string", "default": "contact", "description": "Where the contact link goes." },
-      "Name": { "type": "string", "default": "Faq", "description": "The component's name." },
+      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Faq", "description": "The component's name." },
       "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
     }
   },

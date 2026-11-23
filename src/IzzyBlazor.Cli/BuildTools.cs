@@ -50,7 +50,7 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
     }
 
     [McpServerTool(Name = "list_items", Title = "List IzzyBlazor catalog items", ReadOnly = true, Idempotent = true, OpenWorld = false)]
-    [Description("The catalog as JSON: each item's id, kind (starter, kit, page, block, section, recipe), category, summary and tier (open, account for a free account, pro), and any setting choices that are Pro. Call it before writing a page or section by hand.")]
+    [Description("The catalog as JSON: each item's id, kind (starter, kit, page, block, section, recipe), category, summary and tier (free, account for a free account, pro), and any setting choices that are Pro. Call it before writing a page or section by hand.")]
     public string ListItems(
         [Description("Only this kind: starter, kit, page, block, section or recipe. Leave out for all.")] string? kind = null) =>
         Run(["list", "--json", .. Option("kind", kind)], data: true);

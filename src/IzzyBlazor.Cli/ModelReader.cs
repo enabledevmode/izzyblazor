@@ -332,8 +332,10 @@ static partial class ModelReader
             .FirstOrDefault(a => a.NameEquals?.Name.Identifier.Text == property)?.Expression is LiteralExpressionSyntax { } literal
             ? Safe(literal.Token.ValueText) : null;
 
-    // A label goes into C# strings and Razor attributes: quotes, backslashes, braces and @ would end or open one.
-    internal static string Safe(string text) => text.Replace('"', '\'').Replace('\\', '/').Replace('{', '(').Replace('}', ')').Replace("@", " at ");
+    // A label goes into C# strings, Razor attributes and Razor text: quotes, backslashes, braces and @ would end
+    // or open one, and < or & would start a tag or an entity.
+    internal static string Safe(string text) => text.Replace('"', '\'').Replace('\\', '/').Replace('{', '(').Replace('}', ')').Replace("@", " at ")
+        .Replace('<', '\u2039').Replace('>', '\u203A').Replace("&", "and");
 
     static int MaxLength(SyntaxList<AttributeListSyntax> lists) =>
         (AttributeArgument(lists, "StringLength") ?? AttributeArgument(lists, "MaxLength")) is { } text && int.TryParse(text, out var n) ? n : 0;

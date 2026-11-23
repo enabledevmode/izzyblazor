@@ -56,7 +56,13 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     }
 
     /// <summary>Whether this machine has a sign-in or a CI key.</summary>
-    public bool SignedIn => ciKey is not null || ReadKey(out _) is not null;
+    public bool SignedIn => CiKey || ReadKey(out _) is not null;
+
+    // IZZY_KEY holds a key made on the account page: only the service can say whether it's a live one, but a
+    // value that isn't one at all is known here, and unlocks nothing.
+    bool CiKey => ciKey is { Length: >= 40 } && ciKey.StartsWith("izzyci_", StringComparison.Ordinal);
+
+    const string NotCiKey = "IZZY_KEY isn't a key from your account page (those start with izzyci_). Make one there, under Keys for CI.";
 
     /// <summary>
     /// The account's copy of the catalog on this machine, or null when there is none. A command that generates
@@ -66,6 +72,11 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     public string? Catalog(TextWriter error, bool online)
     {
         string credential;
+        if (ciKey is not null && !CiKey)
+        {
+            error.WriteLine(NotCiKey);
+            return null;
+        }
         if (ciKey is not null) credential = ciKey;
         else
         {
@@ -199,7 +210,7 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     {
         if (ciKey is not null)
         {
-            output.WriteLine("Using the key in IZZY_KEY.");
+            output.WriteLine(CiKey ? "Using the key in IZZY_KEY." : NotCiKey);
             return 0;
         }
         var key = ReadKey(out var state);
@@ -225,8 +236,11 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     void Save(string key)
     {
         Directory.CreateDirectory(home);
-        File.WriteAllText(KeyPath, key + "\n");
-        if (!OperatingSystem.IsWindows()) File.SetUnixFileMode(KeyPath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        // The owner's alone from the moment it exists, not made readable and then closed.
+        var options = new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.Write };
+        if (!OperatingSystem.IsWindows()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+        using var file = new StreamWriter(KeyPath, new System.Text.UTF8Encoding(false), options);
+        file.Write(key + "\n");
     }
 
     void Clear()

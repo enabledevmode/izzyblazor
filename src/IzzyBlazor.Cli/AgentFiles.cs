@@ -70,6 +70,8 @@ static class AgentFiles
                 // A key written twice throws here, when it is first looked up.
                 if (root[key] is null) root[key] = new JsonObject();
                 servers = root[key] as JsonObject ?? throw new JsonException();
+                servers["izzyblazor"] = Docs(httpType);
+                servers["izzy"] = Izzy();
             }
             catch (Exception e) when (e is JsonException or ArgumentException or IOException or UnauthorizedAccessException)
             {
@@ -77,8 +79,6 @@ static class AgentFiles
                 error.WriteLine($"warning: {path} isn't plain JSON with its servers under \"{key}\", so it was kept. Add two servers there: \"izzyblazor\", {Docs(httpType).ToJsonString()}, and \"izzy\", {Izzy().ToJsonString()}.");
                 continue;
             }
-            servers["izzyblazor"] = Docs(httpType);
-            servers["izzy"] = Izzy();
             Put(path, root.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
         }
         if (changed == 0) output.WriteLine("Nothing to change: the agent files are up to date.");

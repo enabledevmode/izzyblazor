@@ -27,9 +27,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy list [--kind starter|kit|page|block|section|recipe] [--json]
           izzy describe <item> [--json]
           izzy add <item> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
-          izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize]
+          izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
-          izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
+          izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
           izzy agent [--project <path>] [--dry-run]
           izzy mcp
           izzy login [--no-browser]
@@ -102,6 +102,12 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         catch (Exception e) when (e is GenerationException or UsageException)
         {
             error.WriteLine(e.Message);
+            return 1;
+        }
+        catch (Exception e) when (e is System.Xml.XmlException or JsonException)
+        {
+            // A project file or a settings file of the app's that doesn't parse: say which problem, not a stack trace.
+            error.WriteLine($"A file izzy reads in this app isn't valid: {e.Message}");
             return 1;
         }
     }
@@ -299,6 +305,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (!item.Manifest.Kind.ToString().Equals(args.Words[1], StringComparison.OrdinalIgnoreCase))
             throw new UsageException($"{item.Manifest.Id} is a {item.Manifest.Kind.ToString().ToLowerInvariant()}: {item.Manifest.NewCommand()} -n <name>.");
         var name = args.Take("name");
+        if (name is not null && (name.IndexOfAny(['/', '\\']) >= 0 || name is "." or ".." || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0))
+            throw new UsageException($"\"{name}\" isn't a project name. Give the folder with -o.");
         var folder = args.Take("output");
         var directory = Path.GetFullPath(folder ?? name ?? ".", workingDirectory);
         name ??= Path.GetFileName(directory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
@@ -470,7 +478,16 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     static void Record(string directory, string id, IReadOnlyDictionary<string, string> settings)
     {
         var path = Path.Combine(directory, ".izzy", "items.json");
-        var root = File.Exists(path) ? JsonNode.Parse(File.ReadAllText(path)) as JsonObject ?? [] : [];
+        JsonObject root;
+        try
+        {
+            root = File.Exists(path) ? JsonNode.Parse(File.ReadAllText(path)) as JsonObject ?? [] : [];
+        }
+        catch (JsonException)
+        {
+            // The files are written by now. A record that doesn't parse is the user's to mend: it is kept as it is.
+            throw new UsageException(".izzy/items.json isn't valid JSON, so this item wasn't recorded in it. The files above were written.");
+        }
         if (root["items"] is not JsonArray items) root["items"] = items = [];
         items.Add(new JsonObject
         {
@@ -582,7 +599,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     static string? ReadFile(string root, string path)
     {
         var full = Path.GetFullPath(Path.Combine(root, path));
-        if (!full.StartsWith(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)) throw new GenerationException($"{path} is outside the project.");
+        if (!ProjectInfo.Inside(Path.GetFullPath(root), full)) throw new GenerationException($"{path} is outside the project.");
         return File.Exists(full) ? File.ReadAllText(full) : null;
     }
 

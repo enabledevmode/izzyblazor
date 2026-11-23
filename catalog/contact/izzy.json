@@ -19,7 +19,7 @@
       "Privacy": { "type": "string", "default": "We'll only use your details to reply.", "description": "The line under the Send button." },
       "PrivacyHref": { "type": "string", "default": "privacy", "description": "Where \"Privacy policy\" after that line goes." },
       "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each way's address; the docs previews use it to keep their links on the page." },
-      "Name": { "type": "string", "default": "ContactSection", "description": "The component's name." },
+      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "ContactSection", "description": "The component's name." },
       "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
     }
   },

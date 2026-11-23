@@ -18,7 +18,7 @@
       "AllText": { "type": "string", "default": "All posts", "description": "A link to the blog, beside the heading. Empty leaves it out." },
       "AllHref": { "type": "string", "default": "blog", "description": "Where that link goes." },
       "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each post's address; the docs previews use it to keep their links on the page." },
-      "Name": { "type": "string", "default": "Articles", "description": "The component's name." },
+      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Articles", "description": "The component's name." },
       "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
     }
   },

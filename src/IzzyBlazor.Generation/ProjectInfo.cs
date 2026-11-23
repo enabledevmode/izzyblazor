@@ -92,16 +92,34 @@ public sealed record ProjectInfo(string Name, string RootNamespace)
         return path =>
         {
             var full = Path.GetFullPath(Path.Combine(root, path));
-            if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase)) throw new GenerationException($"{path} is outside the project.");
-            if (File.Exists(full)) return File.ReadAllText(full);
-            // A name in another case (privacy for Privacy.cshtml), as Windows and macOS find it, on Linux too.
-            var folder = Path.GetDirectoryName(full)!;
-            var name = Path.GetFileName(full);
-            var other = System.IO.Directory.Exists(folder)
-                ? System.IO.Directory.EnumerateFiles(folder).FirstOrDefault(f => Path.GetFileName(f).Equals(name, StringComparison.OrdinalIgnoreCase))
-                : null;
-            return other is null ? null : File.ReadAllText(other);
+            if (!Inside(root, full)) throw new GenerationException($"{path} is outside the project.");
+            return Existing(full) is { } found ? File.ReadAllText(found) : null;
         };
+    }
+
+    /// <summary>
+    /// Whether <paramref name="full"/> is <paramref name="root"/> or under it (both full paths). A folder beside
+    /// the root whose name starts with the root's (App1x beside App1) is not.
+    /// </summary>
+    public static bool Inside(string root, string full)
+    {
+        root = root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return full.Equals(root, StringComparison.OrdinalIgnoreCase)
+            || full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// The file at <paramref name="full"/>, or the one there under a name in another case (privacy for
+    /// Privacy.cshtml), as Windows and macOS find it, on Linux too; null when there is neither.
+    /// </summary>
+    public static string? Existing(string full)
+    {
+        if (File.Exists(full)) return full;
+        var folder = Path.GetDirectoryName(full)!;
+        var name = Path.GetFileName(full);
+        return System.IO.Directory.Exists(folder)
+            ? System.IO.Directory.EnumerateFiles(folder).FirstOrDefault(f => Path.GetFileName(f).Equals(name, StringComparison.OrdinalIgnoreCase))
+            : null;
     }
 
     /// <summary>The path relative to <see cref="Directory"/> of a file in the project (an editor's file, <c>--at</c>).</summary>

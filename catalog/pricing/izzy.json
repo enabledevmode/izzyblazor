@@ -23,7 +23,7 @@
       "HeadingLevel": { "type": "string", "enum": ["2", "1"], "default": "2", "description": "2 under the page's own heading; 1 when the plans are the page, such as /pricing. The plans' names are a level below." },
       "CompareHref": { "type": "string", "default": "features", "description": "Where \"Compare all features\" goes, under the plans. Empty leaves the line out." },
       "LinkBase": { "type": "string", "default": "", "x-hidden": true, "description": "Put before each plan's address; the docs previews use it to keep their links on the page." },
-      "Name": { "type": "string", "default": "Pricing", "description": "The component's name." },
+      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Pricing", "description": "The component's name." },
       "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
     }
   },
