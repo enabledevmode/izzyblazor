@@ -106,6 +106,7 @@ public static class Generator
                 inserts.Add(new TextInsert(path, offset, body, Inserts.Hash(target)));
                 continue;
             }
+            var unless = written.Unless is null ? null : TemplateText.ReplaceTokens(written.Unless, tokens);
             var spec = written with
             {
                 Text = text,
@@ -116,6 +117,7 @@ public static class Generator
             if (created >= 0)
             {
                 var file = creates[created].Text!;
+                if (unless is not null && file.Contains(unless, StringComparison.Ordinal)) continue;
                 if (Inserts.Place(file, spec, text) is { } spot) creates[created] = creates[created] with { Text = file.Remove(spot.Offset, spot.Length).Insert(spot.Offset, spot.Text) };
                 else if (spec.Position != InsertPosition.Replace && !Inserts.AlreadyThere(file, text)) warnings.Add(Inserts.NoAnchor(manifest.Id, path, spec));
                 continue;
@@ -126,6 +128,8 @@ public static class Generator
                 warnings.Add($"{manifest.Id}: {path} isn't in the project, so this wasn't added to it:\n{text}");
                 continue;
             }
+            // Made already, and edited since: the file holds what the insert names, not its text.
+            if (unless is not null && existing.Contains(unless, StringComparison.Ordinal)) continue;
             if (Inserts.Place(existing, spec, text) is { } found)
             {
                 // A replacement with the text that's there already changes nothing.

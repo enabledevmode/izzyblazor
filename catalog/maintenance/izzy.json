@@ -37,7 +37,7 @@
   "inserts": [
     { "file": "Program.cs", "anchor": "app.UseAntiforgery();", "position": "before", "text": "app.UseMaintenance();\n" },
     {
-      "file": "appsettings.json", "anchor": "\"AllowedHosts\"", "position": "before",
+      "file": "appsettings.json", "anchor": "\"AllowedHosts\"", "position": "before", "unless": "\"Maintenance\"",
       "text": "  \"Maintenance\": {\n    \"Enabled\": false,\n    \"Until\": \"\",\n    \"StatusPage\": \"{{StatusPage}}\",\n    \"Secret\": \"\"\n  },\n"
     }
   ]

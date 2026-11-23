@@ -119,5 +119,33 @@ public sealed class InsertTests : IDisposable
         Assert.Contains("<p>None yet</p>", Assert.Single(unplaced.Warnings));
     }
 
+    [Fact]
+    public void A_settings_section_edited_since_it_was_added_is_not_added_again()
+    {
+        var item = new ItemDefinition
+        {
+            Manifest = ItemManifest.Parse("""
+                {
+                  "id": "maintenance", "name": "Maintenance", "kind": "page",
+                  "inserts": [
+                    { "file": "appsettings.json", "anchor": "\"AllowedHosts\"", "position": "before", "unless": "\"Maintenance\"",
+                      "text": "  \"Maintenance\": {\n    \"Enabled\": false\n  },\n" }
+                  ]
+                }
+                """),
+            Files = new Dictionary<string, byte[]>(),
+        };
+        Write("App.csproj", "<Project Sdk=\"Microsoft.NET.Sdk.Web\" />");
+        Write("appsettings.json", "{\n  \"AllowedHosts\": \"*\"\n}\n");
+
+        var changes = Generator.Generate(item, new Dictionary<string, string>(), ProjectInfo.FromDirectory(_project));
+        ChangesetWriter.Apply(changes, _project);
+        Write("appsettings.json", Read("appsettings.json").Replace("false", "true"));
+
+        var again = Generator.Generate(item, new Dictionary<string, string>(), ProjectInfo.FromDirectory(_project));
+        Assert.Empty(again.Inserts);
+        Assert.Empty(again.Warnings);
+    }
+
     public void Dispose() => Directory.Delete(_project, recursive: true);
 }

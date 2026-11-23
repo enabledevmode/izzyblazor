@@ -267,6 +267,13 @@ public sealed record InsertSpec(string File, string? Anchor, string? Pattern, In
     /// </summary>
     public string? TextFrom { get; init; }
 
+    /// <summary>
+    /// Text that means the insert is made already when the file holds it (<c>"unless": "\"Maintenance\""</c>),
+    /// tokens allowed. For text people edit after it's added, such as a settings section: the file no longer
+    /// holds the text as written, so only this says it's there.
+    /// </summary>
+    public string? Unless { get; init; }
+
     internal static InsertSpec Parse(JsonObject o)
     {
         var anchor = (string?)o["anchor"];
@@ -290,7 +297,7 @@ public sealed record InsertSpec(string File, string? Anchor, string? Pattern, In
                 "replace" => InsertPosition.Replace,
                 _ => throw new GenerationException($"An insert's \"position\" is before, after, end or replace, not \"{position}\"."),
             },
-            text ?? "", (string?)o["if"]) { Place = (bool?)o["place"] ?? false, TextFrom = textFrom };
+            text ?? "", (string?)o["if"]) { Place = (bool?)o["place"] ?? false, TextFrom = textFrom, Unless = (string?)o["unless"] };
     }
 }
 
