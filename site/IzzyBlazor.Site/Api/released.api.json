@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-alpha.23",
+  "version": "0.1.0-alpha.24",
   "components": [
     {
       "name": "Accordion",
@@ -141,6 +141,174 @@
         "RowActionOverflow"
       ],
       "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "ActionSheet",
+      "displayName": "ActionSheet",
+      "fullName": "IzzyBlazor.ActionSheet",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Id",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Title",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Description",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Open",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ShowCancel",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "CancelText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "CloseOnBackdrop",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Size",
+          "type": "DialogSize",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "QueryKey",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DialogSize"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "ActionSheetItem",
+      "displayName": "ActionSheetItem",
+      "fullName": "IzzyBlazor.ActionSheetItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Href",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Submit",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Form",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "AddChildAction",
+      "displayName": "AddChildAction",
+      "fullName": "IzzyBlazor.AddChildAction",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Visible",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Overflow",
+          "type": "RowActionOverflow?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "RowActionOverflow"
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "Alert",
@@ -399,6 +567,11 @@
           "type": "string"
         },
         {
+          "name": "Description",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Href",
           "type": "string?"
         },
@@ -516,6 +689,21 @@
         {
           "name": "ContentWidth",
           "type": "Length?"
+        },
+        {
+          "name": "Padding",
+          "type": "Responsive\u003Cint\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "PaddingX",
+          "type": "Responsive\u003Cint\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "PaddingY",
+          "type": "Responsive\u003Cint\u003E",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Bg",
@@ -992,6 +1180,11 @@
           "type": "AlertVariant"
         },
         {
+          "name": "Center",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Sticky",
           "type": "bool",
           "addedIn": "0.1.0-alpha.22"
@@ -1185,6 +1378,26 @@
           "name": "Size",
           "type": "TextSize?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "MinSize",
+          "type": "TextSize?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Role",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Avatar",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AvatarSrc",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -1271,6 +1484,11 @@
           "type": "bool"
         },
         {
+          "name": "TextOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Icon",
           "type": "IconData?"
         },
@@ -1282,6 +1500,34 @@
       "events": [],
       "methods": [],
       "types": []
+    },
+    {
+      "name": "BrowserFrame",
+      "displayName": "BrowserFrame",
+      "fullName": "IzzyBlazor.BrowserFrame",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Address",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "BulletChart",
@@ -1466,6 +1712,11 @@
           "type": "bool"
         },
         {
+          "name": "Print",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Name",
           "type": "string?"
         },
@@ -1480,6 +1731,26 @@
         {
           "name": "Form",
           "type": "string?"
+        },
+        {
+          "name": "DisabledUntil",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DisabledUntilValue",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatBelow",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Accent",
@@ -1528,9 +1799,16 @@
           "type": "EventCallback\u003CMouseEventArgs\u003E"
         }
       ],
-      "methods": [],
+      "methods": [
+        {
+          "name": "FocusAsync",
+          "type": "ValueTask FocusAsync()",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
       "types": [
         "Accent",
+        "Breakpoint",
         "ButtonVariant",
         "ControlSize"
       ]
@@ -1873,6 +2151,11 @@
           "type": "bool"
         },
         {
+          "name": "Orientation",
+          "type": "Responsive\u003COrientation\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Variant",
           "type": "CardVariant"
         },
@@ -1885,7 +2168,8 @@
       "methods": [],
       "types": [
         "CardVariant",
-        "ControlSize"
+        "ControlSize",
+        "Orientation"
       ]
     },
     {
@@ -2036,13 +2320,20 @@
       "bases": [],
       "properties": [
         {
+          "name": "Width",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ChildContent",
           "type": "RenderFragment?"
         }
       ],
       "events": [],
       "methods": [],
-      "types": []
+      "types": [
+        "Length"
+      ]
     },
     {
       "name": "Carousel",
@@ -2139,6 +2430,16 @@
           "name": "Interval",
           "type": "TimeSpan?",
           "addedIn": "0.1.0-alpha.21"
+        },
+        {
+          "name": "Thumbnail",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DarkThumbnail",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Id",
@@ -2991,6 +3292,27 @@
       "addedIn": "0.1.0-alpha.23"
     },
     {
+      "name": "ChartDownload",
+      "displayName": "ChartDownload",
+      "fullName": "IzzyBlazor.ChartDownload",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "ChartDrillLevel",
       "displayName": "ChartDrillLevel\u003CTItem\u003E",
       "fullName": "IzzyBlazor.ChartDrillLevel\u00601",
@@ -3372,6 +3694,27 @@
       "addedIn": "0.1.0-alpha.23"
     },
     {
+      "name": "ChartPause",
+      "displayName": "ChartPause",
+      "fullName": "IzzyBlazor.ChartPause",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "ChartRangeAreaSeries",
       "displayName": "ChartRangeAreaSeries\u003CTItem\u003E",
       "fullName": "IzzyBlazor.ChartRangeAreaSeries\u00601",
@@ -3725,6 +4068,11 @@
           "name": "LabelAlign",
           "type": "ChartAlign?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "InLegend",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -3734,6 +4082,27 @@
         "ChartStatistic"
       ],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "ChartResetZoom",
+      "displayName": "ChartResetZoom",
+      "fullName": "IzzyBlazor.ChartResetZoom",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "ChartScatterSeries",
@@ -4153,6 +4522,27 @@
       "addedIn": "0.1.0-alpha.22"
     },
     {
+      "name": "ChartZoom",
+      "displayName": "ChartZoom",
+      "fullName": "IzzyBlazor.ChartZoom",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "Chart",
       "displayName": "Chart\u003CTItem\u003E",
       "fullName": "IzzyBlazor.Chart\u00601",
@@ -4210,6 +4600,11 @@
           "name": "Height",
           "type": "Length?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "BarWidth",
+          "type": "double?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Tooltip",
@@ -4564,6 +4959,11 @@
         {
           "name": "Icon",
           "type": "IconData?"
+        },
+        {
+          "name": "SubmitOnChange",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Value",
@@ -5132,6 +5532,31 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "ActionText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ActionHref",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ActionIcon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ListHeader",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ListFooter",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ReadOnly",
           "type": "bool",
           "addedIn": "0.1.0-alpha.13"
@@ -5191,6 +5616,83 @@
       "types": []
     },
     {
+      "name": "Comment",
+      "displayName": "Comment",
+      "fullName": "IzzyBlazor.Comment",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Author",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Avatar",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Initials",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Time",
+          "type": "DateTimeOffset?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RelativeTime",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "TimeText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Extra",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Text",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Actions",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Replies",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "HeadingLevel",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "ConfirmButton",
       "displayName": "ConfirmButton",
       "fullName": "IzzyBlazor.ConfirmButton",
@@ -5220,6 +5722,16 @@
         {
           "name": "CancelText",
           "type": "string?"
+        },
+        {
+          "name": "DisabledUntil",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DisabledUntilValue",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Name",
@@ -5300,6 +5812,62 @@
       ]
     },
     {
+      "name": "ConfirmDialog",
+      "displayName": "ConfirmDialog",
+      "fullName": "IzzyBlazor.ConfirmDialog",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "For",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Title",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Message",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Body",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ConfirmText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "CancelText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Id",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "ConfirmDialogContent",
       "displayName": "ConfirmDialogContent",
       "fullName": "IzzyBlazor.ConfirmDialogContent",
@@ -5339,6 +5907,16 @@
           "type": "ContainerSize"
         },
         {
+          "name": "Align",
+          "type": "ContainerAlign",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Gutters",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "As",
           "type": "string"
         },
@@ -5350,6 +5928,7 @@
       "events": [],
       "methods": [],
       "types": [
+        "ContainerAlign",
         "ContainerSize"
       ]
     },
@@ -5395,7 +5974,13 @@
           "addedIn": "0.1.0-alpha.22"
         }
       ],
-      "events": [],
+      "events": [
+        {
+          "name": "OnOpen",
+          "type": "EventCallback\u003Cstring\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
       "methods": [],
       "types": [
         "Length"
@@ -5487,6 +6072,21 @@
       "bases": [],
       "properties": [
         {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Overflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatBelow",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ShowLabel",
           "type": "bool?",
           "addedIn": "0.1.0-alpha.22"
@@ -5495,11 +6095,18 @@
           "name": "Position",
           "type": "ToolbarPosition",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
       "methods": [],
       "types": [
+        "Breakpoint",
+        "ToolbarOverflow",
         "ToolbarPosition"
       ],
       "addedIn": "0.1.0-alpha.20"
@@ -5513,6 +6120,16 @@
       "bases": [],
       "properties": [
         {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Overflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ShowLabel",
           "type": "bool?",
           "addedIn": "0.1.0-alpha.22"
@@ -5521,11 +6138,17 @@
           "name": "Position",
           "type": "ToolbarPosition",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
       "methods": [],
       "types": [
+        "ToolbarOverflow",
         "ToolbarPosition"
       ],
       "addedIn": "0.1.0-alpha.20"
@@ -5545,7 +6168,7 @@
         },
         {
           "name": "Overflow",
-          "type": "ToolbarOverflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
           "addedIn": "0.1.0-alpha.20"
         },
         {
@@ -5557,6 +6180,11 @@
           "name": "Position",
           "type": "ToolbarPosition",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -5592,6 +6220,37 @@
       "addedIn": "0.1.0-alpha.23"
     },
     {
+      "name": "DataGridFilter",
+      "displayName": "DataGridFilter",
+      "fullName": "IzzyBlazor.DataGridFilter",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Column",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "DataGridFilterBuilder",
       "displayName": "DataGridFilterBuilder",
       "fullName": "IzzyBlazor.DataGridFilterBuilder",
@@ -5608,6 +6267,11 @@
           "name": "Position",
           "type": "ToolbarPosition",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -5629,6 +6293,11 @@
           "name": "Position",
           "type": "ToolbarPosition",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -5652,31 +6321,6 @@
         "IzzyComponentBase"
       ],
       "properties": [
-        {
-          "name": "DetailTemplate",
-          "type": "RenderFragment\u003CTItem\u003E?",
-          "addedIn": "0.1.0-alpha.20"
-        },
-        {
-          "name": "ItemHasDetail",
-          "type": "Func\u003CTItem, bool\u003E?",
-          "addedIn": "0.1.0-alpha.20"
-        },
-        {
-          "name": "ExpandedDetails",
-          "type": "IReadOnlyList\u003Cstring\u003E?",
-          "addedIn": "0.1.0-alpha.22"
-        },
-        {
-          "name": "ExpandAllDetails",
-          "type": "bool",
-          "addedIn": "0.1.0-alpha.22"
-        },
-        {
-          "name": "SingleDetail",
-          "type": "bool",
-          "addedIn": "0.1.0-alpha.20"
-        },
         {
           "name": "Groupable",
           "type": "bool",
@@ -5718,6 +6362,36 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "GroupsProvider",
+          "type": "Func\u003CDataGroupRequest\u003CTItem\u003E, ValueTask\u003CDataGroupResult\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DetailTemplate",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemHasDetail",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ExpandedDetails",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "ExpandAllDetails",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "SingleDetail",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "ReorderableRows",
           "type": "bool",
           "addedIn": "0.1.0-alpha.21"
@@ -5741,6 +6415,16 @@
           "name": "SubmitOnMove",
           "type": "bool",
           "addedIn": "0.1.0-alpha.21"
+        },
+        {
+          "name": "Virtualize",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowHeight",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "SmallScreen",
@@ -5768,6 +6452,11 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "AddText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ItemEditable",
           "type": "Func\u003CTItem, bool\u003E?",
           "addedIn": "0.1.0-alpha.20"
@@ -5776,6 +6465,11 @@
           "name": "ItemDeletable",
           "type": "Func\u003CTItem, bool\u003E?",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowActions",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "EditKey",
@@ -5809,13 +6503,18 @@
         },
         {
           "name": "EditDialogSize",
-          "type": "DialogSize",
+          "type": "DialogSize?",
           "addedIn": "0.1.0-alpha.22"
         },
         {
           "name": "EditDialogTitle",
           "type": "Func\u003CTItem, string\u003E?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "EditSaveText",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "LayoutKey",
@@ -5848,16 +6547,6 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
-          "name": "Virtualize",
-          "type": "bool",
-          "addedIn": "0.1.0-alpha.20"
-        },
-        {
-          "name": "RowHeight",
-          "type": "double",
-          "addedIn": "0.1.0-alpha.20"
-        },
-        {
           "name": "ToolbarLabels",
           "type": "bool",
           "addedIn": "0.1.0-alpha.20"
@@ -5883,6 +6572,16 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "SelectOnClick",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "WrapCells",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Search",
           "type": "string?",
           "addedIn": "0.1.0-alpha.20"
@@ -5900,11 +6599,6 @@
         {
           "name": "FilterBuilder",
           "type": "bool",
-          "addedIn": "0.1.0-alpha.20"
-        },
-        {
-          "name": "GroupsProvider",
-          "type": "Func\u003CDataGroupRequest\u003CTItem\u003E, ValueTask\u003CDataGroupResult\u003E\u003E?",
           "addedIn": "0.1.0-alpha.20"
         },
         {
@@ -6061,6 +6755,16 @@
           "name": "EmptyText",
           "type": "string?",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NoMatchesText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "NoMatchesContent",
+          "type": "RenderFragment\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "ErrorContent",
@@ -6508,7 +7212,7 @@
         },
         {
           "name": "Columns",
-          "type": "int"
+          "type": "Responsive\u003Cint\u003E"
         },
         {
           "name": "Size",
@@ -6682,6 +7386,11 @@
           "type": "bool"
         },
         {
+          "name": "Print",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Name",
           "type": "string?"
         },
@@ -6696,6 +7405,26 @@
         {
           "name": "Form",
           "type": "string?"
+        },
+        {
+          "name": "DisabledUntil",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DisabledUntilValue",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatBelow",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Accent",
@@ -6744,9 +7473,16 @@
           "type": "EventCallback\u003CMouseEventArgs\u003E"
         }
       ],
-      "methods": [],
+      "methods": [
+        {
+          "name": "FocusAsync",
+          "type": "ValueTask FocusAsync()",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
       "types": [
         "Accent",
+        "Breakpoint",
         "ButtonVariant",
         "ControlSize"
       ]
@@ -6868,6 +7604,11 @@
           "type": "bool"
         },
         {
+          "name": "Print",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Name",
           "type": "string?"
         },
@@ -6882,6 +7623,26 @@
         {
           "name": "Form",
           "type": "string?"
+        },
+        {
+          "name": "DisabledUntil",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DisabledUntilValue",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatBelow",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Accent",
@@ -6930,9 +7691,16 @@
           "type": "EventCallback\u003CMouseEventArgs\u003E"
         }
       ],
-      "methods": [],
+      "methods": [
+        {
+          "name": "FocusAsync",
+          "type": "ValueTask FocusAsync()",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
       "types": [
         "Accent",
+        "Breakpoint",
         "ButtonVariant",
         "ControlSize"
       ]
@@ -7369,6 +8137,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Wrap",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Width",
           "type": "Length?",
           "addedIn": "0.1.0-alpha.22"
@@ -7457,6 +8230,11 @@
           "name": "GroupFooterAggregate",
           "type": "DataAggregate?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "RollUp",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "AggregateBy",
@@ -7620,12 +8398,24 @@
         {
           "name": "Size",
           "type": "ControlSize"
+        },
+        {
+          "name": "Status",
+          "type": "Status",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
       "methods": [],
       "types": [
-        "ControlSize"
+        "Accent",
+        "ControlSize",
+        "Status"
       ]
     },
     {
@@ -7644,6 +8434,66 @@
       "events": [],
       "methods": [],
       "types": []
+    },
+    {
+      "name": "ErrorGuard",
+      "displayName": "ErrorGuard",
+      "fullName": "IzzyBlazor.ErrorGuard",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Message",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ShowDetails",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ResetOnNavigation",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Class",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ErrorContent",
+          "type": "RenderFragment\u003CException\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MaximumErrorCount",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnError",
+          "type": "EventCallback\u003CException\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "FieldAddons",
@@ -7732,6 +8582,11 @@
           "type": "bool"
         },
         {
+          "name": "NoInput",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "AnnounceRequired",
           "type": "bool",
           "addedIn": "0.1.0-alpha.13"
@@ -7739,6 +8594,11 @@
         {
           "name": "Hint",
           "type": "string?"
+        },
+        {
+          "name": "HintStatus",
+          "type": "Status?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "HintId",
@@ -7767,7 +8627,128 @@
       ],
       "events": [],
       "methods": [],
-      "types": []
+      "types": [
+        "Status"
+      ]
+    },
+    {
+      "name": "FieldRepeaterValue",
+      "displayName": "FieldRepeaterValue",
+      "fullName": "IzzyBlazor.FieldRepeaterValue",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Width",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Align",
+          "type": "CellAlign?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "CellAlign",
+        "Length"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "FieldRepeater",
+      "displayName": "FieldRepeater\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.FieldRepeater\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "List\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "NewItem",
+          "type": "Func\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AddText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemLabel",
+          "type": "Func\u003Cint, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MinItems",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MaxItems",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Layout",
+          "type": "RepeaterLayout",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Footer",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Nonce",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "RepeaterLayout"
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "Fieldset",
@@ -7842,6 +8823,11 @@
           "type": "string?"
         },
         {
+          "name": "HintStatus",
+          "type": "Status?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Required",
           "type": "bool"
         },
@@ -7886,6 +8872,16 @@
           "type": "string?"
         },
         {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Preview",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Icon",
           "type": "IconData?"
         },
@@ -7901,7 +8897,10 @@
         }
       ],
       "methods": [],
-      "types": []
+      "types": [
+        "ControlSize",
+        "Status"
+      ]
     },
     {
       "name": "FilterBuilder",
@@ -8069,11 +9068,23 @@
         {
           "name": "ClearText",
           "type": "string?"
+        },
+        {
+          "name": "CollapseBelow",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FiltersText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
       "methods": [],
-      "types": []
+      "types": [
+        "Breakpoint"
+      ]
     },
     {
       "name": "FilterSearch",
@@ -8314,6 +9325,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "Honeypot",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ChildContent",
           "type": "RenderFragment?"
         }
@@ -8330,6 +9346,11 @@
         {
           "name": "OnSubmit",
           "type": "EventCallback\u003CEditContext\u003E"
+        },
+        {
+          "name": "OnSpam",
+          "type": "EventCallback\u003CEditContext\u003E",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "methods": [],
@@ -8775,6 +9796,11 @@
           "addedIn": "0.1.0-alpha.22"
         },
         {
+          "name": "OnThisPageText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Anchor",
           "type": "bool?"
         },
@@ -8817,6 +9843,11 @@
         {
           "name": "Wrap",
           "type": "TextWrap?"
+        },
+        {
+          "name": "KeepLines",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Truncate",
@@ -9190,6 +10221,11 @@
           "type": "bool"
         },
         {
+          "name": "Print",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Name",
           "type": "string?",
           "addedIn": "0.1.0-alpha.13"
@@ -9278,6 +10314,11 @@
         {
           "name": "Src",
           "type": "string"
+        },
+        {
+          "name": "DarkSrc",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Alt",
@@ -9369,17 +10410,349 @@
         {
           "name": "Density",
           "type": "ThemeDensity?"
+        },
+        {
+          "name": "ChartPalette",
+          "type": "ThemeChartPalette?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
       "methods": [],
       "types": [
         "ColorScheme",
+        "ThemeChartPalette",
         "ThemeDensity",
         "ThemePreset",
         "ThemeRadius",
         "ThemeScrollbars"
       ]
+    },
+    {
+      "name": "KanbanColumn",
+      "displayName": "KanbanColumn\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.KanbanColumn\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Title",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Limit",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MinItems",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Accepts",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Collapsed",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "KanbanLane",
+      "displayName": "KanbanLane",
+      "fullName": "IzzyBlazor.KanbanLane",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Title",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Collapsed",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "Kanban",
+      "displayName": "Kanban\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.Kanban\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemKey",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ColumnOf",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditDialogForm",
+          "type": "RenderFragment\u003CKanbanEditFormContext\u003CTItem\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Searchable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SearchLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SearchBy",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SortBy",
+          "type": "Func\u003CTItem, IComparable?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SortDescending",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "QueryPrefix",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Columns",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "LaneOf",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Lanes",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "CardTemplate",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemDescription",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemLabel",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemHref",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemCurrent",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemDisabled",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemAccent",
+          "type": "Func\u003CTItem, Accent?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemMenu",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ColumnSummary",
+          "type": "Func\u003CIReadOnlyList\u003CTItem\u003E, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ColumnWidth",
+          "type": "Length",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Collapsible",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AddHref",
+          "type": "Func\u003Cstring, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DragHandle",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "TitleLevel",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnMove",
+          "type": "EventCallback\u003CKanbanMoveEventArgs\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnSave",
+          "type": "EventCallback\u003CKanbanSave\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnDelete",
+          "type": "EventCallback\u003CKanbanDelete\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnColumnAdd",
+          "type": "EventCallback\u003CKanbanColumnChange\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnColumnRename",
+          "type": "EventCallback\u003CKanbanColumnChange\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnColumnDelete",
+          "type": "EventCallback\u003CKanbanColumnDelete\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnColumnMove",
+          "type": "EventCallback\u003CKanbanColumnMoveEventArgs\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnItemClick",
+          "type": "EventCallback\u003CTItem\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnAdd",
+          "type": "EventCallback\u003Cstring\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ControlSize",
+        "KanbanColumnChange",
+        "KanbanColumnDelete",
+        "KanbanColumnMoveEventArgs",
+        "KanbanDelete",
+        "KanbanEditFormContext",
+        "KanbanMoveEventArgs",
+        "KanbanSave",
+        "Length"
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "Kbd",
@@ -9408,6 +10781,129 @@
       "events": [],
       "methods": [],
       "types": []
+    },
+    {
+      "name": "Lightbox",
+      "displayName": "Lightbox",
+      "fullName": "IzzyBlazor.Lightbox",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Index",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Counter",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Nav",
+          "type": "LightboxNav",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Arrows",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Transition",
+          "type": "LightboxTransition",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Loop",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "CloseOnBackdrop",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "HideControlsAfter",
+          "type": "TimeSpan",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "LightboxNav",
+        "LightboxTransition"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "LightboxItem",
+      "displayName": "LightboxItem",
+      "fullName": "IzzyBlazor.LightboxItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Src",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Alt",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Caption",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Thumbnail",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DarkSrc",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DarkThumbnail",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "LinearGauge",
@@ -9578,6 +11074,11 @@
           "type": "Responsive\u003Cint\u003E"
         },
         {
+          "name": "Dividers",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "As",
           "type": "string"
         },
@@ -9613,6 +11114,11 @@
         {
           "name": "IconColor",
           "type": "Color?"
+        },
+        {
+          "name": "Description",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -9620,6 +11126,25 @@
       "types": [
         "Color"
       ]
+    },
+    {
+      "name": "ListItemActions",
+      "displayName": "ListItemActions",
+      "fullName": "IzzyBlazor.ListItemActions",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "ListView",
@@ -9636,9 +11161,9 @@
       ],
       "properties": [
         {
-          "name": "ChildContent",
+          "name": "ItemTemplate",
           "type": "RenderFragment\u003CTItem\u003E?",
-          "addedIn": "0.1.0-alpha.20"
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "ItemText",
@@ -9654,6 +11179,11 @@
           "name": "ItemIcon",
           "type": "Func\u003CTItem, IconData?\u003E?",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemMedia",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "ItemLabel",
@@ -9714,6 +11244,11 @@
           "name": "Bordered",
           "type": "bool",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemAlign",
+          "type": "Align",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Size",
@@ -9821,6 +11356,16 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "NoMatchesText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "NoMatchesContent",
+          "type": "RenderFragment\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ErrorContent",
           "type": "RenderFragment?",
           "addedIn": "0.1.0-alpha.20"
@@ -9896,6 +11441,7 @@
         }
       ],
       "types": [
+        "Align",
         "ControlSize",
         "DataPaging",
         "DataRequest",
@@ -9985,6 +11531,147 @@
         "ProseSize"
       ],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "MentionText",
+      "displayName": "MentionText",
+      "fullName": "IzzyBlazor.MentionText",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Text",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Prefixes",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Href",
+          "type": "Func\u003CMention, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Mention"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "Mentions",
+      "displayName": "Mentions\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.Mentions\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Search",
+          "type": "Func\u003CMentionQuery, CancellationToken, Task\u003CIEnumerable\u003CTItem\u003E\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemTemplate",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemDisabled",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Prefixes",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Split",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Placement",
+          "type": "MentionsPlacement",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Debounce",
+          "type": "TimeSpan",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Rows",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AutoGrow",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Placeholder",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MaxLength",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "MentionQuery",
+        "MentionsPlacement"
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "Menu",
@@ -10109,6 +11796,11 @@
         {
           "name": "Submit",
           "type": "bool"
+        },
+        {
+          "name": "Print",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Checked",
@@ -10305,6 +11997,32 @@
       "methods": [],
       "types": [],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "MoveAction",
+      "displayName": "MoveAction",
+      "fullName": "IzzyBlazor.MoveAction",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Visible",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Overflow",
+          "type": "RowActionOverflow?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "RowActionOverflow"
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "MultiDateField",
@@ -10668,6 +12386,11 @@
           "type": "string"
         },
         {
+          "name": "Disabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Icon",
           "type": "IconData?"
         },
@@ -10995,6 +12718,11 @@
           "type": "string?"
         },
         {
+          "name": "HideTitle",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "MinLevel",
           "type": "int"
         },
@@ -11006,6 +12734,110 @@
       "events": [],
       "methods": [],
       "types": []
+    },
+    {
+      "name": "PageHeader",
+      "displayName": "PageHeader",
+      "fullName": "IzzyBlazor.PageHeader",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "TitleLevel",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Badge",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "BadgeStatus",
+          "type": "Status",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Description",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Centered",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize",
+        "Status"
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "PageHeaderActions",
+      "displayName": "PageHeaderActions",
+      "fullName": "IzzyBlazor.PageHeaderActions",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "FloatLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "PageHeaderMedia",
+      "displayName": "PageHeaderMedia",
+      "fullName": "IzzyBlazor.PageHeaderMedia",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "Pagination",
@@ -11712,6 +13544,11 @@
           "type": "string?"
         },
         {
+          "name": "ChildContent",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Title",
           "type": "string?"
         },
@@ -11760,6 +13597,11 @@
         {
           "name": "Align",
           "type": "CellAlign?"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Width",
@@ -11846,6 +13688,11 @@
           "name": "GroupFooterAggregate",
           "type": "DataAggregate?",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RollUp",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "AggregateBy",
@@ -12209,6 +14056,11 @@
           "type": "Func\u003CTValue, string\u003E?"
         },
         {
+          "name": "ItemDescription",
+          "type": "Func\u003CTValue, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Orientation",
           "type": "Orientation"
         },
@@ -12474,6 +14326,38 @@
       "methods": [],
       "types": [],
       "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "RelativeTime",
+      "displayName": "RelativeTime",
+      "fullName": "IzzyBlazor.RelativeTime",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "DateTimeOffset?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Threshold",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Capitalize",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "RichText",
@@ -12970,6 +14854,11 @@
           "name": "Position",
           "type": "ToolbarPosition?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -12991,6 +14880,11 @@
           "name": "Position",
           "type": "ToolbarPosition?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -13012,6 +14906,11 @@
           "name": "Position",
           "type": "ToolbarPosition?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -13033,6 +14932,11 @@
           "name": "Position",
           "type": "ToolbarPosition?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -13054,6 +14958,11 @@
           "name": "Position",
           "type": "ToolbarPosition?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -13075,6 +14984,11 @@
           "name": "Position",
           "type": "ToolbarPosition?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "For",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -13242,6 +15156,11 @@
           "name": "EditDialogForm",
           "type": "RenderFragment\u003CSchedulerEditFormContext\u003CTItem\u003E\u003E?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "ItemHref",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [
@@ -13303,6 +15222,67 @@
       "types": [
         "SectionSpacing"
       ]
+    },
+    {
+      "name": "SectionHeader",
+      "displayName": "SectionHeader",
+      "fullName": "IzzyBlazor.SectionHeader",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "TitleLevel",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "TitleId",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Description",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Eyebrow",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CTextAlign\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize",
+        "TextAlign"
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "SegmentedControl",
@@ -13406,6 +15386,85 @@
       "events": [],
       "methods": [],
       "types": []
+    },
+    {
+      "name": "ShowMore",
+      "displayName": "ShowMore",
+      "fullName": "IzzyBlazor.ShowMore",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Lines",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MoreText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "LessText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "SidebarAccount",
+      "displayName": "SidebarAccount",
+      "fullName": "IzzyBlazor.SidebarAccount",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Name",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Description",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Src",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Href",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "SidebarBody",
@@ -13587,6 +15646,25 @@
       "events": [],
       "methods": [],
       "types": []
+    },
+    {
+      "name": "SiteNavHeader",
+      "displayName": "SiteNavHeader",
+      "fullName": "IzzyBlazor.SiteNavHeader",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "Skeleton",
@@ -14181,6 +16259,11 @@
           "addedIn": "0.1.0-alpha.21"
         },
         {
+          "name": "OnePaneBelow",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Disabled",
           "type": "bool",
           "addedIn": "0.1.0-alpha.21"
@@ -14194,6 +16277,7 @@
       "events": [],
       "methods": [],
       "types": [
+        "Breakpoint",
         "Orientation"
       ],
       "addedIn": "0.1.0-alpha.21"
@@ -14232,6 +16316,11 @@
           "name": "Collapsed",
           "type": "bool",
           "addedIn": "0.1.0-alpha.21"
+        },
+        {
+          "name": "Current",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Resizable",
@@ -14503,6 +16592,11 @@
           "type": "IconData?"
         },
         {
+          "name": "SubmitOnChange",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Value",
           "type": "bool"
         },
@@ -14544,6 +16638,16 @@
           "type": "string?"
         },
         {
+          "name": "BadgeStatus",
+          "type": "Status",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "BadgeVisibleFrom",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Disabled",
           "type": "bool"
         },
@@ -14568,7 +16672,10 @@
       ],
       "events": [],
       "methods": [],
-      "types": []
+      "types": [
+        "Breakpoint",
+        "Status"
+      ]
     },
     {
       "name": "TabLink",
@@ -14595,8 +16702,23 @@
           "type": "string?"
         },
         {
+          "name": "BadgeStatus",
+          "type": "Status",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "BadgeVisibleFrom",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Disabled",
           "type": "bool"
+        },
+        {
+          "name": "DisabledReason",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Match",
@@ -14610,7 +16732,10 @@
       ],
       "events": [],
       "methods": [],
-      "types": []
+      "types": [
+        "Breakpoint",
+        "Status"
+      ]
     },
     {
       "name": "TabNav",
@@ -14827,6 +16952,16 @@
           "type": "string?"
         },
         {
+          "name": "NoMatchesText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "NoMatchesContent",
+          "type": "RenderFragment\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ErrorContent",
           "type": "RenderFragment?",
           "addedIn": "0.1.0-alpha.20"
@@ -15016,6 +17151,11 @@
           "type": "ControlSize"
         },
         {
+          "name": "Pill",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "StartIcon",
           "type": "IconData?"
         },
@@ -15125,6 +17265,11 @@
           "type": "CellAlign?"
         },
         {
+          "name": "Wrap",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Width",
           "type": "Length?"
         },
@@ -15209,6 +17354,11 @@
           "name": "GroupFooterAggregate",
           "type": "DataAggregate?",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RollUp",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "AggregateBy",
@@ -15375,6 +17525,11 @@
         {
           "name": "Wrap",
           "type": "TextWrap?"
+        },
+        {
+          "name": "KeepLines",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Truncate",
@@ -15558,17 +17713,211 @@
           "name": "Density",
           "type": "ThemeDensity?",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "ChartPalette",
+          "type": "ThemeChartPalette?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
       "methods": [],
       "types": [
         "ColorScheme",
+        "ThemeChartPalette",
         "ThemeDensity",
         "ThemePreset",
         "ThemeRadius"
       ],
       "addedIn": "0.1.0-alpha.22"
+    },
+    {
+      "name": "Tile",
+      "displayName": "Tile",
+      "fullName": "IzzyBlazor.Tile",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Id",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Col",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Row",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ColSpan",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowSpan",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MinColSpan",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MaxColSpan",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MinRowSpan",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MaxRowSpan",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Title",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "TitleLevel",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Header",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "HeaderEnd",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "TitleId",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Flush",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "TileLayout",
+      "displayName": "TileLayout",
+      "fullName": "IzzyBlazor.TileLayout",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Columns",
+          "type": "Responsive\u003Cint\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Rows",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowHeight",
+          "type": "Length",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Gap",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "State",
+          "type": "TileLayoutState?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Editable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ShowGrid",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Collision",
+          "type": "TileCollision",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Compact",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Post",
+          "type": "TileLayoutPost?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Length",
+        "TileCollision",
+        "TileLayoutPost",
+        "TileLayoutState"
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "TimeField",
@@ -15662,6 +18011,21 @@
       ],
       "properties": [
         {
+          "name": "TimePlacement",
+          "type": "Responsive\u003CTimelinePlacement\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Marker",
+          "type": "TimelineMarker",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "As",
           "type": "string"
         },
@@ -15672,7 +18036,11 @@
       ],
       "events": [],
       "methods": [],
-      "types": []
+      "types": [
+        "ControlSize",
+        "TimelineMarker",
+        "TimelinePlacement"
+      ]
     },
     {
       "name": "TimelineItem",
@@ -15689,8 +18057,23 @@
           "type": "string?"
         },
         {
+          "name": "TitleContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Href",
           "type": "string?"
+        },
+        {
+          "name": "Badge",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "BadgeStatus",
+          "type": "Status",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Time",
@@ -15701,12 +18084,32 @@
           "type": "string?"
         },
         {
+          "name": "Value",
+          "type": "DateTimeOffset?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Icon",
           "type": "IconData?"
         },
         {
+          "name": "Avatar",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AvatarSrc",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Status",
           "type": "Status"
+        },
+        {
+          "name": "Done",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Current",
@@ -15715,6 +18118,11 @@
         {
           "name": "ChildContent",
           "type": "RenderFragment?"
+        },
+        {
+          "name": "Actions",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "events": [],
@@ -15937,6 +18345,11 @@
           "addedIn": "0.1.0-alpha.13"
         },
         {
+          "name": "FloatLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Nonce",
           "type": "string?",
           "addedIn": "0.1.0-alpha.13"
@@ -15979,7 +18392,7 @@
         },
         {
           "name": "Overflow",
-          "type": "ToolbarOverflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
           "addedIn": "0.1.0-alpha.13"
         },
         {
@@ -16013,6 +18426,11 @@
           "addedIn": "0.1.0-alpha.13"
         },
         {
+          "name": "Print",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Name",
           "type": "string?",
           "addedIn": "0.1.0-alpha.13"
@@ -16031,6 +18449,26 @@
           "name": "Form",
           "type": "string?",
           "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "DisabledUntil",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "DisabledUntilValue",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatBelow",
+          "type": "Breakpoint?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FloatLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Accent",
@@ -16090,9 +18528,16 @@
           "addedIn": "0.1.0-alpha.13"
         }
       ],
-      "methods": [],
+      "methods": [
+        {
+          "name": "FocusAsync",
+          "type": "ValueTask FocusAsync()",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
       "types": [
         "Accent",
+        "Breakpoint",
         "ButtonVariant",
         "ControlSize",
         "ToolbarOverflow",
@@ -16123,7 +18568,7 @@
         },
         {
           "name": "Overflow",
-          "type": "ToolbarOverflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
           "addedIn": "0.1.0-alpha.13"
         },
         {
@@ -16202,7 +18647,7 @@
         },
         {
           "name": "Overflow",
-          "type": "ToolbarOverflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
           "addedIn": "0.1.0-alpha.13"
         },
         {
@@ -16229,6 +18674,11 @@
           "name": "Reset",
           "type": "bool",
           "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Print",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Name",
@@ -16341,7 +18791,7 @@
         },
         {
           "name": "Overflow",
-          "type": "ToolbarOverflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
           "addedIn": "0.1.0-alpha.13"
         },
         {
@@ -16386,7 +18836,7 @@
         },
         {
           "name": "Overflow",
-          "type": "ToolbarOverflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
           "addedIn": "0.1.0-alpha.13"
         },
         {
@@ -16509,7 +18959,7 @@
         },
         {
           "name": "Overflow",
-          "type": "ToolbarOverflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
           "addedIn": "0.1.0-alpha.20"
         },
         {
@@ -16703,7 +19153,7 @@
         },
         {
           "name": "Overflow",
-          "type": "ToolbarOverflow",
+          "type": "Responsive\u003CToolbarOverflow\u003E",
           "addedIn": "0.1.0-alpha.22"
         },
         {
@@ -16799,6 +19249,550 @@
       "types": [
         "Placement"
       ]
+    },
+    {
+      "name": "TreeList",
+      "displayName": "TreeList\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.TreeList\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ItemChildren",
+          "type": "Func\u003CTItem, IEnumerable\u003CTItem\u003E?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemParentKey",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ExpandedItems",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ExpandAll",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemExpanded",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemIcon",
+          "type": "Func\u003CTItem, bool, IconData?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FilterBranch",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemHasChildren",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildRowLimit",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Cascade",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "NewChild",
+          "type": "Func\u003CTItem, TItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemMovable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MoveByDrag",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "GroupsProvider",
+          "type": "Func\u003CDataGroupRequest\u003CTItem\u003E, ValueTask\u003CDataGroupResult\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Virtualize",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowHeight",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SmallScreen",
+          "type": "DataGridSmallScreen",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Nonce",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditMode",
+          "type": "DataGridEditMode",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FindItem",
+          "type": "Func\u003Cstring, Task\u003CTItem\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "NewItem",
+          "type": "Func\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AddText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemEditable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemDeletable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowActions",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditKey",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditCopy",
+          "type": "Func\u003CTItem, TItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditDialog",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditDialogForm",
+          "type": "RenderFragment\u003CDataGridEditFormContext\u003CTItem\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditColumns",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditLayout",
+          "type": "FormLayout",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditDialogSize",
+          "type": "DialogSize?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditDialogTitle",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EditSaveText",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "LayoutKey",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Layout",
+          "type": "DataGridLayout?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "LayoutSaveUrl",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ResizableColumns",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ReorderableColumns",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ColumnPicker",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ToolbarLabels",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ExportCsvHref",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ExportExcelHref",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ToolbarContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Searchable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SelectOnClick",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "WrapCells",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Search",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SearchLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FilterRow",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FilterBuilder",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Columns",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "InitialSort",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Sort",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Filter",
+          "type": "Filter?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FilterCase",
+          "type": "FilterCase",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FilterPanel",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Caption",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowClass",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowHover",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Striped",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowLines",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ColumnLines",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ShadedHeader",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Bordered",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowHref",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowCurrent",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "RowLabel",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FilterFromQuery",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemsProvider",
+          "type": "Func\u003CDataRequest\u003CTItem\u003E, ValueTask\u003CDataResult\u003CTItem\u003E\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "PageSize",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "PageSizeOptions",
+          "type": "IReadOnlyList\u003Cint\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Page",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Paging",
+          "type": "DataPaging",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "LoadMoreText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Cursor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "QueryPrefix",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EmptyContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "NoMatchesText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "NoMatchesContent",
+          "type": "RenderFragment\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ErrorContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemKey",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Loading",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SelectionMode",
+          "type": "SelectionMode",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SelectionName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Selection",
+          "type": "Selection?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ItemSelectable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SelectAllMode",
+          "type": "SelectAllMode",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SelectionActions",
+          "type": "RenderFragment\u003CSelection\u003E?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SelectAllLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "SelectRowLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnReparent",
+          "type": "EventCallback\u003CTreeListMove\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnSave",
+          "type": "EventCallback\u003CDataGridSave\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OnDelete",
+          "type": "EventCallback\u003CDataGridDelete\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "methods": [
+        {
+          "name": "ExportHref",
+          "type": "string ExportHref(string href)",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ReloadAsync",
+          "type": "Task ReloadAsync()",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "types": [
+        "ControlSize",
+        "DataGridDelete",
+        "DataGridEditFormContext",
+        "DataGridEditMode",
+        "DataGridLayout",
+        "DataGridSave",
+        "DataGridSmallScreen",
+        "DataGroupRequest",
+        "DataGroupResult",
+        "DataPaging",
+        "DataRequest",
+        "DataResult",
+        "DialogSize",
+        "Filter",
+        "FilterCase",
+        "FormLayout",
+        "Length",
+        "SelectAllMode",
+        "Selection",
+        "SelectionMode",
+        "TreeListMove"
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "TreeSelect",
@@ -17308,6 +20302,37 @@
       "types": []
     },
     {
+      "name": "VisuallyHidden",
+      "displayName": "VisuallyHidden",
+      "fullName": "IzzyBlazor.VisuallyHidden",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "As",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Focusable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "YearField",
       "displayName": "YearField\u003CTValue\u003E",
       "fullName": "IzzyBlazor.YearField\u00601",
@@ -17464,6 +20489,11 @@
           "type": "Responsive\u003CAlign\u003E"
         },
         {
+          "name": "LayoutOrder",
+          "type": "Responsive\u003Cint\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "ColSpan",
           "type": "Responsive\u003Cint\u003E"
         },
@@ -17511,6 +20541,16 @@
         {
           "name": "Bg",
           "type": "Responsive\u003CColor\u003E"
+        },
+        {
+          "name": "Sticky",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Pinned",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Color",
@@ -17592,6 +20632,11 @@
         {
           "name": "Hint",
           "type": "string?"
+        },
+        {
+          "name": "HintStatus",
+          "type": "Status?",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Required",
@@ -17676,6 +20721,11 @@
         {
           "name": "AlignSelf",
           "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "LayoutOrder",
+          "type": "Responsive\u003Cint\u003E",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "ColSpan",
@@ -18126,6 +21176,11 @@
           "name": "None",
           "type": "CarouselDots",
           "addedIn": "0.1.0-alpha.21"
+        },
+        {
+          "name": "Thumbnails",
+          "type": "CarouselDots",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "addedIn": "0.1.0-alpha.21"
@@ -18279,6 +21334,11 @@
       "fullName": "IzzyBlazor.ChartDataTable",
       "kind": "enum",
       "members": [
+        {
+          "name": "Popover",
+          "type": "ChartDataTable",
+          "addedIn": "0.1.0-alpha.24"
+        },
         {
           "name": "Collapsed",
           "type": "ChartDataTable",
@@ -18436,6 +21496,26 @@
           "name": "Colors",
           "type": "ChartPalette",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Contrast",
+          "type": "ChartPalette",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OkabeIto",
+          "type": "ChartPalette",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Calm",
+          "type": "ChartPalette",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Emphasis",
+          "type": "ChartPalette Emphasis(int index, Color? color)",
+          "addedIn": "0.1.0-alpha.24"
         },
         {
           "name": "Shades",
@@ -18954,10 +22034,38 @@
       ]
     },
     {
+      "name": "ContainerAlign",
+      "fullName": "IzzyBlazor.ContainerAlign",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Center",
+          "type": "ContainerAlign",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Start",
+          "type": "ContainerAlign",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "End",
+          "type": "ContainerAlign",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "ContainerSize",
       "fullName": "IzzyBlazor.ContainerSize",
       "kind": "enum",
       "members": [
+        {
+          "name": "Xs",
+          "type": "ContainerSize",
+          "addedIn": "0.1.0-alpha.24"
+        },
         {
           "name": "Sm",
           "type": "ContainerSize"
@@ -19537,6 +22645,16 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "Parent",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FilterBranch",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "NeedsTotal",
           "type": "bool",
           "addedIn": "0.1.0-alpha.20"
@@ -19615,6 +22733,16 @@
           "name": "ToResultAsync",
           "type": "Task\u003CDataResult\u003CTItem\u003E\u003E ToResultAsync(IQueryable\u003CTItem\u003E source, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields, Func\u003CIQueryable\u003CTItem\u003E, CancellationToken, Task\u003Cint\u003E\u003E count, Func\u003CIQueryable\u003CTItem\u003E, CancellationToken, Task\u003CList\u003CTItem\u003E\u003E\u003E list)",
           "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToTreeResult",
+          "type": "DataResult\u003CTItem\u003E ToTreeResult\u003CTKey, TParent\u003E(IQueryable\u003CTItem\u003E source, Expression\u003CFunc\u003CTItem, TKey\u003E\u003E key, Expression\u003CFunc\u003CTItem, TParent\u003E\u003E parent)",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ToTreeResultAsync",
+          "type": "Task\u003CDataResult\u003CTItem\u003E\u003E ToTreeResultAsync\u003CTKey, TParent\u003E(IQueryable\u003CTItem\u003E source, Expression\u003CFunc\u003CTItem, TKey\u003E\u003E key, Expression\u003CFunc\u003CTItem, TParent\u003E\u003E parent, Func\u003CIQueryable\u003CTItem\u003E, CancellationToken, Task\u003Cint\u003E\u003E count, Func\u003CIQueryable\u003CTItem\u003E, CancellationToken, Task\u003CList\u003CTItem\u003E\u003E\u003E list)",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "addedIn": "0.1.0-alpha.20"
@@ -20595,6 +23723,11 @@
           "name": "RangeTo",
           "type": "IconPurpose",
           "addedIn": "0.1.0-alpha.22"
+        },
+        {
+          "name": "Sidebar",
+          "type": "IconPurpose",
+          "addedIn": "0.1.0-alpha.24"
         }
       ],
       "addedIn": "0.1.0-alpha.22"
@@ -20679,6 +23812,222 @@
           "type": "Justify"
         }
       ]
+    },
+    {
+      "name": "KanbanColumnChange",
+      "fullName": "IzzyBlazor.KanbanColumnChange",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Column",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Title",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AddError",
+          "type": "void AddError(string message)",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "KanbanColumnDelete",
+      "fullName": "IzzyBlazor.KanbanColumnDelete",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Column",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AddError",
+          "type": "void AddError(string message)",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "KanbanColumnMoveEventArgs",
+      "fullName": "IzzyBlazor.KanbanColumnMoveEventArgs",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Column",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FromIndex",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ToIndex",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "KanbanDelete",
+      "fullName": "IzzyBlazor.KanbanDelete\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AddError",
+          "type": "void AddError(string message)",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "KanbanEditFormContext",
+      "fullName": "IzzyBlazor.KanbanEditFormContext\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "IsNew",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Column",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Lane",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "CloseAsync",
+          "type": "Task CloseAsync()",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "KanbanMoveEventArgs",
+      "fullName": "IzzyBlazor.KanbanMoveEventArgs\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Key",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FromColumn",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ToColumn",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FromLane",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ToLane",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "FromIndex",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "ToIndex",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Cancel",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "KanbanSave",
+      "fullName": "IzzyBlazor.KanbanSave\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "IsNew",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Fields",
+          "type": "KanbanEditFields",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Title",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Description",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Column",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Lane",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AddError",
+          "type": "void AddError(string message)",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "Length",
@@ -20789,6 +24138,47 @@
           "type": "LetterSpacing"
         }
       ]
+    },
+    {
+      "name": "LightboxNav",
+      "fullName": "IzzyBlazor.LightboxNav",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "LightboxNav",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Dots",
+          "type": "LightboxNav",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Thumbnails",
+          "type": "LightboxNav",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "LightboxTransition",
+      "fullName": "IzzyBlazor.LightboxTransition",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "LightboxTransition",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Fade",
+          "type": "LightboxTransition",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "LineHeight",
@@ -20908,6 +24298,11 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "Dropped",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Arrange",
           "type": "IReadOnlyList\u003CTItem\u003E Arrange\u003CTItem\u003E(IReadOnlyList\u003CTItem\u003E items, Func\u003CTItem, string\u003E key)",
           "addedIn": "0.1.0-alpha.20"
@@ -20924,6 +24319,70 @@
         }
       ],
       "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "Mention",
+      "fullName": "IzzyBlazor.Mention",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "Prefix",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Text",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Index",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Length",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "MentionQuery",
+      "fullName": "IzzyBlazor.MentionQuery",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Prefix",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Text",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "MentionsPlacement",
+      "fullName": "IzzyBlazor.MentionsPlacement",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Bottom",
+          "type": "MentionsPlacement",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Top",
+          "type": "MentionsPlacement",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "MenuButtonPosition",
@@ -21233,6 +24692,29 @@
           "type": "Radius"
         }
       ]
+    },
+    {
+      "name": "RepeaterLayout",
+      "fullName": "IzzyBlazor.RepeaterLayout",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Auto",
+          "type": "RepeaterLayout",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Table",
+          "type": "RepeaterLayout",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Stacked",
+          "type": "RepeaterLayout",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "RequiredMark",
@@ -21849,6 +25331,11 @@
           "addedIn": "0.1.0-alpha.20"
         },
         {
+          "name": "ApplyTree",
+          "type": "IQueryable\u003CTItem\u003E ApplyTree\u003CTItem, TKey, TParent\u003E(IQueryable\u003CTItem\u003E source, Expression\u003CFunc\u003CTItem, TKey\u003E\u003E key, Expression\u003CFunc\u003CTItem, TParent\u003E\u003E parent)",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
           "name": "Contains",
           "type": "bool Contains(string key)",
           "addedIn": "0.1.0-alpha.20"
@@ -22421,6 +25908,34 @@
       ]
     },
     {
+      "name": "ThemeChartPalette",
+      "fullName": "IzzyBlazor.ThemeChartPalette",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Brand",
+          "type": "ThemeChartPalette",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Contrast",
+          "type": "ThemeChartPalette",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "OkabeIto",
+          "type": "ThemeChartPalette",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Calm",
+          "type": "ThemeChartPalette",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "ThemeDensity",
       "fullName": "IzzyBlazor.ThemeDensity",
       "kind": "enum",
@@ -22527,6 +26042,121 @@
       "addedIn": "0.1.0-alpha.23"
     },
     {
+      "name": "TileCollision",
+      "fullName": "IzzyBlazor.TileCollision",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Push",
+          "type": "TileCollision",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Block",
+          "type": "TileCollision",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Overlap",
+          "type": "TileCollision",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "TileLayoutPost",
+      "fullName": "IzzyBlazor.TileLayoutPost",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Tiles",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Move",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "State",
+          "type": "TileLayoutState?",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "TileLayoutState",
+      "fullName": "IzzyBlazor.TileLayoutState",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Parse",
+          "type": "TileLayoutState? Parse(string? text)",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Tiles",
+          "type": "IReadOnlyList\u003CTileState\u003E",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Find",
+          "type": "TileState? Find(string id)",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "TimelineMarker",
+      "fullName": "IzzyBlazor.TimelineMarker",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Dot",
+          "type": "TimelineMarker",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Ring",
+          "type": "TimelineMarker",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
+      "name": "TimelinePlacement",
+      "fullName": "IzzyBlazor.TimelinePlacement",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Above",
+          "type": "TimelinePlacement",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Below",
+          "type": "TimelinePlacement",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Start",
+          "type": "TimelinePlacement",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "End",
+          "type": "TimelinePlacement",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
+    },
+    {
       "name": "ToastPlacement",
       "fullName": "IzzyBlazor.ToastPlacement",
       "kind": "enum",
@@ -22602,6 +26232,39 @@
         }
       ],
       "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "TreeListMove",
+      "fullName": "IzzyBlazor.TreeListMove\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Parent",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "Index",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "HasErrors",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.24"
+        },
+        {
+          "name": "AddError",
+          "type": "void AddError(string message)",
+          "addedIn": "0.1.0-alpha.24"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.24"
     },
     {
       "name": "TreemapColors",
