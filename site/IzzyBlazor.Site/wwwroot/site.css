@@ -1034,7 +1034,9 @@ html:has(> body > .frame) body { margin: 0; }
 .site-block-stage {
   border: 1px solid var(--ib-color-border);
   border-radius: var(--ib-radius-lg);
-  background: var(--ib-color-surface);
+  /* The shell's tone, as the docs' example stage: the surface in light mode, the page in dark, so a block
+     sits on what a page gives it and a card inside it is a step above. */
+  background: light-dark(var(--ib-color-surface), var(--ib-color-background));
   --ib-example-padding: var(--ib-space-8) var(--ib-space-6);
   overflow: hidden;
 }
