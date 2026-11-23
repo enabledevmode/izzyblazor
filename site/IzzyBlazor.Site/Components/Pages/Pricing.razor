@@ -5,15 +5,121 @@
 @inject FormLimit Limit
 
 <PageMeta Title="Pricing · IzzyBlazor"
-          Description="Every component is free and open source. A free account adds starters, blocks and a sample app. Pro adds tools to build faster and maintain with confidence." />
+          Description="Pro adds tools to build faster and maintain with confidence. Every component is free and open source, and a free account adds starters, blocks and a sample app." />
 
-@* PR1, before Pro is on sale (design board, page A · Access): the three levels, the founding price with the
-   form that reserves it, what each level makes, Enterprise, and the questions. The three cards share their
-   rows (site.css, .site-pricing-levels), so prices, actions and lists line up whatever each one holds. *@
+@* The pricing page tells why to get Pro (design board, page SB · Story drafts, Story 2): the hero, the work
+   every new page adds, what Pro does about it, three steps to get it, then the plans (PR1, page A · Access):
+   the three levels, the founding price with the form that reserves it, what each level makes, Enterprise and
+   the questions. The three cards share their rows (site.css, .site-pricing-levels), so prices, actions and
+   lists line up whatever each one holds. *@
 <Section Spacing="SectionSpacing.None">
+    <div class="site-pricing-hero">
+        <div class="site-pricing-hero-text">
+            <div class="site-pricing-hero-badges">
+                <Badge Accent="Accent.Neutral" Variant="BadgeVariant.Solid" Pill>Pro</Badge>
+                <Badge Variant="BadgeVariant.Outline" Pill>Preview</Badge>
+            </div>
+            <Heading Level="1" Wrap="TextWrap.Balance" Class="site-pricing-title">Build faster. Maintain with confidence.</Heading>
+            <TextBlock Color="Color.Muted" Class="site-pricing-hero-lead">Generate pages from forms and wizards in your IDE, then fix accessibility problems and upgrade safely as your app grows.</TextBlock>
+            <div class="site-pricing-hero-actions">
+                <Button Href="pricing#reserve" Size="ControlSize.Lg">Reserve the founding price</Button>
+                <Button Href="pricing#plans" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Compare plans</Button>
+            </div>
+            <p class="site-pricing-note">$199 a year at the founding price, instead of $299. Reserving is free, and you pay nothing until launch.</p>
+        </div>
+        @* A drawing of the plugin's wizard, to show the idea: the form, then the changes to review. In a
+           project window from 1024px, on its own below. *@
+        <figure class="site-ide" role="img" aria-label="Illustration: the IDE plugin’s Add CRUD pages wizard, with a model, the pages to make, a layout and four changes to review">
+            <div class="site-ide-bar"><i></i><i></i><i></i><span>MyApp</span></div>
+            <div class="site-ide-back">
+                <div class="site-ide-tree">
+                    <span>MyApp</span>
+                    <span data-depth="1">Components</span>
+                    <span data-depth="1">Pages</span>
+                    <span data-depth="2" data-current>Products</span>
+                    <span data-depth="1">Models</span>
+                    <span data-depth="2">Product.cs</span>
+                    <span data-depth="1">Program.cs</span>
+                </div>
+                <pre class="site-ide-code">public class Product
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+}</pre>
+            </div>
+            <div class="site-wizard">
+                <div class="site-wizard-head">
+                    <Icon Name="Lucide.Wand" />
+                    <span>Add CRUD pages</span>
+                    <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Solid" Pill>Pro</Badge>
+                </div>
+                <div class="site-wizard-body">
+                    <div>
+                        <span class="site-wizard-label">Model</span>
+                        <span class="site-wizard-select">Product<Icon Name="Lucide.ChevronDown" /></span>
+                    </div>
+                    <div>
+                        <span class="site-wizard-label">Pages</span>
+                        @foreach (var made in (string[])["List, with search and paging", "Detail", "Create and edit form"])
+                        {
+                            <span class="site-wizard-check"><i><Icon Name="Lucide.Check" /></i>@made</span>
+                        }
+                    </div>
+                    <div>
+                        <span class="site-wizard-label">Layout</span>
+                        <span class="site-wizard-select">Sidebar app<Icon Name="Lucide.ChevronDown" /></span>
+                    </div>
+                    <div>
+                        <span class="site-wizard-label">Changes to review</span>
+                        <span class="site-wizard-changes">
+                            <span><b data-kind="add">+</b> Pages/Products/List.razor</span>
+                            <span><b data-kind="add">+</b> Pages/Products/Detail.razor</span>
+                            <span><b data-kind="add">+</b> Pages/Products/Edit.razor</span>
+                            <span><b data-kind="edit">~</b> Layout/NavMenu.razor</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="site-wizard-foot">
+                    <span>Cancel</span>
+                    <span data-primary>Apply 4 changes</span>
+                </div>
+            </div>
+            <figcaption>Illustration: the IDE plugin’s wizard</figcaption>
+        </figure>
+    </div>
+</Section>
+
+@* The stakes: work every developer knows, never the free levels' limits. *@
+<Section Class="site-band site-story site-story-88 site-line">
+    <div class="site-story-col">
+        <div class="site-story-head">
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Every new page adds more work</Heading>
+            <TextBlock Color="Color.Muted">The components are the quick part. Here’s where the time goes once you build with IzzyBlazor every day.</TextBlock>
+        </div>
+        <StoryPoints Items="Stakes" />
+    </div>
+</Section>
+
+<Section Class="site-story site-story-88 site-line">
+    <div class="site-story-col">
+        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">What Pro does for you</Heading>
+        <StoryPoints Items="Value" />
+    </div>
+</Section>
+
+<Section Class="site-band site-story site-story-88 site-line">
+    <div class="site-story-col site-story-col-steps">
+        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Getting Pro takes three steps</Heading>
+        <StorySteps Items="Plan" />
+    </div>
+</Section>
+
+<Section Spacing="SectionSpacing.None" id="plans">
     <div class="site-pricing-col site-pricing-top">
         <div class="site-pricing-intro">
-            <Heading Level="1" Wrap="TextWrap.Balance" Class="site-pricing-title">Everything free stays free.</Heading>
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Start free, and add Pro when you need it</Heading>
             <TextBlock Color="Color.Muted" Class="site-pricing-lead">
                 Every component is open source under the MIT license, and you don’t need an account to use them. A free account adds app starters, page blocks and a complete sample app. Pro adds tools to build faster and maintain with confidence.
             </TextBlock>
@@ -29,7 +135,7 @@
                 <article class="site-pricing-level" data-pick="@(level.Pick ? "true" : null)" aria-labelledby="level-@level.Id">
                     <div class="site-pricing-level-name">
                         <div>
-                            <Heading Level="2" Size="TextSize.Lg" id="@($"level-{level.Id}")">@level.Name</Heading>
+                            <Heading Level="3" Size="TextSize.Lg" id="@($"level-{level.Id}")">@level.Name</Heading>
                             @if (pro)
                             {
                                 <Badge Variant="BadgeVariant.Outline" Size="BadgeSize.Sm" Pill>Founding price</Badge>
@@ -165,7 +271,40 @@
     </div>
 </Section>
 
+<Section Class="site-band site-story site-line">
+    <div class="site-close">
+        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Spend your days on features</Heading>
+        <TextBlock Color="Color.Muted">Let Pro handle the scaffolding, the fixes and the upgrades, so your time goes to your app.</TextBlock>
+        <Button Href="pricing#reserve" Size="ControlSize.Lg">Reserve the founding price</Button>
+    </div>
+</Section>
+
 @code {
+    private static readonly StoryPoints.Point[] Stakes =
+    [
+        new(Lucide.Copy, "Pages repeat for every model", "Each model needs a list, a detail page and a form, and wiring each one up by hand takes an afternoon."),
+        new(Lucide.CircleArrowUp, "Upgrades take careful work", "Every library upgrade means finding what changed and updating your code by hand, one file at a time."),
+        new(Lucide.Accessibility, "Accessibility fixes take time", "An audit tells you what’s wrong. Tracing each problem to the component behind it and fixing it by hand is the slow part."),
+    ];
+
+    private static readonly StoryPoints.Point[] Value =
+    [
+        new(Lucide.AppWindow, "Generate pages from your IDE", "Fill in a form or a wizard, and Pro runs the CLI for you. You get the same code without looking up every option."),
+        new(Lucide.Layers, "Get every page, variant and kit", "Get list, detail and form pages for any model, plus every variant of every block and every app kit."),
+        new(Lucide.Accessibility, "Find and fix accessibility problems", "Audit the whole site in one run, see each problem traced to its component, and preview the fix before you apply it."),
+        new(Lucide.RefreshCw, "Upgrade without surprises", "izzy upgrade plans the changes each release needs and shows you every one for review before it’s applied."),
+        new(Lucide.Bot, "Your coding agent can use it too", "The same tools run from the CLI and izzy mcp, so an agent can generate, check and upgrade the way you do."),
+        new(Lucide.FileCode, "The code stays yours", "Everything Pro generates lives in your project and keeps working if you stop paying."),
+    ];
+
+    // Before Pro is on sale: reserve, buy at launch, generate.
+    private static readonly StorySteps.Step[] Plan =
+    [
+        new("Reserve the founding price", "It takes your email address and nothing else. Reserving is free."),
+        new("Buy Pro at launch", "We’ll email you when Pro goes on sale, with $199 a year held for you."),
+        new("Generate from your IDE", "Sign in once on each machine, then create pages from the IDE or the CLI.", "izzy login"),
+    ];
+
     private const string Yes = "yes", No = "no";
 
     // Each level: who it's for, its price and unit, the line under the price, its action and the line under
@@ -196,9 +335,9 @@
                 "All app kits",
                 "CRUD as full list, detail and form pages",
                 "Safe upgrades, with every change shown for review",
-                "Insert blocks and create items from your IDE, with forms and wizards",
+                "Live previews, quick fixes and upgrade reviews in your IDE",
                 "The full-site accessibility audit, with fixes traced to each component",
-                "The same tools for your coding agent",
+                "Agent skills for upgrades, accessibility fixes and migrations",
             ]),
     ];
 
@@ -215,15 +354,15 @@
         new("Safe upgrades (izzy upgrade)", No, No, Yes),
         new("IDE plugins: inline docs and previews", Yes, Yes, Yes),
         new("Generate and customize with the CLI", Yes, Yes, Yes),
-        new("Generate and customize with the IDE", No, No, Yes),
-        new("Coding agents (izzy mcp)", "Open items", "Free items", "Everything"),
+        new("Generate and customize with the IDE", "Open items", "Free items", "Everything"),
+        new("Coding agents (izzy mcp)", No, "Free items", "Everything"),
         new("Accessibility audit", "One page", "One page", "The whole site, with fixes"),
     ];
 
     private static readonly (string Question, string Answer)[] Questions =
     [
         ("Are the components really free?", "Yes. Every component is open source under the MIT license, and you can use them in any project, including commercial ones. You don’t need an account or a key, and there are no limits now or later."),
-        ("Why does a free account need an email?", "The account is how izzy knows you can generate starters and blocks, so it doesn’t have to ask every time. You sign in with a link we email you. There are no passwords."),
+        ("Why does a free account need an email?", "The account is how izzy knows you can generate starters and blocks, so it doesn’t have to ask every time. You can sign in with a link we email you or with your Microsoft or GitHub account. There are no passwords, and from Microsoft or GitHub we only read your name, email address and avatar."),
         ("What do you do with my email?", "We use it to run your account: to sign you in and, if you buy Pro, to bill you. We only send product news if you ask for it, and you can turn it off at any time. We never sell or share your address."),
         ("Does generated code need a license to run?", "No. izzy writes the code into your project, and it belongs to you. Nothing checks a license when it builds or runs, and the code never contacts us."),
         ("Can I use it offline?", "Yes. Once you’ve run izzy login, starters and blocks are generated on your own machine without a connection. The components themselves never need one."),

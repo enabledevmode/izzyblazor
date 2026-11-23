@@ -1,7 +1,6 @@
 @page "/"
 @layout HomeLayout
 @inject Registry Registry
-@inject ApiMetadata Api
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 
 <PageMeta Title="IzzyBlazor: Blazor components for every render mode"
@@ -11,6 +10,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&display=swap" />
 </PageMeta>
+
+@* The landing page tells one story (design board, page SB · Story drafts, Story 1): the hero, what a circuit
+   or a download costs, what IzzyBlazor does instead, the components, who made it, three steps to a running app,
+   the free account, Pro, and a closing call. Every heading is a sentence or an instruction. *@
 
 @* The hero (L1): a centered column (the headline with its Ember line, what it is and the two ways in) over
    the app the library builds, as pictures: a desktop window with its phone over the window's lower start
@@ -22,11 +25,11 @@
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
             <TextBlock Color="Color.Muted" Class="site-hero-sub">
-                @Registry.ComponentCountLabel components that work in every Blazor render mode, including static SSR.
+                Most components need a server circuit or a WebAssembly download to be interactive. IzzyBlazor’s components are interactive in every render mode, even static SSR.
             </TextBlock>
             <div class="site-hero-actions">
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
-                <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
+                <Button Href="@AccountService.SignIn" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create a free account</Button>
             </div>
         </div>
         @* Pictures of the page /frame/home-store, at a desktop's width and a phone's (HomePosterTests takes them),
@@ -56,31 +59,35 @@
     </div>
 </Section>
 
-@* How it works: the band's title and intro, then a picture of each mode. *@
-<Section Bg="Color.FillSubtle" Class="site-band">
-    <Stack Gap="6">
-        <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl3">Use interactivity only where you need it.</Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-why-intro">
-                Many Blazor components require interactive rendering to function. IzzyBlazor works with static SSR, Interactive Server, WebAssembly, and Auto, so you can add Blazor interactivity where it's needed without requiring it everywhere.
-            </TextBlock>
-        </Stack>
-        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
-            <Card Title="Static: no circuit" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /></div></CardMedia>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Pages render as HTML on the server. The browser's own elements, links and forms do the work, and IzzyBlazor's small script adds keyboard controls, live values and dragging. No SignalR connection, no WebAssembly runtime.</TextBlock>
-            </Card>
-            <Card Title="Interactive: bound to C#" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-interactive" /></div></CardMedia>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Choose Server, WebAssembly or Auto for a page that needs C#. The same components take <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, and prerender as the same working HTML.</TextBlock>
-            </Card>
-        </Grid>
-    </Stack>
+@* The stakes: three plain facts about circuits and WebAssembly. The hero ends on its own border. *@
+<Section Class="site-story">
+    <div class="site-story-col">
+        <div class="site-story-head">
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Interactivity shouldn’t need a circuit or a download</Heading>
+            <TextBlock Color="Color.Muted">Most Blazor components only respond to a click when the page runs over a circuit or in WebAssembly. Your users and your server pay for that.</TextBlock>
+        </div>
+        <StoryPoints Items="Stakes" />
+    </div>
+</Section>
+
+@* The value: what the components do instead, then a picture of each mode. *@
+<Section Class="site-band site-story site-line">
+    <div class="site-story-col">
+        <div class="site-story-head">
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Your pages stay interactive without a circuit</Heading>
+            <TextBlock Color="Color.Muted">IzzyBlazor’s components are interactive in every render mode, including static SSR.</TextBlock>
+        </div>
+        <StoryPoints Items="Value" />
+        <div class="site-story-pictures">
+            <figure><div class="site-media"><ComponentPicture Id="mode-static" /></div><figcaption>Static: no circuit</figcaption></figure>
+            <figure><div class="site-media"><ComponentPicture Id="mode-interactive" /></div><figcaption>Interactive: bound to C#</figcaption></figure>
+        </div>
+    </div>
 </Section>
 
 @* The components by what they're for: each card's top is the real component, inert (a picture of
    it, so the page has no extra tab stops), cropped and fading at the bottom. *@
-<Section>
+<Section Class="site-story-show site-line">
     <Stack Gap="6">
         <Row Gap="4" Justify="Justify.Between" Align="Align.End" Wrap>
             <Stack Gap="2">
@@ -169,8 +176,46 @@
     </Stack>
 </Section>
 
-@* L4, free with an account: after the components, so the offer reads as more on top of a free library. *@
-<Section Class="site-band site-free">
+@* The guide: a note from the maker, then four facts as proof. Each fact opens its page. *@
+<Section Class="site-story site-line">
+    <div class="site-guide">
+        <div class="site-guide-note">
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-guide-title">I built IzzyBlazor for Blazor developers like me</Heading>
+            <p>I kept building Blazor apps where a page needed a circuit just so a menu could open. I wanted components that are interactive on a static page, work with a keyboard and a screen reader, and don’t ask me to choose a render mode first. IzzyBlazor is the library I wanted, and I use it in my own work every day.</p>
+            <div class="site-guide-by">
+                <Avatar Name="Israel Dryer" Src="img/avatar-israel.webp" Decorative />
+                <div>
+                    <span>Israel Dryer</span>
+                    <span>Maker of IzzyBlazor</span>
+                </div>
+            </div>
+        </div>
+        <div class="site-proofs">
+            @foreach (var proof in Proofs)
+            {
+                <a class="site-proof" href="@proof.Href">
+                    <span>@(proof.Fact ?? Registry.ComponentCountLabel)</span>
+                    <span>@proof.Line</span>
+                </a>
+            }
+        </div>
+    </div>
+</Section>
+
+@* The plan: three steps, two with the command that does them. *@
+<Section Class="site-story site-line">
+    <div class="site-story-col site-story-col-steps">
+        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Get a running app in three steps</Heading>
+        <StorySteps Items="Plan" />
+        <div class="site-free-actions">
+            <Button Href="docs/get-started" Size="ControlSize.Lg">Get started</Button>
+            <Anchor Href="docs" Underline="AnchorUnderline.Hover" Class="site-action">Read the docs<Icon Name="Lucide.ArrowRight" /></Anchor>
+        </div>
+    </div>
+</Section>
+
+@* L4, free with an account: the offer between the library and Pro. *@
+<Section Class="site-band site-free site-line">
     <div class="site-free-col">
         <div class="site-free-intro">
             <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Free with an account</Heading>
@@ -200,63 +245,33 @@
     </div>
 </Section>
 
-<Section>
-    <Stack Gap="6">
-        <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl3">Built for developers. Ready for agents.</Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Accessible from the first render, and documented for your coding agent.</TextBlock>
-        </Stack>
-        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
-            <Card Title="Accessible from the start" Href="docs/accessibility/overview" Size="ControlSize.Sm" Class="site-linkcard"
-                  Description="Components build to WCAG 2.2 level AA on the browser's own elements, with keyboard support, visible focus and screen reader announcements. Each documents its keyboard and ARIA behavior, and the guide lists the gaps that remain.">
-                <CardHeader><Pictogram Icon="Lucide.Accessibility" /></CardHeader>
-            </Card>
-            <Card Title="Docs your coding agent can use" Href="docs/get-started/ai-assistants" Size="ControlSize.Sm" Class="site-linkcard"
-                  Description="IzzyBlazor's MCP server at izzyblazor.com/mcp gives agents component search, each component's API and working examples, checks known issues, and reports gaps it finds.">
-                <CardHeader><Pictogram Icon="Lucide.Bot" /></CardHeader>
-            </Card>
-        </Grid>
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-            IzzyBlazor is in preview (@Api.Version): APIs may change before 1.0. It's MIT licensed, for .NET 10 and later.
-            <Anchor Href="https://github.com/enabledevmode/izzyblazor">Source and issues on GitHub</Anchor>
-        </TextBlock>
-    </Stack>
-</Section>
-
-
-@* L6, the close: the three ways in, each with its command. Then L7, the newsletter's band (the footer here has no form). *@
-<Section Class="site-start">
-    <div class="site-start-col">
-        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Start building</Heading>
-        <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
-            @foreach (var way in Ways)
-            {
-                <Card Size="ControlSize.Sm">
-                    <CardBody Gap="3">
-                        <Row Gap="2" Align="Align.Center" Wrap>
-                            <Heading Level="3" Class="site-start-name">@way.Title</Heading>
-                            @if (way.Account)
-                            {
-                                <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Soft" StartIcon="Lucide.User" Pill>Free account</Badge>
-                            }
-                        </Row>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@way.Line</TextBlock>
-                        <Code Block>@way.Command</Code>
-                        <Anchor Href="@way.Href" Underline="AnchorUnderline.Hover" Class="site-action">@way.Link<Icon Name="Lucide.ArrowRight" /></Anchor>
-                    </CardBody>
-                </Card>
-            }
-        </Grid>
+@* The bridge to Pro: one card, and where to read more. *@
+<Section Class="site-story site-story-tight">
+    <div class="site-bridge">
+        <div class="site-bridge-text">
+            <div class="site-bridge-for">
+                <Badge Accent="Accent.Neutral" Variant="BadgeVariant.Solid" Pill>Pro</Badge>
+                <span>For developers who build with IzzyBlazor every day</span>
+            </div>
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-bridge-title">Build faster with Pro, and maintain with confidence</Heading>
+            <p>Generate pages from forms and wizards in your IDE, then fix accessibility problems and upgrade safely as your app grows.</p>
+        </div>
+        <div class="site-bridge-action">
+            <Button Href="pricing" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">See what Pro adds</Button>
+            <p>Reserve the founding price of $199 a year now. It’s free until launch.</p>
+        </div>
     </div>
 </Section>
 
-<Section Class="site-band site-news">
-    <div class="site-news-col">
-        <div class="site-news-intro">
-            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-news-title">One email a month</Heading>
-            <TextBlock Color="Color.Muted">Once a month, we’ll tell you what’s new in IzzyBlazor. Subscribers see new blocks and kits first and hear about the founding price when Pro goes on sale.</TextBlock>
+@* The close. The newsletter's form is in the footer. *@
+<Section Class="site-band site-story site-line">
+    <div class="site-close">
+        <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Build Blazor apps that load fast and work for everyone</Heading>
+        <TextBlock Color="Color.Muted">Start with the components today. They’re free, open source and interactive in every render mode, including static SSR.</TextBlock>
+        <div class="site-close-actions">
+            <Button Href="docs/get-started" Size="ControlSize.Lg">Get started</Button>
+            <Button Href="@AccountService.SignIn" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create a free account</Button>
         </div>
-        <Newsletter Source="home" />
     </div>
 </Section>
 
@@ -267,7 +282,7 @@
     // The hero's dashboard, as a page of its own.
     private const string RunningHref = "frame/home-store";
 
-    private string Description => $"Open-source Blazor components, {Registry.ComponentCountLabel} of them, that work in static SSR, Interactive Server, WebAssembly and Auto. Pick each page's render mode for the page.";
+    private string Description => $"Open-source Blazor components, {Registry.ComponentCountLabel} of them, that are interactive in every render mode, even static SSR, with no circuit and no WebAssembly download required.";
 
     // L4's cards: a picture, the count beside its name (Izzy CRM is its own count), a line and a link.
     private sealed record FreeItem(string Picture, string Alt, string Count, string Name, string Line, string Link, string Href);
@@ -279,14 +294,36 @@
         new("templates/crm", "Izzy CRM’s dashboard", "Izzy CRM", "", "A complete app with a deal pipeline, contacts, reports and sign-in that you can build on.", "See Izzy CRM", "templates/crm"),
     ];
 
-    // L6's cards.
-    private sealed record Way(string Title, bool Account, string Line, string Command, string Link, string Href);
-
-    private static readonly Way[] Ways =
+    private static readonly StoryPoints.Point[] Stakes =
     [
-        new("New app", false, "The base starter works in every render mode, with sign-in if you need it.", "dotnet new starter-blazor -n MyApp", "Start a new app", "docs/get-started/create-app"),
-        new("Existing app", false, "Add IzzyBlazor’s theme and components to a Blazor app you already have.", "izzy init", "Add to an app", "docs/get-started/existing-app"),
-        new("An app shell, blocks or the CRM", true, "Start from an app shell or Izzy CRM, or add finished blocks to the pages you have.", "izzy new starter sidebar -n MyApp", "Create a free account", AccountService.SignIn),
+        new(Lucide.Server, "Interactive Server uses memory for every tab", "Every tab on an Interactive Server page holds a circuit in your server’s memory."),
+        new(Lucide.Download, "WebAssembly makes users wait", "The browser downloads the .NET runtime before the page can respond, which is slow on phones."),
+        new(Lucide.Unplug, "A dropped connection stalls the page", "When a circuit drops, a reconnect overlay covers the page. If it can’t reconnect, anything typed into a form is lost."),
+    ];
+
+    private static readonly StoryPoints.Point[] Value =
+    [
+        new(Lucide.MousePointerClick, "Components are interactive on static pages", "The components handle clicks, typing and keyboard navigation in the browser, with no circuit to keep open and no runtime to download."),
+        new(Lucide.Zap, "Pages load fast", "Pages arrive as HTML from the server and respond as soon as they load, on any phone and any connection."),
+        new(Lucide.ArrowLeftRight, "Switch render modes freely", "Move a page to Interactive Server, WebAssembly or Auto when it needs to. The components behave the same way."),
+    ];
+
+    // The guide's facts: the first is the count of components (Fact is null).
+    private sealed record Proof(string? Fact, string Line, string Href);
+
+    private static readonly Proof[] Proofs =
+    [
+        new(null, "components", "docs/components"),
+        new("Accessible", "with a keyboard and a screen reader", "docs/accessibility/overview"),
+        new("MIT", "licensed, free for any project", "https://github.com/enabledevmode/izzyblazor/blob/main/LICENSE"),
+        new("Docs MCP", "for coding agents", "docs/get-started/ai-assistants"),
+    ];
+
+    private static readonly StorySteps.Step[] Plan =
+    [
+        new("Create the app", "Start a new app in any render mode, with sign-in if you need it. For an app you already have, run izzy init instead.", "dotnet new starter-blazor"),
+        new("Build your pages", "Use the components in your pages, and generate a grid page for any model when you need one.", "izzy add crud Product"),
+        new("Ship it", "Deploy wherever ASP.NET Core runs. Static pages need no open connection, so they scale like any website."),
     ];
 
     // The showcase: each card counts the catalog groups it covers.

@@ -8,6 +8,6 @@
     <AppMain>
         @Body
     </AppMain>
-    @* The landing page has the newsletter in a band of its own, and the Newsletter page is the form. *@
-    <SiteFooter Newsletter="@(Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0] is not ("" or "newsletter"))" />
+    @* The Newsletter page is the form itself, so its footer leaves the form out. *@
+    <SiteFooter Newsletter="@(Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0] is not "newsletter")" />
 </AppShell>

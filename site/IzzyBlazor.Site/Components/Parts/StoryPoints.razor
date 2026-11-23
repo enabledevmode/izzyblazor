@@ -1,0 +1,18 @@
+@* A row of points on the landing and pricing pages (design board, page SB · Story drafts): each an icon on a
+   gray tile, a title that is a sentence, and a line. Three across from 1024px, one column below. *@
+<div class="site-points">
+    @foreach (var point in Items)
+    {
+        <div class="site-point">
+            <span class="site-point-icon" aria-hidden="true"><Icon Name="point.Icon" /></span>
+            <Heading Level="3" Class="site-point-title">@point.Title</Heading>
+            <p>@point.Line</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Point> Items { get; set; } = [];
+
+    public sealed record Point(IconData Icon, string Title, string Line);
+}

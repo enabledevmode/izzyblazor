@@ -4,7 +4,6 @@
   --site-ember-soft: light-dark(#fdebdf, rgb(242 106 27 / 0.18));
   --site-ember-text: light-dark(#b8480b, #ff9a5c);
 }
-.site-why-intro { max-inline-size: 44rem; margin-block-end: var(--ib-space-2); }
 
 /* Docs pages always show the page's scrollbar, so moving between a short page and a long one
    doesn't change the width and shift the centered columns. In the library's base layer, so its
@@ -74,7 +73,7 @@
   letter-spacing: -0.03em;
 }
 .site-hero-title span { color: var(--site-ember-text); }
-.site-hero-sub.site-hero-sub { max-width: 34em; font-size: 1.0625rem; line-height: 1.6; }
+.site-hero-sub.site-hero-sub { max-width: 36em; font-size: 1.0625rem; line-height: 1.6; }
 .site-hero-actions { display: flex; gap: var(--ib-space-3); }
 /* Standalone links (an action, not a link in a sentence): Medium, an arrow, no underline until
    hover. In the accent (Ember text) on their own. */
@@ -317,18 +316,13 @@
 /* L4, free with an account: the intro, three picture cards (one column on phones), the actions and the quiet
    line, 32px apart. A card: a 16:10 picture from its top left over a hairline, then the count beside its name,
    a muted line and a link at the card's foot. */
-.site-free.site-free, .site-start.site-start { padding-block: 3.5rem; }
-.site-news.site-news { padding-block: 3rem; }
-@media (width >= 1024px) { .site-free.site-free, .site-start.site-start { padding-block: 6rem; } .site-news.site-news { padding-block: 4.5rem; } }
+.site-free.site-free { padding-block: 3.5rem; }
+@media (width >= 1024px) { .site-free.site-free { padding-block: 6rem; } }
 /* 24px between the parts on phones, 32px on wide screens; the sentence 16px, then 18px. */
 .site-free-col { display: flex; flex-direction: column; gap: var(--ib-space-6); }
 .site-free-intro { display: flex; flex-direction: column; gap: var(--ib-space-3); }
 .site-free-intro > p { max-width: 40em; font-size: var(--ib-text-md); }
 @media (width >= 1024px) { .site-free-col { gap: var(--ib-space-8); } .site-free-intro > p { font-size: var(--ib-text-lg); } }
-/* L6, start building: the heading 24px over the cards (32px on wide screens); a card's title is 17px. */
-.site-start-col { display: flex; flex-direction: column; gap: var(--ib-space-6); }
-@media (width >= 1024px) { .site-start-col { gap: var(--ib-space-8); } }
-.site-start-name.site-start-name { font-size: 1.0625rem; font-weight: 600; }
 .site-free-cards { display: grid; gap: var(--ib-space-4); }
 @media (width >= 1024px) { .site-free-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .site-free-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ib-color-border); border-radius: 0.875rem; background: var(--ib-color-surface); }
@@ -343,20 +337,84 @@
 .site-free-note { display: flex; align-items: flex-start; gap: var(--ib-space-2); margin: 0; font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
 .site-free-note .ib-icon { flex: none; width: 1rem; height: 1rem; margin-block-start: 0.125rem; }
 @media (width < 640px) {
-  .site-free-actions { flex-direction: column; align-items: stretch; gap: var(--ib-space-3); }
+  .site-free-actions { flex-direction: column; align-items: stretch; }
   .site-free-actions > .site-action { align-self: flex-start; }
 }
 
-/* L7, the newsletter's band: 1120px, the words beside the form (stacked on phones), 64px apart. */
-.site-news-col { display: grid; gap: var(--ib-space-5); max-inline-size: 70rem; margin-inline: auto; }
-/* The band's heading: 24px on phones, 32px on wide screens. */
-.site-news-title.site-news-title { font-size: 1.5rem; line-height: 1.2; letter-spacing: -0.02em; }
-@media (width >= 1024px) { .site-news-title.site-news-title { font-size: 2rem; } }
-.site-news-intro { display: flex; flex-direction: column; gap: 0.625rem; }
-@media (width >= 1024px) { .site-news-col { grid-template-columns: 1fr 1fr; align-items: center; gap: var(--ib-space-14); } }
-@media (width < 640px) {
-  .site-news .site-newsletter-row { flex-direction: column; align-items: stretch; }
-}
+/* The story sections of the landing and pricing pages (design board, page SB · Story drafts). A section is
+   56px above and below on phones and 96px from 1024px (48 and 72 for the tight one), under a hairline. */
+.site-story.site-story { padding-block: 3.5rem; }
+.site-story-tight.site-story-tight { padding-block: 3rem; }
+@media (width >= 1024px) { .site-story.site-story { padding-block: 6rem; } .site-story-tight.site-story-tight { padding-block: 4.5rem; } }
+:root.site .site-line { border-block-start: 1px solid var(--ib-color-border); }
+/* The components section between them: 48px, then 88px. */
+.site-story-show.site-story-show { padding-block: 3rem; }
+@media (width >= 1024px) { .site-story-show.site-story-show { padding-block: 5.5rem; } }
+/* A section's parts: 28px apart on phones and 40px from 1024px; over a row of steps, 24px and 32px. */
+.site-story-col { display: flex; flex-direction: column; gap: 1.75rem; }
+.site-story-col-steps { gap: var(--ib-space-6); }
+@media (width >= 1024px) { .site-story-col { gap: 2.5rem; } .site-story-col-steps { gap: var(--ib-space-8); } }
+.site-story-head { display: flex; flex-direction: column; gap: var(--ib-space-3); }
+.site-story-head > p { max-width: 40em; font-size: var(--ib-text-md); line-height: 1.6; }
+@media (width >= 1024px) { .site-story-head > p { font-size: var(--ib-text-lg); } }
+/* Points: an icon on a 40px gray tile, a 17px title and a 15px line. */
+.site-points { display: grid; gap: 1.75rem; }
+@media (width >= 1024px) { .site-points { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem; } }
+.site-point { display: flex; flex-direction: column; gap: 0.625rem; min-width: 0; }
+.site-point-icon { display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 0.625rem; background: var(--ib-color-fill); }
+.site-point-icon .ib-icon { width: 1.25rem; height: 1.25rem; }
+.site-point-title.site-point-title { font-size: 1.0625rem; font-weight: 600; line-height: 1.5; }
+.site-point > p { margin: 0; font-size: 0.9375rem; line-height: 1.6; color: var(--ib-color-muted); }
+/* The two mode pictures under the value points: side by side from 768px. */
+.site-story-pictures { display: grid; gap: var(--ib-space-4); }
+@media (width >= 768px) { .site-story-pictures { grid-template-columns: 1fr 1fr; } }
+.site-story-pictures > figure { display: flex; flex-direction: column; gap: var(--ib-space-2); margin: 0; }
+.site-story-pictures .site-media { overflow: hidden; border: 1px solid var(--ib-color-border); border-radius: 0.75rem; }
+.site-story-pictures figcaption { font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
+/* Steps: a card each, with its number on an ink disc beside the title. */
+.site-plan { display: grid; gap: var(--ib-space-4); margin: 0; padding: 0; list-style: none; }
+@media (width >= 1024px) { .site-plan { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.site-plan-step { display: flex; flex-direction: column; gap: var(--ib-space-3); min-width: 0; padding: 1.375rem; border: 1px solid var(--ib-color-border); border-radius: 0.75rem; background: var(--ib-color-surface); }
+.site-plan-head { display: flex; align-items: center; gap: var(--ib-space-3); }
+.site-plan-number { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 9999px; background: var(--ib-color-on-surface); color: var(--ib-color-surface); font-size: 0.9375rem; font-weight: 600; }
+.site-plan-step > p { margin: 0; font-size: var(--ib-text-sm); line-height: 1.6; color: var(--ib-color-muted); }
+/* The command reads as typed at a prompt; the "$" is drawn, so it isn't copied. */
+.site-plan-step .ib-code-pre > code::before { content: "$ "; color: var(--ib-color-muted); }
+/* The guide: the maker's note beside four facts (under it below 1024px). The heading is 28px, then 36px. */
+.site-guide { display: grid; align-items: center; gap: var(--ib-space-8); }
+@media (width >= 1024px) { .site-guide { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 4rem; } }
+.site-guide-note { display: flex; flex-direction: column; gap: 1.125rem; }
+.site-guide-title.site-guide-title { font-size: 1.75rem; line-height: 1.2; letter-spacing: -0.02em; }
+.site-guide-note > p { max-width: 36em; margin: 0; font-size: 1.0625rem; line-height: 1.6; }
+@media (width >= 1024px) { .site-guide-title.site-guide-title { font-size: 2.25rem; } .site-guide-note > p { font-size: var(--ib-text-lg); } }
+.site-guide-by { display: flex; align-items: center; gap: var(--ib-space-3); }
+.site-guide-by > div { display: flex; flex-direction: column; }
+.site-guide-by > div > :first-child { font-size: 0.9375rem; font-weight: 600; }
+.site-guide-by > div > :last-child { font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
+.site-proofs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ib-space-3); }
+.site-proof { display: flex; flex-direction: column; gap: var(--ib-space-1); min-width: 0; padding: 1.125rem 1.25rem; border: 1px solid var(--ib-color-border); border-radius: 0.75rem; background: var(--ib-color-surface); color: inherit; text-decoration: none; }
+.site-proof:hover { border-color: var(--ib-color-outline); }
+.site-proof > :first-child { font-size: 1.625rem; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; }
+.site-proof > :last-child { font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
+/* The bridge to Pro: one card, the words beside the action (over it below 1024px). */
+.site-bridge { display: flex; flex-direction: column; gap: var(--ib-space-5); padding: var(--ib-space-6); border: 1px solid var(--ib-color-border); border-radius: 1rem; background: var(--ib-color-surface); }
+@media (width >= 1024px) { .site-bridge { flex-direction: row; align-items: center; gap: 4rem; padding: 2.5rem; } }
+.site-bridge-text { display: flex; flex: 1; flex-direction: column; gap: var(--ib-space-3); min-width: 0; }
+.site-bridge-for { display: flex; flex-wrap: wrap; align-items: center; gap: 0.625rem; font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
+.site-bridge-title.site-bridge-title { font-size: 1.5rem; line-height: 1.2; letter-spacing: -0.02em; }
+@media (width >= 1024px) { .site-bridge-title.site-bridge-title { font-size: 2rem; } }
+.site-bridge-text > p { margin: 0; font-size: var(--ib-text-md); line-height: 1.6; color: var(--ib-color-muted); }
+.site-bridge-action { display: flex; flex: none; flex-direction: column; align-items: flex-start; gap: 0.625rem; }
+.site-bridge-action > p { margin: 0; font-size: 0.8125rem; line-height: 1.6; color: var(--ib-color-muted); }
+@media (width < 640px) { .site-bridge-action { align-items: stretch; } }
+/* The close: one centered column on 1120px, the heading at most 18em wide. */
+.site-close { display: flex; flex-direction: column; align-items: center; gap: var(--ib-space-4); max-inline-size: 70rem; margin-inline: auto; text-align: center; }
+.site-close > .site-h2 { max-width: 18em; }
+.site-close > p { font-size: var(--ib-text-md); line-height: 1.6; }
+@media (width >= 1024px) { .site-close > p { font-size: var(--ib-text-lg); } }
+.site-close-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--ib-space-3); }
+/* On phones the close reads from the start, with full-width actions. */
+@media (width < 640px) { .site-close { align-items: stretch; text-align: start; } .site-close-actions { flex-direction: column; } }
 
 /* Privacy and Terms: one reading column. */
 .site-legal { display: flex; flex-direction: column; gap: var(--ib-space-4); max-inline-size: 44rem; margin-inline: auto; padding-block: var(--ib-space-12) var(--ib-space-16); }
@@ -1050,7 +1108,59 @@ html:has(> body > .frame) body { margin: 0; }
 .site-pricing-band { border-block-start: 1px solid var(--ib-color-border); }
 .site-pricing-top { display: grid; gap: 1.75rem; padding-block: 2.5rem 3.5rem; }
 .site-pricing-intro { display: grid; gap: 1rem; }
-.site-pricing-title { font-size: 2rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.025em; }
+/* The hero: the words beside a drawing of the plugin's wizard (over it below 1024px). The heading is 34px,
+   then 52px. */
+.site-pricing-hero { display: grid; align-items: center; gap: var(--ib-space-8); padding-block: 2.5rem 3.5rem; }
+.site-pricing-hero-text { display: flex; flex-direction: column; gap: 1.125rem; min-width: 0; }
+.site-pricing-hero-badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ib-space-2); }
+.site-pricing-title { font-size: 2.125rem; line-height: 1.08; font-weight: 600; letter-spacing: -0.03em; }
+.site-pricing-hero-lead { max-inline-size: 32em; font-size: 1.0625rem; line-height: 1.6; }
+.site-pricing-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ib-space-3); }
+@media (width < 640px) { .site-pricing-hero-actions { flex-direction: column; align-items: stretch; } }
+@media (width >= 1024px) {
+  .site-pricing-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 3.5rem; padding-block: 5rem 5.5rem; }
+  .site-pricing-hero-lead { font-size: 1.1875rem; }
+}
+/* Pricing's story sections: 88px above and below from 1024px. */
+@media (width >= 1024px) { .site-story-88.site-story-88 { padding-block: 5.5rem; } }
+/* The drawing: a project window (its tree and a model's code) with the wizard over its end. Below 1280px
+   only the wizard, 300px wide and centered. */
+.site-ide { position: relative; display: flex; flex-direction: column; margin: 0; font-size: 0.75rem; }
+.site-ide-bar, .site-ide-back, .site-ide > figcaption { display: none; }
+.site-wizard { align-self: center; width: 18.75rem; max-width: 100%; overflow: hidden; border: 1px solid var(--ib-color-border); border-radius: 0.625rem; background: var(--ib-color-surface); box-shadow: 0 12px 32px rgb(20 20 19 / 0.14); }
+.site-wizard-head { display: flex; align-items: center; gap: var(--ib-space-2); padding: 0.75rem 0.875rem; border-block-end: 1px solid var(--ib-color-border); font-size: 0.875rem; font-weight: 600; }
+.site-wizard-head .ib-icon { width: 1rem; height: 1rem; }
+.site-wizard-head .ib-badge { margin-inline-start: auto; }
+.site-wizard-body { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.875rem; }
+.site-wizard-body > div { display: flex; flex-direction: column; gap: 0.25rem; }
+.site-wizard-label { font-weight: 500; color: var(--ib-color-muted); }
+.site-wizard-select { display: flex; align-items: center; justify-content: space-between; height: 2rem; padding-inline: 0.625rem; border: 1px solid var(--ib-color-outline); border-radius: 0.375rem; font-size: 0.8125rem; }
+.site-wizard-select .ib-icon { width: 0.875rem; height: 0.875rem; color: var(--ib-color-muted); }
+.site-wizard-check { display: flex; align-items: center; gap: var(--ib-space-2); margin-block-start: 0.125rem; font-size: 0.8125rem; }
+.site-wizard-check > i { display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: 0.25rem; background: var(--ib-color-on-surface); color: var(--ib-color-surface); }
+.site-wizard-check > i .ib-icon { width: 0.6875rem; height: 0.6875rem; }
+.site-wizard-changes { display: flex; flex-direction: column; gap: 0.125rem; margin-block-start: 0.125rem; padding: 0.375rem 0.625rem; border: 1px solid var(--ib-color-border); border-radius: 0.375rem; font-family: var(--ib-font-mono); font-size: 0.71875rem; }
+.site-wizard-changes b { font-weight: 400; }
+.site-wizard-changes b[data-kind="add"] { color: var(--ib-color-success-text); }
+.site-wizard-changes b[data-kind="edit"] { color: var(--ib-color-warning-text); }
+.site-wizard-foot { display: flex; justify-content: flex-end; gap: var(--ib-space-2); padding: 0.625rem 0.875rem; border-block-start: 1px solid var(--ib-color-border); }
+.site-wizard-foot > span { display: inline-flex; align-items: center; height: 2rem; padding-inline: 0.75rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 500; }
+.site-wizard-foot > span[data-primary] { background: var(--ib-color-on-surface); color: var(--ib-color-surface); }
+@media (width >= 1280px) {
+  .site-ide { min-height: 30rem; overflow: hidden; border: 1px solid var(--ib-color-outline); border-radius: 0.75rem; background: var(--ib-color-fill-subtle); box-shadow: 0 24px 64px rgb(0 0 0 / 0.14); }
+  .site-ide-bar { display: flex; align-items: center; gap: 0.375rem; height: 2rem; padding-inline: 0.75rem; border-block-end: 1px solid var(--ib-color-border); background: var(--ib-color-fill); color: var(--ib-color-muted); }
+  .site-ide-bar > i { width: 0.625rem; height: 0.625rem; border-radius: 9999px; background: var(--ib-color-fill-strong, var(--ib-color-border)); }
+  .site-ide-bar > span { margin-inline-start: 0.625rem; }
+  .site-ide > figcaption { display: block; position: absolute; inset: 0.5rem 0.875rem auto auto; color: var(--ib-color-muted); }
+  .site-ide-back { display: flex; position: absolute; inset: 2.0625rem 0 0; font-family: var(--ib-font-mono); }
+  .site-ide-tree { display: flex; flex-direction: column; width: 11.25rem; padding-block: 0.5rem; border-inline-end: 1px solid var(--ib-color-border); color: var(--ib-color-muted); }
+  .site-ide-tree > span { display: flex; align-items: center; height: 1.625rem; padding-inline-start: 0.5rem; }
+  .site-ide-tree > span[data-depth="1"] { padding-inline-start: 1.375rem; }
+  .site-ide-tree > span[data-depth="2"] { padding-inline-start: 2.25rem; }
+  .site-ide-tree > span[data-current] { background: var(--ib-color-fill); color: var(--ib-color-on-surface); }
+  .site-ide-code { flex: 1; margin: 0; padding: 1rem; font: inherit; line-height: 1.8; color: var(--ib-color-muted); }
+  .site-wizard { position: relative; align-self: flex-end; width: 23.75rem; margin: 2rem 1.75rem 2rem 0; }
+}
 .site-pricing-lead { max-inline-size: 40em; font-size: 1rem; line-height: 1.6; }
 .site-pricing-preview { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem; }
 .site-pricing-note { margin: 0; font-size: .8125rem; line-height: 1.6; color: var(--ib-color-muted); }
@@ -1084,7 +1194,7 @@ html:has(> body > .frame) body { margin: 0; }
 .site-pricing-founding > div:first-child { display: grid; gap: .625rem; }
 .site-pricing-founding-title { font-size: 1.375rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.015em; }
 /* A reserved address or a form's answer lands here: below the sticky header, not under it. */
-#reserve { scroll-margin-block-start: 4rem; }
+#reserve, #plans { scroll-margin-block-start: 4rem; }
 
 /* What you can make. On a phone a row is the item's name, then the three levels side by side, each
    under its name; from 48rem it's the table as written. */
@@ -1129,7 +1239,7 @@ html:has(> body > .frame) body { margin: 0; }
   .site-pricing-intro { justify-items: center; text-align: center; }
   .site-pricing-preview { justify-content: center; }
   .site-pricing-enterprise > div { flex-direction: row; align-items: center; }
-  .site-pricing-title { font-size: 3rem; }
+  .site-pricing-title { font-size: 3.25rem; }
   .site-pricing-lead { font-size: 1.125rem; }
   .site-pricing-h2 { font-size: 1.75rem; }
   .site-pricing-levels { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, auto); gap: 1.25rem; }

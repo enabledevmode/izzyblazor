@@ -1,0 +1,25 @@
+@* The numbered steps on the landing and pricing pages (design board, page SB · Story drafts): a card per
+   step with its number, title and line, and the command it runs when it has one. *@
+<ol class="site-plan" role="list">
+    @for (var i = 0; i < Items.Count; i++)
+    {
+        var step = Items[i];
+        <li class="site-plan-step">
+            <div class="site-plan-head">
+                <span class="site-plan-number" aria-hidden="true">@(i + 1)</span>
+                <Heading Level="3" Class="site-point-title">@step.Title</Heading>
+            </div>
+            <p>@step.Line</p>
+            @if (step.Command is not null)
+            {
+                <Code Block>@step.Command</Code>
+            }
+        </li>
+    }
+</ol>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Step> Items { get; set; } = [];
+
+    public sealed record Step(string Title, string Line, string? Command = null);
+}
