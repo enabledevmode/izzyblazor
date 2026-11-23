@@ -17,8 +17,9 @@
 
 @* The hero (L1): a centered column (the headline with its Ember line, what it is and the two ways in) over
    the app the library builds, as pictures: a desktop window with its phone over the window's lower start
-   corner, both cut off by the hero's end. The brand's knob rises from behind the window's top edge. *@
+   corner, both cut off by the hero's end. The brand's knob glows behind the headline, from under the header. *@
 <Section Spacing="SectionSpacing.None" Class="site-hero">
+    <img class="site-hero-knob" src="img/brand/izzyblazor-knob.svg" alt="" aria-hidden="true" />
     <div class="site-hero-grid">
         <div class="site-hero-intro">
             <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
@@ -44,7 +45,6 @@
                 <a href="@RunningHref">See it running<Icon Name="Lucide.ArrowRight" /></a>
             </p>
             <div class="site-hero-stage">
-                <img class="site-hero-knob" src="img/brand/izzyblazor-knob.svg" alt="" aria-hidden="true" />
                 <div class="site-hero-window">
                     <div class="site-hero-window-bar" aria-hidden="true">
                         <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
@@ -276,8 +276,9 @@
 </Section>
 
 @code {
-    // The brand's Ember, on the hero's call to action only (it isn't a component accent).
-    private static readonly Accent Ember = Accent.Of("#F26A1B");
+    // The brand's Ember, on the calls to action only (it isn't a component accent): site.css's
+    // --ib-color-ember and --ib-color-on-ember, a deeper one under white text in the light scheme.
+    private static readonly Accent Ember = Accent.Token("ember");
 
     // The hero's dashboard, as a page of its own.
     private const string RunningHref = "frame/home-store";
