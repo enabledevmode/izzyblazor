@@ -352,6 +352,18 @@
 
     private bool HasValue => !string.IsNullOrEmpty(CurrentValueAsString);
 
+    // A posted value that isn't one of the options is refused on the server: the browser only offers
+    // these, but a crafted post can send anything. With Search the options are
+    // whatever it finds for the typed text, so there is no list to hold a value to.
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => Search is null;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value) =>
+        (Search is null ? ListOptions : []).Select(FormatValueAsString).ToList() is { Count: > 0 } known && !known.Contains(FormatValueAsString(value))
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ValueInvalid, ResolvedLabel ?? FieldIdentifier.FieldName)
+            : null;
+
     private IEnumerable<TValue> ListOptions
     {
         get

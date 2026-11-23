@@ -121,6 +121,18 @@
         }
     }
 
+
+    // A posted value that isn't one of the options is refused on the server: the browser only offers
+    // these, but a crafted post can send anything.
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => true;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value) =>
+        Options.Select(FormatValueAsString).ToList() is { Count: > 0 } known && !known.Contains(FormatValueAsString(value))
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ValueInvalid, ResolvedLabel ?? FieldIdentifier.FieldName)
+            : null;
+
     private string TextFor(TValue item)
     {
         if (ItemText is not null)

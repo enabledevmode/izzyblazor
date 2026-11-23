@@ -284,6 +284,16 @@
         : [];
 
     // In the select's order: the options, then typed values.
+    // Posted values that aren't options are refused on the server, unless typed ones are allowed.
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => !AllowCustom;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value) =>
+        !AllowCustom && ItemList is { Count: > 0 } items && ChoiceCollection<TValue, TItem>.Items(value).Any(chosen => !items.Contains(chosen))
+            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ValueInvalid, ResolvedLabel ?? FieldIdentifier.FieldName)
+            : null;
+
     private IEnumerable<TItem> ChosenItems => ItemList.Where(IsChosen).Concat(CustomChosen);
 
     /// <inheritdoc />

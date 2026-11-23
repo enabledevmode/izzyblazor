@@ -127,14 +127,25 @@ internal static class DataGridEditCopy
 
     /// <summary>
     /// Makes a post into the row it edits: whatever isn't editable comes from the row as loaded, so a
-    /// forged field changes nothing, and an optional text property (<c>string?</c>) posted empty is null. The posted object stays the model, not a copy of the row with the
+    /// forged field changes nothing (a property with no setter and a public field included), and an optional text property (<c>string?</c>) posted empty is null. The posted object stays the model, not a copy of the row with the
     /// new values on it, since Blazor keeps a value that won't parse against the object it bound.
     /// </summary>
     [UnconditionalSuppressMessage("Trimming", "IL2090", Justification = "Only a static post gets here, which runs on a server, not in a trimmed WebAssembly app.")]
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Only a static post gets here, which runs on a server, not in a trimmed WebAssembly app.")]
     public static TItem Restore<TItem>(TItem posted, TItem item, IReadOnlyList<PropertyInfo> editable)
     {
         foreach (var property in typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
+            if (property.CanRead && !property.CanWrite && property.GetIndexParameters().Length == 0)
+            {
+                // A property with no setter (a key or a list made where it's declared) holds what the new
+                // object made for itself, not the row's: its value goes in through the field behind it.
+                // One that's computed has no field, and follows from the others.
+                property.DeclaringType?.GetField($"<{property.Name}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?.SetValue(posted, property.GetValue(item));
+                continue;
+            }
+
             // By name: a column's property, on a base class of the row, isn't the same object as this one.
             if (!property.CanRead || !property.CanWrite || property.GetIndexParameters().Length != 0)
             {
@@ -150,6 +161,12 @@ internal static class DataGridEditCopy
                 // An optional text field left empty posts "", which is no value: [Phone] or [Url] would refuse it.
                 property.SetValue(posted, null);
             }
+        }
+
+        // Public fields aren't bound from a form, so each is the row's.
+        foreach (var field in typeof(TItem).GetFields(BindingFlags.Public | BindingFlags.Instance))
+        {
+            field.SetValue(posted, field.GetValue(item));
         }
 
         return posted;

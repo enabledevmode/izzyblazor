@@ -1557,6 +1557,14 @@
             return;
         }
 
+        // What the form doesn't offer isn't taken from a post: all day without AllDay, a category that isn't one.
+        if (AllDay is null) _model.AllDay = false;
+        if (Kinds.Count > 0 && !string.IsNullOrEmpty(_model.Category) && !Kinds.Any(k => k.Value == _model.Category))
+        {
+            Error(string.Format(CultureInfo.CurrentCulture, TextDefaults.ValueInvalid, TextDefaults.SchedulerCategory));
+            return;
+        }
+
         if (!context.Validate()) return;
         if (!_model.AllDay && _model.End < _model.Start || _model.AllDay && _model.EndDate < _model.StartDate)
         {
