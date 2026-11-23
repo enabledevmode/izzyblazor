@@ -52,7 +52,8 @@ class ColPicker extends IzzyElement {
   }
 
   get #kept(): Kept {
-    const key = this.#grid?.getAttribute("data-ib-layout-key") ?? "";
+    // By the grid's layout key, or its id: two grids with neither would share what's typed in one picker.
+    const key = this.#grid?.getAttribute("data-ib-layout-key") ?? this.#grid?.id ?? "";
     let state = kept.get(key);
     if (!state) kept.set(key, (state = { refocus: null, query: "", closed: new Set() }));
     return state;

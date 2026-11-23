@@ -431,7 +431,8 @@ internal static partial class ODataFilter
         }
     }
 
-    [GeneratedRegex(@"^[A-Za-z_][A-Za-z0-9_./-]*$")]
+    // Letters of any alphabet, as a C# property's name can have (Prénom, Größe) and the tokenizer reads.
+    [GeneratedRegex(@"^[\p{L}_][\p{L}\p{Nd}_./-]*$")]
     private static partial Regex FieldName();
 
     [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}$")]

@@ -358,18 +358,31 @@
             return;
         }
 
-        var entries = ListArrangement.Order(items, KeyOf, Order.Keys, Order.Zones, ZoneOf);
+        // A post is a browser's word: what a locked board, a card that doesn't move, a zone that refuses the
+        // card or a full zone wouldn't let a drag do, a posted arrangement doesn't do either.
+        var entries = ListArrangement.Order(items, KeyOf, Locked ? null : Order.Keys, Locked ? null : Order.Zones, ZoneOf);
         for (var i = 0; i < entries.Count; i++)
         {
             var own = ZoneOf!(entries[i].Item);
-            if (entries[i].Zone != own && (ZoneNamed(entries[i].Zone) is not { } zone || zone.Accepts?.Invoke(entries[i].Item) == false))
+            if (entries[i].Zone != own && (ZoneNamed(entries[i].Zone) is not { } zone || zone.Accepts?.Invoke(entries[i].Item) == false
+                || ZoneNamed(own)?.ItemDisabled?.Invoke(entries[i].Item) == true))
             {
                 entries[i] = entries[i] with { Zone = own };
             }
         }
 
+        // Over a zone's MaxItems, the last cards that came in go back where they were.
+        for (var i = entries.Count - 1; i >= 0; i--)
+        {
+            if (entries[i].Zone != ZoneOf!(entries[i].Item) && ZoneNamed(entries[i].Zone) is { MaxItems: { } max } full
+                && entries.Count(e => e.Zone == full.Zone) > max)
+            {
+                entries[i] = entries[i] with { Zone = ZoneOf!(entries[i].Item) };
+            }
+        }
+
         _entries = entries;
-        if (ListMove.TryParse(Order.Move, out var move) && entries.Find(e => e.Key == move.Key) is { Key: not null } entry
+        if (!Locked && ListMove.TryParse(Order.Move, out var move) && entries.Find(e => e.Key == move.Key) is { Key: not null } entry
             && ZoneNamed(entry.Zone) is { } from && from.ItemDisabled?.Invoke(entry.Item) != true
             && (move.Kind != ListMoveKind.To || (ZoneNamed(move.Zone) is { } to && CanMoveToArranged(entry.Item, to, entry.Zone))))
         {

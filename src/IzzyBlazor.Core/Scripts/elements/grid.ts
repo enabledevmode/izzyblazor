@@ -799,7 +799,8 @@ class Grid extends IzzyElement {
           const level = Number(row.getAttribute("aria-level"));
           if (!forward && level > 1) {
             let parent = row.previousElementSibling;
-            while (parent && Number(parent.getAttribute("aria-level")) !== level - 1) parent = parent.previousElementSibling;
+            // A parent's open detail row comes between it and its children, at the parent's level: not it.
+            while (parent && (parent.classList.contains("ib-grid-detail") || Number(parent.getAttribute("aria-level")) !== level - 1)) parent = parent.previousElementSibling;
             if (parent instanceof HTMLTableRowElement) this.#focusCell(this.#atColumn(parent, this.#column));
             return true;
           }
