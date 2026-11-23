@@ -4,18 +4,14 @@
 <PageMeta Title="The IzzyBlazor email · IzzyBlazor"
           Description="A monthly email with what’s new in IzzyBlazor and early news of blocks and kits." />
 
-@* Where the newsletter's forms post back to (SiteApp, POST /newsletter/subscribe), with the answer in ?answer=; also a
-   page of its own to subscribe from. HomeLayout leaves the footer's form out here. *@
+@* A page of its own to subscribe from, and where a post comes back to when it doesn't say which page sent it
+   (SiteApp, POST /newsletter/subscribe). HomeLayout leaves the footer's form out here. *@
 <Section Spacing="SectionSpacing.None">
     <div class="site-legal site-newsletter-page">
         <Heading Level="1">The IzzyBlazor email</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
             Once a month, we’ll tell you what’s new in IzzyBlazor. Subscribers see new blocks and kits first and hear about the founding price when Pro goes on sale.
         </TextBlock>
-        <Newsletter Source="page" Answer="@Answer" />
+        <Newsletter Source="page" />
     </div>
 </Section>
-
-@code {
-    [SupplyParameterFromQuery] private string? Answer { get; set; }
-}

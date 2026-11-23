@@ -22,7 +22,7 @@
                 @foreach (var (title, links) in Columns)
                 {
                     <nav aria-labelledby="@($"footer-{title.ToLowerInvariant()}")">
-                        <Heading Level="2" Size="TextSize.Xs" id="@($"footer-{title.ToLowerInvariant()}")">@title</Heading>
+                        <Heading Level="2" Class="site-footer-title" id="@($"footer-{title.ToLowerInvariant()}")">@title</Heading>
                         <ul>
                             @foreach (var (text, href) in links)
                             {

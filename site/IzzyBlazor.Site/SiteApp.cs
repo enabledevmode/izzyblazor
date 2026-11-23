@@ -450,14 +450,16 @@ public static class SiteApp
         }).DisableAntiforgery();
 
         // The newsletter's forms (Newsletter.razor): the address goes to the account service, which sends the link
-        // that confirms it, and the answer shows on the Newsletter page. No antiforgery token, so the pages that
+        // that confirms it, and the answer shows where the form was. No antiforgery token, so the pages that
         // hold the form stay in FirstVisitCache; each visitor gets a few posts every ten minutes (FormLimit).
         app.MapPost("/newsletter/subscribe", async (HttpContext context, AccountService account, FormLimit limit) =>
         {
             var form = await context.Request.ReadFormAsync();
             var email = form["email"].ToString().Trim();
             string answer;
-            if (email.Length is 0 or > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email)) answer = "invalid";
+            // An address needs a dot after its @ ("ada@example" isn't one), which EmailAddressAttribute doesn't ask for.
+            if (email.Length is 0 or > 254 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(email)
+                || email.IndexOf('.', email.LastIndexOf('@') + 1) < 0 || email.EndsWith('.')) answer = "invalid";
             else if (form["website"].ToString().Length > 0) answer = "sent";
             else if (!limit.Allow(context)) answer = "failed";
             else
@@ -471,7 +473,18 @@ public static class SiteApp
                 };
             }
 
-            return Results.LocalRedirect($"/newsletter?answer={answer}#newsletter");
+            // Back to the page that sent it (its own path only), with the address in a short-lived cookie so the
+            // answer can name it without putting it in the address bar.
+            var back = form["back"].ToString();
+            if (back.Length is 0 or > 200 || back[0] != '/' || back.Contains("//") || back.Contains('\\') || back.Contains('?') || back.Contains('#')) back = "/newsletter";
+            if (email.Length is > 0 and <= 254)
+            {
+                context.Response.Cookies.Append(Components.Parts.Newsletter.AddressCookie, email, new CookieOptions
+                {
+                    MaxAge = TimeSpan.FromMinutes(2), HttpOnly = true, Secure = context.Request.IsHttps, SameSite = SameSiteMode.Lax, Path = "/",
+                });
+            }
+            return Results.LocalRedirect($"{back}?answer={answer}#newsletter");
         }).DisableAntiforgery();
 
         app.MapGet("/search/results", (string? q, HttpContext context) =>

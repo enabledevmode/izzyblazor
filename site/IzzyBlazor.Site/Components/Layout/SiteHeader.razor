@@ -20,7 +20,7 @@
     </AppBrand>
     @* Pages with no sidebar (home) use SiteNav's own menu button; it goes first, where the other
        pages have SidebarToggle, so the button doesn't change sides between pages. *@
-    <SiteNav Label="Site" Breakpoint="Breakpoint.Lg" MenuButtonPosition="MenuButtonPosition.Start" Class="site-header-nav">
+    <SiteNav Label="Site" MenuLabel="Open menu" Breakpoint="Breakpoint.Lg" MenuButtonPosition="MenuButtonPosition.Start" Class="site-header-nav">
         <NavItem Href="docs" Current="@(Area == DocsArea.Articles)">Docs</NavItem>
         <NavItem Href="docs/components" Current="@(Area == DocsArea.Components)">Components</NavItem>
         <NavItem Href="blocks" Current="@(Area == DocsArea.Blocks)">Blocks</NavItem>

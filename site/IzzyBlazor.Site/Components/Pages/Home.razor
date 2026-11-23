@@ -12,16 +12,16 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&display=swap" />
 </PageMeta>
 
-@* The brand's hero (design board D4, option A): Paper in light mode, Ink in dark. A centered column
-   (the headline with its ember line, what it is and the two ways in) over the app the library builds, as pictures: a desktop window, its phone
-   over the window's lower start corner, both cut off by the hero's end. The glowing knob rises from behind the window. *@
+@* The hero (L1): a centered column (the headline with its Ember line, what it is and the two ways in) over
+   the app the library builds, as pictures: a desktop window with its phone over the window's lower start
+   corner, both cut off by the hero's end. The brand's knob rises from behind the window's top edge. *@
 <Section Spacing="SectionSpacing.None" Class="site-hero">
     <div class="site-hero-grid">
         <div class="site-hero-intro">
             <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty" Class="site-hero-sub">
+            <TextBlock Color="Color.Muted" Class="site-hero-sub">
                 @Registry.ComponentCountLabel components that work in every Blazor render mode, including static SSR.
             </TextBlock>
             <div class="site-hero-actions">
@@ -33,47 +33,15 @@
            each in the light and the dark scheme. The desktop window is left out below 1024px, where only the
            phone fits. *@
         <div class="site-hero-demo">
-            @* The ember (hero-ember-preview, "Behind the demo"): rings centered under the window's top edge,
-               which hides their core and clips them, so they rise above it like a sunrise and frame the demo;
-               the headline and buttons stay on the faint outer rings. On load it lights from the core out,
-               flares once and sends up a few sparks, then rests lit, in under 5 seconds (site.css). *@
-            <svg class="site-hero-glow" viewBox="0 0 800 800" aria-hidden="true" focusable="false">
-                <defs>
-                    <radialGradient id="site-ember-soft" cx="50%" cy="50%" r="50%">
-                        <stop offset="0" stop-color="#F26A1B" stop-opacity=".30" />
-                        <stop offset=".18" stop-color="#F26A1B" stop-opacity=".20" />
-                        <stop offset=".42" stop-color="#F26A1B" stop-opacity=".09" />
-                        <stop offset=".7" stop-color="#F26A1B" stop-opacity=".03" />
-                        <stop offset="1" stop-color="#F26A1B" stop-opacity="0" />
-                    </radialGradient>
-                </defs>
-                <circle class="site-ember-soft" cx="400" cy="400" r="400" fill="url(#site-ember-soft)" />
-                <circle class="site-ember-ring" style="--i:5" cx="400" cy="400" r="364" fill="#F26A1B" fill-opacity="0.0375" />
-                <circle class="site-ember-ring" style="--i:4" cx="400" cy="400" r="280" fill="#F26A1B" fill-opacity="0.0525" />
-                <circle class="site-ember-ring" style="--i:3" cx="400" cy="400" r="210" fill="#F26A1B" fill-opacity="0.0675" />
-                <circle class="site-ember-ring" style="--i:2" cx="400" cy="400" r="197.3" fill="#F26A1B" fill-opacity="0.075" />
-                <circle class="site-ember-ring" style="--i:1" cx="400" cy="400" r="140" fill="#F26A1B" fill-opacity="0.09" />
-                <circle class="site-ember-ring" style="--i:0" cx="400" cy="400" r="57.3" fill="#F26A1B" fill-opacity="0.135" />
-                <circle class="site-ember-flare" cx="400" cy="400" r="48" fill="#FFB020" fill-opacity="0.22" />
-            </svg>
-            @* Sparks, placed against the ember's size (x from its center, y from the window's top edge, in
-               its widths), so they rise from the visible rings. *@
-            <div class="site-hero-sparks" aria-hidden="true">
-                <i style="--x:-.611;--y:-.04;--s:4px;--d:1.9s;--t:.6s;--sway:-10px"></i>
-                <i style="--x:-.568;--y:-.10;--s:3px;--d:1.9s;--t:.8s;--sway:8px"></i>
-                <i style="--x:-.668;--y:-.16;--s:3px;--d:1.8s;--t:1s;--sway:-6px"></i>
-                <i style="--x:-.554;--y:-.22;--s:3px;--d:1.9s;--t:1.1s;--sway:12px"></i>
-                <i style="--x:.597;--y:-.05;--s:4px;--d:1.9s;--t:.7s;--sway:10px"></i>
-                <i style="--x:.561;--y:-.12;--s:3px;--d:1.9s;--t:.9s;--sway:-8px"></i>
-                <i style="--x:.653;--y:-.17;--s:3px;--d:1.8s;--t:1.05s;--sway:6px"></i>
-                <i style="--x:.547;--y:-.23;--s:3px;--d:1.9s;--t:1.1s;--sway:-12px"></i>
-            </div>
-            @* The caption sits on the picture it names (L1): what the app is, and the link that opens it as a page. *@
+            @* The caption sits on the picture it names: what the app is (shorter on phones, so the pill stays
+               one line), and the link that opens it as a page. *@
             <p class="site-hero-caption">
-                <span>A store dashboard, built with IzzyBlazor</span>
+                <span class="site-hero-caption-wide">A store dashboard, built with IzzyBlazor</span>
+                <span class="site-hero-caption-narrow">Built with IzzyBlazor</span>
                 <a href="@RunningHref">See it running<Icon Name="Lucide.ArrowRight" /></a>
             </p>
             <div class="site-hero-stage">
+                <img class="site-hero-knob" src="img/brand/izzyblazor-knob.svg" alt="" aria-hidden="true" />
                 <div class="site-hero-window">
                     <div class="site-hero-window-bar" aria-hidden="true">
                         <span class="site-hero-window-dots"><i></i><i></i><i></i></span>
@@ -81,7 +49,7 @@
                     <Image Src="img/home/store-desktop-light.webp" DarkSrc="img/home/store-desktop-dark.webp" Alt="The store dashboard: revenue, orders and top products" Lazy="false" />
                 </div>
                 <div class="site-hero-phone">
-                    <Image Src="img/home/store-phone-tall-light.webp" DarkSrc="img/home/store-phone-tall-dark.webp" Alt="The same dashboard on a phone" Lazy="false" />
+                    <Image Src="img/home/store-phone-light.webp" DarkSrc="img/home/store-phone-dark.webp" Alt="The store dashboard on a phone" Lazy="false" />
                 </div>
             </div>
         </div>
@@ -206,7 +174,7 @@
     <div class="site-free-col">
         <div class="site-free-intro">
             <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Free with an account</Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Start from a running app instead of a blank page. A free account adds app starters, page blocks and a sample CRM, all generated on your machine as code you own.</TextBlock>
+            <TextBlock Color="Color.Muted">Start from a running app instead of a blank page. A free account adds app starters, page blocks and a sample CRM, all generated on your machine as code you own.</TextBlock>
         </div>
         <div class="site-free-cards">
             @foreach (var item in Free)
@@ -257,8 +225,8 @@
 
 
 @* L6, the close: the three ways in, each with its command. Then L7, the newsletter's band (the footer here has no form). *@
-<Section>
-    <Stack Gap="6">
+<Section Class="site-start">
+    <div class="site-start-col">
         <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Start building</Heading>
         <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
             @foreach (var way in Ways)
@@ -266,10 +234,10 @@
                 <Card Size="ControlSize.Sm">
                     <CardBody Gap="3">
                         <Row Gap="2" Align="Align.Center" Wrap>
-                            <Heading Level="3" Size="TextSize.Md">@way.Title</Heading>
+                            <Heading Level="3" Class="site-start-name">@way.Title</Heading>
                             @if (way.Account)
                             {
-                                <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Soft" Pill>Free account</Badge>
+                                <Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Soft" StartIcon="Lucide.User" Pill>Free account</Badge>
                             }
                         </Row>
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">@way.Line</TextBlock>
@@ -279,13 +247,13 @@
                 </Card>
             }
         </Grid>
-    </Stack>
+    </div>
 </Section>
 
 <Section Class="site-band site-news">
     <div class="site-news-col">
         <div class="site-news-intro">
-            <Heading Level="2" Size="TextSize.Xl3" Wrap="TextWrap.Balance">One email a month</Heading>
+            <Heading Level="2" Wrap="TextWrap.Balance" Class="site-news-title">One email a month</Heading>
             <TextBlock Color="Color.Muted">Once a month, we’ll tell you what’s new in IzzyBlazor. Subscribers see new blocks and kits first and hear about the founding price when Pro goes on sale.</TextBlock>
         </div>
         <Newsletter Source="home" />
@@ -306,7 +274,7 @@
 
     private static readonly FreeItem[] Free =
     [
-        new("templates/sidebar", "The sidebar starter’s home page", "6", "app starters", "Six layouts, from a sidebar app to a docs site, each ready to run as soon as it’s generated.", "Browse templates", "templates"),
+        new("templates/rail", "Six starters", "6", "app starters", "Six layouts, from a sidebar app to a docs site, each ready to run as soon as it’s generated.", "Browse templates", "templates"),
         new("blocks/pricing", "The pricing block", "15", "blocks", "Finished page sections, such as a hero, pricing and an FAQ, that you add to any page with izzy add.", "Browse blocks", "blocks"),
         new("templates/crm", "Izzy CRM’s dashboard", "Izzy CRM", "", "A complete app with a deal pipeline, contacts, reports and sign-in that you can build on.", "See Izzy CRM", "templates/crm"),
     ];

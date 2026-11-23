@@ -28,175 +28,71 @@
 
 /* Brand: the wordmark's ink and gray follow the color scheme. */
 .site-logo { display: block; width: auto; height: 22px; }
+/* The header (HF): 64px high from 768px (the shell's 56px below), and its wordmark 20px high while the
+   areas are in the menu. */
+@media (width >= 768px) { :is(.site-shell, .site-shell-home) { --ib-shell-header-h: 4rem; } }
+@media (width < 1024px) { .ib-shell-brand .site-logo { height: 20px; } }
 .site-logo-ink { fill: light-dark(#14161a, #f5f4f1); }
 .site-logo-soft { fill: light-dark(#5a6069, #a9aeb6); }
 
-/* The home page's hero, after brand/hero/hero-light and hero-dark: Paper in light mode, Ink in
-   dark, Bricolage Grotesque for the headline, Ember for its second line, and beside it the app in a
-   desktop window and a phone, with the glowing knob behind them. */
+/* The home page's hero (L1), on the page's own colors: Bricolage Grotesque for the headline, Ember text
+   for its second line, and under it the app in a desktop window and a phone, with the brand's knob behind
+   them. It ends on a border, which cuts the pictures off. */
 .site-hero {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background: light-dark(#f5f4f1, #14161a);
-  border-block-end: 1px solid light-dark(#e4e1da, transparent);
+  border-block-end: 1px solid var(--ib-color-border);
+  padding-block: 2.5rem 0;
 }
-/* 40px above on phones, 68px on wide screens (between the spacing scale's 64px and 72px);
-   below, the phone gets room to end, and on wide screens the demo runs into the hero's end. */
-.site-hero { --site-hero-top: 2.5rem; padding-block: var(--site-hero-top) 3.5rem; }
-@media (min-width: 64rem) { .site-hero { --site-hero-top: 4.25rem; padding-block-end: 0; } }
+@media (min-width: 64rem) { .site-hero { padding-block-start: 5.5rem; } }
+/* The caption 36px under the buttons (56px on wide screens). */
 .site-hero-grid {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--ib-space-10);
+  gap: 2.25rem;
 }
+/* The headline, the sentence and the buttons, 20px apart (24px on wide screens). */
 .site-hero-intro {
-  /* The headline's size, which places the ember on its first line. */
-  --site-hero-title-size: clamp(2rem, 9.6vw - 0.1rem, 4.5rem);
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1.25rem;
   width: 100%;
-  max-width: 47.5rem;
   text-align: center;
 }
-/* The ember behind the demo (hero-ember-preview, "Behind the demo"): centered --site-hero-glow-drop under
-   the stage's top edge (the window's on wide screens, the phone's below 1024px), so the frame hides the
-   core; clipped at that edge, so only the rings above it show and nothing shows through the frame's
-   faded end. The headline and buttons sit on the faint outer rings: in light mode the Ember line keeps
-   3.1:1. It paints under everything in the grid (z-index -1), the buttons and frames included; nothing
-   between it and the grid may make a stacking context of its own. */
-.site-hero-demo { position: relative; }
-.site-hero-glow {
-  position: absolute;
-  z-index: -1;
-  top: var(--site-hero-glow-drop);
-  left: 50%;
-  width: var(--site-hero-glow-size);
-  height: var(--site-hero-glow-size);
-  translate: -50% -50%;
-  overflow: visible;
-  opacity: var(--site-hero-glow);
-  clip-path: inset(0 0 calc(50% + var(--site-hero-glow-drop)) 0);
-  pointer-events: none;
-}
-.site-hero-glow circle { transform-box: fill-box; transform-origin: center; }
-.site-ember-ring { display: var(--site-hero-rings); }
-.site-ember-soft { display: var(--site-hero-soft); }
-.site-ember-flare { opacity: 0; fill: var(--site-hero-flare); fill-opacity: var(--site-hero-flare-opacity); }
-.site-hero-sparks {
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  left: 50%;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-.site-hero-sparks i {
-  position: absolute;
-  left: calc(var(--x) * var(--site-hero-glow-size));
-  top: calc(var(--y) * var(--site-hero-glow-size));
-  width: var(--s);
-  height: var(--s);
-  border-radius: 50%;
-  background: var(--site-hero-spark);
-  opacity: 0;
-}
-/* On load: the core lights and the rings bloom outward one by one, one soft flare, a few sparks rise,
-   then the ember rests lit. Under 5 seconds (WCAG 2.2.2), transform and opacity only, and none of it
-   with reduced motion, which gets the resting ember. */
-@media (prefers-reduced-motion: no-preference) {
-  .site-hero { --site-ember-k: 1.6; }
-  .site-ember-ring { animation: site-ember-in calc(900ms * var(--site-ember-k)) cubic-bezier(.2, .7, .2, 1) calc(var(--i) * 120ms * var(--site-ember-k)) both; }
-  .site-ember-soft { animation: site-ember-in calc(1600ms * var(--site-ember-k)) cubic-bezier(.2, .7, .2, 1) both; }
-  .site-ember-flare { animation: site-ember-breath calc(1400ms * var(--site-ember-k)) ease-in-out calc(1400ms * var(--site-ember-k)) both; }
-  .site-hero-sparks i { animation: site-ember-rise calc(var(--d) * var(--site-ember-k)) ease-out calc(var(--t) * var(--site-ember-k)) both; }
-  .site-shell-home .site-logo-knob { transform-box: fill-box; transform-origin: center; animation: site-ember-knob 1.1s cubic-bezier(.2, .7, .2, 1) both; }
-}
-@keyframes site-ember-in { from { opacity: 0; transform: scale(.86); } to { opacity: 1; transform: scale(1); } }
-@keyframes site-ember-breath { 0% { opacity: 0; } 45% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes site-ember-rise {
-  0% { opacity: 0; transform: translate(0, 0) scale(1); }
-  15% { opacity: .9; }
-  50% { transform: translate(var(--sway), -70px) scale(.85); }
-  100% { opacity: 0; transform: translate(calc(var(--sway) * -.5), -150px) scale(.5); }
-}
-@keyframes site-ember-knob { 0% { opacity: 0; transform: scale(.4); } 60% { opacity: 1; transform: scale(1.15); } 100% { transform: scale(1); } }
-/* The hero's light and dark: the glow's strength and the frames' pictures (below). The scheme is
-   decided as the library decides it (tokens.css): data-ib-color-scheme on <html>, else IzzyTheme's
-   meta (the user's choice, from its cookie, there at the first paint, before any script sets the
-   attribute), else the system's. */
-:root {
-  /* 520px of rings (L1), centered 100px under the window's top edge (300px and 40px below 1024px). */
-  --site-hero-glow-size: 32.5rem;
-  --site-hero-glow-drop: 100px;
-  --site-hero-glow: 0.85;
-  --site-hero-rings: inline;
-  --site-hero-soft: none;
-  --site-hero-flare: #ffb020;
-  --site-hero-flare-opacity: 0.25;
-  --site-hero-spark: radial-gradient(circle, #f26a1b 0 35%, rgb(224 89 15 / .8) 50%, rgb(224 89 15 / 0) 72%);
-}
-:root:is([data-ib-color-scheme="dark"], :not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"])) {
-  --site-hero-glow: 1;
-  --site-hero-rings: inline;
-  --site-hero-soft: none;
-  --site-hero-flare: #ffb020;
-  --site-hero-flare-opacity: 0.22;
-  --site-hero-spark: radial-gradient(circle, #ffb020 0 30%, rgb(242 106 27 / .9) 45%, rgb(242 106 27 / 0) 70%);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-ib-color-scheme]):not(:has(> head > meta[name="ib-color-scheme"])) {
-    --site-hero-glow: 1;
-    --site-hero-rings: inline;
-    --site-hero-soft: none;
-    --site-hero-flare: #ffb020;
-    --site-hero-flare-opacity: 0.22;
-    --site-hero-spark: radial-gradient(circle, #ffb020 0 30%, rgb(242 106 27 / .9) 45%, rgb(242 106 27 / 0) 70%);
-  }
-}
-/* Phones and tablets: the ember no wider than the phone frame, so the clip at its top edge stays hidden. */
-@media (max-width: 63.98rem) {
-  :root { --site-hero-glow-size: 300px; --site-hero-glow-drop: 40px; }
-}
-
-/* 72px on wide screens, about 35px on phones (clear of the edges, two lines): the library's
-   largest heading size is 60px. */
+/* 72px on wide screens, 34px on phones (each line fits at 375px): the library's largest heading
+   size is 60px. */
 .site-hero-title.site-hero-title {
   font-family: "Bricolage Grotesque", var(--ib-font-heading);
-  font-size: var(--site-hero-title-size);
+  font-size: clamp(2.125rem, 9.6vw - 0.1rem, 4.5rem);
   font-weight: 700;
   line-height: 1.04;
   letter-spacing: -0.03em;
-  color: light-dark(#14161a, #f5f4f1);
 }
-/* A deeper Ember on Paper, as the brand's light hero has it: Ember itself is too faint there. */
-.site-hero-title span { color: light-dark(#e0590f, #f26a1b); }
-.site-hero-sub { max-width: 34em; margin-block-start: 1.375rem; }
-.site-hero-actions { display: flex; gap: var(--ib-space-3); margin-block-start: var(--ib-space-8); }
-/* Browse components sits on the glow: the page's color as its fill (the Outline variant is clear), so
-   it keeps its shape, and a firmer border in light mode. Hover keeps the library's fill. */
-.site-hero-actions .ib-btn-outline:not(:hover) { background: light-dark(#f5f4f1, #14161a); }
-.site-hero-actions .ib-btn-outline { border-color: light-dark(#cfc9c0, #4a4b52); }
+.site-hero-title span { color: var(--site-ember-text); }
+.site-hero-sub.site-hero-sub { max-width: 34em; font-size: 1.0625rem; line-height: 1.6; }
+.site-hero-actions { display: flex; gap: var(--ib-space-3); }
 /* Standalone links (an action, not a link in a sentence): Medium, an arrow, no underline until
-   hover. In the accent (Ember text) on their own; in the text color inside the hero's muted label. */
+   hover. In the accent (Ember text) on their own. */
 .site-action { display: inline-flex; align-items: center; gap: var(--ib-space-1); font-weight: 500; }
 .site-action .ib-icon { width: 0.875rem; height: 0.875rem; }
 .site-action-accent { color: var(--site-ember-text); }
-.site-hero-demo .site-action { color: var(--ib-color-on-surface); }
 @media (max-width: 63.98rem) {
   /* Phones and tablets: the buttons full width, the main button first. */
   .site-hero-actions { flex-direction: column; align-self: stretch; }
 }
+@media (prefers-reduced-motion: no-preference) {
+  .site-shell-home .site-logo-knob { transform-box: fill-box; transform-origin: center; animation: site-ember-knob 1.1s cubic-bezier(.2, .7, .2, 1) both; }
+}
+@keyframes site-ember-knob { 0% { opacity: 0; transform: scale(.4); } 60% { opacity: 1; transform: scale(1.15); } 100% { transform: scale(1); } }
 
-/* The demo under the text: its caption, then the frames. */
+/* The demo under the text: its caption, then the frames 14px under it. */
 .site-hero-demo { display: flex; flex-direction: column; align-items: center; gap: 0.875rem; width: 100%; }
-/* The caption (L1): a pill on the picture's top, 14px above it, with the link that opens the app. */
+/* The caption: a pill on the picture's top, with the link that opens the app. */
 .site-hero-caption {
   position: relative;
   z-index: 2;
@@ -214,6 +110,7 @@
   font-size: var(--ib-text-sm);
   color: var(--ib-color-muted);
 }
+.site-hero-caption-wide { display: none; }
 .site-hero-caption > a {
   display: inline-flex;
   align-items: center;
@@ -221,38 +118,41 @@
   height: 1.75rem;
   padding-inline: 0.625rem;
   border-radius: 9999px;
-  background: var(--ib-color-fill);
+  background: var(--ib-color-fill-subtle);
   font-weight: 500;
   color: var(--ib-color-on-surface);
   text-decoration: none;
 }
-.site-hero-caption > a:hover { background: var(--ib-color-fill-hover, var(--ib-color-fill)); text-decoration: underline; }
+.site-hero-caption > a:hover { background: var(--ib-color-fill); text-decoration: underline; }
 .site-hero-caption .ib-icon { width: 0.875rem; height: 0.875rem; }
 
-/* The app as pictures (L1; HomePosterTests takes them from frame/home-store, light and dark): the store's
-   dashboard in a window and, over its lower start corner, the same page on a phone. Below 1024px the phone
-   stands alone, 220px wide. */
-.site-hero-stage { position: relative; display: flex; justify-content: center; }
+/* The app as pictures (HomePosterTests takes them from frame/home-store, light and dark). Below 1024px the
+   phone stands alone, 220px wide, on a stage 420px high that cuts it off; the knob, 300px wide, shows at
+   its sides from 73px down. */
+.site-hero-stage { position: relative; display: flex; justify-content: center; width: 100%; height: 26.25rem; }
 /* No display here: Image hides the picture of the other scheme with it. */
-.site-hero-stage img { width: 100%; height: auto; vertical-align: top; }
+.site-hero-stage img.ib-image { width: 100%; height: auto; vertical-align: top; }
+.site-hero-knob {
+  position: absolute;
+  z-index: -1;
+  top: 4.5625rem;
+  left: 50%;
+  width: 18.75rem;
+  height: auto;
+  translate: -50% 0;
+  pointer-events: none;
+}
 .site-hero-window { display: none; }
 .site-hero-phone {
   position: relative;
   z-index: 1;
+  align-self: flex-start;
   width: 13.75rem;
   overflow: hidden;
-  border: 6px solid light-dark(#14161a, #2c2f36);
-  border-radius: 1.8125rem;
-  background: var(--ib-color-background);
-  box-shadow: 0 1.5rem 3.75rem light-dark(rgb(0 0 0 / 0.22), rgb(0 0 0 / 0.7));
-}
-.site-hero-window {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid light-dark(#d6d3cc, #2c2f36);
-  border-radius: var(--ib-radius-lg);
-  background: light-dark(#ebe9e4, #1b1d22);
-  box-shadow: 0 0.125rem 0.375rem light-dark(rgb(20 22 26 / 0.06), rgb(0 0 0 / 0.3)), 0 1.875rem 5rem -0.5rem light-dark(rgb(20 22 26 / 0.22), rgb(0 0 0 / 0.6));
+  border: 6px solid var(--ib-color-fill);
+  border-radius: 1.75rem;
+  background: var(--ib-color-surface);
+  box-shadow: 0 1.5rem 3.75rem rgb(0 0 0 / 0.22);
 }
 /* The bar: the three dots. */
 .site-hero-window-bar {
@@ -261,24 +161,34 @@
   align-items: center;
   height: 1.75rem;
   padding-inline: var(--ib-space-3);
-  border-bottom: 1px solid light-dark(#d6d3cc, #2c2f36);
+  border-bottom: 1px solid var(--ib-color-border);
+  background: var(--ib-color-fill-subtle);
 }
 .site-hero-window-dots { display: flex; gap: 0.375rem; }
-.site-hero-window-dots i { width: 0.5625rem; height: 0.5625rem; border-radius: 50%; background: light-dark(#c9c5bd, #3a3e46); }
+.site-hero-window-dots i { width: 0.5625rem; height: 0.5625rem; border-radius: 50%; background: var(--ib-color-fill-strong); }
 @media (min-width: 64rem) {
   /* As the sheet draws it: a stage 1120 by 600 that cuts the window off, so the stats and the chart are in
      the first view; the phone, 230px wide, 28px outside the window's start edge and 240px down, cut off with
-     it. Narrower than 1120px, everything keeps those proportions. */
-  .site-hero-grid { gap: var(--ib-space-13); }
-  .site-hero-stage { display: block; width: 100%; max-width: 70rem; aspect-ratio: 1120 / 600; }
+     it; the knob, 520px wide, 34px above the window's top edge. Narrower than 1120px, the frames keep those
+     proportions. */
+  .site-hero-grid { gap: 3.5rem; }
+  .site-hero-intro { gap: 1.5rem; }
+  .site-hero-sub.site-hero-sub { font-size: 1.25rem; }
+  .site-hero-caption-wide { display: inline; }
+  .site-hero-caption-narrow { display: none; }
+  .site-hero-stage { display: block; height: auto; max-width: 70rem; aspect-ratio: 1120 / 600; }
+  .site-hero-knob { top: -2.125rem; width: 32.5rem; }
   .site-hero-window {
     display: block;
     /* Out of the flow, so the stage's shape decides its height, not the picture's. */
     position: absolute;
     inset: 0;
+    overflow: hidden;
+    border: 1px solid var(--ib-color-border);
     border-block-end: 0;
-    border-end-start-radius: 0;
-    border-end-end-radius: 0;
+    border-radius: 0.75rem 0.75rem 0 0;
+    background: var(--ib-color-surface);
+    box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 0.18);
   }
   .site-hero-phone {
     position: absolute;
@@ -286,20 +196,11 @@
     left: calc(-1 * min(1.75rem, (100vw - 100%) / 2 - 0.5rem));
     top: 40%;
     bottom: 0;
+    /* Stretched between them again: flex-start would size an out-of-flow box to its picture. */
+    align-self: auto;
     width: 20.54%;
     border-block-end: 0;
-    border-end-start-radius: 0;
-    border-end-end-radius: 0;
-  }
-  /* The cut fades into the hero over its last 160px. */
-  .site-hero-stage::after {
-    content: "";
-    position: absolute;
-    z-index: 3;
-    inset: auto -2rem 0;
-    height: 10rem;
-    background: linear-gradient(transparent, light-dark(#f5f4f1, #14161a));
-    pointer-events: none;
+    border-radius: 1.8125rem 1.8125rem 0 0;
   }
 }
 
@@ -380,7 +281,8 @@
 /* AppFooter pads 16px above and below already. */
 .site-footer { width: 100%; padding-block: var(--ib-space-6) var(--ib-space-4); }
 .site-footer-top { display: flex; flex-direction: column; gap: var(--ib-space-8); }
-.site-footer-about { display: flex; flex-direction: column; gap: var(--ib-space-7); min-width: 0; }
+.site-footer-about { display: flex; flex-direction: column; gap: var(--ib-space-8); min-width: 0; }
+.site-footer-title.site-footer-title { font-size: 0.8125rem; font-weight: 600; }
 .site-footer-brand { display: flex; flex-direction: column; gap: var(--ib-space-3); }
 .site-footer-brand > .site-logo { align-self: flex-start; }
 .site-footer-brand > p { max-width: 26em; line-height: 1.6; }
@@ -398,11 +300,12 @@
   margin-block-start: var(--ib-space-10);
   padding-block-start: var(--ib-space-6);
   border-block-start: 1px solid var(--ib-color-border);
-  font-size: var(--ib-text-xs);
+  font-size: 0.8125rem;
   color: var(--ib-color-muted);
 }
 @media (width >= 1024px) {
   .site-footer { padding-block: var(--ib-space-10) var(--ib-space-6); }
+  .site-footer-about { gap: var(--ib-space-7); }
   .site-footer-top { flex-direction: row; justify-content: space-between; gap: var(--ib-space-12); }
   .site-footer-about { max-width: 26.25rem; }
   .site-footer-links { grid-template-columns: repeat(3, 8.75rem); gap: var(--ib-space-6); }
@@ -414,17 +317,22 @@
 /* L4, free with an account: the intro, three picture cards (one column on phones), the actions and the quiet
    line, 32px apart. A card: a 16:10 picture from its top left over a hairline, then the count beside its name,
    a muted line and a link at the card's foot. */
-.site-free.site-free { padding-block: 3.5rem; }
+.site-free.site-free, .site-start.site-start { padding-block: 3.5rem; }
 .site-news.site-news { padding-block: 3rem; }
-@media (width >= 1024px) { .site-free.site-free { padding-block: 6rem; } .site-news.site-news { padding-block: 4.5rem; } }
-.site-free-col { display: flex; flex-direction: column; gap: var(--ib-space-8); }
+@media (width >= 1024px) { .site-free.site-free, .site-start.site-start { padding-block: 6rem; } .site-news.site-news { padding-block: 4.5rem; } }
+/* 24px between the parts on phones, 32px on wide screens; the sentence 16px, then 18px. */
+.site-free-col { display: flex; flex-direction: column; gap: var(--ib-space-6); }
 .site-free-intro { display: flex; flex-direction: column; gap: var(--ib-space-3); }
-.site-free-intro > p { max-width: 40em; }
+.site-free-intro > p { max-width: 40em; font-size: var(--ib-text-md); }
+@media (width >= 1024px) { .site-free-col { gap: var(--ib-space-8); } .site-free-intro > p { font-size: var(--ib-text-lg); } }
+/* L6, start building: the heading 24px over the cards (32px on wide screens); a card's title is 17px. */
+.site-start-col { display: flex; flex-direction: column; gap: var(--ib-space-6); }
+@media (width >= 1024px) { .site-start-col { gap: var(--ib-space-8); } }
+.site-start-name.site-start-name { font-size: 1.0625rem; font-weight: 600; }
 .site-free-cards { display: grid; gap: var(--ib-space-4); }
 @media (width >= 1024px) { .site-free-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .site-free-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--ib-color-border); border-radius: 0.875rem; background: var(--ib-color-surface); }
-.site-free-picture { border-block-end: 1px solid var(--ib-color-border); border-radius: 0; background: var(--ib-color-fill); }
-.site-free-picture img { object-position: top left; }
+.site-free-picture { border-block-end: 1px solid var(--ib-color-border); border-radius: 0; background: var(--ib-color-fill); object-position: top left; }
 .site-free-body { display: flex; flex: 1; flex-direction: column; gap: var(--ib-space-2); padding: 1.125rem 1.25rem 1.25rem; }
 .site-free-body > p { flex: 1; margin: 0; font-size: var(--ib-text-sm); line-height: 1.6; color: var(--ib-color-muted); }
 .site-free-body > .site-action { align-self: flex-start; font-size: var(--ib-text-sm); color: var(--ib-color-on-surface); }
@@ -440,7 +348,10 @@
 }
 
 /* L7, the newsletter's band: 1120px, the words beside the form (stacked on phones), 64px apart. */
-.site-news-col { display: grid; gap: var(--ib-space-6); max-inline-size: 70rem; margin-inline: auto; }
+.site-news-col { display: grid; gap: var(--ib-space-5); max-inline-size: 70rem; margin-inline: auto; }
+/* The band's heading: 24px on phones, 32px on wide screens. */
+.site-news-title.site-news-title { font-size: 1.5rem; line-height: 1.2; letter-spacing: -0.02em; }
+@media (width >= 1024px) { .site-news-title.site-news-title { font-size: 2rem; } }
 .site-news-intro { display: flex; flex-direction: column; gap: 0.625rem; }
 @media (width >= 1024px) { .site-news-col { grid-template-columns: 1fr 1fr; align-items: center; gap: var(--ib-space-14); } }
 @media (width < 640px) {
@@ -454,6 +365,7 @@
 /* The newsletter's form: the field and Subscribe on one row. */
 .site-newsletter-form { display: flex; flex-direction: column; gap: var(--ib-space-2); scroll-margin-block-start: 6rem; }
 .site-newsletter-row { display: flex; align-items: flex-start; gap: var(--ib-space-2); }
+.site-newsletter-note { margin: 0; font-size: 0.8125rem; color: var(--ib-color-muted); }
 .site-newsletter-page { max-inline-size: 36rem; }
 
 /* Pictograms: an icon on a tile tinted with the accent. */
@@ -802,7 +714,7 @@ html:has(.frame-no-scrollbar) { scrollbar-width: none; }
  * full-width pair of links at the top of the drawer below that.
  */
 .site-modeswitch-drawer { display: flex; flex-direction: column; gap: var(--ib-space-2); margin-block-end: var(--ib-space-4); }
-.site-modeswitch-label { font-size: var(--ib-text-sm); font-weight: 600; }
+.site-modeswitch-label { font-size: 0.8125rem; font-weight: 600; color: var(--ib-color-muted); }
 @media (width >= 768px) { .site-modeswitch-drawer { display: none; } }
 @media (width < 768px) { .site-modeswitch-header { display: none; } }
 
@@ -927,15 +839,16 @@ html:has(> body > .frame) body { margin: 0; }
   .site-search-foot { display: none; }
 }
 
-/* The header: the areas start 40px after the wordmark, so the brand reads apart from the three links
-   (24px apart); at the end, search, then 8px to GitHub, then 4px to the scheme switch. */
-/* SiteNav itself has no box (display: contents): the gap goes on its bar. Header gap 12px + item
-   padding 12px + 16px = 40px. */
-.site-header-nav > .ib-site-nav-bar { margin-inline-start: var(--ib-space-4); }
-/* The tools at the end: 2px apart, 4px after the search field and 8px before Sign in. */
+/* The header (HF): the first area's box starts 36px after the wordmark, and 48px from 1280px, so the brand
+   reads apart from the links. SiteNav itself has no box (display: contents): the gap goes on its bar, on
+   top of the header's own 12px. */
+.site-header-nav > .ib-site-nav-bar { margin-inline-start: var(--ib-space-6); }
+@media (width >= 1280px) { .site-header-nav > .ib-site-nav-bar { margin-inline-start: var(--ib-space-9); } }
+/* The tools at the end: 2px apart, 4px more after search and, while the areas are in the row, 8px more
+   before Sign in. */
 .site-header-tools { display: flex; align-items: center; gap: 2px; min-width: 0; }
-.site-header-tools > .site-search-button { margin-inline-end: var(--ib-space-1); }
-.site-header-tools > .site-header-signin { margin-inline-start: 0.625rem; }
+.site-header-tools > [data-site-search-open] { margin-inline-end: var(--ib-space-1); }
+@media (width >= 1024px) { .site-header-tools > .site-header-signin { margin-inline-start: var(--ib-space-2); } }
 /* GitHub, last in the menu panel, on a row of its own under Sign in. */
 .site-header-github { flex-basis: 100%; padding-block-start: var(--ib-space-2); font-size: var(--ib-text-sm); font-weight: 500; color: var(--ib-color-on-surface); }
 
@@ -1164,7 +1077,7 @@ html:has(> body > .frame) body { margin: 0; }
 
 /* What you can make. On a phone a row is the item's name, then the three levels side by side, each
    under its name; from 48rem it's the table as written. */
-.site-pricing-make { display: grid; gap: 1.5rem; padding-block: 3rem; }
+.site-pricing-make { display: grid; gap: 1.25rem; padding-block: 3rem; }
 .site-pricing-table { inline-size: 100%; border-collapse: collapse; font-size: .875rem; text-align: start; }
 .site-pricing-table :is(th, td) { text-align: start; vertical-align: middle; }
 .site-pricing-table .ib-icon { display: block; inline-size: 1.125rem; block-size: 1.125rem; }
@@ -1195,7 +1108,7 @@ html:has(> body > .frame) body { margin: 0; }
 .site-pricing-enterprise-title { font-size: 1.0625rem; font-weight: 600; }
 .site-pricing-enterprise p { margin: 0; font-size: .9375rem; line-height: 1.6; color: var(--ib-color-muted); }
 
-.site-pricing-questions { display: grid; gap: 2.25rem; padding-block: 3rem 3.5rem; }
+.site-pricing-questions { display: grid; gap: 1.75rem; padding-block: 3rem 3.5rem; }
 .site-pricing-questions > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.75rem 4rem; }
 .site-pricing-questions > div > div { display: grid; gap: .5rem; align-content: start; }
 .site-pricing-questions p { margin: 0; font-size: .9375rem; line-height: 1.6; color: var(--ib-color-muted); }
@@ -1212,8 +1125,8 @@ html:has(> body > .frame) body { margin: 0; }
   .site-pricing-level { display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 1.25rem; padding: 1.75rem; }
   .site-pricing-founding { grid-template-columns: minmax(0, 1fr) 25rem; gap: 4rem; padding-block: 3.5rem; }
   .site-pricing-founding-title { font-size: 1.5rem; }
-  .site-pricing-make { padding-block: 4.5rem; }
+  .site-pricing-make { gap: 1.5rem; padding-block: 4.5rem; }
   .site-pricing-enterprise { padding-block-end: 4.5rem; }
-  .site-pricing-questions { padding-block: 4.5rem 5.5rem; }
+  .site-pricing-questions { gap: 2.25rem; padding-block: 4.5rem 5.5rem; }
   .site-pricing-questions > div { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.25rem 4rem; }
 }

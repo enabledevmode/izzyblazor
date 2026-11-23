@@ -4,12 +4,12 @@
 @* Every starter and app kit, under its group's heading: a card with a picture of it, its name, its
    summary and, a "Pro" label on a Pro one and "No account" on the open one (IzzyBlazor App). *@
 
-<PageMeta Title="Templates · IzzyBlazor" Description="Whole apps you create with one command and then own: starters, an empty app in the layout you want, and app kits, a working app to build on." />
+<PageMeta Title="Templates · IzzyBlazor" Description="Each template is a working app that izzy generates into your project, and the code is yours to change." />
 
 <article class="site-article site-article-wide">
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Templates</Heading>
-        <div class="site-lead">Whole apps you create with one command and then own.</div>
+        <div class="site-lead">Each template is a working app that izzy generates into your project, and the code is yours to change.</div>
     </Stack>
 
     <section class="site-blocks-how" aria-labelledby="how-templates-work">
@@ -47,12 +47,11 @@
                 <Heading Level="2" Size="TextSize.Xl" id="@anchor">@group</Heading>
                 <span class="site-blocks-count">@Templates.InGroup(group).Count()</span>
             </div>
-            <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5" Class="site-block-cards">
+            <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4" Class="site-block-cards">
                 @foreach (var template in Templates.InGroup(group))
                 {
-                    <Card Title="@template.Name" TitleLevel="3" Description="@template.Manifest.Summary" Href="@template.Href" Class="site-block-card"
-                          Orientation="new() { Base = Orientation.Horizontal, Md = Orientation.Vertical }">
-                        <CardMedia Width="Length.Px(120)"><TemplatePicture Template="template" /></CardMedia>
+                    <Card Title="@template.Name" TitleLevel="3" Description="@template.Manifest.Summary" Href="@template.Href" Class="site-block-card">
+                        <CardMedia><TemplatePicture Template="template" /></CardMedia>
                         @if (!template.Free)
                         {
                             <CardActions><Badge Size="BadgeSize.Sm" Accent="Accent.Neutral" Variant="BadgeVariant.Solid" Pill>Pro</Badge></CardActions>

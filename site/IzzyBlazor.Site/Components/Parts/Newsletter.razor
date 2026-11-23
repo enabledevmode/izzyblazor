@@ -1,49 +1,73 @@
+@inject NavigationManager Nav
+
 @* The newsletter's form (design board, page A · Access: L7 and the footer): one email field and Subscribe. The
    landing page has it in a band, every other page in the footer (SiteFooter).
    A plain form that posts to /newsletter/subscribe (SiteApp), with no antiforgery token: a token on every page would set
    a cookie on every first visit and take those pages out of FirstVisitCache. The post subscribes through the
-   account service and comes back to the Newsletter page, which shows the answer (Answer). A forged post could
-   only do what anyone can do with the form. *@
+   account service and comes back to the page it was sent from with the answer in ?answer= and the address in a
+   two-minute cookie, so the answer shows where the form was. A forged post could only do what anyone can do
+   with the form. *@
 <div id="newsletter" class="site-newsletter-form">
-    @if (Answer == "sent")
+    @if (_answer == "sent")
     {
-        <Alert Status="Status.Success" Title="Check your inbox to confirm.">We sent a confirmation link to your address. You’ll start getting emails once you click it.</Alert>
+        <Alert Status="Status.Success" Title="Check your inbox to confirm.">We sent a confirmation link to @(_model.Email ?? "your address"). You’ll start getting emails once you click it.</Alert>
     }
-    else if (Answer == "subscribed")
+    else if (_answer == "subscribed")
     {
-        <Alert Status="Status.Info" Title="You’re already subscribed."><Anchor Href="@AccountService.Email">Manage your subscription</Anchor></Alert>
+        <Alert Status="Status.Neutral" Title="You’re already subscribed.">@if (_model.Email is not null) { <text>@_model.Email gets the monthly email. </text> }<Anchor Href="@AccountService.Email" InheritColor>Manage your subscription</Anchor></Alert>
     }
     else
     {
-        @if (Answer == "invalid")
-        {
-            <Alert Status="Status.Danger" id="newsletter-error">Enter an email address, like name@example.com.</Alert>
-        }
-        else if (Answer == "failed")
+        @if (_answer == "failed")
         {
             <Alert Status="Status.Danger">We couldn’t subscribe you. Try again in a few minutes.</Alert>
         }
-        <form method="post" action="newsletter/subscribe" class="site-newsletter-row" data-enhance-nav="false">
-            <input type="hidden" name="source" value="@Source" />
-            @* Left empty by people, filled by bots: a post with it gets a person's answer and nothing is sent. *@
-            <div class="ib-visually-hidden" aria-hidden="true"><label>Leave this field empty <input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
-            <TextField @bind-Value="_email" name="email" Label="Email address" HideLabel Type="TextFieldType.Email" AutoComplete="email"
-                       Placeholder="you@example.com" Grow aria-invalid="@(Answer == "invalid" ? "true" : null)"
-                       aria-describedby="@(Answer == "invalid" ? "newsletter-error" : null)" />
-            <Button Submit>Subscribe</Button>
-        </form>
+        <CascadingValue Value="_context" IsFixed>
+            <form method="post" action="newsletter/subscribe" class="site-newsletter-row" data-enhance-nav="false">
+                <input type="hidden" name="source" value="@Source" />
+                <input type="hidden" name="back" value="@Back" />
+                @* Left empty by people, filled by bots: a post with it gets a person's answer and nothing is sent. *@
+                <div class="ib-visually-hidden" aria-hidden="true"><label>Leave this field empty <input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
+                <TextField @bind-Value="_model.Email" name="email" Label="Email address" HideLabel Type="TextFieldType.Email" AutoComplete="email"
+                           Placeholder="you@example.com" Grow />
+                <Button Submit>Subscribe</Button>
+            </form>
+        </CascadingValue>
+        <p class="site-newsletter-note">
+            You can unsubscribe at any time, and we never share your address. <Anchor Href="privacy" InheritColor>Privacy</Anchor>
+        </p>
     }
-    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-newsletter-note">
-        You can unsubscribe at any time, and we never share your address. <Anchor Href="privacy" InheritColor>Privacy</Anchor>
-    </TextBlock>
 </div>
 
 @code {
+    /// <summary>The cookie that carries the posted address back to the page for two minutes (SiteApp sets it).</summary>
+    public const string AddressCookie = "ib-news";
+
     /// <summary>Which form this is, kept with the address: <c>home</c> (the band), <c>footer</c> or <c>page</c>.</summary>
     [Parameter, EditorRequired] public string Source { get; set; } = "footer";
 
-    /// <summary>What the post came back with, on the Newsletter page: <c>sent</c>, <c>subscribed</c>, <c>invalid</c> or <c>failed</c>.</summary>
-    [Parameter] public string? Answer { get; set; }
+    [CascadingParameter] private HttpContext? Http { get; set; }
 
-    private string? _email;
+    private sealed class Entry { public string? Email { get; set; } }
+
+    private readonly Entry _model = new();
+    private EditContext _context = default!;
+
+    // What the post came back with: sent, subscribed, invalid or failed.
+    private string? _answer;
+
+    // The page's own path, where the post comes back to.
+    private string Back => "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0];
+
+    protected override void OnInitialized()
+    {
+        _context = new EditContext(_model);
+        _answer = Http?.Request.Query["answer"].ToString() is { Length: > 0 } answer ? answer : null;
+        if (_answer is null) return;
+        if (Http!.Request.Cookies[AddressCookie] is { Length: > 0 and <= 254 } email) _model.Email = email;
+        if (_answer == "invalid")
+        {
+            new ValidationMessageStore(_context).Add(new FieldIdentifier(_model, nameof(Entry.Email)), "Enter an email address, like name@example.com.");
+        }
+    }
 }
