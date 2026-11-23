@@ -5,7 +5,7 @@
 @inject FormLimit Limit
 
 <PageMeta Title="Pricing · IzzyBlazor"
-          Description="Every component is free and open source. A free account adds app starters, page blocks and a complete sample app, and Pro adds more of everything." />
+          Description="Every component is free and open source. A free account adds starters, blocks and a sample app. Pro adds tools to build faster and maintain with confidence." />
 
 @* PR1, before Pro is on sale (design board, page A · Access): the three levels, the founding price with the
    form that reserves it, what each level makes, Enterprise, and the questions. The three cards share their
@@ -15,7 +15,7 @@
         <div class="site-pricing-intro">
             <Heading Level="1" Wrap="TextWrap.Balance" Class="site-pricing-title">Everything free stays free.</Heading>
             <TextBlock Color="Color.Muted" Class="site-pricing-lead">
-                Every component is open source under the MIT license, and you don’t need an account to use them. A free account adds app starters, page blocks and a complete sample app. Pro adds more of everything for developers who build with IzzyBlazor every day.
+                Every component is open source under the MIT license, and you don’t need an account to use them. A free account adds app starters, page blocks and a complete sample app. Pro adds tools to build faster and maintain with confidence.
             </TextBlock>
         </div>
         <div class="site-pricing-preview">
@@ -195,9 +195,10 @@
                 "More variants of every block",
                 "More app kits",
                 "CRUD as full list, detail and form pages",
-                "izzy upgrade",
+                "Safe upgrades, with every change shown for review",
                 "Insert blocks and create items from your IDE, with forms and wizards",
-                "The full-site accessibility audit",
+                "The full-site accessibility audit, with fixes traced to each component",
+                "The same tools for your coding agent",
             ]),
     ];
 
@@ -211,11 +212,12 @@
         new("App-shell starters", No, "6", "All"),
         new("Blocks", No, "15", "All, with every variant"),
         new("App kits", No, "Izzy CRM", "All"),
-        new("izzy upgrade", No, No, Yes),
+        new("Safe upgrades (izzy upgrade)", No, No, Yes),
         new("IDE plugins: inline docs and previews", Yes, Yes, Yes),
         new("Generate and customize with the CLI", Yes, Yes, Yes),
         new("Generate and customize with the IDE", No, No, Yes),
-        new("Accessibility audit", "One page", "One page", "The whole site"),
+        new("Coding agents (izzy mcp)", "Open items", "Free items", "Everything"),
+        new("Accessibility audit", "One page", "One page", "The whole site, with fixes"),
     ];
 
     private static readonly (string Question, string Answer)[] Questions =
