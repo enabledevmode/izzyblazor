@@ -5,17 +5,27 @@
   </picture>
 </h1>
 
-<p align="center"><strong>Every component. Every render mode.</strong></p>
+<p align="center"><strong>Interactive in every render mode, even static SSR.</strong></p>
 
-IzzyBlazor is an open-source library of 150+ Blazor components for .NET 10 and later, built for static
-server-side rendering first. Every component works in static SSR, Interactive Server, WebAssembly and Auto:
-forms, data grids, charts, scheduling, dialogs and complete app layouts.
+Most Blazor components need a server circuit or a WebAssembly download to be interactive. IzzyBlazor's
+components are interactive in every render mode, even static SSR.
 
-On static pages, components render as HTML, and native browser behavior and lightweight custom elements make
-them work without a SignalR circuit or WebAssembly runtime. On interactive pages, the same components bind
-to C# with events and two-way binding.
+IzzyBlazor is an open-source library of 160+ components for .NET 10 and later: forms, data grids, charts,
+scheduling, dialogs and complete app layouts.
 
-Choose each page's render mode for what the page needs, not for what your component library can handle.
+## Interactivity shouldn't need a circuit or a download
+
+- **Interactive Server uses memory for every tab.** Every tab on an Interactive Server page holds a circuit in
+  your server's memory.
+- **WebAssembly makes users wait.** The browser downloads the .NET runtime before the page can respond, which
+  is slow on phones.
+- **A dropped connection stalls the page.** When a circuit drops, a reconnect overlay covers the page. If it
+  can't reconnect, anything typed into a form is lost.
+
+On static pages, IzzyBlazor's components render as HTML and handle clicks, typing and keyboard navigation in
+the browser, with no circuit to keep open and no runtime to download. Pages respond as soon as they load. When
+a page needs C#, move it to Interactive Server, WebAssembly or Auto: the same components bind to C# with
+events and two-way binding, and behave the same way.
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
@@ -46,42 +56,63 @@ nothing is broken while a page wakes up.
 Interactive Server pages hold a SignalR circuit, as in any Blazor app. ReconnectDialog, the one component made
 for that connection, shows its state when it drops.
 
-## Getting started
+## Get a running app in three steps
 
-Start a new app from the starter, Microsoft's Blazor Web App rebuilt with IzzyBlazor, with the same options as
-`dotnet new blazor`. IzzyBlazor is in preview, so name the latest version from NuGet:
+IzzyBlazor is in preview, so name the latest version from NuGet.
 
-```bash
-dotnet new install IzzyBlazor.Templates@<version>
-dotnet new starter-blazor -n MyApp
-```
+1. **Create the app.** The starter is Microsoft's Blazor Web App rebuilt with IzzyBlazor, with the same options
+   as `dotnet new blazor`: any render mode, and sign-in if you need it.
 
-To set up IzzyBlazor in an app you have (a Blazor Web App, or an MVC or Razor Pages app), run `izzy init` in it:
+   ```bash
+   dotnet new install IzzyBlazor.Templates@<version>
+   dotnet new starter-blazor -n MyApp
+   ```
 
-```bash
-dotnet tool install -g IzzyBlazor.Cli --prerelease
-izzy init
-```
+   For an app you already have (a Blazor Web App, or an MVC or Razor Pages app), run `izzy init` in it instead:
 
-The same CLI adds blocks and pages to the app as code you own (`izzy add hero`). To make each change yourself, see
-[Set up by hand](https://izzyblazor.com/docs/get-started/by-hand).
+   ```bash
+   dotnet tool install -g IzzyBlazor.Cli --prerelease
+   izzy init
+   ```
+
+2. **Build your pages.** Use the components in your pages, and generate a grid page for any model when you
+   need one:
+
+   ```bash
+   izzy add crud Product
+   ```
+
+3. **Ship it.** Deploy wherever ASP.NET Core runs. Static pages need no open connection, so they scale like any
+   website.
+
+To make each setup change yourself, see [Set up by hand](https://izzyblazor.com/docs/get-started/by-hand).
+
+### Free with an account
+
+A [free account](https://izzyblazor.com/pricing) adds six app starters, 15 page blocks and Izzy CRM, a complete
+sample app, all generated on your machine as code you own (`izzy login`, then `izzy add hero`). You don't need
+an account for the components, the docs or the starter above.
 
 ## What's included
 
-150+ components, in the same groups as the docs:
+160+ components, in the same groups as the docs:
 
-- **Layout:** Box, Row, Column, Stack, Grid, Container, Section, Center, Spacer, AspectRatio, Divider, TileLayout, Splitter, AppShell (header, collapsible sidebar, aside, footer), AppSidebar
-- **Typography:** Heading, TextBlock, List, Prose, RichText, Markdown, Anchor, Code (with syntax highlighting), Diff, CodeExample, Blockquote, Kbd, Highlight, MentionText, Icon (all of Lucide, plus brand logos)
+- **Layout:** Box, Row, Column, Stack, Grid, Container, PageHeader, SectionHeader, Section, Center, Spacer, Divider, TileLayout, Splitter, AppShell (header, collapsible sidebar, aside, footer), AppSidebar
+- **Typography:** Heading, TextBlock, Prose, RichText, Markdown, Anchor, Code (with syntax highlighting), Diff, CodeExample, Blockquote, Kbd, Highlight
 - **Buttons:** Button, IconButton, ButtonGroup, ToggleButton, ToggleGroup, SplitButton, FloatingButton, SpeedDial, Toolbar, ConfirmButton, CopyButton
-- **Inputs:** Form, Fieldset, FieldFrame, TextField (with masks and add-ons), PasswordField, TextArea, RichTextEditor, Mentions, NumberField, PinField, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, PickList, Slider, RangeSlider, Rating, DateField, TimeField, DateRangeField, MultiDateField, MonthField, YearField, DurationField, Calendar, ColorPicker, ColorPanel, FileUpload
+- **Inputs:** Form, Fieldset, FieldRepeater, FieldFrame, TextField (with masks and add-ons), PasswordField, TextArea, RichTextEditor, Mentions, NumberField, PinField, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, PickList, Slider, RangeSlider, Rating, ColorPicker, ColorPanel, FileUpload
+- **Date and time:** DateField, TimeField, DateRangeField, MultiDateField, MonthField, YearField, DurationField, Calendar
 - **Dropdowns:** Select, Combobox, Autocomplete, MultiSelect, TreeSelect, MultiTreeSelect
-- **Overlays:** Dialog (and DialogService), ActionSheet, Drawer, Menu, ContextMenu, Popover, Tooltip, ReconnectDialog
-- **Navigation:** SiteNav, NavMenu, Tabs, TabNav, Breadcrumb, Pagination, PrevNext, OnThisPage, Stepper, Carousel, Accordion, Collapsible
+- **Overlays:** Dialog (and DialogService), ConfirmDialog, ActionSheet, Drawer, Menu, ContextMenu, Popover, Tooltip
+- **Navigation:** SiteNav, NavMenu, Tabs, TabNav, Breadcrumb, Pagination, PrevNext, OnThisPage, Stepper
+- **Disclosure:** Accordion, Collapsible, ShowMore
 - **Feedback:** Alert, Banner, Toast, Spinner, Progress, ProgressCircle, Skeleton, EmptyState
-- **Data:** FilterBuilder, FilterForm, Table, DataGrid (filtering, grouping, editing, column menus, frozen columns, export), TreeList, ListView, DropZoneGroup, DescriptionList, TreeView, Scheduler
-- **Display:** Card, Stat, Avatar, AvatarGroup, Badge, Tag, Image, Lightbox, VideoEmbed, Timeline, Comment, Chat, Barcode, QrCode
+- **Data:** FilterBuilder, FilterForm, Table, DataGrid (filtering, grouping, editing, column menus, frozen columns, export), TreeList, ListView, DropZoneGroup, Kanban, TreeView, Scheduler
+- **Display:** Icon (all of Lucide, plus brand logos), Card, Stat, Avatar, AvatarGroup, Badge, Tag, Timeline, Barcode, QrCode, List, DescriptionList
+- **Media:** AspectRatio, Image, BrowserFrame, VideoEmbed, Carousel, Lightbox
+- **Conversation & AI:** Chat, Comment, MentionText
 - **Charts:** bar, line, area, range bar and area, scatter, bubble, histogram, box plot, violin, candlestick, OHLC, waterfall, pie and donut, nested donut, funnel, heatmap, calendar heatmap, radar, Sankey, treemap, BulletChart, Sparkline, Gauge, LinearGauge, with zoom, drill-down, live data and a RangeSelector; drawn on the server as SVG
-- **Utilities:** IzzyTheme, ThemeScope, ColorSchemeSwitch, LiveRegion, ErrorGuard
+- **Utilities:** IzzyTheme, ThemeScope, ColorSchemeSwitch, RelativeTime, VisuallyHidden, ReconnectDialog, LiveRegion, ErrorGuard
 
 Build responsive layouts and apply theme tokens through typed component props. If you've used
 Chakra UI or Mantine, the layout props will feel familiar:
@@ -108,6 +139,7 @@ the gaps that remain.
 **[izzyblazor.com](https://izzyblazor.com)** includes live component examples, render-mode guidance, and API documentation.
 
 - [Getting started](https://izzyblazor.com/docs/get-started): setup, packages and render modes
+- [Pricing](https://izzyblazor.com/pricing): what's open, what a free account adds, and Pro
 - [Components](https://izzyblazor.com/docs/components): examples, mode support and API for each
 - [Style props](https://izzyblazor.com/docs/common/style-props) and [Theming](https://izzyblazor.com/docs/theming): responsive values, colors, tokens and themes
 - [Accessibility](https://izzyblazor.com/docs/accessibility/overview): standards, keys for every component, and testing your app

@@ -2,13 +2,15 @@
 
 **Blazor components. No circuit required.**
 
-**150+ components. Every Blazor render mode.**
+**160+ components, interactive in every render mode, even static SSR.**
 
-IzzyBlazor is an open-source component library for .NET 10 and later, built for static server-side rendering first. Every component works in static SSR, Interactive Server, WebAssembly and Auto. On static pages, components render as HTML, and native browser behavior and lightweight custom elements make them work without a SignalR circuit or WebAssembly runtime. On interactive pages, the same components bind to C# with events and two-way binding.
+Most Blazor components need a server circuit or a WebAssembly download to be interactive. IzzyBlazor's components are interactive in every render mode, even static SSR.
 
-Choose each page's render mode for what the page needs, not for what your component library can handle.
+An Interactive Server page holds a circuit in your server's memory for every open tab, and covers the page with a reconnect overlay when the connection drops. A WebAssembly page makes the browser download the .NET runtime before it can respond. On static pages, IzzyBlazor's components render as HTML and handle clicks, typing and keyboard navigation in the browser, with no circuit to keep open and no runtime to download. When a page needs C#, move it to Interactive Server, WebAssembly or Auto: the same components bind to C# with events and two-way binding.
 
-The components cover layout and app shell, inputs, date and time fields, selection, overlays, navigation, feedback, Table and DataGrid, TreeList, TreeView, Scheduler, Chat, a rich text editor, and more than twenty chart types drawn on the server as SVG. They build to WCAG 2.2 level AA, with keyboard support, visible focus in high-contrast mode, and announcements for screen readers.
+IzzyBlazor is open source under the MIT license, for .NET 10 and later.
+
+The components cover layout and app shell, inputs, date and time fields, selection, overlays, navigation, feedback, Table and DataGrid, TreeList, TreeView, Scheduler, Kanban, Chat, a rich text editor, and more than twenty chart types drawn on the server as SVG. They build to WCAG 2.2 level AA, with keyboard support, visible focus in high-contrast mode, and announcements for screen readers.
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
