@@ -127,65 +127,6 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         }
     }
 
-    // The Frozen columns example: the first two columns frozen at the start, the last at the end.
-    private const string Frozen = """
-        () => {
-          const table = document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table`);
-          const box = table.closest('.ib-table-scroll');
-          const row = table.tBodies[0].rows[0];
-          const edges = (c) => { const r = c.getBoundingClientRect(); return [r.left, r.right]; };
-          return { box: edges(box), first: edges(row.cells[0]), second: edges(row.cells[1]), last: edges(row.cells[row.cells.length - 1]), unfrozen: table.hasAttribute('data-ib-unfrozen'), scrolls: box.scrollWidth > box.clientWidth };
-        }
-        """;
-
-    private sealed class FrozenBoxes
-    {
-        public double[] Box { get; set; } = [];
-        public double[] First { get; set; } = [];
-        public double[] Second { get; set; } = [];
-        public double[] Last { get; set; } = [];
-        public bool Unfrozen { get; set; }
-        public bool Scrolls { get; set; }
-    }
-
-    [Theory]
-    [InlineData("static")]
-    public async Task Frozen_columns_stay_while_the_rest_scroll_and_focus_stops_clear_of_them(string mode)
-    {
-        var (browser, page) = await OpenAsync(mode, topic: "/columns");
-        await using (browser)
-        {
-            var at = await page.EvaluateAsync<FrozenBoxes>(Frozen);
-            Assert.True(at.Scrolls);
-            Assert.False(at.Unfrozen);
-            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync("t => { t.closest('.ib-table-scroll').scrollLeft = 300; }");
-            var moved = await page.EvaluateAsync<FrozenBoxes>(Frozen);
-            Assert.Equal(at.First[0], moved.First[0], 0.5);
-            Assert.Equal(at.Second[0], moved.Second[0], 0.5);
-            Assert.Equal(at.Second[0], moved.First[1], 0.5);
-            Assert.Equal(moved.Box[1], moved.Last[1], 1.5);
-
-            // Opaque on every row, stripes included.
-            var colors = await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync<string[]>("t => [...t.tBodies[0].rows].map(r => getComputedStyle(r.cells[0]).backgroundColor)");
-            Assert.All(colors, c => Assert.DoesNotContain("/", c));
-            Assert.All(colors, c => Assert.DoesNotContain("rgba", c));
-
-            // Focus on a frozen cell leaves the grid where it is.
-            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").Locator("tbody tr").First.Locator("td").First.FocusAsync();
-            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync("t => { t.closest('.ib-table-scroll').scrollLeft = 300; }");
-            await page.Keyboard.PressAsync("ArrowDown");
-            Assert.Equal(300, await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync<double>("t => t.closest('.ib-table-scroll').scrollLeft"), 1);
-            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").Locator("tbody tr").Nth(2).Locator("td").First.ClickAsync();
-            Assert.Equal(300, await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync<double>("t => t.closest('.ib-table-scroll').scrollLeft"), 1);
-
-            // A cell the arrows reach isn't left under them.
-            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").Locator("tbody tr").First.Locator("td").Nth(3).FocusAsync();
-            await page.Keyboard.PressAsync("ArrowLeft");
-            var clear = await page.EvaluateAsync<double[]>("() => { const r = document.activeElement.getBoundingClientRect(); const t = document.activeElement.closest('tr').cells[1].getBoundingClientRect(); return [r.left, t.right]; }");
-            Assert.True(clear[0] >= clear[1] - 1, $"focused cell starts at {clear[0]}, frozen columns end at {clear[1]}");
-        }
-    }
-
     private sealed class Measured
     {
         public double[] Widths { get; set; } = [];

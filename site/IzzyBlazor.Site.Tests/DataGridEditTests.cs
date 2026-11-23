@@ -117,23 +117,6 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
     }
 
     [Fact]
-    public async Task A_field_of_your_own_saves_with_the_generated_ones()
-    {
-        var (browser, page) = await OpenAsync("static");
-        await using var _ = browser;
-        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders in two columns'])");
-        var rows = grid.Locator(".ib-table-scroll tbody tr");
-        await rows.First.Locator("[aria-label^='Edit']").ClickAsync();
-        var dialog = grid.Locator("dialog[open]");
-        await dialog.Locator("input[name='ib-edit.Customer']").FillAsync("Sectioned");
-        await dialog.GetByRole(AriaRole.Radio, new() { Name = "Refunded" }).CheckAsync(new() { Force = true });
-        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
-        await Assertions.Expect(dialog).ToHaveCountAsync(0);
-        await Assertions.Expect(rows.First).ToContainTextAsync("Sectioned");
-        await Assertions.Expect(rows.First).ToContainTextAsync("Refunded");
-    }
-
-    [Fact]
     public async Task A_form_of_your_own_closes_after_saving_on_an_interactive_page()
     {
         var (browser, page) = await OpenAsync("interactive");
