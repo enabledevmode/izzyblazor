@@ -1,0 +1,97 @@
+@page "/docs/architecture/data-access-server"
+
+@* Data access on the server: the store over EF Core that Static and Interactive Server pages ask, and a context
+   per call for the circuit. The interface and the page are in DataAccess.razor. *@
+
+<ArticlePage Section="architecture" Slug="data-access-server">
+    <Lead>
+        Static and Interactive Server pages run on the server, next to the database. One store over EF Core serves
+        both, with no API between the page and the data.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">The store</Heading>
+        <TextBlock>
+            The page asks <Anchor Href="docs/architecture/data-access">an interface</Anchor>, and this class answers it
+            with queries against your <Code>DbContext</Code>:
+        </TextBlock>
+        <figure class="site-diagram">
+            <div class="site-diagram-scroll ib-scroll">@((MarkupString)OnServer)</div>
+            <figcaption>Static and Interactive Server: the page and the store both run on the server.</figcaption>
+        </figure>
+        <Code Block Language="csharp" Title="Data/EfCustomerStore.cs">@Store</Code>
+        <Code Block Language="csharp" Title="Program.cs">@Registration</Code>
+        <TextBlock>
+            <Anchor Href="docs/cli/crud"><Code>izzy add crud</Code></Anchor> writes a store of this shape for a model you
+            name.
+        </TextBlock>
+
+        <Heading Level="2">A context for each call</Heading>
+        <TextBlock>
+            A static page lives for one request, so its services do too. An Interactive Server page keeps its services
+            for as long as its circuit. A <Code>DbContext</Code> injected into that page would stay open for the whole
+            session, and two event handlers could use it at the same time. The store above creates a context for each
+            call from an <Code>IDbContextFactory</Code>, which is safe on static and interactive pages. See Microsoft's
+            <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/blazor-ef-core" External>Blazor with EF Core</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/architecture/data-access-browser">Data access in the browser</Anchor>: what to add when a page moves to WebAssembly or Auto.</ListItem>
+            <ListItem><Anchor Href="docs/common/data">Data and filters</Anchor>: load a Table or DataGrid's rows from a provider or EF Core.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Store = """
+        public sealed class EfCustomerStore(IDbContextFactory<ShopDb> factory) : ICustomerStore
+        {
+            public async Task<IReadOnlyList<CustomerRow>> ListAsync(CancellationToken cancellationToken = default)
+            {
+                await using var db = await factory.CreateDbContextAsync(cancellationToken);
+                return await db.Customers.AsNoTracking()
+                    .OrderBy(c => c.Name)
+                    .Select(c => new CustomerRow(c.Id, c.Name, c.City))
+                    .ToListAsync(cancellationToken);
+            }
+
+            public async Task<CustomerRow?> GetAsync(int id, CancellationToken cancellationToken = default)
+            {
+                await using var db = await factory.CreateDbContextAsync(cancellationToken);
+                return await db.Customers.AsNoTracking()
+                    .Where(c => c.Id == id)
+                    .Select(c => new CustomerRow(c.Id, c.Name, c.City))
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+        }
+        """;
+
+    private const string Registration = """
+        // Program.cs (server)
+        builder.Services.AddDbContextFactory<ShopDb>(options => options.UseSqlite(connectionString));
+        builder.Services.AddScoped<ICustomerStore, EfCustomerStore>();
+        """;
+
+    // The diagram: a place (browser, server) is a tinted box, what runs there a white one. Colors are in site.css.
+    private const string OnServer = """
+        <svg viewBox="0 0 640 132" role="img" aria-label="The browser sends a request to the server. On the server, the page asks EfCustomerStore, which reads the database.">
+            <defs><marker id="site-diagram-arrow-a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="site-diagram-head" d="M0 0 8 4 0 8z"/></marker></defs>
+            <rect class="site-diagram-place" x="1" y="1" width="150" height="130" rx="8"/>
+            <text class="site-diagram-label" x="14" y="24">Browser</text>
+            <rect class="site-diagram-node" x="16" y="52" width="120" height="44" rx="6"/>
+            <text x="76" y="79" text-anchor="middle">HTML</text>
+            <rect class="site-diagram-place" x="230" y="1" width="290" height="130" rx="8"/>
+            <text class="site-diagram-label" x="243" y="24">Server</text>
+            <rect class="site-diagram-node" x="245" y="52" width="90" height="44" rx="6"/>
+            <text x="290" y="79" text-anchor="middle">Page</text>
+            <rect class="site-diagram-node" x="365" y="52" width="140" height="44" rx="6"/>
+            <text x="435" y="79" text-anchor="middle">EfCustomerStore</text>
+            <rect class="site-diagram-node" x="549" y="52" width="90" height="44" rx="6"/>
+            <text x="594" y="79" text-anchor="middle">Database</text>
+            <text class="site-diagram-label" x="190" y="64" text-anchor="middle">request</text>
+            <path class="site-diagram-line" d="M136 74H243" marker-end="url(#site-diagram-arrow-a)"/>
+            <path class="site-diagram-line" d="M335 74H363" marker-end="url(#site-diagram-arrow-a)"/>
+            <path class="site-diagram-line" d="M505 74H547" marker-end="url(#site-diagram-arrow-a)"/>
+        </svg>
+        """;
+}

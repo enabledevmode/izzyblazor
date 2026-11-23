@@ -77,6 +77,10 @@ public static class Articles
         [
             new("data-access", "Data access by render mode", "Database",
                 "Load data through an interface: a store over EF Core for pages on the server, and one that calls your API for pages in the browser."),
+            new("data-access-server", "Data access on the server", "Server",
+                "The store over EF Core that Static and Interactive Server pages ask, with a context for each call."),
+            new("data-access-browser", "Data access in the browser", "AppWindow",
+                "The client store and endpoints that WebAssembly and Auto pages need, a store in both projects, and the checks that move to the server."),
         ]),
         new("accessibility", "Accessibility", "Accessibility",
         [

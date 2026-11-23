@@ -1,0 +1,145 @@
+@page "/docs/architecture/data-access-browser"
+
+@* Data access in the browser: the client store over HTTP that WebAssembly and Auto pages ask, the endpoints
+   behind it, registering a store in both projects for prerendering, and the checks that move to the endpoint.
+   A grid's request over HTTP is in Common/DataApi.razor. *@
+
+<ArticlePage Section="architecture" Slug="data-access-browser">
+    <Lead>
+        WebAssembly and Auto pages run in the browser, which has no connection to the database. The page stays the
+        same, and a second store calls your API for it.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">The client store and its endpoints</Heading>
+        <TextBlock>
+            The page still asks <Anchor Href="docs/architecture/data-access">the interface</Anchor>. A second store, in
+            the <Code>.Client</Code> project, calls an API, and the API's endpoints use
+            <Anchor Href="docs/architecture/data-access-server">the server's store</Anchor>:
+        </TextBlock>
+        <figure class="site-diagram">
+            <div class="site-diagram-scroll ib-scroll">@((MarkupString)InBrowser)</div>
+            <figcaption>WebAssembly and Auto: the page runs in the browser, and its store calls the server.</figcaption>
+        </figure>
+        <Code Block Language="csharp" Title="HttpCustomerStore.cs (client)">@HttpStore</Code>
+        <Code Block Language="csharp" Title="Program.cs (server)">@Endpoints</Code>
+        <Heading Level="2">Both projects need a store</Heading>
+        <List Gap="2">
+            <ListItem>
+                <strong>Share the interface and the row types.</strong> Put <Code>ICustomerStore</Code> and
+                <Code>CustomerRow</Code> in the <Code>.Client</Code> project, which the server project references. Return a
+                type made for the API, not an entity with columns the user shouldn't see.
+            </ListItem>
+            <ListItem>
+                <strong>Register a store in both projects.</strong> The page prerenders on the server, and an Auto page
+                runs there until the WebAssembly runtime has downloaded. So the server registers
+                <Code>EfCustomerStore</Code> and the client registers <Code>HttpCustomerStore</Code>. With only the
+                client's, prerendering fails. See Microsoft's
+                <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/components/prerender" External>Prerender components</Anchor>.
+            </ListItem>
+            <ListItem>
+                <strong>Carry the first load over.</strong> The page loads its data once while prerendering and again
+                when it starts in the browser. To skip the second load, persist what the first one read. See
+                <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/state-management/prerendered-state-persistence" External>Prerendered state persistence</Anchor>.
+            </ListItem>
+        </List>
+        <Code Block Language="csharp" Title="Registering the stores">@Registration</Code>
+        <TextBlock>
+            A Table or DataGrid sends its sort, filters and page with each load. To send that request over HTTP, see
+            <Anchor Href="docs/common/data-api">Data from an API</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Checks that move to the server</Heading>
+        <TextBlock>
+            A user can change code that runs in the browser, and can call your endpoints without your page. So an
+            endpoint repeats every check that the page made:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Who can call it.</strong> Give the endpoint the policy that the page's <Code>[Authorize]</Code>
+                names, with <Code>RequireAuthorization</Code>. See Microsoft's
+                <Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/security/" External>Blazor authentication and authorization</Anchor>.
+            </ListItem>
+            <ListItem>
+                <strong>What it accepts.</strong> Validate a posted model again in the endpoint. The form's validation in
+                the browser only helps the user.
+            </ListItem>
+            <ListItem>
+                <strong>Which rows it returns.</strong> If users see only their own records, the store filters by the
+                signed-in user on the server. Don't take the user's id from the request.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/data-api">Data from an API</Anchor>: a grid's sort, filters and paging over HTTP, and what the server limits.</ListItem>
+            <ListItem><Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/call-web-api" External>Call a web API from Blazor</Anchor>: Microsoft's guide to <Code>HttpClient</Code>, named clients and errors.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string HttpStore = """
+        public sealed class HttpCustomerStore(HttpClient api) : ICustomerStore
+        {
+            public async Task<IReadOnlyList<CustomerRow>> ListAsync(CancellationToken cancellationToken = default) =>
+                await api.GetFromJsonAsync<List<CustomerRow>>("api/customers", cancellationToken) ?? [];
+
+            public async Task<CustomerRow?> GetAsync(int id, CancellationToken cancellationToken = default)
+            {
+                using var response = await api.GetAsync($"api/customers/{id}", cancellationToken);
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadFromJsonAsync<CustomerRow>(cancellationToken);
+            }
+        }
+        """;
+
+    private const string Endpoints = """
+        var customers = app.MapGroup("/api/customers").RequireAuthorization("Sales");
+
+        customers.MapGet("/", (ICustomerStore store, CancellationToken cancellationToken) =>
+            store.ListAsync(cancellationToken));
+
+        customers.MapGet("/{id:int}", async (int id, ICustomerStore store, CancellationToken cancellationToken) =>
+            await store.GetAsync(id, cancellationToken) is { } customer ? Results.Ok(customer) : Results.NotFound());
+        """;
+
+    private const string Registration = """
+        // Program.cs (server)
+        builder.Services.AddDbContextFactory<ShopDb>(options => options.UseSqlite(connectionString));
+        builder.Services.AddScoped<ICustomerStore, EfCustomerStore>();
+
+        // Program.cs (client)
+        builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+        builder.Services.AddScoped<ICustomerStore, HttpCustomerStore>();
+        """;
+
+    // The diagram: a place (browser, server) is a tinted box, what runs there a white one. Colors are in site.css.
+    private const string InBrowser = """
+        <svg viewBox="0 0 640 132" role="img" aria-label="In the browser, the page asks HttpCustomerStore, which calls the API over HTTP. On the server, the API asks EfCustomerStore, which reads the database.">
+            <defs><marker id="site-diagram-arrow-b" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="site-diagram-head" d="M0 0 8 4 0 8z"/></marker></defs>
+            <rect class="site-diagram-place" x="1" y="1" width="262" height="130" rx="8"/>
+            <text class="site-diagram-label" x="14" y="24">Browser</text>
+            <rect class="site-diagram-node" x="14" y="52" width="66" height="44" rx="6"/>
+            <text x="47" y="79" text-anchor="middle">Page</text>
+            <rect class="site-diagram-node" x="106" y="52" width="144" height="44" rx="6"/>
+            <text x="178" y="79" text-anchor="middle">HttpCustomerStore</text>
+            <rect class="site-diagram-place" x="322" y="1" width="222" height="130" rx="8"/>
+            <text class="site-diagram-label" x="335" y="24">Server</text>
+            <rect class="site-diagram-node" x="335" y="52" width="48" height="44" rx="6"/>
+            <text x="359" y="79" text-anchor="middle">API</text>
+            <rect class="site-diagram-node" x="405" y="52" width="126" height="44" rx="6"/>
+            <text x="468" y="79" text-anchor="middle">EfCustomerStore</text>
+            <rect class="site-diagram-node" x="563" y="52" width="76" height="44" rx="6"/>
+            <text x="601" y="79" text-anchor="middle">Database</text>
+            <text class="site-diagram-label" x="292" y="64" text-anchor="middle">HTTP</text>
+            <path class="site-diagram-line" d="M80 74H104" marker-end="url(#site-diagram-arrow-b)"/>
+            <path class="site-diagram-line" d="M250 74H333" marker-end="url(#site-diagram-arrow-b)"/>
+            <path class="site-diagram-line" d="M383 74H403" marker-end="url(#site-diagram-arrow-b)"/>
+            <path class="site-diagram-line" d="M531 74H561" marker-end="url(#site-diagram-arrow-b)"/>
+        </svg>
+        """;
+}
