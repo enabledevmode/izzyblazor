@@ -12,7 +12,7 @@ IzzyBlazor is open source under the MIT license, for .NET 10 and later.
 
 The components cover layout and app shell, inputs, date and time fields, selection, overlays, navigation, feedback, Table and DataGrid, TreeList, TreeView, Scheduler, Kanban, Chat, a rich text editor, and more than twenty chart types drawn on the server as SVG. They build to WCAG 2.2 level AA, with keyboard support, visible focus in high-contrast mode, and announcements for screen readers.
 
-[Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
+[Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started/create-app)
 
 ![A store's dashboard built with IzzyBlazor: app shell with sidebar navigation, a stock alert, stat cards with sparklines, a stacked bar chart of revenue by channel, and top products with ratings.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
 
@@ -34,7 +34,7 @@ Every page starts as working HTML: before IzzyBlazor's script loads, and while a
 
 ## Getting started
 
-For a new app, start from the starter (`dotnet new starter-blazor`, in the IzzyBlazor.Templates package); in an app you have, run `izzy init` (the IzzyBlazor.Cli tool). See [Get started](https://izzyblazor.com/docs/get-started). To set it up by hand, install the package in your server project:
+For a new app, start from the starter (`dotnet new starter-blazor`, in the IzzyBlazor.Templates package); in an app you have, run `izzy init` (the IzzyBlazor.Cli tool). See [Get started](https://izzyblazor.com/docs/get-started/create-app). To set it up by hand, install the package in your server project:
 
 ```bash
 dotnet add package IzzyBlazor --prerelease

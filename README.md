@@ -27,7 +27,7 @@ the browser, with no circuit to keep open and no runtime to download. Pages resp
 a page needs C#, move it to Interactive Server, WebAssembly or Auto: the same components bind to C# with
 events and two-way binding, and behave the same way.
 
-[Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
+[Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started/create-app)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/showcase-dark.png">
