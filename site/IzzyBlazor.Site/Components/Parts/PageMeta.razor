@@ -40,5 +40,6 @@
 
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private string Canonical => $"https://{CanonicalHost.Host}/{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0]}";
+    // One address a page: the site's paths are lower case with no closing slash, however the request wrote it.
+    private string Canonical => $"https://{CanonicalHost.Host}/{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].TrimEnd('/').ToLowerInvariant()}";
 }

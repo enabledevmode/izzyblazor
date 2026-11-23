@@ -87,6 +87,9 @@ public sealed class AgentReportOptions
 
     /// <summary>Reports one client may post per hour.</summary>
     public int PerClientPerHour { get; set; } = 5;
+
+    /// <summary>Reports from everyone together in an hour: many addresses can't flood the repository.</summary>
+    public int PerHour { get; set; } = 30;
 }
 
 /// <summary>Reports switched off: nothing is found or posted.</summary>
@@ -223,26 +226,53 @@ public sealed class GitHubDiscussionsReportSink(IHttpClientFactory clients, IOpt
 public sealed class AgentReportLimiter(IOptions<AgentReportOptions> options, TimeProvider clock)
 {
     private readonly ConcurrentDictionary<string, Queue<DateTimeOffset>> _sent = new(StringComparer.Ordinal);
+    private readonly Queue<DateTimeOffset> _all = new();
 
     /// <summary>Counts a report for the client; false when it's over its hourly limit.</summary>
     public bool TryTake(string client)
     {
         var now = clock.GetUtcNow();
-        var times = _sent.GetOrAdd(client, _ => new Queue<DateTimeOffset>());
-        lock (times)
+        lock (_all)
         {
-            while (times.Count > 0 && now - times.Peek() > TimeSpan.FromHours(1))
+            while (_all.Count > 0 && now - _all.Peek() > TimeSpan.FromHours(1))
             {
-                times.Dequeue();
+                _all.Dequeue();
             }
 
-            if (times.Count >= options.Value.PerClientPerHour)
+            if (_all.Count >= options.Value.PerHour)
             {
                 return false;
             }
 
-            times.Enqueue(now);
-            return true;
+            // Clients whose hour has passed leave the list, so it holds the last hour's and no more.
+            if (_sent.Count > 1_000)
+            {
+                foreach (var (key, old) in _sent)
+                {
+                    lock (old)
+                    {
+                        if (old.Count == 0 || now - old.Last() > TimeSpan.FromHours(1)) _sent.TryRemove(key, out _);
+                    }
+                }
+            }
+
+            var times = _sent.GetOrAdd(client, _ => new Queue<DateTimeOffset>());
+            lock (times)
+            {
+                while (times.Count > 0 && now - times.Peek() > TimeSpan.FromHours(1))
+                {
+                    times.Dequeue();
+                }
+
+                if (times.Count >= options.Value.PerClientPerHour)
+                {
+                    return false;
+                }
+
+                times.Enqueue(now);
+                _all.Enqueue(now);
+                return true;
+            }
         }
     }
 }

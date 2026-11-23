@@ -31,9 +31,8 @@ public sealed class FormLimit(TimeProvider time)
         return counted.Count <= Posts;
     }
 
-    // Fly's proxy gives its caller in Fly-Client-IP (it overwrites one a caller sends); without Fly, the
-    // connection's own address.
+    // The visitor as the page limits know them (SiteApp.ClientKey): the address Cloudflare or Fly says is
+    // calling, and for IPv6 its /64, since one visitor has the whole of it to post from.
     private static string Caller(HttpContext? context) =>
-        context?.Request.Headers["Fly-Client-IP"].FirstOrDefault() is { Length: > 0 } client ? client
-        : context?.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        context is not null && SiteApp.ClientKey(context) is { Length: > 0 } client ? client : "unknown";
 }

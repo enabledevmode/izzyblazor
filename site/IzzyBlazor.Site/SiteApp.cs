@@ -54,10 +54,16 @@ public static class SiteApp
             && !request.Path.StartsWithSegments("/frame")
             && !request.Path.StartsWithSegments("/_blazor")
             && !request.Path.StartsWithSegments("/_framework")
-            && !request.Path.StartsWithSegments("/search")
+            && !request.Path.StartsWithSegments("/search/results")
             && !request.Path.StartsWithSegments(McpPath)
+            && !IsNewsletterAnswer(request)
             && !path[(path.LastIndexOf('/') + 1)..].Contains('.');
     }
+
+    // Where a newsletter post lands (?answer=sent, with the short-lived cookie the post set): a reader who just
+    // subscribed, not a crawl of query strings, so it doesn't wait in the crawlers' queue.
+    private static bool IsNewsletterAnswer(HttpRequest request) =>
+        request.Query.Count == 1 && request.Query.ContainsKey("answer") && request.Cookies.ContainsKey(Components.Parts.Newsletter.AddressCookie);
 
     // The site's antiforgery cookie, which every page it renders sets: a reader who has been here.
     private static bool HasAntiforgeryCookie(HttpRequest request) =>
@@ -76,10 +82,16 @@ public static class SiteApp
                 && context.Features.Get<IExceptionHandlerFeature>() is null))
             && !request.Path.StartsWithSegments("/_blazor")
             && !request.Path.StartsWithSegments("/_framework")
-            && !request.Path.StartsWithSegments("/search")
+            && !request.Path.StartsWithSegments("/search/results")
             && !request.Path.StartsWithSegments(McpPath)
             && !path[(path.LastIndexOf('/') + 1)..].Contains('.');
     }
+
+    // A path on this site to send a post back to: plain characters only, so nothing in it can be read as
+    // another site's address or refused by the redirect.
+    private static bool IsPlainPath(string path) =>
+        path.Length is > 0 and <= 200 && path[0] == '/' && !path.Contains("//", StringComparison.Ordinal)
+        && path.All(ch => char.IsAsciiLetterOrDigit(ch) || ch is '/' or '-' or '_' or '.');
 
     // Cloudflare's addresses (cloudflare.com/ips-v4 and ips-v6, Nov 14, 2026): a request from one of
     // them came through Cloudflare's proxy, which gives the visitor in CF-Connecting-IP.
@@ -118,6 +130,8 @@ public static class SiteApp
 
     // The caller's key for limits: its address, IPv6 by its /64, the block one client usually has,
     // so changing addresses inside it doesn't reset the limit.
+    private const long McpMaxBody = 256 * 1024;
+
     internal static string ClientKey(HttpContext context)
     {
         var address = ClientAddress(context);
@@ -377,6 +391,22 @@ public static class SiteApp
         });
         // Before the limiter, so a copy served takes no render slot.
         app.UseMiddleware<FirstVisitCache>();
+        // An MCP call is a few hundred bytes of JSON. Kestrel's own limit is 30 MB a request, and a handful of
+        // those at once would fill the machine's memory.
+        app.Use((context, next) =>
+        {
+            if (context.Request.Path.StartsWithSegments(McpPath))
+            {
+                if (context.Request.ContentLength > McpMaxBody)
+                {
+                    context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
+                    return Task.CompletedTask;
+                }
+                if (context.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } size)
+                    size.MaxRequestBodySize = McpMaxBody;
+            }
+            return next(context);
+        });
         app.UseRateLimiter();
 
         // A link that opens a page in a mode (?mode=noscript, the mode switch) keeps it for the next
@@ -432,6 +462,7 @@ public static class SiteApp
         // renders, so it arrives in the reader's order. A post, not a link, so crawlers don't follow it.
         app.MapPost("/docs/components/order", async (HttpContext context) =>
         {
+            if (!context.Request.HasFormContentType) return Results.BadRequest();
             var form = await context.Request.ReadFormAsync();
             var options = new CookieOptions
             {
@@ -445,8 +476,7 @@ public static class SiteApp
 
             // Back to the page it was posted from, when that's a path on this site.
             var back = form["return"].ToString();
-            var local = back.StartsWith('/') && !back.StartsWith("//", StringComparison.Ordinal) && !back.StartsWith("/\\", StringComparison.Ordinal);
-            return Results.LocalRedirect(local ? back : "/docs/components");
+            return Results.LocalRedirect(IsPlainPath(back) ? back : "/docs/components");
         }).DisableAntiforgery();
 
         // The newsletter's forms (Newsletter.razor): the address goes to the account service, which sends the link
@@ -454,6 +484,7 @@ public static class SiteApp
         // hold the form stay in FirstVisitCache; each visitor gets a few posts every ten minutes (FormLimit).
         app.MapPost("/newsletter/subscribe", async (HttpContext context, AccountService account, FormLimit limit) =>
         {
+            if (!context.Request.HasFormContentType) return Results.BadRequest();
             var form = await context.Request.ReadFormAsync();
             var email = form["email"].ToString().Trim();
             string answer;
@@ -476,7 +507,7 @@ public static class SiteApp
             // Back to the page that sent it (its own path only), with the address in a short-lived cookie so the
             // answer can name it without putting it in the address bar.
             var back = form["back"].ToString();
-            if (back.Length is 0 or > 200 || back[0] != '/' || back.Contains("//") || back.Contains('\\') || back.Contains('?') || back.Contains('#')) back = "/newsletter";
+            if (!IsPlainPath(back)) back = "/newsletter";
             if (email.Length is > 0 and <= 254)
             {
                 context.Response.Cookies.Append(Components.Parts.Newsletter.AddressCookie, email, new CookieOptions
