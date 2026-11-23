@@ -13,6 +13,32 @@ public sealed class AccountService(HttpClient http, ILogger<AccountService> logg
     /// <summary>Where a free account is made: the sign-in page, since a first sign-in makes one.</summary>
     public const string SignIn = Address + "/signin";
 
+    /// <summary>Where the header's Sign out posts: the service signs the browser out and comes back here.</summary>
+    public const string SignOut = Address + "/signout/site";
+
+    /// <summary>
+    /// The cookie the account service sets on the domain the two sites share while a browser is signed in:
+    /// the email and name to show, each escaped, with a | between. It grants nothing; this site only shows it.
+    /// </summary>
+    public const string SignedInCookie = "ib-account";
+
+    /// <summary>The account the browser says it's signed in to, for the header; null when it isn't, or the cookie isn't one of ours.</summary>
+    public static SignedInAccount? SignedIn(HttpRequest? request)
+    {
+        if (request?.Cookies[SignedInCookie] is not { Length: > 0 and <= 1024 } value || value.Split('|') is not [var email, var name]) return null;
+        try
+        {
+            email = Uri.UnescapeDataString(email).Trim();
+            name = Uri.UnescapeDataString(name).Trim();
+        }
+        catch (UriFormatException)
+        {
+            return null;
+        }
+
+        return email.Length is 0 or > 254 || !email.Contains('@') || name.Length > 100 ? null : new SignedInAccount(email, name.Length == 0 ? null : name);
+    }
+
     /// <summary>Where a subscriber changes or ends the newsletter: the account's email settings.</summary>
     public const string Email = Address + "/email";
 
@@ -71,4 +97,11 @@ public enum Subscription
 
     /// <summary>The service refused or couldn't be reached.</summary>
     Failed,
+}
+
+/// <summary>The account a browser is signed in to at the account service, as its cookie names it.</summary>
+public sealed record SignedInAccount(string Email, string? Name)
+{
+    /// <summary>The name, or the email where the account has none.</summary>
+    public string Display => Name ?? Email;
 }

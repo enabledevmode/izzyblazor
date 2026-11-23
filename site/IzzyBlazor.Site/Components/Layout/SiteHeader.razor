@@ -37,7 +37,10 @@
         else
         {
             <SiteNavFooter>
-                <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" FullWidth>Sign in</Button>
+                @if (Account is null)
+                {
+                    <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg" FullWidth>Sign in</Button>
+                }
                 <Anchor Href="https://github.com/enabledevmode/izzyblazor" Underline="AnchorUnderline.None" HideExternalIcon Class="site-header-github">GitHub</Anchor>
             </SiteNavFooter>
         }
@@ -52,9 +55,31 @@
         }
         <GitHubLink VisibleFrom="@(Sidebar ? Breakpoint.Md : Breakpoint.Lg)" />
         <ColorSchemeSwitch />
-        @* Outline, and plain on a phone, where the row is full. *@
-        <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Sm" Class="site-header-signin">Sign in</Button>
-        <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" HiddenFrom="Breakpoint.Sm" Class="site-header-signin">Sign in</Button>
+        @if (Account is { } account)
+        {
+            @* Signed in at the account service: the avatar and its menu take Sign in's place at every width. *@
+            <Menu Placement="Placement.BottomEnd" Class="site-header-signin">
+                <Trigger Context="trigger">
+                    <IconButton Label="@($"Account: {account.Display}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="trigger">
+                        <Avatar Name="@account.Display" Size="AvatarSize.Sm" Decorative />
+                    </IconButton>
+                </Trigger>
+                <ChildContent>
+                    <MenuGroup Label="@(account.Name is null ? account.Email : $"{account.Name} ({account.Email})")">
+                        <MenuItem Href="@AccountService.Address" Icon="Lucide.User">Account</MenuItem>
+                    </MenuGroup>
+                    <MenuDivider />
+                    <MenuItem Submit Form="site-signout" Icon="Lucide.LogOut">Sign out</MenuItem>
+                </ChildContent>
+            </Menu>
+            <form id="site-signout" action="@AccountService.SignOut" method="post" hidden></form>
+        }
+        else
+        {
+            @* Outline, and plain on a phone, where the row is full. *@
+            <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Sm" Class="site-header-signin">Sign in</Button>
+            <Button Href="@AccountService.SignIn" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" HiddenFrom="Breakpoint.Sm" Class="site-header-signin">Sign in</Button>
+        }
     </div>
 </AppHeader>
 
@@ -71,4 +96,9 @@
     // Docs is current on the articles (docs/...), Components on docs/components/..., Blocks on
     // blocks/...; each has its own sidebar (DocsNav). Null elsewhere, so each link matches its own path.
     private DocsArea Area => DocsNav.AreaOf(Navigation);
+
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // Who the account service's cookie says is signed in. Null on an interactive render, which has no request.
+    private SignedInAccount? Account => AccountService.SignedIn(HttpContext?.Request);
 }
