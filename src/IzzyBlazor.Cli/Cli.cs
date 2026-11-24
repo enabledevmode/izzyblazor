@@ -37,7 +37,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
-          izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json] [--fail-on any] [--browser <path>] [--json]
+          izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]
           izzy audit [<path> ...] --run [--project <path>]
           izzy agent [--project <path>] [--dry-run]
           izzy mcp
@@ -60,7 +60,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         izzy audit checks a page's accessibility with axe-core, in the Chrome or Edge on this machine, at two
         widths and in light and dark. It writes a report to read (report.md) and the same as data
         (results.json) in .izzy/audit/. --run starts the app in this project for the audit and stops it after;
-        --fail-on any ends with exit code 5 when there are findings, for CI.
+        --fail-on any ends with exit code 5 when there are findings, for CI. With IzzyBlazor Pro each finding
+        has a verdict (real, needs a person, accepted, demo page, false positive), your own decisions are read
+        from .izzy/audit.json, --format tasks writes tasks.md, and --baseline <results.json> with --fail-on new
+        fails on real findings the past run lacks.
         izzy agent writes what a coding agent reads in your project: the IzzyBlazor skill, and the docs server
         and izzy mcp in the MCP settings of Claude Code, Copilot, Cursor and Visual Studio. izzy mcp is the
         server those settings start: izzy's commands as tools, for an agent, with a free account. izzy agent
@@ -208,21 +211,30 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // izzy audit https://localhost:5001/orders: the page in a browser on this machine, checked with axe-core.
     int AuditPages(Args args)
     {
-        const string usage = "izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json] [--fail-on any] [--browser <path>] [--json], or izzy audit [<path> ...] --run [--project <path>]";
+        const string usage = "izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json], or izzy audit [<path> ...] --run [--project <path>]";
         var run = args.Switch("run");
         var json = args.Switch("json");
         var folder = args.Take("project");
         var given = args.Take("browser");
         var outFolder = args.Take("out");
         var failOn = args.Take("fail-on") ?? "none";
+        var baselineFile = args.Take("baseline");
         var formats = (args.Take("format") ?? "md,json").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var widths = (args.Take("sizes") ?? "1440,375").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(w => int.TryParse(w, out var width) && width is >= 200 and <= 7680 ? width : throw new UsageException($"--sizes takes widths in pixels, such as 1440,375: \"{w}\" isn't one.")).ToList();
         var schemes = (args.Take("schemes") ?? "light,dark").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(s => s is "light" or "dark" ? s : throw new UsageException($"--schemes takes light, dark or both: \"{s}\" is neither.")).ToList();
         NoSettings(args);
-        if (failOn is not ("any" or "none")) throw new UsageException("--fail-on takes any or none.");
-        if (formats.FirstOrDefault(f => f is not ("md" or "json")) is { } format) throw new UsageException($"--format takes md, json or both: \"{format}\" is neither.");
+        if (failOn is not ("any" or "real" or "new" or "none")) throw new UsageException("--fail-on takes any, real, new or none.");
+        if (formats.FirstOrDefault(f => f is not ("md" or "json" or "tasks")) is { } format) throw new UsageException($"--format takes md, json and tasks: \"{format}\" is none of them.");
+        if (failOn == "new" && baselineFile is null) throw new UsageException("--fail-on new counts the findings a past run lacks: say which with --baseline <results.json>.");
+        JsonObject? baseline = null;
+        if (baselineFile is not null)
+        {
+            var file = Path.GetFullPath(baselineFile, workingDirectory);
+            if (!File.Exists(file)) throw new UsageException($"--baseline: there is no {baselineFile}.");
+            baseline = JsonNode.Parse(File.ReadAllText(file)) as JsonObject ?? throw new UsageException($"{baselineFile} isn't a results.json from izzy audit.");
+        }
         if (widths.Count == 0 || schemes.Count == 0 || formats.Length == 0) throw new UsageException($"Usage: {usage}");
 
         var pages = args.Words.Skip(1).ToList();
@@ -241,6 +253,19 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         catch (UsageException) when (!run && folder is null) { }
         var home = csproj is null ? workingDirectory : Path.GetDirectoryName(csproj)!;
 
+        // Verdicts come from the pack in a Pro account's catalog and the app's own .izzy/audit.json.
+        var verdicts = failOn is "real" or "new" || baseline is not null || formats.Contains("tasks");
+        var pack = (Plan == ItemTier.Pro ? proRoot ?? account?.Catalog(error, online: true) : null) is { } catalog && File.Exists(Path.Combine(catalog, ".audit", "pack.json"))
+            ? Path.Combine(catalog, ".audit", "pack.json") : null;
+        if (verdicts && Plan != ItemTier.Pro)
+        {
+            error.WriteLine("A verdict for each finding, tasks.md, --baseline and --fail-on real or new come with IzzyBlazor Pro. Free audits one page: --fail-on any fails on any finding.");
+            return 3;
+        }
+        if (verdicts && pack is null) throw new GenerationException("This machine's copy of the catalog has no audit pack, so findings get no verdicts. Run izzy login to download it again.");
+        var decisions = Path.Combine(home, ".izzy", "audit.json");
+        var judge = pack is null ? null : new Audit.Judge(pack, File.Exists(decisions) ? decisions : null);
+
         void Progress(string line)
         {
             if (!json) error.WriteLine(line);
@@ -254,9 +279,16 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 : throw new UsageException(run ? $"\"{page}\" isn't a path in the app (/orders) or an address." : $"\"{page}\" isn't an address: izzy audit https://localhost:5001/orders.");
         }).ToList();
 
-        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress).GetAwaiter().GetResult();
-        var findings = Audit.Findings(results);
-        var exit = failOn == "any" && findings > 0 ? 5 : 0;
+        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress, judge).GetAwaiter().GetResult();
+        if (baseline is not null) Audit.Compare(results, baseline, baselineFile!.Replace('\\', '/'));
+        var failing = failOn switch
+        {
+            "any" => Audit.Findings(results),
+            "real" => Audit.Count(results, Audit.Real),
+            "new" => Audit.Count(results, Audit.Real, newOnly: true),
+            _ => 0,
+        };
+        var exit = failing > 0 ? 5 : 0;
         if (results["pages"]!.AsArray().All(p => p!["error"] is not null))
         {
             error.WriteLine($"{urls[0]} couldn't be opened: {(string)results["pages"]![0]!["error"]!}");
@@ -271,6 +303,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         Directory.CreateDirectory(target);
         if (formats.Contains("json")) File.WriteAllText(Path.Combine(target, "results.json"), results.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
         if (formats.Contains("md")) File.WriteAllText(Path.Combine(target, "report.md"), Audit.Markdown(results));
+        if (formats.Contains("tasks")) File.WriteAllText(Path.Combine(target, "tasks.md"), Audit.Tasks(results));
         output.Write(Audit.Summary(results));
         var shown = Path.GetRelativePath(workingDirectory, target).Replace('\\', '/');
         output.WriteLine($"{(formats.Contains("md") ? "Report" : "Results")}: {shown}/{(formats.Contains("md") ? "report.md" : "results.json")}");

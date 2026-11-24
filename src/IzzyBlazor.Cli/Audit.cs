@@ -26,8 +26,11 @@ static partial class Audit
         return new StreamReader(stream).ReadToEnd();
     }
 
-    /// <summary>Audits each address at each width and scheme; <paramref name="progress"/> hears of each page as it starts.</summary>
-    public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null)
+    /// <summary>
+    /// Audits each address at each width and scheme; <paramref name="progress"/> hears of each page as it starts.
+    /// With a <paramref name="judge"/>, each finding gets its verdict.
+    /// </summary>
+    public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null, Judge? judge = null)
     {
         await using var browser = await Chromium.StartAsync(browserPath);
         var product = (string?)(await browser.Send("Browser.getVersion"))["product"] ?? Path.GetFileName(browserPath);
@@ -47,11 +50,11 @@ static partial class Audit
                 foreach (var url in urls)
                 {
                     progress?.Invoke($"{url} at {width}, {scheme}");
-                    pages.Add(await Page(browser, url, width, scheme));
+                    pages.Add(await Page(browser, url, width, scheme, judge));
                 }
             }
         }
-        return new JsonObject
+        var run = new JsonObject
         {
             ["tool"] = "izzy audit",
             ["version"] = izzyVersion,
@@ -62,9 +65,11 @@ static partial class Audit
             ["schemes"] = new JsonArray([.. schemes.Select(s => (JsonNode)s)]),
             ["pages"] = pages,
         };
+        if (judge is not null) run["verdicts"] = new JsonObject { ["pack"] = judge.PackVersion, ["project"] = judge.ProjectFile };
+        return run;
     }
 
-    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme)
+    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge)
     {
         var page = new JsonObject { ["url"] = url, ["width"] = width, ["scheme"] = scheme };
         try
@@ -78,7 +83,7 @@ static partial class Audit
                 await browser.Event(e => (string?)e["method"] == "Page.lifecycleEvent" && (string?)e["params"]?["name"] == "networkIdle" && (string?)e["params"]?["loaderId"] == loader, TimeSpan.FromSeconds(20));
             await Task.Delay(400);
 
-            var found = JsonNode.Parse((string)(await browser.Evaluate(Collect))!)!.AsObject();
+            var found = JsonNode.Parse((string)(await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]")))!)!.AsObject();
             foreach (var (name, value) in found.ToList())
             {
                 found.Remove(name);
@@ -89,6 +94,7 @@ static partial class Audit
             foreach (var rule in page["violations"]!.AsArray())
                 foreach (var node in rule!["nodes"]!.AsArray())
                     node!["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{Stable((string)node["target"]!)}")))[..12];
+            judge?.Decide(page);
         }
         catch (GenerationException e)
         {
@@ -99,23 +105,43 @@ static partial class Audit
         return page;
     }
 
-    // What a page answers with, as a string: axe's violations with each element, and what it couldn't decide as counts by reason.
+    // What a page answers with, as a string: axe's violations with each element, and what it couldn't decide as counts
+    // by reason. A judge's selector tests run here, on the element itself: each element answers with the keys of
+    // those that fit. An element inside an iframe can't be reached from the page, so it fits none.
     const string Collect = """
         (async () => {
-          const r = await axe.run(document, { resultTypes: ["violations", "incomplete"] });
+          const claims = __CLAIMS__;
+          const r = await axe.run(document, { resultTypes: ["violations", "incomplete"], elementRef: claims.length > 0 });
+          const refused = new Set();
+          const fits = (claim, element, related) => {
+            try {
+              if (claim.matches && !element.matches(claim.matches)) return false;
+              if (claim.closest && !element.closest(claim.closest)) return false;
+              if (claim.has && !element.querySelector(claim.has)) return false;
+              // Inside an example, or sharing its fault with something that is (two landmarks with one name).
+              if (claim.examples && ![element].concat(related).some(e => e.closest(claim.examples))) return false;
+              return true;
+            } catch { refused.add(claim.key); return false; }
+          };
+          const answer = (rule, n) => {
+            if (!claims.length || !n.element) return undefined;
+            const related = n.any.concat(n.all, n.none).flatMap(c => c.relatedNodes || []).map(x => x.element).filter(Boolean);
+            return claims.filter(c => (c.rule === "*" || c.rule === rule) && fits(c, n.element, related)).map(c => c.key);
+          };
           const where = (target) => target.map(t => Array.isArray(t) ? t.join(" ") : t).join(" >> ");
           const navigation = performance.getEntriesByType("navigation")[0];
           return JSON.stringify({
             title: document.title,
             status: navigation && navigation.responseStatus || 0,
             frames: document.querySelectorAll("iframe").length,
-            violations: r.violations.map(v => ({
+            violations: r.violations.map(v => ({ v, nodes: v.nodes.map(n => ({ n, claims: answer(v.id, n) })) })).map(({ v, nodes }) => ({
               id: v.id, impact: v.impact, help: v.help, helpUrl: v.helpUrl, tags: v.tags.filter(t => /^(wcag|best-practice)/.test(t)),
-              nodes: v.nodes.map(n => {
+              nodes: nodes.map(({ n, claims }) => {
                 const data = n.any.concat(n.all, n.none).map(c => c.data).find(d => d && d.contrastRatio);
                 return {
                   target: where(n.target), html: n.html.length > 300 ? n.html.slice(0, 300) + "…" : n.html, summary: n.failureSummary,
                   contrast: data ? { foreground: data.fgColor, background: data.bgColor, ratio: data.contrastRatio, needs: data.expectedContrastRatio, size: data.fontSize } : undefined,
+                  claims,
                 };
               }),
             })),
@@ -124,6 +150,7 @@ static partial class Audit
               for (const n of v.nodes) { const why = (n.any.concat(n.all, n.none)[0] || {}).message || v.help; reasons[why] = (reasons[why] || 0) + 1; }
               return { id: v.id, help: v.help, count: v.nodes.length, reasons };
             }),
+            refused: refused.size ? [...refused] : undefined,
           });
         })()
         """;
@@ -190,6 +217,7 @@ static partial class Audit
     /// <summary>The report a person or an agent reads: what was checked, each finding with its element, and what wasn't checked.</summary>
     public static string Markdown(JsonObject run)
     {
+        if (run["verdicts"] is not null) return JudgedMarkdown(run);
         var pages = run["pages"]!.AsArray().Select(p => p!.AsObject()).ToList();
         var urls = pages.Select(p => (string)p["url"]!).Distinct().ToList();
         var rules = Rules(run);
@@ -208,12 +236,7 @@ static partial class Audit
         }
 
         text.Append("## What was checked\n\n| Page | Width | Scheme | Elements found |\n|---|---|---|---|\n");
-        foreach (var page in pages)
-        {
-            var count = page["violations"]!.AsArray().Sum(v => v!["nodes"]!.AsArray().Count);
-            var note = (string?)page["error"] is { } error ? $"Not checked: {Cell(error)}" : (int?)page["status"] is >= 400 and var status ? $"{count} (the page answered {status})" : $"{count}";
-            text.Append($"| {(string)page["url"]!} | {(int)page["width"]!} | {(string)page["scheme"]!} | {note} |\n");
-        }
+        foreach (var page in pages) text.Append(CheckedRow(page));
 
         if (rules.Count > 0) text.Append("\n## Findings\n");
         foreach (var rule in rules)
@@ -225,18 +248,38 @@ static partial class Audit
             var elements = rule.Pages.SelectMany(page => page["violations"]!.AsArray().Where(v => (string)v!["id"]! == rule.Id).SelectMany(v => v!["nodes"]!.AsArray()).Select(node => (Page: page, Node: node!)))
                 .GroupBy(e => $"{(string)e.Page["url"]!}|{Stable((string)e.Node["target"]!)}").ToList();
             foreach (var element in elements.Take(10))
-            {
-                var (page, node) = element.First();
-                text.Append($"\n  On `{(string)page["url"]!}` at {string.Join("; ", element.Select(e => $"{(int)e.Page["width"]!}px {(string)e.Page["scheme"]!}").Distinct())}:\n\n");
-                text.Append($"  ```html\n  {Spaces().Replace((string)node["html"]!, " ")}\n  ```\n");
-                text.Append($"  - Selector: `{(string)node["target"]!}`\n");
-                if ((string?)node["summary"] is { } summary) text.Append($"  - axe: {FixLead().Replace(Spaces().Replace(summary, " "), "")}\n");
-                if (node["contrast"] is { } contrast)
-                    text.Append($"  - Measured: {(string?)contrast["foreground"]} on {(string?)contrast["background"]}, {contrast["ratio"]}:1 at {(string?)contrast["size"]}; needs {(string?)contrast["needs"]}\n");
-            }
+                text.Append(ElementBlock(element.First().Page, element.First().Node.AsObject(), element.Select(e => $"{(int)e.Page["width"]!}px {(string)e.Page["scheme"]!}").Distinct()));
             if (elements.Count > 10) text.Append($"\n  …and {elements.Count - 10} more elements, in `results.json`.\n");
         }
 
+        text.Append(Closing(run));
+        return text.ToString();
+    }
+
+    static string CheckedRow(JsonObject page)
+    {
+        var count = page["violations"]!.AsArray().Sum(v => v!["nodes"]!.AsArray().Count);
+        var note = (string?)page["error"] is { } error ? $"Not checked: {Cell(error)}" : (int?)page["status"] is >= 400 and var status ? $"{count} (the page answered {status})" : $"{count}";
+        return $"| {(string)page["url"]!} | {(int)page["width"]!} | {(string)page["scheme"]!} | {note} |\n";
+    }
+
+    // One element: its HTML, selector, what axe says and a measured contrast.
+    static string ElementBlock(JsonObject page, JsonObject node, IEnumerable<string> where)
+    {
+        var text = new StringBuilder();
+        text.Append($"\n  On `{(string)page["url"]!}` at {string.Join("; ", where)}:\n\n");
+        text.Append($"  ```html\n  {Spaces().Replace((string)node["html"]!, " ")}\n  ```\n");
+        text.Append($"  - Selector: `{(string)node["target"]!}`\n");
+        if ((string?)node["summary"] is { } summary) text.Append($"  - axe: {FixLead().Replace(Spaces().Replace(summary, " "), "")}\n");
+        if (node["contrast"] is { } contrast)
+            text.Append($"  - Measured: {(string?)contrast["foreground"]} on {(string?)contrast["background"]}, {contrast["ratio"]}:1 at {(string?)contrast["size"]}; needs {(string?)contrast["needs"]}\n");
+        return text.ToString();
+    }
+
+    // What every report ends with: what axe couldn't decide, and what no run checks.
+    static string Closing(JsonObject run)
+    {
+        var text = new StringBuilder();
         var undecided = Undecided(run);
         if (undecided.Count > 0)
         {
@@ -265,7 +308,8 @@ static partial class Audit
         foreach (var page in pages.Where(p => (int?)p["status"] is >= 400).DistinctBy(p => (string)p["url"]!))
             text.Append($"{(string)page["url"]!} answered {(int)page["status"]!}: what was checked is its error page.\n");
         var rules = Rules(run);
-        if (rules.Count == 0) text.Append("No findings.\n");
+        if (run["verdicts"] is not null) text.Append(JudgedSummary(run));
+        else if (rules.Count == 0) text.Append("No findings.\n");
         else
         {
             var elements = rules.Sum(r => r.Elements);
@@ -358,7 +402,8 @@ static partial class Audit
     [GeneratedRegex(@"^wcag\d{3,4}$")]
     private static partial Regex SuccessCriterion();
 
-    [GeneratedRegex(@"(\bib-[a-z]+-)[a-z0-9]{6}\b")]
+    // In an id or an attribute's value (#ib-menu-1c36cl-trigger, [aria-labelledby="ib-kanban-title-e0nxa1"]), never in a class.
+    [GeneratedRegex(@"(?<![.\w-])(ib-[a-z]+(?:-[a-z]+)*?-)[a-z0-9]{6}(?![a-z0-9])")]
     private static partial Regex MadeId();
 
     [GeneratedRegex(@"\s+")]

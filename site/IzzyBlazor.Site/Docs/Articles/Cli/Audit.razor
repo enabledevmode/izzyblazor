@@ -1,6 +1,7 @@
 @page "/docs/cli/audit"
 
-@* izzy audit <url>: one page checked with axe-core in the machine's own browser; --run; the two files; --fail-on (Audit.cs, Cli.cs). *@
+@* izzy audit <url>: one page checked with axe-core in the machine's own browser; --run; the two files; --fail-on (Audit.cs, Cli.cs).
+   Pro: a verdict for each finding from the pack and .izzy/audit.json, tasks.md, --baseline (AuditVerdicts.cs). *@
 
 <ArticlePage Section="cli" Slug="audit">
     <Lead>
@@ -56,6 +57,53 @@
             the <Code>IZZY_BROWSER</Code> variable to its path.
         </TextBlock>
 
+        <Heading Level="2">Verdicts</Heading>
+        <TextBlock>
+            With IzzyBlazor Pro, each finding gets a verdict and its reason. A tool's findings are not all
+            failures: axe is wrong about some patterns, and some findings are yours to accept.
+        </TextBlock>
+        <Table Items="Verdicts" Caption="The verdict of a finding" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Verdict" Width="Length.Rem(14)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="Means">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            The report groups the findings by verdict, real ones first, and <Code>results.json</Code> has each
+            finding's verdict, reason and confidence.
+        </TextBlock>
+
+        <Heading Level="3">Accept a finding</Heading>
+        <TextBlock>
+            Your own decisions go in <Code>.izzy/audit.json</Code> in the project. An accepted finding stays in the
+            report with your reason and never fails a build. <Code>rule</Code> and <Code>reason</Code> are required.
+            <Code>selector</Code> is a CSS selector for the element or one it is inside, and <Code>pages</Code> is a
+            path, where <Code>*</Code> stands for one part and <Code>**</Code> for any number:
+        </TextBlock>
+        <Code Block Language="json" Title=".izzy/audit.json">@ProjectFile</Code>
+        <TextBlock>
+            <Code>demoPages</Code> lists pages that show a component several times, such as a style guide. Two
+            landmarks with one name are a demo page's finding there and a real one anywhere else. Add
+            <Code>examples</Code>, a selector, to count only what is inside an example.
+        </TextBlock>
+
+        <Heading Level="3">A task list</Heading>
+        <TextBlock>
+            <Code>--format md,json,tasks</Code> also writes <Code>tasks.md</Code>: a checkbox for each group of real
+            findings and each one a person must look at, for an issue or a coding agent.
+        </TextBlock>
+
+        <Heading Level="3">Fail a build on real or new findings</Heading>
+        <TextBlock>
+            <Code>--fail-on real</Code> ends with exit code 5 when a finding is real. To hold the line on a site
+            that already has findings, keep a past run's <Code>results.json</Code> and compare with it:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit / --run --baseline audit-baseline.json --fail-on new</Code>
+        <TextBlock>
+            A real finding the baseline lacks is new, and only those fail the build. The report says how many are
+            new and how many are fixed, and <Code>tasks.md</Code> checks off the fixed ones.
+        </TextBlock>
+
         <Heading Level="2">What it doesn't check</Heading>
         <TextBlock>
             izzy audits the page as it loads. It doesn't open dialogs, menus or popovers, and it doesn't check keyboard
@@ -75,15 +123,43 @@
         new("results.json", "The same results as data, for a script or a later comparison. Each finding has an id that stays the same from run to run."),
     ];
 
+    private static readonly Row[] Verdicts =
+    [
+        new("Real", "A problem for users. Fix it."),
+        new("Needs a person", "A tool can't settle it, such as text in a color set on the element itself. Look, then fix or accept it."),
+        new("Accepted", "You accepted it in .izzy/audit.json. The report prints your reason."),
+        new("Demo page", "Caused by a page that shows a component several times. A page of an app doesn't have it."),
+        new("False positive", "The rule is wrong here, such as low contrast on a part of a disabled control."),
+    ];
+
+    private const string ProjectFile = """
+        {
+          "accepted": [
+            {
+              "rule": "color-contrast",
+              "selector": ".order-footnote",
+              "pages": "/orders/**",
+              "reason": "The footnote repeats what the table says",
+              "by": "Dana",
+              "on": "2026-11-24"
+            }
+          ],
+          "demoPages": [
+            { "pages": "/styleguide/**", "examples": ".example" }
+          ]
+        }
+        """;
+
     private static readonly Row[] Options =
     [
         new("--run", "Starts the app in this project, or the one --project names, and stops it after the audit."),
         new("--sizes 1440,375", "The widths to check, in pixels."),
         new("--schemes light,dark", "The color schemes to check."),
         new("--out <folder>", "Where the files go, in place of a new folder in .izzy/audit/."),
-        new("--format md,json", "Which files to write."),
+        new("--format md,json", "Which files to write. With Pro, tasks adds tasks.md."),
         new("--json", "Prints the results as JSON and writes no files."),
-        new("--fail-on any", "Ends with exit code 5 when there are findings."),
+        new("--fail-on any", "Ends with exit code 5 when there are findings. With Pro, real counts real findings and new counts real findings the baseline lacks."),
+        new("--baseline <file>", "A past run's results.json to compare with. Pro."),
         new("--browser <path>", "The Chrome, Edge or Chromium to use."),
     ];
 }

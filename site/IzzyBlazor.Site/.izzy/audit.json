@@ -1,0 +1,24 @@
+{
+  // What izzy audit should know about this site. A component's docs page shows it several times, so
+  // two landmarks inside its examples may share a name.
+  "demoPages": [
+    { "pages": "/docs/components/**", "examples": ".ib-example-preview" }
+  ],
+  "accepted": [
+    {
+      "rule": "color-contrast",
+      "selector": "[style*=\"--ib-color-disabled\"]",
+      "pages": "/docs/**",
+      "reason": "The docs show the disabled color on text, to show what Color.Disabled looks like",
+      "by": "Israel Dryer",
+      "on": "2026-11-24"
+    },
+    {
+      "rule": "color-contrast",
+      "pages": "/docs/components/rich-text-editor/styling",
+      "reason": "The example gives the editor's headings a color of its own, to show the styling hooks",
+      "by": "Israel Dryer",
+      "on": "2026-11-24"
+    }
+  ]
+}

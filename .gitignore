@@ -56,3 +56,6 @@ artifacts/
 site/IzzyBlazor.Site/Components/Pages/Scratch/
 Claude outputs/
 src/IzzyBlazor.Core/wwwroot/site-nav.css
+
+# izzy audit writes its reports here
+.izzy/audit/
