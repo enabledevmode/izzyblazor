@@ -1895,7 +1895,7 @@
                     @foreach (var r in ranges)
                     {
                         var on = Math.Abs(r.From - f0) < 1e-3 && Math.Abs(r.To - f1) < 1e-3;
-                        <button type="button" class="ib-btn ib-btn-ghost ib-btn-sm" aria-label="@r.Name" aria-pressed="@(on ? "true" : "false")"
+                        <button type="button" class="ib-btn ib-btn-ghost ib-btn-sm" aria-label="@(r.Name == r.Text ? null : $"{r.Text}, {r.Name}")" aria-pressed="@(on ? "true" : "false")"
                                 data-ib-range="@($"{Num(r.From)} {Num(r.To)}")">@r.Text</button>
                     }
                 </div>

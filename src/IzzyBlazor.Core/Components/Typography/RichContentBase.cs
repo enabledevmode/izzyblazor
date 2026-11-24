@@ -44,6 +44,12 @@ public abstract partial class RichContentBase : Prose
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var html = Highlight(RichTextSanitizer.Sanitize(Source, labelTasks: true, TopHeading, AllowedFonts, AllowedFontSizes, AllowDataImages, AllowCustomColors));
+        // A code block scrolls sideways: it takes focus so the keyboard can scroll it, as Code's block does.
+        if (html.Contains("<pre>", StringComparison.Ordinal))
+        {
+            html = html.Replace("<pre>", $"<pre tabindex=\"0\" role=\"group\" aria-label=\"{WebUtility.HtmlEncode(TextDefaults.CodeBlock)}\">", StringComparison.Ordinal);
+        }
+
         // The editor's content classes (alignment, color, size) and task lists have a sheet of their own.
         if (html.Contains("class=\"ib-", StringComparison.Ordinal) || html.Contains("ib-size-", StringComparison.Ordinal) || html.Contains("<input", StringComparison.Ordinal))
         {

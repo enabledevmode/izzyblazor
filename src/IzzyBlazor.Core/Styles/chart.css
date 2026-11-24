@@ -860,7 +860,9 @@
   /* With script, a legend item is a button that hides and shows its series. */
   .ib-chart-toggle[role="button"] { cursor: pointer; }
 
-  .ib-chart-toggle[aria-pressed="false"] { opacity: 0.45; }
+  /* Switched off: struck through in the muted text color, which still reads (the whole item at 45% was 2.9:1); only its key fades. */
+  .ib-chart-toggle[aria-pressed="false"] { color: var(--ib-color-muted); text-decoration: line-through; }
+  .ib-chart-toggle[aria-pressed="false"] > .ib-chart-key { opacity: 0.45; }
 
   .ib-chart-toggle:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));

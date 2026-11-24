@@ -208,11 +208,12 @@
     text-align: center;
   }
 
-  /* A badge in a solid strip, such as "New": a pill of the strip's own text color. */
+  /* A badge in a solid strip, such as "New": a pill of the strip's text color with the badge's own
+     color on it (a wash of the text color over the strip left white text at 3.6:1). */
   .ib-alert-solid.ib-banner .ib-badge {
-    background-color: color-mix(in oklab, currentColor 20%, transparent);
+    background-color: var(--ib-on-accent);
     border-color: transparent;
-    color: inherit;
+    color: var(--ib-accent);
   }
 
   .ib-banner-close {
