@@ -28,14 +28,14 @@ public partial class SearchTests(SiteFixture site) : IClassFixture<SiteFixture>
         var broken = new List<string>();
         foreach (var page in site.Search.Entries.GroupBy(e => e.Href.Split('#')[0]))
         {
-            var response = await site.Client.GetAsync(page.Key);
-            if (response.StatusCode != HttpStatusCode.OK)
+            var fetched = await SiteFixture.Page(page.Key);
+            if (fetched.Status != HttpStatusCode.OK)
             {
-                broken.Add($"/{page.Key}: {(int)response.StatusCode}");
+                broken.Add($"/{page.Key}: {(int)fetched.Status}");
                 continue;
             }
 
-            var html = await response.Content.ReadAsStringAsync();
+            var html = fetched.Html;
             broken.AddRange(page.Select(e => e.Href).Where(h => h.Contains('#')).Distinct()
                 .Where(h => !Regex.IsMatch(html, $"\\sid=\"{Regex.Escape(h.Split('#')[1])}\""))
                 .Select(h => $"/{h}: no such id"));

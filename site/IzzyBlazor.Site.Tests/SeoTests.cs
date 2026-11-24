@@ -48,10 +48,10 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
         var broken = new List<string>();
         foreach (var path in paths)
         {
-            var response = await site.Client.GetAsync("/" + path);
-            if (response.StatusCode != HttpStatusCode.OK)
+            var page = await SiteFixture.Page(path);
+            if (page.Status != HttpStatusCode.OK)
             {
-                broken.Add($"/{path}: {(int)response.StatusCode}");
+                broken.Add($"/{path}: {(int)page.Status}");
             }
         }
 
@@ -62,10 +62,14 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
     public async Task Every_page_names_its_address_without_the_query_and_a_short_description()
     {
         var wrong = new List<string>();
-        foreach (var path in await SitemapPaths())
+        var paths = await SitemapPaths();
+        // Any query is a variant of the same page: one page of each kind is asked for with one (the address
+        // is written in one place, PageMeta); the rest as the other tests that walk the site get them.
+        string[] kinds = ["", "docs", "docs/components", "docs/components/button", "docs/components/button/api", "docs/get-started/create-app", "templates", "blocks", "pricing"];
+        Assert.Empty(kinds.Except(paths));
+        foreach (var path in paths)
         {
-            // Any query is a variant of the same page.
-            var html = await site.Client.GetStringAsync($"/{path}?mode=noscript&page=2");
+            var html = kinds.Contains(path) ? await site.Client.GetStringAsync($"/{path}?mode=noscript&page=2") : (await SiteFixture.Page(path)).Html;
             var canonical = Canonical().Matches(html).Select(m => m.Groups[1].Value).ToList();
             var url = $"https://izzyblazor.com/{path}";
             if (canonical.Count != 1 || canonical[0] != url)

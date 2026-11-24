@@ -47,7 +47,36 @@ public sealed class SiteFixture : IAsyncLifetime
             await _app.DisposeAsync();
         }
     }
+
+    /// <summary>
+    /// A page as a first visitor gets it (no cookie, no query), fetched once for the whole test run: the
+    /// tests that walk the site (links, the sitemap, llms.txt, search results) each ask for the same
+    /// hundreds of pages, and a page is the same whoever asks. From a site of its own that outlives any one
+    /// class, so a class that finishes doesn't end a request another is waiting on.
+    /// </summary>
+    public static Task<SitePage> Page(string path) =>
+        Pages.GetOrAdd("/" + path.TrimStart('/'), key => new Lazy<Task<SitePage>>(() => Fetch(key))).Value;
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Lazy<Task<SitePage>>> Pages = new(StringComparer.Ordinal);
+
+    private static readonly Lazy<Task<HttpClient>> Shared = new(async () =>
+    {
+        var app = SiteApp.Build([], b => b.WebHost.UseUrls("http://127.0.0.1:0"));
+        await app.StartAsync();
+        var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First();
+        return new HttpClient(new HttpClientHandler { UseCookies = false }) { BaseAddress = new Uri(address) };
+    });
+
+    private static async Task<SitePage> Fetch(string path)
+    {
+        using var response = await (await Shared.Value).GetAsync(path);
+        var type = response.Content.Headers.ContentType?.MediaType;
+        return new SitePage(response.StatusCode, type, type == "text/html" ? await response.Content.ReadAsStringAsync() : "");
+    }
 }
+
+/// <summary>A page's answer: its status, its media type, and its HTML when it is a page.</summary>
+public sealed record SitePage(HttpStatusCode Status, string? MediaType, string Html);
 
 public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
@@ -63,19 +92,19 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         while (queue.Count > 0)
         {
             var path = queue.Dequeue();
-            var response = await site.Client.GetAsync(path);
-            if (response.StatusCode != HttpStatusCode.OK)
+            var page = await SiteFixture.Page(path);
+            if (page.Status != HttpStatusCode.OK)
             {
-                broken.Add($"{path}: {(int)response.StatusCode}");
+                broken.Add($"{path}: {(int)page.Status}");
                 continue;
             }
 
-            if (response.Content.Headers.ContentType?.MediaType != "text/html")
+            if (page.MediaType != "text/html")
             {
                 continue;
             }
 
-            var html = await response.Content.ReadAsStringAsync();
+            var html = page.Html;
             pages[path] = html;
             foreach (Match match in Href().Matches(html))
             {

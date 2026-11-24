@@ -114,10 +114,10 @@ public partial class McpTests(SiteFixture site) : IClassFixture<SiteFixture>
         var broken = new List<string>();
         foreach (var path in links.Select(l => l["https://izzyblazor.com/".Length..]).Distinct())
         {
-            var response = await site.Client.GetAsync("/" + path);
-            if (response.StatusCode != HttpStatusCode.OK)
+            var page = await SiteFixture.Page(path);
+            if (page.Status != HttpStatusCode.OK)
             {
-                broken.Add($"/{path}: {(int)response.StatusCode}");
+                broken.Add($"/{path}: {(int)page.Status}");
             }
         }
 
