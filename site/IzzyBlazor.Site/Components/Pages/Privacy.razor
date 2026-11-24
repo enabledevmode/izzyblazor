@@ -10,7 +10,7 @@
 <Section Spacing="SectionSpacing.None">
     <article class="site-legal">
         <Heading Level="1">Privacy</Heading>
-        <TextBlock Color="Color.Muted">Last updated November 22, 2026</TextBlock>
+        <TextBlock Color="Color.Muted">Last updated November 24, 2026</TextBlock>
         <TextBlock Size="TextSize.Lg">
             IzzyBlazor collects as little as it can. You can read the docs and use the components without an account,
             and this site runs no analytics and shows no ads. This page lists what we do keep and why.
@@ -35,7 +35,12 @@
         <TextBlock>
             The components and the code izzy creates never contact us. Nothing checks a license when your app builds
             or runs. izzy creates code on your own machine and contacts the account service only when you run
-            <Code>izzy login</Code> and when it renews that sign-in.
+            <Code>izzy login</Code>, when it renews that sign-in, and when you send feedback.
+        </TextBlock>
+        <TextBlock>
+            <Code>izzy feedback</Code> shows you a post and sends it only when you agree. The post holds what you
+            wrote, the command you named, izzy's version and your operating system. It goes to our public
+            discussions on GitHub without your name, your address or your account.
         </TextBlock>
 
         <Heading Level="2">An account</Heading>
@@ -48,8 +53,8 @@
             </ListItem>
             <ListItem>The names of the keys you create for build servers, and when each was last used.</ListItem>
             <ListItem>
-                A log of what happened on your account, such as sign-ins and keys created, so you and we can see what
-                was done. Entries are kept for a year.
+                A log of what happened on your account, such as sign-ins, keys created and feedback posted, so you
+                and we can see what was done. Entries are kept for a year.
             </ListItem>
         </List>
         <TextBlock>
@@ -83,7 +88,8 @@
             <ListItem>
                 Deleting your account, from its settings, removes the account, its machines and keys, and your address
                 from every list. Its log entries stay until they are a year old, without your name, your address
-                or the names of your machines and keys. Code you've created stays yours.
+                or the names of your machines and keys. Feedback you posted stays public, and nothing links it
+                to you anymore. Code you've created stays yours.
             </ListItem>
             <ListItem>Unsubscribing stops the IzzyBlazor email.</ListItem>
             <ListItem>

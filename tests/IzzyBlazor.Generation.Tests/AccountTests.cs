@@ -116,6 +116,43 @@ public sealed class AccountTests : IDisposable
         Assert.True(pages.Exit == 0, pages.Error);
     }
 
+    [Fact]
+    public void Izzy_feedback_shows_the_post_and_sends_it_on_a_yes()
+    {
+        using var bundle = new MemoryStream();
+        using (var zip = new ZipArchive(bundle, ZipArchiveMode.Create, leaveOpen: true)) zip.CreateEntry("starter/item.json");
+        var service = new Service(_signing, bundle.ToArray()) { Preview = true };
+        (int Exit, string Out, string Error) Izzy(string typed, params string[] args)
+        {
+            var (output, error) = (new StringWriter(), new StringWriter());
+            var session = new AccountSession(_home, new Uri("https://account.test/"), PublicKeys, "9.9.9", handler: service, clock: () => Now, open: _ => { }, wait: _ => { });
+            var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _home, output, error, account: session, input: new StringReader(typed)).Run(args);
+            return (exit, output.ToString(), error.ToString());
+        }
+
+        Assert.Equal(4, Izzy("", "feedback").Exit);
+        Assert.Equal(0, Izzy("", "login").Exit);
+
+        // Asked what happened and which command, shown the post, and nothing goes on a no.
+        var declined = Izzy("The task list repeats a finding\nfor each width.\n\nizzy audit --format tasks\nn\n", "feedback");
+        Assert.Equal(0, declined.Exit);
+        Assert.Contains("  The task list repeats a finding\n  for each width.\n\n  Command: izzy audit --format tasks\n  izzy 9.9.9 on ", declined.Out);
+        Assert.Empty(service.Feedback);
+
+        var posted = Izzy("The task list repeats a finding\nfor each width.\n\nizzy audit --format tasks\ny\n", "feedback");
+        Assert.Equal(0, posted.Exit);
+        Assert.EndsWith("Posted: https://github.test/discussions/1", posted.Out.TrimEnd());
+        var sent = Assert.Single(service.Feedback);
+        Assert.Equal("The task list repeats a finding\nfor each width.", (string?)sent["text"]);
+        Assert.Equal("izzy audit --format tasks", (string?)sent["about"]);
+
+        // A secret is caught on this machine, before the question.
+        var secret = Izzy("", "feedback", "The audit stopped with password=s3cr3t!value in my settings", "--yes");
+        Assert.Equal(1, secret.Exit);
+        Assert.Contains("the post is public", secret.Error);
+        Assert.Single(service.Feedback);
+    }
+
     public void Dispose()
     {
         _signing.Dispose();
@@ -151,9 +188,19 @@ public sealed class AccountTests : IDisposable
                     Headers = { { "X-Izzy-Signature", AccountBundle.Sign(bundle, signing, "k1") } },
                 },
                 "/v1/logout" => new HttpResponseMessage(HttpStatusCode.NoContent),
+                "/v1/feedback" => Posted(request),
                 _ => new HttpResponseMessage(HttpStatusCode.NotFound),
             };
             return Task.FromResult(response);
+        }
+
+        /// <summary>What izzy feedback posted.</summary>
+        public List<JsonNode> Feedback { get; } = [];
+
+        HttpResponseMessage Posted(HttpRequestMessage request)
+        {
+            Feedback.Add(JsonNode.Parse(request.Content!.ReadAsStringAsync().GetAwaiter().GetResult())!);
+            return Json(HttpStatusCode.OK, new JsonObject { ["url"] = "https://github.test/discussions/1" });
         }
 
         static HttpResponseMessage Json(HttpStatusCode status, JsonObject body) => new(status) { Content = JsonContent.Create(body) };

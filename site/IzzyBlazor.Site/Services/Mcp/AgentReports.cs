@@ -406,29 +406,7 @@ public static partial class AgentReportRules
     ];
 
     /// <summary>What in the text looks like a secret or a real person's address, or null.</summary>
-    internal static string? LooksPrivate(string text)
-    {
-        if (PrivateKey().IsMatch(text) || AwsKey().IsMatch(text) || GitHubToken().IsMatch(text) || Jwt().IsMatch(text))
-        {
-            return "what looks like a key or token";
-        }
-
-        if (Assigned().IsMatch(text) || ConnectionPassword().IsMatch(text))
-        {
-            return "what looks like a password or secret";
-        }
-
-        foreach (Match email in Email().Matches(text))
-        {
-            var domain = email.Groups["domain"].Value.ToLowerInvariant();
-            if (!(domain is "example.com" or "example.org" or "example.net" || domain.EndsWith(".example", StringComparison.Ordinal) || domain.EndsWith(".test", StringComparison.Ordinal)))
-            {
-                return "what looks like a real email address";
-            }
-        }
-
-        return null;
-    }
+    internal static string? LooksPrivate(string text) => IzzyBlazor.Generation.PrivateText.Find(text);
 
     // Longer than any backtick run inside, so a repro holding ``` stays one block.
     private static string Fence(string code, string language)
@@ -442,29 +420,6 @@ public static partial class AgentReportRules
         var fence = new string('`', longest + 1);
         return $"{fence}{language}\n{code}\n{fence}";
     }
-
-    [GeneratedRegex(@"-----BEGIN [A-Z ]*PRIVATE KEY-----")]
-    private static partial Regex PrivateKey();
-
-    [GeneratedRegex(@"\b(AKIA|ASIA)[0-9A-Z]{16}\b")]
-    private static partial Regex AwsKey();
-
-    [GeneratedRegex(@"\b(gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,})\b")]
-    private static partial Regex GitHubToken();
-
-    [GeneratedRegex(@"\beyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]{10,}")]
-    private static partial Regex Jwt();
-
-    // A value set in quotes, or a bare one that isn't code: not a Razor expression (Password="@model.Password")
-    // or a property read (password = model.Password;), which a repro of a login form is full of.
-    [GeneratedRegex(@"(?i)\b(api[_-]?key|secret|client[_-]?secret|password|passwd|pwd|access[_-]?token)\b\s*[""']?\s*[:=]\s*(?:[""'](?!@)|(?!@)(?![A-Za-z_][\w.]*(?=[\s""';,)\]}>/]|$)))[^\s""';,]{8,}")]
-    private static partial Regex Assigned();
-
-    [GeneratedRegex(@"(?i)(server|data source|host)\s*=.*;\s*(password|pwd)\s*=\s*[^;\s]+")]
-    private static partial Regex ConnectionPassword();
-
-    [GeneratedRegex(@"\b[\w.+-]+@(?<domain>[\w-]+(\.[\w-]+)+)\b")]
-    private static partial Regex Email();
 
     [GeneratedRegex("`+")]
     private static partial Regex Backticks();

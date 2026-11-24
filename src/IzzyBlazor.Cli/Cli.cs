@@ -44,6 +44,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy login [--no-browser]
           izzy logout
           izzy account [--json]
+          izzy feedback ["<what happened>"] [--about "<command>"] [--yes] [--json]
 
         izzy add component puts a component's usage example from the docs on a page: its markup at the line,
         its @using lines at the top and its @code members in the page's @code. --example takes another of its
@@ -71,6 +72,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         izzy login signs this machine in to your free IzzyBlazor account, which the app starters, the blocks
         and the kits come with. After that they are created on this machine, online or not. In CI, set IZZY_KEY
         to a key from your account page instead.
+        izzy feedback tells us what works and what doesn't (IzzyBlazor Pro and its preview). It asks what
+        happened, shows the post and asks before sending it to IzzyBlazor's public discussions on GitHub,
+        without your name or email. For anything private, write to support@izzyblazor.com.
         """;
 
     static readonly JsonSerializerOptions Json = new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
@@ -113,7 +117,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "login" => Login(args),
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account [--json]", "json").Status(output, args.Switch("json")),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, audit, agent, mcp, login, logout, account."),
+                "feedback" => Feedback(args),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, audit, agent, mcp, login, logout, account, feedback."),
             };
         }
         catch (ProRequiredException e)
@@ -316,6 +321,72 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     {
         var session = Account(args, "izzy login [--no-browser]", "no-browser");
         return session.Login(output, error, browser: !args.Switch("no-browser"));
+    }
+
+    // izzy feedback "The task list repeats a finding" --about "izzy audit --format tasks": a post in the
+    // Pro preview feedback discussions. Without the words it asks for them; either way it shows the post
+    // and sends it on a yes. An editor gives the words, its own name and --yes, having asked itself.
+    int Feedback(Args args)
+    {
+        const string usage = "izzy feedback [\"<what happened>\"] [--about \"<command>\"] [--yes] [--json]";
+        if (args.Words.Count > 2) throw new UsageException($"Put what happened in quotes. Usage: {usage}");
+        var (about, from, yes, json) = (args.Take("about"), args.Take("from"), args.Switch("yes"), args.Switch("json"));
+        if (args.Options.FirstOrDefault() is { Name: { } unknown }) throw new UsageException($"Unknown option --{unknown}. Usage: {usage}");
+        var text = args.Words.Count == 2 ? args.Words[1] : null;
+        if (json && (text is null || !yes)) throw new UsageException("--json takes what happened as a word and --yes: izzy feedback \"<what happened>\" --yes --json.");
+        var session = account ?? throw new UsageException("This izzy has no account service.");
+        if (session.NoFeedback() is var (refused, why))
+        {
+            error.WriteLine(why);
+            return refused;
+        }
+
+        var reader = input ?? Console.In;
+        if (text is null)
+        {
+            output.WriteLine("What happened? Write as much as you need, then end with an empty line.");
+            var lines = new List<string>();
+            while (reader.ReadLine() is { } line && (line.Trim().Length > 0 || lines.Count == 0)) lines.Add(line);
+            text = string.Join('\n', lines);
+            if (about is null)
+            {
+                output.WriteLine("Which izzy command was it about? Press Enter to skip.");
+                about = reader.ReadLine();
+            }
+        }
+        text = text.Trim();
+        about = string.IsNullOrWhiteSpace(about) ? null : about.Trim();
+        if (FeedbackText.Problem(text, about) is { } problem)
+        {
+            error.WriteLine(problem);
+            return 1;
+        }
+
+        if (!yes)
+        {
+            output.WriteLine("This goes to IzzyBlazor's public discussions on GitHub, without your name, email or account:");
+            // As written: the words are the person's, not a command of izzy's to show as this app runs it.
+            _data.Write($"\n{string.Join('\n', text.Split('\n').Select(line => "  " + line.TrimEnd()))}\n\n{(about is null ? "" : $"  Command: {about}\n")}  izzy {session.Where}\n\n");
+            output.WriteLine("For anything private, write to support@izzyblazor.com instead.");
+            output.Write("Post it? [y/N] ");
+            var answer = reader.ReadLine();
+            if (answer?.Trim().ToLowerInvariant() is not ("y" or "yes"))
+            {
+                // Nobody there to ask (a script, an agent): it says how to post without the question.
+                output.WriteLine(answer is null ? "\nNot posted. To post without being asked, add --yes." : "Not posted.");
+                return answer is null ? 1 : 0;
+            }
+        }
+
+        var (exit, message) = session.SendFeedback(text, about, from);
+        if (exit != 0)
+        {
+            error.WriteLine(message);
+            return exit;
+        }
+        if (json) Print(new JsonObject { ["url"] = message });
+        else output.WriteLine($"Posted: {message}");
+        return 0;
     }
 
     AccountSession Account(Args args, string usage, string? allowed = null)

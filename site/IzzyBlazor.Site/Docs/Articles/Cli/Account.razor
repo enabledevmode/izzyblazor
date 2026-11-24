@@ -1,6 +1,6 @@
 @page "/docs/cli/account"
 
-@* izzy login, logout and account, and IZZY_KEY (src/IzzyBlazor.Cli/AccountSession.cs; the account service is
+@* izzy login, logout, account and feedback, and IZZY_KEY (src/IzzyBlazor.Cli/AccountSession.cs; the account service is
    the private izzyblazor-account repo). What the CLI sends is a promise the Privacy page repeats: keep the
    three in step. *@
 
@@ -40,7 +40,7 @@
         <TextBlock>
             izzy creates your code on your machine. It never sends your code, your app's name or which templates you
             used. When it signs in or renews, it sends your machine's name, its operating system (macOS, Windows or Linux) and izzy's version, which your account page
-            lists so you can sign a machine out.
+            lists so you can sign a machine out. <Code>izzy feedback</Code> sends what you write, after you agree.
         </TextBlock>
 
         <Heading Level="2">Check or end the sign-in</Heading>
@@ -54,6 +54,26 @@
             To sign out a machine you no longer have, use your account page. Code you already created stays yours.
             See the <Anchor Href="docs/cli/license">License</Anchor>.
         </TextBlock>
+
+        <Heading Level="2">Send feedback</Heading>
+        <TextBlock>
+            With IzzyBlazor Pro or its preview, tell us what works and what doesn't from the terminal:
+        </TextBlock>
+        <Code Block Language="bash">izzy feedback</Code>
+        <TextBlock>
+            izzy asks what happened and which command it was about. It shows the post and asks before sending it.
+            The post goes to the
+            <Anchor Href="https://github.com/enabledevmode/izzyblazor/discussions/categories/pro-preview-feedback">Pro preview feedback</Anchor>
+            discussions on GitHub, which anyone can read. It holds your words, the command, izzy's version and your
+            operating system, and never your name, your email address or your account. izzy prints the post's
+            address so you can follow the answer.
+        </TextBlock>
+        <TextBlock>
+            izzy refuses a post that holds a password, a key or a real email address. For anything private, write
+            to <Anchor Href="mailto:support@izzyblazor.com">support@izzyblazor.com</Anchor>.
+        </TextBlock>
+        <TextBlock>To send it in one line, give the words and add <Code>--yes</Code>:</TextBlock>
+        <Code Block Language="bash">@OneLine</Code>
 
         <Heading Level="2">Build servers</Heading>
         <TextBlock>
@@ -82,6 +102,10 @@
         new("izzy account", "Shows whether this machine is signed in, your plan, and when the sign-in renews."),
         new("izzy logout", "Signs this machine out and removes the account's templates from it."),
     ];
+
+    private const string OneLine = """
+        izzy feedback "The task list repeats a finding for each width." --about "izzy audit --format tasks" --yes
+        """;
 
     private const string Workflow = """
         - run: izzy add block hero

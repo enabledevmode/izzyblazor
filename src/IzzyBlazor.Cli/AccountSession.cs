@@ -11,7 +11,8 @@ namespace IzzyBlazor.Cli;
 /// This machine's IzzyBlazor account: the signed key from <c>izzy login</c> and the account's copy of the
 /// catalog for this version of izzy, both under <paramref name="home"/> (<c>~/.izzy</c>). The key is checked
 /// here, with no network. The account service is called only to sign in, to renew a key over a day old, to
-/// download the catalog after an update, and to sign out; nothing about what is generated is ever sent.
+/// download the catalog after an update, to sign out, and to post what <c>izzy feedback</c> was told to;
+/// nothing about what is generated is ever sent.
 /// </summary>
 /// <param name="home">The folder: <c>key</c> and <c>catalog/&lt;version&gt;/</c>.</param>
 /// <param name="service">The account service's address.</param>
@@ -67,7 +68,7 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     public bool Preview => !CiKey && ReadKey(out _) is { Tier: ItemTier.Pro, Preview: true };
 
     /// <summary>What a Pro command says once when Pro is a preview.</summary>
-    public const string PreviewNote = "Pro preview: free until Pro goes on sale. Tell us what works and what doesn't: support@izzyblazor.com.";
+    public const string PreviewNote = "Pro preview: free until Pro goes on sale. Tell us what works and what doesn't: izzy feedback.";
 
     // IZZY_KEY holds a key made on the account page: only the service can say whether it's a live one, but a
     // value that isn't one at all is known here, and unlocks nothing.
@@ -239,12 +240,65 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
         }
         output.WriteLine($"Signed in. Plan: {(key.Tier != ItemTier.Pro ? "Free" : key.Preview ? "Pro preview" : "Pro")}.");
         if (key is { Tier: ItemTier.Pro, Preview: true })
-            output.WriteLine("You reserved the founding price, so Pro is yours to use until it goes on sale. Tell us what works and what doesn't: support@izzyblazor.com.");
+            output.WriteLine("You reserved the founding price, so Pro is yours to use until it goes on sale. Tell us what works and what doesn't: izzy feedback.");
         output.WriteLine(state == AccountKeyState.Expired
             ? "The sign-in needs renewing. izzy renews it the next time this machine is online."
             : $"The sign-in renews by itself, by {key.Expires.ToLocalTime():MMMM d, yyyy} at the latest.");
         output.WriteLine($"Manage the account at {new Uri(service, "/").AbsoluteUri.TrimEnd('/')}.");
         return 0;
+    }
+
+    /// <summary>This izzy and the machine's system, as a post says them: "0.1.0 on macOS".</summary>
+    public string Where => $"{version} on {Os}";
+
+    /// <summary>
+    /// Why this machine can't send feedback, with the exit code, before anyone is asked to write it; null
+    /// when it can. A sign-in that doesn't say Pro is renewed first: the reservation may be newer than the key.
+    /// </summary>
+    public (int Exit, string Message)? NoFeedback()
+    {
+        if (ReadKey(out _) is not { } key)
+            return (4, ciKey is null ? "izzy feedback needs your IzzyBlazor account on this machine. Run izzy login."
+                : "izzy feedback needs a sign-in on this machine, not the key in IZZY_KEY. Run izzy login.");
+        if (key.Tier != ItemTier.Pro && Renew(File.ReadAllText(KeyPath).Trim()) is var renewed && ReadKey(out _)?.Tier != ItemTier.Pro)
+            return renewed == "" ? (4, "This machine was signed out of its IzzyBlazor account. Run izzy login.") : (3, NotProFeedback);
+        return null;
+    }
+
+    const string NotProFeedback = "izzy feedback comes with IzzyBlazor Pro and its preview. Anyone can write at https://github.com/enabledevmode/izzyblazor/discussions.";
+
+    /// <summary>
+    /// izzy feedback: posts what the person wrote. Exit code 0 with the post's address, or the code and what
+    /// to tell them.
+    /// </summary>
+    public (int Exit, string Message) SendFeedback(string text, string? about, string? from)
+    {
+        if (!File.Exists(KeyPath)) return (4, "izzy feedback needs your IzzyBlazor account on this machine. Run izzy login.");
+        const string later = "Nothing was posted. Try again later, or write to support@izzyblazor.com.";
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "v1/feedback")
+            {
+                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", File.ReadAllText(KeyPath).Trim()) },
+                Content = JsonContent.Create(new JsonObject { ["text"] = text, ["about"] = about, ["version"] = version, ["os"] = Os, ["from"] = from }),
+            };
+            using var response = _http.SendAsync(request).GetAwaiter().GetResult();
+            var body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var answer = body.Length > 0 && response.Content.Headers.ContentType?.MediaType == "application/json" ? JsonNode.Parse(body) : null;
+            if (response.IsSuccessStatusCode && (string?)answer?["url"] is { } url) return (0, url);
+            return response.StatusCode switch
+            {
+                HttpStatusCode.Unauthorized => (4, "The account service didn't accept this machine's sign-in. Run izzy login."),
+                HttpStatusCode.Forbidden => (3, NotProFeedback),
+                // An izzy from before the service took feedback, or a service from before it.
+                HttpStatusCode.NotFound => (1, $"{service.Host} doesn't take feedback from izzy yet. Write to support@izzyblazor.com."),
+                _ => (1, (string?)answer?["message"] ?? $"{service.Host} couldn't take the feedback. {later}"),
+            };
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException)
+        {
+            return (1, $"{service.Host} can't be reached. {later}");
+        }
     }
 
     AccountKey? ReadKey(out AccountKeyState state)
