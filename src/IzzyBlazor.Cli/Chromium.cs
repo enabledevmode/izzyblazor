@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using System.Threading.Channels;
 using IzzyBlazor.Generation;
 
@@ -14,7 +13,7 @@ namespace IzzyBlazor.Cli;
 /// izzy starts it with a profile of its own, talks to its one page over a WebSocket and ends it. Nothing is
 /// downloaded, and the person's own browser profile is never opened.
 /// </summary>
-sealed partial class Chromium : IAsyncDisposable
+sealed class Chromium : IAsyncDisposable
 {
     readonly Process _process;
     readonly string _profile;
@@ -71,18 +70,28 @@ sealed partial class Chromium : IAsyncDisposable
         AppDomain.CurrentDomain.ProcessExit += browser.Kill;
         try
         {
-            // The browser says where it listens on its error stream: "DevTools listening on ws://127.0.0.1:PORT/…".
-            var port = 0;
+            // The browser writes where it listens in its profile: DevToolsActivePort, the port on its first line.
+            // A busy machine (a build server) can take most of a minute to get there.
             var said = new StringBuilder();
-            using var patience = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            _ = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
-            while (port == 0 && await process.StandardError.ReadLineAsync(patience.Token) is { } line)
+            process.OutputDataReceived += (_, _) => { };
+            process.ErrorDataReceived += (_, e) => { lock (said) said.AppendLine(e.Data); };
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            var port = 0;
+            var file = Path.Combine(profile, "DevToolsActivePort");
+            var patience = System.Diagnostics.Stopwatch.StartNew();
+            while (port == 0 && patience.Elapsed < TimeSpan.FromSeconds(90) && !process.HasExited)
             {
-                said.AppendLine(line);
-                if (Listening().Match(line) is { Success: true } m) port = int.Parse(m.Groups[1].Value);
+                try { if (File.Exists(file) && int.TryParse(File.ReadLines(file).FirstOrDefault(), out var written) && written > 0) port = written; }
+                catch (IOException) { }
+                if (port == 0) await Task.Delay(100);
             }
-            if (port == 0) throw new GenerationException($"{path} started and didn't open for izzy:\n{said.ToString().Trim()}");
-            _ = process.StandardError.ReadToEndAsync(CancellationToken.None);
+            if (port == 0)
+            {
+                string errors;
+                lock (said) errors = said.ToString().Trim();
+                throw new GenerationException($"{path} {(process.HasExited ? "closed as soon as it started" : "started and didn't open for izzy in 90 seconds")}{(errors.Length > 0 ? $":\n{errors}" : ".")}");
+            }
 
             using var http = new HttpClient();
             var targets = JsonNode.Parse(await http.GetStringAsync($"http://127.0.0.1:{port}/json/list"))!.AsArray();
@@ -195,7 +204,4 @@ sealed partial class Chromium : IAsyncDisposable
         _process.Dispose();
         try { Directory.Delete(_profile, recursive: true); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
     }
-
-    [GeneratedRegex(@"DevTools listening on ws://[^:]+:(\d+)/")]
-    private static partial Regex Listening();
 }

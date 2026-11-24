@@ -17,6 +17,8 @@ public sealed class BrowserFactAttribute : FactAttribute
 }
 
 /// <summary>izzy audit: a page with a failure is reported with its rule and element, as a report and as data.</summary>
+// With the tests that build apps, one at a time: a browser started while four builds run can take a minute.
+[Collection(ProjectBuild.Collection)]
 public sealed class AuditTests : IDisposable
 {
     readonly string _work = Directory.CreateTempSubdirectory("izzy-audit-").FullName;
