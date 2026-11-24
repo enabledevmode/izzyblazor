@@ -277,6 +277,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## axe-core (Deque Systems)
+
+The izzy CLI (IzzyBlazor.Cli) includes axe-core 4.14.1 (https://github.com/dequelabs/axe-core), unmodified,
+which `izzy audit` runs in the browser to check a page. It is licensed under the Mozilla Public License 2.0
+(https://www.mozilla.org/MPL/2.0/); its source is at the address above.
+
+```
+Copyright (c) 2015 - 2026 Deque Systems, Inc.
+
+Your use of this Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+```
+
 ## Test data (not shipped)
 
 The repository's Markdown tests (`tests/IzzyBlazor.Tests/Markdown`) use the examples from the

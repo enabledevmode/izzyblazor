@@ -13,6 +13,7 @@ izzy add crud Product
 - `izzy init` sets up IzzyBlazor in an app you have: a Blazor Web App, or an MVC or Razor Pages app, which gets a Blazor root beside its pages. It builds the app afterwards and says how to fix a name clash.
 - `izzy list` shows the catalog; `izzy describe block hero` lists an item's settings.
 - `izzy login` signs this machine in to a free IzzyBlazor account, which the app starters, the blocks and the CRM kit come with. In CI, set `IZZY_KEY` to a key from your account page.
+- `izzy audit <url>` checks a page's accessibility with axe-core in the Chrome or Edge on your machine, and writes a report and the results as JSON. `--run` starts your app for it.
 - `izzy agent` sets up your coding agent in the app. It writes a skill that teaches the agent to build with IzzyBlazor, and connects the docs server and `izzy mcp`, which runs izzy's commands as tools.
 - `--dry-run` writes nothing, `--diff` shows the changes as a unified diff, and `--json` prints them as data for editors and agents.
 - Files that exist with other content are never replaced without `--overwrite`.

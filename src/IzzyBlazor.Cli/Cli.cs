@@ -10,7 +10,7 @@ namespace IzzyBlazor.Cli;
 
 /// <summary>
 /// The izzy commands. Exit codes: 0 done, 1 an error, 2 files exist with other content (nothing written), 3 a Pro
-/// item or choice, 4 an item that comes with a free account.
+/// item or choice, 4 an item that comes with a free account, 5 an audit with findings under <c>--fail-on</c>.
 /// </summary>
 /// <param name="catalogRoot">The free catalog folder.</param>
 /// <param name="workingDirectory">Where relative paths start and the project is looked for.</param>
@@ -37,6 +37,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
+          izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json] [--fail-on any] [--browser <path>] [--json]
+          izzy audit [<path> ...] --run [--project <path>]
           izzy agent [--project <path>] [--dry-run]
           izzy mcp
           izzy login [--no-browser]
@@ -55,6 +57,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         Settings are the item's, as izzy describe lists them (izzy describe block hero), such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
+        izzy audit checks a page's accessibility with axe-core, in the Chrome or Edge on this machine, at two
+        widths and in light and dark. It writes a report to read (report.md) and the same as data
+        (results.json) in .izzy/audit/. --run starts the app in this project for the audit and stops it after;
+        --fail-on any ends with exit code 5 when there are findings, for CI.
         izzy agent writes what a coding agent reads in your project: the IzzyBlazor skill, and the docs server
         and izzy mcp in the MCP settings of Claude Code, Copilot, Cursor and Visual Studio. izzy mcp is the
         server those settings start: izzy's commands as tools, for an agent, with a free account. izzy agent
@@ -94,13 +100,14 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "set" => Set(args),
                 "new" => New(args),
                 "init" => Init(args),
+                "audit" => AuditPages(args),
                 "agent" => Agent(args),
                 "mcp" => Mcp(args),
                 "bundle" => Bundle(args),
                 "login" => Login(args),
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account").Status(output),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, agent, mcp, login, logout, account."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, audit, agent, mcp, login, logout, account."),
             };
         }
         catch (ProRequiredException e)
@@ -191,6 +198,78 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         },
         // The private catalog on this machine (IzzyBlazor's own builds) stands for a sign-in.
         () => proRoot is not null || account is null || account.SignedIn);
+
+    // izzy audit https://localhost:5001/orders: the page in a browser on this machine, checked with axe-core.
+    int AuditPages(Args args)
+    {
+        const string usage = "izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json] [--fail-on any] [--browser <path>] [--json], or izzy audit [<path> ...] --run [--project <path>]";
+        var run = args.Switch("run");
+        var json = args.Switch("json");
+        var folder = args.Take("project");
+        var given = args.Take("browser");
+        var outFolder = args.Take("out");
+        var failOn = args.Take("fail-on") ?? "none";
+        var formats = (args.Take("format") ?? "md,json").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var widths = (args.Take("sizes") ?? "1440,375").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(w => int.TryParse(w, out var width) && width is >= 200 and <= 7680 ? width : throw new UsageException($"--sizes takes widths in pixels, such as 1440,375: \"{w}\" isn't one.")).ToList();
+        var schemes = (args.Take("schemes") ?? "light,dark").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => s is "light" or "dark" ? s : throw new UsageException($"--schemes takes light, dark or both: \"{s}\" is neither.")).ToList();
+        NoSettings(args);
+        if (failOn is not ("any" or "none")) throw new UsageException("--fail-on takes any or none.");
+        if (formats.FirstOrDefault(f => f is not ("md" or "json")) is { } format) throw new UsageException($"--format takes md, json or both: \"{format}\" is neither.");
+        if (widths.Count == 0 || schemes.Count == 0 || formats.Length == 0) throw new UsageException($"Usage: {usage}");
+
+        var pages = args.Words.Skip(1).ToList();
+        if (!run && pages.Count == 0) throw new UsageException($"Say which page: izzy audit https://localhost:5001/, or izzy audit --run to start this project's app. Usage: {usage}");
+        if (run && pages.Count == 0) pages.Add("/");
+        if (pages.Count > 1 && Plan != ItemTier.Pro)
+        {
+            error.WriteLine($"Auditing several pages in one run comes with IzzyBlazor Pro: this run audits {pages[0]}.");
+            pages.RemoveRange(1, pages.Count - 1);
+        }
+        var browser = Chromium.Find(given) ?? throw new UsageException("izzy audit needs Chrome, Edge or Chromium, and found none on this machine. Install one, or say where one is with --browser <path>.");
+
+        // Reports go beside the project when there is one, else here.
+        string? csproj = null;
+        try { csproj = FindProject(folder); }
+        catch (UsageException) when (!run && folder is null) { }
+        var home = csproj is null ? workingDirectory : Path.GetDirectoryName(csproj)!;
+
+        void Progress(string line)
+        {
+            if (!json) error.WriteLine(line);
+        }
+        using var app = run ? Audit.App.StartAsync(csproj!, Progress).GetAwaiter().GetResult() : null;
+        var urls = pages.Select(page =>
+        {
+            if (app is not null && page.StartsWith('/')) return app.Url + page;
+            var address = page.Contains("://", StringComparison.Ordinal) ? page : "http://" + page;
+            return Uri.TryCreate(address, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" ? uri.ToString()
+                : throw new UsageException(run ? $"\"{page}\" isn't a path in the app (/orders) or an address." : $"\"{page}\" isn't an address: izzy audit https://localhost:5001/orders.");
+        }).ToList();
+
+        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress).GetAwaiter().GetResult();
+        var findings = Audit.Findings(results);
+        var exit = failOn == "any" && findings > 0 ? 5 : 0;
+        if (results["pages"]!.AsArray().All(p => p!["error"] is not null))
+        {
+            error.WriteLine($"{urls[0]} couldn't be opened: {(string)results["pages"]![0]!["error"]!}");
+            return 1;
+        }
+        if (json)
+        {
+            Print(results);
+            return exit;
+        }
+        var target = outFolder is not null ? Path.GetFullPath(outFolder, workingDirectory) : Path.Combine(home, ".izzy", "audit", DateTime.Now.ToString("yyyy-MM-dd-HHmmss"));
+        Directory.CreateDirectory(target);
+        if (formats.Contains("json")) File.WriteAllText(Path.Combine(target, "results.json"), results.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
+        if (formats.Contains("md")) File.WriteAllText(Path.Combine(target, "report.md"), Audit.Markdown(results));
+        output.Write(Audit.Summary(results));
+        var shown = Path.GetRelativePath(workingDirectory, target).Replace('\\', '/');
+        output.WriteLine($"{(formats.Contains("md") ? "Report" : "Results")}: {shown}/{(formats.Contains("md") ? "report.md" : "results.json")}");
+        return exit;
+    }
 
     int Login(Args args)
     {

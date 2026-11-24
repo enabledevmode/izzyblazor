@@ -39,6 +39,8 @@
   <ItemGroup>
     <!-- The skill izzy agent writes. -->
     <EmbeddedResource Include="Agent/SKILL.md" LogicalName="SKILL.md" />
+    <!-- izzy audit's engine: axe-core, unmodified (MPL 2.0; see THIRD-PARTY-NOTICES.md). Replace the file to update it. -->
+    <EmbeddedResource Include="Audit/axe.min.js" LogicalName="axe.min.js" />
   </ItemGroup>
 
   <ItemGroup>

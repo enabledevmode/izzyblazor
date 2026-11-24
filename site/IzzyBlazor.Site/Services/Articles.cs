@@ -38,6 +38,8 @@ public static class Articles
                 "Add a component's example to a page, and list every component's options."),
             new("crud", "CRUD pages", "Table2",
                 "A page to list, add, edit and delete a model's records, from a class in your app."),
+            new("audit", "Accessibility audit", "Accessibility",
+                "Check a page with axe-core in your own browser, and get a report and the results as data."),
             new("changes", "Previewing changes", "FileDiff",
                 "See a change first as a diff or JSON, keep the files you've changed, and read the exit codes."),
             new("license", "License", "Scale",

@@ -1,0 +1,376 @@
+using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
+using IzzyBlazor.Generation;
+
+namespace IzzyBlazor.Cli;
+
+/// <summary>
+/// izzy audit: pages opened in a browser on this machine and checked with axe-core, at each width and color
+/// scheme asked for. The result is data (<see cref="Run"/>), which the reports are written from.
+/// </summary>
+static partial class Audit
+{
+    /// <summary>The axe-core inside this izzy.</summary>
+    public static string Engine => field ??= Resource("axe.min.js");
+
+    public static string EngineVersion => field ??= EngineHeader().Match(Engine) is { Success: true } m ? m.Groups[1].Value : "unknown";
+
+    static string Resource(string name)
+    {
+        using var stream = typeof(Audit).Assembly.GetManifestResourceStream(name) ?? throw new GenerationException($"This izzy has no {name}.");
+        return new StreamReader(stream).ReadToEnd();
+    }
+
+    /// <summary>Audits each address at each width and scheme; <paramref name="progress"/> hears of each page as it starts.</summary>
+    public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null)
+    {
+        await using var browser = await Chromium.StartAsync(browserPath);
+        var product = (string?)(await browser.Send("Browser.getVersion"))["product"] ?? Path.GetFileName(browserPath);
+        await browser.Send("Page.enable");
+        await browser.Send("Runtime.enable");
+        await browser.Send("Page.setLifecycleEventsEnabled", new JsonObject { ["enabled"] = true });
+        // axe in every document, frames too, before the page's own scripts: it then checks inside iframes.
+        await browser.Send("Page.addScriptToEvaluateOnNewDocument", new JsonObject { ["source"] = Engine });
+
+        var pages = new JsonArray();
+        foreach (var width in widths)
+        {
+            await browser.Send("Emulation.setDeviceMetricsOverride", new JsonObject { ["width"] = width, ["height"] = width < 600 ? 800 : 900, ["deviceScaleFactor"] = 1, ["mobile"] = width < 600 });
+            foreach (var scheme in schemes)
+            {
+                await browser.Send("Emulation.setEmulatedMedia", new JsonObject { ["features"] = new JsonArray(new JsonObject { ["name"] = "prefers-color-scheme", ["value"] = scheme }) });
+                foreach (var url in urls)
+                {
+                    progress?.Invoke($"{url} at {width}, {scheme}");
+                    pages.Add(await Page(browser, url, width, scheme));
+                }
+            }
+        }
+        return new JsonObject
+        {
+            ["tool"] = "izzy audit",
+            ["version"] = izzyVersion,
+            ["engine"] = new JsonObject { ["name"] = "axe-core", ["version"] = EngineVersion },
+            ["browser"] = product,
+            ["at"] = DateTimeOffset.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"),
+            ["widths"] = new JsonArray([.. widths.Select(w => (JsonNode)w)]),
+            ["schemes"] = new JsonArray([.. schemes.Select(s => (JsonNode)s)]),
+            ["pages"] = pages,
+        };
+    }
+
+    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme)
+    {
+        var page = new JsonObject { ["url"] = url, ["width"] = width, ["scheme"] = scheme };
+        try
+        {
+            browser.Drain();
+            var navigation = await browser.Send("Page.navigate", new JsonObject { ["url"] = url });
+            if ((string?)navigation["errorText"] is { Length: > 0 } failed) throw new GenerationException(failed);
+            // Loaded, and the network quiet for half a second: scripts have had their turn.
+            var loader = (string?)navigation["loaderId"];
+            if (loader is not null)
+                await browser.Event(e => (string?)e["method"] == "Page.lifecycleEvent" && (string?)e["params"]?["name"] == "networkIdle" && (string?)e["params"]?["loaderId"] == loader, TimeSpan.FromSeconds(20));
+            await Task.Delay(400);
+
+            var found = JsonNode.Parse((string)(await browser.Evaluate(Collect))!)!.AsObject();
+            foreach (var (name, value) in found.ToList())
+            {
+                found.Remove(name);
+                page[name] = value;
+            }
+            // A finding's id stays the same from run to run: its rule, the page's path and the element.
+            var path = Uri.TryCreate(url, UriKind.Absolute, out var parsed) ? parsed.PathAndQuery : url;
+            foreach (var rule in page["violations"]!.AsArray())
+                foreach (var node in rule!["nodes"]!.AsArray())
+                    node!["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{Stable((string)node["target"]!)}")))[..12];
+        }
+        catch (GenerationException e)
+        {
+            page["error"] = e.Message;
+            page["violations"] = new JsonArray();
+            page["incomplete"] = new JsonArray();
+        }
+        return page;
+    }
+
+    // What a page answers with, as a string: axe's violations with each element, and what it couldn't decide as counts by reason.
+    const string Collect = """
+        (async () => {
+          const r = await axe.run(document, { resultTypes: ["violations", "incomplete"] });
+          const where = (target) => target.map(t => Array.isArray(t) ? t.join(" ") : t).join(" >> ");
+          const navigation = performance.getEntriesByType("navigation")[0];
+          return JSON.stringify({
+            title: document.title,
+            status: navigation && navigation.responseStatus || 0,
+            frames: document.querySelectorAll("iframe").length,
+            violations: r.violations.map(v => ({
+              id: v.id, impact: v.impact, help: v.help, helpUrl: v.helpUrl, tags: v.tags.filter(t => /^(wcag|best-practice)/.test(t)),
+              nodes: v.nodes.map(n => {
+                const data = n.any.concat(n.all, n.none).map(c => c.data).find(d => d && d.contrastRatio);
+                return {
+                  target: where(n.target), html: n.html.length > 300 ? n.html.slice(0, 300) + "…" : n.html, summary: n.failureSummary,
+                  contrast: data ? { foreground: data.fgColor, background: data.bgColor, ratio: data.contrastRatio, needs: data.expectedContrastRatio, size: data.fontSize } : undefined,
+                };
+              }),
+            })),
+            incomplete: r.incomplete.map(v => {
+              const reasons = {};
+              for (const n of v.nodes) { const why = (n.any.concat(n.all, n.none)[0] || {}).message || v.help; reasons[why] = (reasons[why] || 0) + 1; }
+              return { id: v.id, help: v.help, count: v.nodes.length, reasons };
+            }),
+          });
+        })()
+        """;
+
+    // An id IzzyBlazor makes for an element is new on every load (ib-banner-d7y5jo): without it, the element
+    // has one selector at every width and scheme, and from run to run.
+    static string Stable(string selector) => MadeId().Replace(selector, "$1");
+
+    /// <summary>
+    /// The findings of a run, one for each rule, worst first. An element found at several widths and schemes
+    /// counts once.
+    /// </summary>
+    public sealed record Rule(string Id, string Impact, string Help, string HelpUrl, string Criterion, int Elements, List<JsonObject> Pages);
+
+    static readonly string[] Impacts = ["critical", "serious", "moderate", "minor"];
+
+    public static List<Rule> Rules(JsonObject run)
+    {
+        var rules = new Dictionary<string, Rule>(StringComparer.Ordinal);
+        var elements = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        foreach (var page in run["pages"]!.AsArray().Select(p => p!.AsObject()))
+            foreach (var violation in page["violations"]!.AsArray())
+            {
+                var id = (string)violation!["id"]!;
+                if (!rules.TryGetValue(id, out var rule))
+                    rules[id] = rule = new Rule(id, (string?)violation["impact"] ?? "minor", (string)violation["help"]!, (string)violation["helpUrl"]!, Criterion(violation["tags"]!.AsArray().Select(t => (string)t!).ToList()), 0, []);
+                rule.Pages.Add(page);
+                if (!elements.TryGetValue(id, out var seen)) elements[id] = seen = [];
+                foreach (var node in violation["nodes"]!.AsArray()) seen.Add($"{(string)page["url"]!}|{Stable((string)node!["target"]!)}");
+            }
+        foreach (var (id, seen) in elements) rules[id] = rules[id] with { Elements = seen.Count };
+        return rules.Values.OrderBy(r => Array.IndexOf(Impacts, r.Impact) is var at and >= 0 ? at : Impacts.Length).ThenByDescending(r => r.Elements).ToList();
+    }
+
+    // "wcag143" and "wcag2aa" as "WCAG 1.4.3 (level AA)".
+    static string Criterion(List<string> tags)
+    {
+        var criteria = tags.Where(t => SuccessCriterion().IsMatch(t)).Select(t => t[4..]).Select(d => $"{d[0]}.{d[1]}.{d[2..]}").ToList();
+        if (criteria.Count == 0) return "Best practice, not a WCAG failure";
+        var level = tags.Any(t => t is "wcag2a" or "wcag21a") ? "A" : tags.Any(t => t.EndsWith("aaa", StringComparison.Ordinal)) ? "AAA" : tags.Any(t => t.EndsWith("aa", StringComparison.Ordinal)) ? "AA" : null;
+        return $"WCAG {string.Join(", ", criteria)}{(level is null ? "" : $" (level {level})")}";
+    }
+
+    /// <summary>What a run couldn't decide, as each reason with its count of elements, most first.</summary>
+    public static List<(string Reason, int Elements)> Undecided(JsonObject run)
+    {
+        // A page's count is its largest at any width and scheme: the same elements, met again.
+        var reasons = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var address in run["pages"]!.AsArray().GroupBy(p => (string)p!["url"]!))
+        {
+            var most = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var page in address)
+                foreach (var rule in page!["incomplete"]!.AsArray())
+                    foreach (var (why, count) in rule!["reasons"]!.AsObject())
+                    {
+                        var key = $"{(string)rule["id"]!}: {why}";
+                        most[key] = Math.Max(most.GetValueOrDefault(key), (int)count!);
+                    }
+            foreach (var (key, count) in most) reasons[key] = reasons.GetValueOrDefault(key) + count;
+        }
+        return reasons.OrderByDescending(r => r.Value).Select(r => (r.Key, r.Value)).ToList();
+    }
+
+    /// <summary>The report a person or an agent reads: what was checked, each finding with its element, and what wasn't checked.</summary>
+    public static string Markdown(JsonObject run)
+    {
+        var pages = run["pages"]!.AsArray().Select(p => p!.AsObject()).ToList();
+        var urls = pages.Select(p => (string)p["url"]!).Distinct().ToList();
+        var rules = Rules(run);
+        var text = new StringBuilder();
+        text.Append($"# Accessibility audit: {(urls.Count == 1 ? urls[0] : $"{urls.Count} pages")}\n\n");
+        text.Append($"Made by izzy audit {(string)run["version"]!} on {((string)run["at"]!)[..10]}, with axe-core {(string)run["engine"]!["version"]!} in {(string)run["browser"]!}. ");
+        text.Append("Each finding has its rule, the WCAG criterion, the element and where it was found. The same results as data are in `results.json`.\n\n");
+
+        text.Append("## Summary\n\n");
+        if (rules.Count == 0) text.Append("No findings.\n\n");
+        else
+        {
+            text.Append("| Severity | Rule | Elements | What it means |\n|---|---|---|---|\n");
+            foreach (var rule in rules) text.Append($"| {rule.Impact} | `{rule.Id}` | {rule.Elements} | {Cell(rule.Help)} |\n");
+            text.Append('\n');
+        }
+
+        text.Append("## What was checked\n\n| Page | Width | Scheme | Elements found |\n|---|---|---|---|\n");
+        foreach (var page in pages)
+        {
+            var count = page["violations"]!.AsArray().Sum(v => v!["nodes"]!.AsArray().Count);
+            var note = (string?)page["error"] is { } error ? $"Not checked: {Cell(error)}" : (int?)page["status"] is >= 400 and var status ? $"{count} (the page answered {status})" : $"{count}";
+            text.Append($"| {(string)page["url"]!} | {(int)page["width"]!} | {(string)page["scheme"]!} | {note} |\n");
+        }
+
+        if (rules.Count > 0) text.Append("\n## Findings\n");
+        foreach (var rule in rules)
+        {
+            text.Append($"\n### {rule.Help} (`{rule.Id}`)\n\n");
+            text.Append($"- **Criterion:** {rule.Criterion}; axe severity {rule.Impact}. [About this rule]({rule.HelpUrl})\n");
+            text.Append($"- **Found:** {rule.Elements} element{(rule.Elements == 1 ? "" : "s")}\n");
+            // One element found at several widths and schemes is shown once, with where.
+            var elements = rule.Pages.SelectMany(page => page["violations"]!.AsArray().Where(v => (string)v!["id"]! == rule.Id).SelectMany(v => v!["nodes"]!.AsArray()).Select(node => (Page: page, Node: node!)))
+                .GroupBy(e => $"{(string)e.Page["url"]!}|{Stable((string)e.Node["target"]!)}").ToList();
+            foreach (var element in elements.Take(10))
+            {
+                var (page, node) = element.First();
+                text.Append($"\n  On `{(string)page["url"]!}` at {string.Join("; ", element.Select(e => $"{(int)e.Page["width"]!}px {(string)e.Page["scheme"]!}").Distinct())}:\n\n");
+                text.Append($"  ```html\n  {Spaces().Replace((string)node["html"]!, " ")}\n  ```\n");
+                text.Append($"  - Selector: `{(string)node["target"]!}`\n");
+                if ((string?)node["summary"] is { } summary) text.Append($"  - axe: {FixLead().Replace(Spaces().Replace(summary, " "), "")}\n");
+                if (node["contrast"] is { } contrast)
+                    text.Append($"  - Measured: {(string?)contrast["foreground"]} on {(string?)contrast["background"]}, {contrast["ratio"]}:1 at {(string?)contrast["size"]}; needs {(string?)contrast["needs"]}\n");
+            }
+            if (elements.Count > 10) text.Append($"\n  …and {elements.Count - 10} more elements, in `results.json`.\n");
+        }
+
+        var undecided = Undecided(run);
+        if (undecided.Count > 0)
+        {
+            text.Append("\n## Could not be decided by the tool\n\naxe reports these as \"incomplete\": it could not measure them. They are not failures, and a person should look.\n\n| Reason | Elements |\n|---|---|\n");
+            foreach (var (reason, count) in undecided) text.Append($"| {Cell(reason)} | {count} |\n");
+        }
+
+        text.Append("\n## Not checked\n\n");
+        text.Append("- The page is checked as it loads: closed dialogs, menus and popovers are not opened.\n");
+        text.Append("- Keyboard order, focus traps and what a screen reader says.\n");
+        text.Append("- Automated checks find part of what WCAG asks, so a report with no findings is not a statement of conformance.\n");
+        return text.ToString();
+    }
+
+    static string Cell(string text) => Spaces().Replace(text, " ").Replace("|", "/");
+
+    /// <summary>What the terminal shows after a run.</summary>
+    public static string Summary(JsonObject run)
+    {
+        var pages = run["pages"]!.AsArray().Select(p => p!.AsObject()).ToList();
+        var urls = pages.Select(p => (string)p["url"]!).Distinct().ToList();
+        var text = new StringBuilder();
+        text.Append($"Audited {(urls.Count == 1 ? urls[0] : $"{urls.Count} pages")} at {string.Join(" and ", run["widths"]!.AsArray().Select(w => $"{w}px"))}, {string.Join(" and ", run["schemes"]!.AsArray().Select(s => (string)s!))}, with axe-core {(string)run["engine"]!["version"]!}.\n");
+        foreach (var page in pages.Where(p => p["error"] is not null))
+            text.Append($"Not checked: {(string)page["url"]!} at {(int)page["width"]!}px, {(string)page["scheme"]!}: {(string)page["error"]!}\n");
+        foreach (var page in pages.Where(p => (int?)p["status"] is >= 400).DistinctBy(p => (string)p["url"]!))
+            text.Append($"{(string)page["url"]!} answered {(int)page["status"]!}: what was checked is its error page.\n");
+        var rules = Rules(run);
+        if (rules.Count == 0) text.Append("No findings.\n");
+        else
+        {
+            var elements = rules.Sum(r => r.Elements);
+            text.Append($"{elements} finding{(elements == 1 ? "" : "s")} in {rules.Count} rule{(rules.Count == 1 ? "" : "s")}:\n");
+            var (impact, id) = (rules.Max(r => r.Impact.Length), rules.Max(r => r.Id.Length));
+            foreach (var rule in rules) text.Append($"  {rule.Impact.PadRight(impact)}  {rule.Id.PadRight(id)}  {rule.Elements,4}  {rule.Help}\n");
+        }
+        if (Undecided(run).Sum(u => u.Elements) is > 0 and var undecided)
+            text.Append($"{undecided} element{(undecided == 1 ? "" : "s")} axe could not decide (text over a picture or gradient, mostly): a person should look.\n");
+        return text.ToString();
+    }
+
+    /// <summary>How many elements a run found failing.</summary>
+    public static int Findings(JsonObject run) => Rules(run).Sum(r => r.Elements);
+
+    /// <summary>
+    /// The app of <paramref name="csproj"/>, started with <c>dotnet run</c> on a port of its own for the time
+    /// of an audit. <see cref="Url"/> is where it answers.
+    /// </summary>
+    public sealed class App : IDisposable
+    {
+        readonly Process _process;
+        readonly StringBuilder _said = new();
+
+        public string Url { get; }
+
+        App(Process process, string url) => (_process, Url) = (process, url);
+
+        public static async Task<App> StartAsync(string csproj, Action<string> progress)
+        {
+            int port;
+            using (var probe = new TcpListener(IPAddress.Loopback, 0))
+            {
+                probe.Start();
+                port = ((IPEndPoint)probe.LocalEndpoint).Port;
+            }
+            var url = $"http://127.0.0.1:{port}";
+            var start = new ProcessStartInfo(Dotnet()) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(csproj)! };
+            foreach (var argument in (string[])["run", "--project", csproj, "--no-launch-profile"]) start.ArgumentList.Add(argument);
+            start.Environment["ASPNETCORE_URLS"] = url;
+            start.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
+            start.Environment["DOTNET_ENVIRONMENT"] = "Development";
+            progress($"Starting {Path.GetFileNameWithoutExtension(csproj)} at {url}");
+            var process = Process.Start(start) ?? throw new GenerationException("dotnet run didn't start.");
+            var app = new App(process, url);
+            AppDomain.CurrentDomain.ProcessExit += app.Kill;
+            process.OutputDataReceived += (_, e) => { lock (app._said) app._said.AppendLine(e.Data); };
+            process.ErrorDataReceived += (_, e) => { lock (app._said) app._said.AppendLine(e.Data); };
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            // It builds first: up to five minutes for the app to answer.
+            using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(10) };
+            var patience = Stopwatch.StartNew();
+            while (patience.Elapsed < TimeSpan.FromMinutes(5))
+            {
+                if (process.HasExited) break;
+                try
+                {
+                    using var _ = await http.GetAsync(url);
+                    return app;
+                }
+                catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { await Task.Delay(500); }
+            }
+            string said;
+            lock (app._said) said = string.Join('\n', app._said.ToString().Trim().Split('\n').TakeLast(15));
+            app.Dispose();
+            throw new GenerationException($"The app didn't start, so nothing was audited. dotnet run said:\n{said}");
+        }
+
+        // The dotnet that runs izzy, when it says which; else the one on the PATH.
+        static string Dotnet()
+        {
+            if (Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") is { Length: > 0 } host && File.Exists(host)) return host;
+            if (Environment.ProcessPath is { } own && Path.GetFileNameWithoutExtension(own).Equals("dotnet", StringComparison.OrdinalIgnoreCase)) return own;
+            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is { Length: > 0 } root && Path.Combine(root, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet") is var inRoot && File.Exists(inRoot)) return inRoot;
+            return "dotnet";
+        }
+
+        void Kill(object? sender, EventArgs e)
+        {
+            try { if (!_process.HasExited) _process.Kill(entireProcessTree: true); }
+            catch (Exception x) when (x is InvalidOperationException or System.ComponentModel.Win32Exception) { }
+        }
+
+        public void Dispose()
+        {
+            AppDomain.CurrentDomain.ProcessExit -= Kill;
+            Kill(null, EventArgs.Empty);
+            _process.Dispose();
+        }
+    }
+
+    [GeneratedRegex(@"axe v(\d+\.\d+\.\d+)")]
+    private static partial Regex EngineHeader();
+
+    [GeneratedRegex(@"^wcag\d{3,4}$")]
+    private static partial Regex SuccessCriterion();
+
+    [GeneratedRegex(@"(\bib-[a-z]+-)[a-z0-9]{6}\b")]
+    private static partial Regex MadeId();
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex Spaces();
+
+    [GeneratedRegex(@"^Fix (any|all) of the following: ")]
+    private static partial Regex FixLead();
+}

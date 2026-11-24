@@ -1,0 +1,89 @@
+@page "/docs/cli/audit"
+
+@* izzy audit <url>: one page checked with axe-core in the machine's own browser; --run; the two files; --fail-on (Audit.cs, Cli.cs). *@
+
+<ArticlePage Section="cli" Slug="audit">
+    <Lead>
+        <Code>izzy audit</Code> checks a page's accessibility with axe-core, in the Chrome or Edge already on your
+        machine. It writes a report you can read and the same results as data.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Audit a page</Heading>
+        <TextBlock>Give izzy the page's address. The app can be running anywhere the browser can reach:</TextBlock>
+        <Code Block Language="bash">izzy audit https://localhost:5001/orders</Code>
+        <TextBlock>
+            To have izzy start the app in your project, audit it and stop it, add <Code>--run</Code> and give the
+            page's path. Without a path it audits the home page:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit /orders --run</Code>
+        <TextBlock>
+            izzy opens the page four times: at 1440 and 375 pixels wide, in light and in dark. Some problems show at
+            one width or in one scheme only. An element found more than once counts once.
+        </TextBlock>
+
+        <Heading Level="2">Read the results</Heading>
+        <TextBlock>
+            The terminal lists each rule that failed with its count of elements. izzy writes two files to a new
+            folder in <Code>.izzy/audit/</Code>:
+        </TextBlock>
+        <Table Items="Files" Caption="What izzy audit writes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="File" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Holds">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            axe can't measure some elements, such as text over a picture or a gradient. The report counts these
+            apart from the findings, with the reason. They are not failures: look at them yourself.
+        </TextBlock>
+
+        <Heading Level="2">Options</Heading>
+        <Table Items="Options" Caption="Options of izzy audit" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">Fail a build on findings</Heading>
+        <TextBlock>
+            With <Code>--fail-on any</Code>, izzy ends with exit code 5 when the page has a finding. On a build
+            server, start the app with <Code>--run</Code>:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit / --run --fail-on any</Code>
+        <TextBlock>
+            The build server needs Chrome, Edge or Chromium. If izzy doesn't find one, set <Code>--browser</Code> or
+            the <Code>IZZY_BROWSER</Code> variable to its path.
+        </TextBlock>
+
+        <Heading Level="2">What it doesn't check</Heading>
+        <TextBlock>
+            izzy audits the page as it loads. It doesn't open dialogs, menus or popovers, and it doesn't check keyboard
+            order or what a screen reader says. Automated checks find part of what WCAG asks, so a report with no
+            findings is not a statement of conformance.
+            <Anchor Href="docs/accessibility/testing">Testing your pages</Anchor> lists the checks to do by hand.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private static readonly Row[] Files =
+    [
+        new("report.md", "For a person or a coding agent: what was checked, then each finding with its rule, the WCAG criterion, the element, its selector and where it was found."),
+        new("results.json", "The same results as data, for a script or a later comparison. Each finding has an id that stays the same from run to run."),
+    ];
+
+    private static readonly Row[] Options =
+    [
+        new("--run", "Starts the app in this project, or the one --project names, and stops it after the audit."),
+        new("--sizes 1440,375", "The widths to check, in pixels."),
+        new("--schemes light,dark", "The color schemes to check."),
+        new("--out <folder>", "Where the files go, in place of a new folder in .izzy/audit/."),
+        new("--format md,json", "Which files to write."),
+        new("--json", "Prints the results as JSON and writes no files."),
+        new("--fail-on any", "Ends with exit code 5 when there are findings."),
+        new("--browser <path>", "The Chrome, Edge or Chromium to use."),
+    ];
+}
