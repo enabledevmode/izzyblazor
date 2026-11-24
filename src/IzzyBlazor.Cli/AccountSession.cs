@@ -61,11 +61,30 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     /// <summary>Whether this machine has a sign-in or a CI key.</summary>
     public bool SignedIn => CiKey || ReadKey(out _) is not null;
 
-    /// <summary>What this machine's sign-in reaches: nothing signed out, an account's items, or Pro's. A CI key is an account's.</summary>
-    public ItemTier Plan => CiKey ? ItemTier.Account : ReadKey(out _)?.Tier ?? ItemTier.Free;
+    /// <summary>
+    /// What this machine's sign-in reaches: nothing signed out, an account's items, or Pro's. A CI key is an
+    /// account's. A key past its date keeps the account's items, which are free, and not Pro: the key's 30
+    /// days are how long Pro goes on without the service.
+    /// </summary>
+    public ItemTier Plan => CiKey ? ItemTier.Account : ReadKey(out var state) is not { } key ? ItemTier.Free
+        : key.Tier == ItemTier.Pro && state == AccountKeyState.Expired ? ItemTier.Account : key.Tier;
 
     /// <summary>Whether Pro is here as a preview: the account reserved the founding price, and Pro isn't on sale yet.</summary>
-    public bool Preview => !CiKey && ReadKey(out _) is { Tier: ItemTier.Pro, Preview: true };
+    public bool Preview => !CiKey && Plan == ItemTier.Pro && ReadKey(out _) is { Preview: true };
+
+    /// <summary>
+    /// Asks the service once for this machine's key as the account stands now, when the key doesn't say Pro:
+    /// a reservation made since the key was signed brings Pro's copy of the catalog with it. Called before a
+    /// Pro command says it needs Pro. True when the key says Pro afterwards.
+    /// </summary>
+    public bool Upgrade(TextWriter error)
+    {
+        if (CiKey || ReadKey(out _) is null) return false;
+        if (Plan == ItemTier.Pro) return true;
+        if (Renew(File.ReadAllText(KeyPath).Trim()) is not { Length: > 0 } renewed || Plan != ItemTier.Pro) return false;
+        if (!Directory.Exists(CatalogFolder) && Download(renewed) is { } problem) error.WriteLine(problem);
+        return true;
+    }
 
     /// <summary>What a Pro command says once when Pro is a preview.</summary>
     public const string PreviewNote = "Pro preview: free until Pro goes on sale. Tell us what works and what doesn't: izzy feedback.";
@@ -257,12 +276,10 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     /// </summary>
     public (int Exit, string Message)? NoFeedback()
     {
-        if (ReadKey(out _) is not { } key)
+        if (ReadKey(out _) is null)
             return (4, ciKey is null ? "izzy feedback needs your IzzyBlazor account on this machine. Run izzy login."
                 : "izzy feedback needs a sign-in on this machine, not the key in IZZY_KEY. Run izzy login.");
-        if (key.Tier != ItemTier.Pro && Renew(File.ReadAllText(KeyPath).Trim()) is var renewed && ReadKey(out _)?.Tier != ItemTier.Pro)
-            return renewed == "" ? (4, "This machine was signed out of its IzzyBlazor account. Run izzy login.") : (3, NotProFeedback);
-        return null;
+        return Upgrade(TextWriter.Null) ? null : (3, NotProFeedback);
     }
 
     const string NotProFeedback = "izzy feedback comes with IzzyBlazor Pro and its preview. Anyone can write at https://github.com/enabledevmode/izzyblazor/discussions.";

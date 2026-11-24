@@ -39,6 +39,10 @@ static partial class Audit
         await browser.Send("Page.setLifecycleEventsEnabled", new JsonObject { ["enabled"] = true });
         // axe in every document, frames too, before the page's own scripts: it then checks inside iframes.
         await browser.Send("Page.addScriptToEvaluateOnNewDocument", new JsonObject { ["source"] = Engine });
+        // The app's selectors are read once, before any page: a wrong one stops the run, where it would
+        // otherwise only show on a page that has a finding of its rule.
+        if (judge is not null)
+            judge.Refuse(JsonNode.Parse((string)(await browser.Evaluate(Selectors.Replace("__CLAIMS__", judge.Claims())))!)!.AsArray().Select(k => (string)k!));
 
         var pages = new JsonArray();
         foreach (var width in widths)
@@ -60,7 +64,7 @@ static partial class Audit
             ["version"] = izzyVersion,
             ["engine"] = new JsonObject { ["name"] = "axe-core", ["version"] = EngineVersion },
             ["browser"] = product,
-            ["at"] = DateTimeOffset.Now.ToString("yyyy-MM-ddTHH:mm:sszzz"),
+            ["at"] = DateTimeOffset.Now.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture),
             ["widths"] = new JsonArray([.. widths.Select(w => (JsonNode)w)]),
             ["schemes"] = new JsonArray([.. schemes.Select(s => (JsonNode)s)]),
             ["pages"] = pages,
@@ -83,17 +87,38 @@ static partial class Audit
                 await browser.Event(e => (string?)e["method"] == "Page.lifecycleEvent" && (string?)e["params"]?["name"] == "networkIdle" && (string?)e["params"]?["loaderId"] == loader, TimeSpan.FromSeconds(20));
             await Task.Delay(400);
 
-            var found = JsonNode.Parse((string)(await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]")))!)!.AsObject();
-            foreach (var (name, value) in found.ToList())
+            var answer = await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]"));
+            try
             {
-                found.Remove(name);
-                page[name] = value;
+                var found = JsonNode.Parse((string)answer!)!.AsObject();
+                foreach (var (name, value) in found.ToList())
+                {
+                    found.Remove(name);
+                    page[name] = value;
+                }
+                // Somewhere else than asked (a sign-in page in front of it): the report says which page it is.
+                if ((string?)page["landed"] is { } landed && Uri.TryCreate(landed, UriKind.Absolute, out var there) && Uri.TryCreate(url, UriKind.Absolute, out var asked)
+                    && string.Equals(there.AbsolutePath.TrimEnd('/'), asked.AbsolutePath.TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
+                    page.Remove("landed");
+                // A finding's id stays the same from run to run: its rule, the page's path and the element. Two of
+                // one component have one selector once their made ids are out of it, so the second is the second.
+                var path = Uri.TryCreate(url, UriKind.Absolute, out var parsed) ? parsed.PathAndQuery : url;
+                foreach (var rule in page["violations"]!.AsArray())
+                {
+                    var met = new Dictionary<string, int>(StringComparer.Ordinal);
+                    foreach (var node in rule!["nodes"]!.AsArray())
+                    {
+                        var element = Stable((string)node!["target"]!);
+                        var nth = met[element] = met.GetValueOrDefault(element) + 1;
+                        node["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{element}{(nth > 1 ? $"|{nth}" : "")}")))[..12];
+                    }
+                }
             }
-            // A finding's id stays the same from run to run: its rule, the page's path and the element.
-            var path = Uri.TryCreate(url, UriKind.Absolute, out var parsed) ? parsed.PathAndQuery : url;
-            foreach (var rule in page["violations"]!.AsArray())
-                foreach (var node in rule!["nodes"]!.AsArray())
-                    node!["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{Stable((string)node["target"]!)}")))[..12];
+            catch (Exception e) when (e is InvalidOperationException or NullReferenceException or System.Text.Json.JsonException or InvalidCastException)
+            {
+                // The page's own script stands where axe's does, or changed what it answers.
+                throw new GenerationException("The page answered the audit with something izzy can't read.");
+            }
             judge?.Decide(page);
         }
         catch (GenerationException e)
@@ -108,6 +133,14 @@ static partial class Audit
     // What a page answers with, as a string: axe's violations with each element, and what it couldn't decide as counts
     // by reason. A judge's selector tests run here, on the element itself: each element answers with the keys of
     // those that fit. An element inside an iframe can't be reached from the page, so it fits none.
+    // The keys of the claims whose selectors the browser can't read.
+    const string Selectors = """
+        JSON.stringify(__CLAIMS__.filter(c => [c.matches, c.closest, c.has, c.examples].some(s => {
+          if (!s) return false;
+          try { document.querySelector(s); return false; } catch { return true; }
+        })).map(c => c.key))
+        """;
+
     const string Collect = """
         (async () => {
           const claims = __CLAIMS__;
@@ -128,11 +161,14 @@ static partial class Audit
             const related = n.any.concat(n.all, n.none).flatMap(c => c.relatedNodes || []).map(x => x.element).filter(Boolean);
             return claims.filter(c => (c.rule === "*" || c.rule === rule) && fits(c, n.element, related)).map(c => c.key);
           };
+          // Text cut in the middle of a character (an emoji at the 300th place) can't be written as JSON.
+          const whole = (text) => text.toWellFormed ? text.toWellFormed() : text;
           const where = (target) => target.map(t => Array.isArray(t) ? t.join(" ") : t).join(" >> ");
           const navigation = performance.getEntriesByType("navigation")[0];
           return JSON.stringify({
             title: document.title,
             status: navigation && navigation.responseStatus || 0,
+            landed: location.href,
             frames: document.querySelectorAll("iframe").length,
             violations: r.violations.map(v => ({ v, nodes: v.nodes.map(n => ({ n, claims: answer(v.id, n) })) })).map(({ v, nodes }) => ({
               id: v.id, impact: v.impact, help: v.help, helpUrl: v.helpUrl, tags: v.tags.filter(t => /^(wcag|best-practice)/.test(t)),
@@ -147,11 +183,11 @@ static partial class Audit
             })),
             incomplete: r.incomplete.map(v => {
               const reasons = {};
-              for (const n of v.nodes) { const why = (n.any.concat(n.all, n.none)[0] || {}).message || v.help; reasons[why] = (reasons[why] || 0) + 1; }
+              for (const n of v.nodes) { const why = whole((n.any.concat(n.all, n.none)[0] || {}).message || v.help); reasons[why] = (reasons[why] || 0) + 1; }
               return { id: v.id, help: v.help, count: v.nodes.length, reasons };
             }),
             refused: refused.size ? [...refused] : undefined,
-          });
+          }, (key, value) => typeof value === "string" ? whole(value) : value);
         })()
         """;
 
@@ -179,11 +215,14 @@ static partial class Audit
                     rules[id] = rule = new Rule(id, (string?)violation["impact"] ?? "minor", (string)violation["help"]!, (string)violation["helpUrl"]!, Criterion(violation["tags"]!.AsArray().Select(t => (string)t!).ToList()), 0, []);
                 rule.Pages.Add(page);
                 if (!elements.TryGetValue(id, out var seen)) elements[id] = seen = [];
-                foreach (var node in violation["nodes"]!.AsArray()) seen.Add($"{(string)page["url"]!}|{Stable((string)node!["target"]!)}");
+                foreach (var node in violation["nodes"]!.AsArray()) seen.Add(Element(page, node!));
             }
         foreach (var (id, seen) in elements) rules[id] = rules[id] with { Elements = seen.Count };
         return rules.Values.OrderBy(r => Array.IndexOf(Impacts, r.Impact) is var at and >= 0 ? at : Impacts.Length).ThenByDescending(r => r.Elements).ToList();
     }
+
+    // One element of a page, whatever the width and scheme it was found at.
+    static string Element(JsonObject page, JsonNode node) => $"{(string)page["url"]!}|{(string?)node["id"] ?? Stable((string)node["target"]!)}";
 
     // "wcag143" and "wcag2aa" as "WCAG 1.4.3 (level AA)".
     static string Criterion(List<string> tags)
@@ -246,7 +285,7 @@ static partial class Audit
             text.Append($"- **Found:** {rule.Elements} element{(rule.Elements == 1 ? "" : "s")}\n");
             // One element found at several widths and schemes is shown once, with where.
             var elements = rule.Pages.SelectMany(page => page["violations"]!.AsArray().Where(v => (string)v!["id"]! == rule.Id).SelectMany(v => v!["nodes"]!.AsArray()).Select(node => (Page: page, Node: node!)))
-                .GroupBy(e => $"{(string)e.Page["url"]!}|{Stable((string)e.Node["target"]!)}").ToList();
+                .GroupBy(e => Element(e.Page, e.Node)).ToList();
             foreach (var element in elements.Take(10))
                 text.Append(ElementBlock(element.First().Page, element.First().Node.AsObject(), element.Select(e => $"{(int)e.Page["width"]!}px {(string)e.Page["scheme"]!}").Distinct()));
             if (elements.Count > 10) text.Append($"\n  …and {elements.Count - 10} more elements, in `results.json`.\n");
@@ -260,17 +299,18 @@ static partial class Audit
     {
         var count = page["violations"]!.AsArray().Sum(v => v!["nodes"]!.AsArray().Count);
         var note = (string?)page["error"] is { } error ? $"Not checked: {Cell(error)}" : (int?)page["status"] is >= 400 and var status ? $"{count} (the page answered {status})" : $"{count}";
-        return $"| {(string)page["url"]!} | {(int)page["width"]!} | {(string)page["scheme"]!} | {note} |\n";
+        if ((string?)page["landed"] is { } landed) note += $" (it led to {Cell(landed)}, which is what was checked)";
+        return $"| {Cell((string)page["url"]!)} | {(int)page["width"]!} | {(string)page["scheme"]!} | {note} |\n";
     }
 
     // One element: its HTML, selector, what axe says and a measured contrast.
     static string ElementBlock(JsonObject page, JsonObject node, IEnumerable<string> where)
     {
         var text = new StringBuilder();
-        text.Append($"\n  On `{(string)page["url"]!}` at {string.Join("; ", where)}:\n\n");
+        text.Append($"\n  On {Code((string)page["url"]!)} at {string.Join("; ", where)}:\n\n");
         text.Append($"  ```html\n  {Spaces().Replace((string)node["html"]!, " ")}\n  ```\n");
-        text.Append($"  - Selector: `{(string)node["target"]!}`\n");
-        if ((string?)node["summary"] is { } summary) text.Append($"  - axe: {FixLead().Replace(Spaces().Replace(summary, " "), "")}\n");
+        text.Append($"  - Selector: {Code((string)node["target"]!)}\n");
+        if ((string?)node["summary"] is { } summary) text.Append($"  - axe: {Plain(FixLead().Replace(Spaces().Replace(summary, " "), ""))}\n");
         if (node["contrast"] is { } contrast)
             text.Append($"  - Measured: {(string?)contrast["foreground"]} on {(string?)contrast["background"]}, {contrast["ratio"]}:1 at {(string?)contrast["size"]}; needs {(string?)contrast["needs"]}\n");
         return text.ToString();
@@ -296,6 +336,18 @@ static partial class Audit
 
     static string Cell(string text) => Spaces().Replace(text, " ").Replace("|", "/");
 
+    // Text from the page as a code span, whatever backticks it holds: the page can't end the span and write
+    // Markdown of its own into the report.
+    static string Code(string text)
+    {
+        text = Spaces().Replace(text, " ");
+        var fence = new string('`', Backticks().Matches(text).Select(m => m.Length).DefaultIfEmpty(0).Max() + 1);
+        return fence.Length == 1 ? $"`{text}`" : $"{fence} {text} {fence}";
+    }
+
+    // Text that quotes the page (an attribute's value in axe's summary), with nothing in it read as Markdown.
+    static string Plain(string text) => MarkdownMarks().Replace(text, @"\$0");
+
     /// <summary>What the terminal shows after a run.</summary>
     public static string Summary(JsonObject run)
     {
@@ -307,6 +359,8 @@ static partial class Audit
             text.Append($"Not checked: {(string)page["url"]!} at {(int)page["width"]!}px, {(string)page["scheme"]!}: {(string)page["error"]!}\n");
         foreach (var page in pages.Where(p => (int?)p["status"] is >= 400).DistinctBy(p => (string)p["url"]!))
             text.Append($"{(string)page["url"]!} answered {(int)page["status"]!}: what was checked is its error page.\n");
+        foreach (var page in pages.Where(p => p["landed"] is not null).DistinctBy(p => (string)p["url"]!))
+            text.Append($"{(string)page["url"]!} led to {(string)page["landed"]!}: that is the page that was checked.\n");
         var rules = Rules(run);
         if (run["verdicts"] is not null) text.Append(JudgedSummary(run));
         else if (rules.Count == 0) text.Append("No findings.\n");
@@ -322,6 +376,13 @@ static partial class Audit
         return text.ToString();
     }
 
+    /// <summary>
+    /// The pages a run didn't check as asked: one that didn't load, or that answered with an error. A build that
+    /// fails on findings fails on these too: nothing found there says nothing.
+    /// </summary>
+    public static List<JsonObject> Unchecked(JsonObject run) =>
+        [.. run["pages"]!.AsArray().Select(p => p!.AsObject()).Where(p => p["error"] is not null || (int?)p["status"] is >= 400)];
+
     /// <summary>How many elements a run found failing.</summary>
     public static int Findings(JsonObject run) => Rules(run).Sum(r => r.Elements);
 
@@ -333,6 +394,7 @@ static partial class Audit
     {
         readonly Process _process;
         readonly StringBuilder _said = new();
+        IDisposable? _interrupt;
 
         public string Url { get; }
 
@@ -358,6 +420,7 @@ static partial class Audit
             catch (System.ComponentModel.Win32Exception) { throw new GenerationException("izzy couldn't start dotnet (it isn't on the PATH, and DOTNET_ROOT doesn't point at it), so nothing was audited. Start the app yourself and give izzy audit its address."); }
             var app = new App(process, url);
             AppDomain.CurrentDomain.ProcessExit += app.Kill;
+            app._interrupt = Interrupt.On(() => app.Kill(null, EventArgs.Empty));
             process.OutputDataReceived += (_, e) => { lock (app._said) app._said.AppendLine(e.Data); };
             process.ErrorDataReceived += (_, e) => { lock (app._said) app._said.AppendLine(e.Data); };
             process.BeginOutputReadLine();
@@ -390,6 +453,7 @@ static partial class Audit
 
         public void Dispose()
         {
+            _interrupt?.Dispose();
             AppDomain.CurrentDomain.ProcessExit -= Kill;
             Kill(null, EventArgs.Empty);
             _process.Dispose();
@@ -408,6 +472,12 @@ static partial class Audit
 
     [GeneratedRegex(@"\s+")]
     private static partial Regex Spaces();
+
+    [GeneratedRegex("`+")]
+    private static partial Regex Backticks();
+
+    [GeneratedRegex(@"[\\`*_\[\]<>!|]")]
+    private static partial Regex MarkdownMarks();
 
     [GeneratedRegex(@"^Fix (any|all) of the following: ")]
     private static partial Regex FixLead();

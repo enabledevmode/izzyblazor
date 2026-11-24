@@ -21,6 +21,7 @@ sealed class Chromium : IAsyncDisposable
     readonly ConcurrentDictionary<int, TaskCompletionSource<JsonNode>> _pending = new();
     readonly Channel<JsonNode> _events = Channel.CreateUnbounded<JsonNode>();
     readonly CancellationTokenSource _closed = new();
+    IDisposable? _interrupt;
     int _id;
 
     Chromium(Process process, string profile) => (_process, _profile) = (process, profile);
@@ -65,9 +66,16 @@ sealed class Chromium : IAsyncDisposable
         // Chromium's sandbox refuses to start as root (a container in CI).
         if (OperatingSystem.IsLinux() && Environment.UserName == "root") start.ArgumentList.Add("--no-sandbox");
         start.ArgumentList.Add("about:blank");
-        var process = Process.Start(start) ?? throw new GenerationException($"{path} didn't start.");
+        Process process;
+        try { process = Process.Start(start) ?? throw new GenerationException($"{path} didn't start."); }
+        catch (Exception e) when (e is System.ComponentModel.Win32Exception or GenerationException)
+        {
+            try { Directory.Delete(profile, recursive: true); } catch (Exception x) when (x is IOException or UnauthorizedAccessException) { }
+            throw new GenerationException(e is GenerationException ? e.Message : $"{path} couldn't be started as a browser: {e.Message}");
+        }
         var browser = new Chromium(process, profile);
         AppDomain.CurrentDomain.ProcessExit += browser.Kill;
+        browser._interrupt = Interrupt.On(browser.End);
         try
         {
             // The browser writes where it listens in its profile: DevToolsActivePort, the port on its first line.
@@ -119,8 +127,23 @@ sealed class Chromium : IAsyncDisposable
         var answer = new TaskCompletionSource<JsonNode>(TaskCreationOptions.RunContinuationsAsynchronously);
         _pending[id] = answer;
         var message = new JsonObject { ["id"] = id, ["method"] = method, ["params"] = parameters ?? [] };
-        await _socket.SendAsync(Encoding.UTF8.GetBytes(message.ToJsonString()), WebSocketMessageType.Text, true, _closed.Token);
-        var reply = await answer.Task.WaitAsync(TimeSpan.FromSeconds(120));
+        JsonNode reply;
+        try
+        {
+            await _socket.SendAsync(Encoding.UTF8.GetBytes(message.ToJsonString()), WebSocketMessageType.Text, true, _closed.Token);
+            reply = await answer.Task.WaitAsync(TimeSpan.FromSeconds(120));
+        }
+        catch (TimeoutException)
+        {
+            _pending.TryRemove(id, out _);
+            throw new GenerationException("The browser didn't answer in two minutes.");
+        }
+        catch (Exception e) when (e is WebSocketException or InvalidOperationException or OperationCanceledException)
+        {
+            // The browser is gone (it crashed, or was closed): every page after this one says so too.
+            _pending.TryRemove(id, out _);
+            throw new GenerationException("The browser closed before it answered.");
+        }
         if (reply["error"] is { } error) throw new GenerationException($"The browser refused {method}: {(string?)error["message"]}");
         return reply["result"] ?? new JsonObject();
     }
@@ -194,8 +217,21 @@ sealed class Chromium : IAsyncDisposable
         catch (Exception x) when (x is InvalidOperationException or System.ComponentModel.Win32Exception) { }
     }
 
+    // izzy is being stopped (Ctrl+C, a build server's cancel): the browser and its profile go with it.
+    void End()
+    {
+        Kill(null, EventArgs.Empty);
+        try
+        {
+            _process.WaitForExit(2000);
+            Directory.Delete(_profile, recursive: true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidOperationException or System.ComponentModel.Win32Exception) { }
+    }
+
     public async ValueTask DisposeAsync()
     {
+        _interrupt?.Dispose();
         AppDomain.CurrentDomain.ProcessExit -= Kill;
         _closed.Cancel();
         Kill(null, EventArgs.Empty);
@@ -203,5 +239,47 @@ sealed class Chromium : IAsyncDisposable
         _socket.Dispose();
         _process.Dispose();
         try { Directory.Delete(_profile, recursive: true); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+    }
+}
+
+/// <summary>
+/// What to end when izzy itself is stopped by a signal (Ctrl+C, a terminal closed, a build server's cancel):
+/// a <c>using</c> block doesn't run then, so a browser or an app izzy started would outlive it.
+/// </summary>
+static class Interrupt
+{
+    static readonly List<Action> Endings = [];
+    static List<System.Runtime.InteropServices.PosixSignalRegistration>? _signals;
+
+    /// <summary>Runs <paramref name="end"/> if izzy is stopped before the returned value is disposed.</summary>
+    public static IDisposable On(Action end)
+    {
+        lock (Endings)
+        {
+            Endings.Add(end);
+            // After the handler the signal does what it always does: izzy ends.
+            _signals ??= [.. ((System.Runtime.InteropServices.PosixSignal[])[System.Runtime.InteropServices.PosixSignal.SIGINT, System.Runtime.InteropServices.PosixSignal.SIGTERM, System.Runtime.InteropServices.PosixSignal.SIGHUP, System.Runtime.InteropServices.PosixSignal.SIGQUIT])
+                .Select(signal => System.Runtime.InteropServices.PosixSignalRegistration.Create(signal, _ => EndAll()))];
+        }
+        return new Registration(end);
+    }
+
+    static void EndAll()
+    {
+        List<Action> endings;
+        lock (Endings)
+        {
+            endings = [.. Endings];
+            Endings.Clear();
+        }
+        foreach (var end in endings) end();
+    }
+
+    sealed class Registration(Action end) : IDisposable
+    {
+        public void Dispose()
+        {
+            lock (Endings) Endings.Remove(end);
+        }
     }
 }

@@ -72,7 +72,8 @@ static partial class Audit
                 _demo.Add(item switch
                 {
                     JsonValue v when v.TryGetValue<string>(out var pages) => new Demo(pages, null),
-                    JsonObject o when (string?)o["pages"] is { Length: > 0 } pages => new Demo(pages, (string?)o["examples"]),
+                    JsonObject o when o["pages"] is JsonValue p && p.TryGetValue<string>(out var pages) && pages.Length > 0
+                        && (o["examples"] is null || o["examples"] is JsonValue x && x.TryGetValue<string>(out _)) => new Demo(pages, (string?)o["examples"]),
                     _ => throw new GenerationException($"{ProjectFile}: demoPages[{at}] must be a path pattern (\"/docs/components/**\") or {{ \"pages\": …, \"examples\": a selector }}."),
                 });
         }
@@ -97,19 +98,27 @@ static partial class Audit
             return claims.ToJsonString();
         }
 
+        /// <summary>
+        /// Stops the run for a selector of the app's that the browser refused (<paramref name="keys"/>, the
+        /// claims' keys): it is the app's to correct. The pack's are tested before it ships.
+        /// </summary>
+        public void Refuse(IEnumerable<string> keys)
+        {
+            foreach (var key in keys)
+            {
+                if (key.StartsWith("a:", StringComparison.Ordinal)) throw new UsageException($"{ProjectFile}: accepted[{key[2..]}] has a selector the browser can't read: {_accepted[int.Parse(key[2..])].Selector}");
+                if (key.StartsWith("d:", StringComparison.Ordinal)) throw new UsageException($"{ProjectFile}: demoPages[{key[2..]}] has a selector the browser can't read: {_demo[int.Parse(key[2..])].Examples}");
+            }
+        }
+
         /// <summary>Gives each finding of <paramref name="page"/> its verdict, from the tests the page answered.</summary>
         public void Decide(JsonObject page)
         {
             var path = PathOf((string)page["url"]!);
-            // A selector the browser refused is the app's to correct: the pack's are tested before it ships.
             if (page["refused"] is JsonArray refused)
             {
                 page.Remove("refused");
-                foreach (var key in refused.Select(k => (string)k!))
-                {
-                    if (key.StartsWith("a:", StringComparison.Ordinal)) throw new GenerationException($"{ProjectFile}: accepted[{key[2..]}] has a selector the browser can't read: {_accepted[int.Parse(key[2..])].Selector}");
-                    if (key.StartsWith("d:", StringComparison.Ordinal)) throw new GenerationException($"{ProjectFile}: demoPages[{key[2..]}] has a selector the browser can't read: {_demo[int.Parse(key[2..])].Examples}");
-                }
+                Refuse(refused.Select(k => (string)k!));
             }
             foreach (var rule in page["violations"]!.AsArray())
                 foreach (var node in rule!["nodes"]!.AsArray().Select(n => n!.AsObject()))
@@ -205,7 +214,9 @@ static partial class Audit
     public static void Compare(JsonObject run, JsonObject baseline, string file)
     {
         if (baseline["pages"] is not JsonArray) throw new GenerationException($"{file} isn't a results.json from izzy audit.");
-        var before = AllFindings(baseline);
+        List<Finding> before;
+        try { before = AllFindings(baseline); }
+        catch (Exception e) when (e is InvalidOperationException or NullReferenceException or InvalidCastException) { throw new GenerationException($"{file} isn't a results.json from izzy audit."); }
         var known = before.Select(f => f.Id).ToHashSet(StringComparer.Ordinal);
         var now = AllFindings(run);
         var added = 0;
@@ -217,9 +228,12 @@ static partial class Audit
                 node!["new"] = true;
         }
         var present = now.Select(f => f.Id).ToHashSet(StringComparer.Ordinal);
-        var checkedAgain = run["pages"]!.AsArray().Where(p => p!["error"] is null).Select(p => PathOf((string)p!["url"]!)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // Fixed means looked for again and not found: at every width and scheme the past run found it at, on a
+        // page that loaded and didn't answer with an error.
+        var checkedAgain = Unchecked(run) is var failed ? run["pages"]!.AsArray().Select(p => p!.AsObject()).Where(p => !failed.Contains(p))
+            .Select(p => $"{PathOf((string)p["url"]!)}|{(int)p["width"]!}px {(string)p["scheme"]!}").ToHashSet(StringComparer.OrdinalIgnoreCase) : [];
         var gone = new JsonArray();
-        foreach (var finding in before.Where(f => !present.Contains(f.Id) && f.Verdict is Real or NeedsPerson && checkedAgain.Contains(PathOf((string)f.Page["url"]!))))
+        foreach (var finding in before.Where(f => !present.Contains(f.Id) && f.Verdict is Real or NeedsPerson && f.Where.All(at => checkedAgain.Contains($"{PathOf((string)f.Page["url"]!)}|{at}"))))
             gone.Add(new JsonObject
             {
                 ["id"] = finding.Id, ["rule"] = (string)finding.Rule["id"]!, ["help"] = finding.Why ?? (string)finding.Rule["help"]!,
@@ -321,14 +335,14 @@ static partial class Audit
             {
                 var example = group.Findings[0];
                 var criterion = Criterion(group.Rule["tags"]!.AsArray().Select(t => (string)t!).ToList());
-                text.Append($"- [ ] **{Cell(group.Says)}** (`{group.RuleId}`, {criterion}; {Elements(group.Findings.Count)} on {group.Pages} page{(group.Pages == 1 ? "" : "s")}, such as `{PathOf((string)example.Page["url"]!)}` `{(string)example.Node["target"]!}`)\n");
+                text.Append($"- [ ] **{Cell(group.Says)}** (`{group.RuleId}`, {criterion}; {Elements(group.Findings.Count)} on {group.Pages} page{(group.Pages == 1 ? "" : "s")}, such as {Code(PathOf((string)example.Page["url"]!))} {Code((string)example.Node["target"]!)})\n");
             }
         }
         if (run["baseline"]?["fixed"] is JsonArray { Count: > 0 } gone)
         {
             text.Append($"\n## Fixed since {((string?)run["baseline"]!["at"] is { Length: >= 10 } at ? at[..10] : "the baseline")}\n\n");
             foreach (var rule in gone.GroupBy(f => ((string)f!["rule"]!, (string)f["help"]!)))
-                text.Append($"- [x] **{Cell(rule.Key.Item2)}** (`{rule.Key.Item1}`; {Elements(rule.Count())}, such as `{(string)rule.First()!["page"]!}` `{(string)rule.First()!["target"]!}`)\n");
+                text.Append($"- [x] **{Cell(rule.Key.Item2)}** (`{rule.Key.Item1}`; {Elements(rule.Count())}, such as {Code((string)rule.First()!["page"]!)} {Code((string)rule.First()!["target"]!)})\n");
         }
         if (!groups.Any(g => g.Verdict is Real or NeedsPerson) && run["baseline"]?["fixed"] is not JsonArray { Count: > 0 }) text.Append("\nNothing to do.\n");
         return text.ToString();

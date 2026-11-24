@@ -156,6 +156,6 @@ sealed partial class LocalToolWriter(TextWriter inner) : TextWriter
 
     public override void Flush() => inner.Flush();
 
-    [GeneratedRegex(@"(?<![\w./-]|dotnet )izzy (list|describe|add|inspect|set|new|init|audit|agent|mcp|login|logout|account|--version|--help)\b")]
+    [GeneratedRegex(@"(?<![\w./-]|dotnet )izzy (list|describe|add|inspect|set|new|init|audit|agent|mcp|login|logout|account|feedback|--version|--help)\b")]
     private static partial Regex Command();
 }

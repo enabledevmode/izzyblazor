@@ -246,10 +246,17 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var pages = args.Words.Skip(1).ToList();
         if (!run && pages.Count == 0) throw new UsageException($"Say which page: izzy audit https://localhost:5001/, or izzy audit --run to start this project's app. Usage: {usage}");
         if (run && pages.Count == 0) pages.Add("/");
-        if (pages.Count > 1 && Plan != ItemTier.Pro)
+        if (pages.Count > 1 && !HasPro)
         {
             error.WriteLine($"Auditing several pages in one run comes with IzzyBlazor Pro: this run audits {pages[0]}.");
             pages.RemoveRange(1, pages.Count - 1);
+        }
+        // Verdicts come from the pack in a Pro account's catalog and the app's own .izzy/audit.json.
+        var verdicts = failOn is "real" or "new" || baselineFile is not null || formats.Contains("tasks");
+        if (verdicts && !HasPro)
+        {
+            error.WriteLine("A verdict for each finding, tasks.md, --baseline and --fail-on real or new come with IzzyBlazor Pro. Free audits one page: --fail-on any fails on any finding.");
+            return 3;
         }
         var browser = Chromium.Find(given) ?? throw new UsageException("izzy audit needs Chrome, Edge or Chromium, and found none on this machine. Install one, or say where one is with --browser <path>.");
 
@@ -259,15 +266,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         catch (UsageException) when (!run && folder is null) { }
         var home = csproj is null ? workingDirectory : Path.GetDirectoryName(csproj)!;
 
-        // Verdicts come from the pack in a Pro account's catalog and the app's own .izzy/audit.json.
-        var verdicts = failOn is "real" or "new" || baseline is not null || formats.Contains("tasks");
         var pack = (Plan == ItemTier.Pro ? proRoot ?? account?.Catalog(error, online: true) : null) is { } catalog && File.Exists(Path.Combine(catalog, ".audit", "pack.json"))
             ? Path.Combine(catalog, ".audit", "pack.json") : null;
-        if (verdicts && Plan != ItemTier.Pro)
-        {
-            error.WriteLine("A verdict for each finding, tasks.md, --baseline and --fail-on real or new come with IzzyBlazor Pro. Free audits one page: --fail-on any fails on any finding.");
-            return 3;
-        }
         if (verdicts && pack is null) throw new GenerationException("This machine's copy of the catalog has no audit pack, so findings get no verdicts. Run izzy login to download it again.");
         if (!json && (pack is not null || pages.Count > 1)) PreviewNote();
         var decisions = Path.Combine(home, ".izzy", "audit.json");
@@ -301,19 +301,25 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             error.WriteLine($"{urls[0]} couldn't be opened: {(string)results["pages"]![0]!["error"]!}");
             return 1;
         }
+        // A build that fails on findings can't pass on a page that wasn't checked: the report is still written.
+        if (failOn != "none" && exit == 0 && Audit.Unchecked(results) is { Count: > 0 } missed)
+        {
+            error.WriteLine($"{missed.Count} of {results["pages"]!.AsArray().Count} page loads weren't checked (they didn't open, or answered with an error), so this run can't pass --fail-on {failOn}.");
+            exit = 1;
+        }
         if (json)
         {
             Print(results);
             return exit;
         }
-        var target = outFolder is not null ? Path.GetFullPath(outFolder, workingDirectory) : Path.Combine(home, ".izzy", "audit", DateTime.Now.ToString("yyyy-MM-dd-HHmmss"));
+        var target = outFolder is not null ? Path.GetFullPath(outFolder, workingDirectory) : Path.Combine(home, ".izzy", "audit", DateTime.Now.ToString("yyyy-MM-dd-HHmmss", System.Globalization.CultureInfo.InvariantCulture));
         Directory.CreateDirectory(target);
         if (formats.Contains("json")) File.WriteAllText(Path.Combine(target, "results.json"), results.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
         if (formats.Contains("md")) File.WriteAllText(Path.Combine(target, "report.md"), Audit.Markdown(results));
         if (formats.Contains("tasks")) File.WriteAllText(Path.Combine(target, "tasks.md"), Audit.Tasks(results));
         output.Write(Audit.Summary(results));
         var shown = Path.GetRelativePath(workingDirectory, target).Replace('\\', '/');
-        output.WriteLine($"{(formats.Contains("md") ? "Report" : "Results")}: {shown}/{(formats.Contains("md") ? "report.md" : "results.json")}");
+        output.WriteLine(formats.Contains("md") ? $"Report: {shown}/report.md" : formats.Contains("tasks") ? $"Tasks: {shown}/tasks.md" : $"Results: {shown}/results.json");
         return exit;
     }
 
@@ -364,9 +370,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
         if (!yes)
         {
-            output.WriteLine("This goes to IzzyBlazor's public discussions on GitHub, without your name, email or account:");
+            output.WriteLine("This goes to IzzyBlazor's public discussions on GitHub, with your plan and without your name, email or account:");
             // As written: the words are the person's, not a command of izzy's to show as this app runs it.
-            _data.Write($"\n{string.Join('\n', text.Split('\n').Select(line => "  " + line.TrimEnd()))}\n\n{(about is null ? "" : $"  Command: {about}\n")}  izzy {session.Where}\n\n");
+            _data.Write($"\n{string.Join('\n', text.Split('\n').Select(line => "  " + line.TrimEnd()))}\n\n{(about is null ? "" : $"  Command: {about}\n")}  izzy {session.Where}\n  Plan: {(session.Preview ? "Pro preview" : "Pro")}\n{(from is null ? "" : $"  Sent from {from}\n")}\n");
             output.WriteLine("For anything private, write to support@izzyblazor.com instead.");
             output.Write("Post it? [y/N] ");
             var answer = reader.ReadLine();
@@ -740,6 +746,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // account service stand for the access they were given; otherwise it's the sign-in's.
     ItemTier Plan => proRoot is not null || account is null ? access : account.Plan;
 
+    // Whether this run has Pro. A sign-in that doesn't say so is renewed once first: the account may have
+    // reserved the founding price, or bought Pro, since its key was signed.
+    bool HasPro => Plan == ItemTier.Pro || (proRoot is null && account?.Upgrade(error) == true);
+
     // Said once by a command that is Pro's, when Pro is here as a preview.
     void PreviewNote()
     {
@@ -779,7 +789,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         changes.AddRange(args.Options.Select(o => (o.Name, (string?)(o.Value ?? TagEdit.Switch))));
         if (changes.Count == 0) throw new UsageException($"Nothing to set. Usage: {usage}");
         if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
-        if (Plan != ItemTier.Pro)
+        if (!HasPro)
         {
             error.WriteLine("Changing a component's options with izzy set comes with IzzyBlazor Pro.");
             return 3;

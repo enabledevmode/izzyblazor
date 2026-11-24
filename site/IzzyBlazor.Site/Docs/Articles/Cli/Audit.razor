@@ -48,8 +48,9 @@
 
         <Heading Level="2">Fail a build on findings</Heading>
         <TextBlock>
-            With <Code>--fail-on any</Code>, izzy ends with exit code 5 when the page has a finding. On a build
-            server, start the app with <Code>--run</Code>:
+            With <Code>--fail-on any</Code>, izzy ends with exit code 5 when the page has a finding, and with
+            exit code 1 when the page didn't open or answered with an error. On a build server, start the app with
+            <Code>--run</Code>:
         </TextBlock>
         <Code Block Language="bash">izzy audit / --run --fail-on any</Code>
         <TextBlock>
@@ -76,9 +77,11 @@
         <Heading Level="3">Accept a finding</Heading>
         <TextBlock>
             Your own decisions go in <Code>.izzy/audit.json</Code> in the project. An accepted finding stays in the
-            report with your reason and never fails a build. <Code>rule</Code> and <Code>reason</Code> are required.
+            report with your reason and doesn't fail a build that uses <Code>--fail-on real</Code> or
+            <Code>--fail-on new</Code>. <Code>rule</Code> and <Code>reason</Code> are required.
             <Code>selector</Code> is a CSS selector for the element or one it is inside, and <Code>pages</Code> is a
-            path, where <Code>*</Code> stands for one part and <Code>**</Code> for any number:
+            path, where <Code>*</Code> stands for one part and <Code>**</Code> for any number. A selector can't
+            reach an element inside an iframe: accept those by rule and page.
         </TextBlock>
         <Code Block Language="json" Title=".izzy/audit.json">@ProjectFile</Code>
         <TextBlock>
