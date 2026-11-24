@@ -27,8 +27,8 @@
         "description": "Adds a required checkbox to agree to the emails. The button waits until it's ticked; with JavaScript off, the server checks it."
       },
       "PrivacyHref": { "type": "string", "default": "privacy", "description": "Where \"Privacy policy\" in the small print goes." },
-      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "SignUp", "description": "The component's name." },
-      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+      "Name": { "title": "Component name", "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "SignUp", "description": "The component's name." },
+      "Into": { "title": "Page to place it on", "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
     }
   },
   "computed": {

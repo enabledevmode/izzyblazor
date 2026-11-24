@@ -18,5 +18,10 @@
   "computed": { "HeaderRegister": "false" },
   "rename": [
     { "if": "UseWebAssembly && InteractiveAtRoot", "paths": { "{{ProjectName}}/Components/Pages/Docs/": "./{{ProjectName}}.Client/Pages/Docs/" } }
+  ],
+  "screens": [
+    {"file": "home", "caption": "Home", "alt": "The docs site's home page"},
+    {"file": "article", "caption": "An article", "alt": "An article: the pages list, the article, and On this page beside it"},
+    {"file": "phone-article", "caption": "An article on a phone", "alt": "An article at a phone's width", "phone": true}
   ]
 }

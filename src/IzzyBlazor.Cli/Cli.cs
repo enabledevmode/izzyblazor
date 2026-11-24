@@ -206,6 +206,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             {
                 ["id"] = m.Id, ["name"] = m.Name, ["kind"] = Lower(m.Kind), ["category"] = m.Category,
                 ["tier"] = Lower(m.Tier), ["summary"] = m.Summary,
+                ["docs"] = Pictures.Docs(m), ["picture"] = Pictures.Card(m),
                 ["proChoices"] = ProChoices(m),
             }).ToArray()));
             return 0;
@@ -227,13 +228,20 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var m = item.Manifest;
         if (json)
         {
-            // The schema as written, with each setting's option, for forms and MCP tool inputs.
+            // The schema as written, with each setting's option and a title, for forms and MCP tool inputs.
             var schema = m.Schema.DeepClone().AsObject();
-            foreach (var p in m.Parameters) schema["properties"]![p.Name]!["x-option"] = p.Option;
+            foreach (var p in m.Parameters)
+            {
+                var property = schema["properties"]![p.Name]!.AsObject();
+                property["x-option"] = p.Option;
+                // A label for a form: the manifest's own, else the name in words.
+                if (property["title"] is null) property["title"] = Titles.For(p.Name);
+            }
             Print(new JsonObject
             {
                 ["id"] = m.Id, ["name"] = m.Name, ["kind"] = Lower(m.Kind), ["category"] = m.Category, ["tier"] = Lower(m.Tier),
                 ["summary"] = m.Summary,
+                ["docs"] = Pictures.Docs(m), ["picture"] = Pictures.Card(m), ["screens"] = Pictures.Screens(m),
                 ["components"] = new JsonArray(m.Components.Select(c => (JsonNode)c).ToArray()),
                 ["modes"] = new JsonObject(m.Modes.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)kv.Value))),
                 ["accessibility"] = new JsonArray(m.Accessibility.Select(a => (JsonNode)a).ToArray()),

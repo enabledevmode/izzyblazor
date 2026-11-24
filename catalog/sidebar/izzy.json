@@ -10,5 +10,9 @@
   "base": {
     "item": "blazor",
     "fixed": { "Starter": "Sidebar app", "Nav": "Sidebar", "Empty": "false" }
-  }
+  },
+  "screens": [
+    {"file": "home", "caption": "Home", "alt": "The home page in the sidebar shell: the welcome panel and the app's theme in sample components"},
+    {"file": "phone-home", "caption": "Home on a phone", "alt": "The home page at a phone's width, the sidebar behind a menu button", "phone": true}
+  ]
 }

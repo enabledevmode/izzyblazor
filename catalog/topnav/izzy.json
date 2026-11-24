@@ -10,5 +10,9 @@
   "base": {
     "item": "blazor",
     "fixed": { "Starter": "Top navigation app", "Nav": "Top", "Empty": "false" }
-  }
+  },
+  "screens": [
+    {"file": "home", "caption": "Home", "alt": "The home page under the top navigation bar"},
+    {"file": "phone-home", "caption": "Home on a phone", "alt": "The home page at a phone's width", "phone": true}
+  ]
 }

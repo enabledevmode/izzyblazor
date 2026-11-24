@@ -24,8 +24,8 @@
       },
       "Title": { "type": "string", "default": "Everything your team needs to ship", "x-priority": "important", "description": "The section's heading." },
       "Lead": { "type": "string", "default": "Plan, track and release in one place, without the busywork.", "description": "The sentence under the heading. Empty leaves it out." },
-      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Features", "description": "The component's name." },
-      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+      "Name": { "title": "Component name", "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Features", "description": "The component's name." },
+      "Into": { "title": "Page to place it on", "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
     }
   },
   "computed": {

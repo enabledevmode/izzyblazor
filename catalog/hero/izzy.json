@@ -33,8 +33,8 @@
       "ImageSrc": { "type": "string", "default": "", "description": "The image, from wwwroot. Empty uses a placeholder to replace: a dashboard for Screenshot, a landscape for Image." },
       "ImageAlt": { "type": "string", "default": "A screenshot of the app", "description": "What the image shows, for screen readers. Empty marks it decorative." },
       "HeadingLevel": { "type": "string", "enum": ["1", "2"], "default": "1", "description": "1 makes the headline the page's main heading; use 2 when the page has its own." },
-      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Hero", "description": "The component's name." },
-      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's placed on: after its <PageTitle>, or under the page's own heading with HeadingLevel 2." }
+      "Name": { "title": "Component name", "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Hero", "description": "The component's name." },
+      "Into": { "title": "Page to place it on", "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's placed on: after its <PageTitle>, or under the page's own heading with HeadingLevel 2." }
     }
   },
   "computed": {

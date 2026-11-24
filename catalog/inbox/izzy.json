@@ -19,5 +19,12 @@
   ],
   "rename": [
     { "if": "UseWebAssembly && InteractiveAtRoot", "paths": { "{{ProjectName}}/Components/Pages/Tickets/": "./{{ProjectName}}.Client/Pages/Tickets/" } }
+  ],
+  "screens": [
+    {"file": "home", "caption": "Home", "alt": "The home page in the list and detail shell"},
+    {"file": "list", "caption": "The list", "alt": "The tickets list, with nothing chosen"},
+    {"file": "ticket", "caption": "A ticket", "alt": "A ticket open beside the list"},
+    {"file": "phone-list", "caption": "The list on a phone", "alt": "The tickets list at a phone's width", "phone": true},
+    {"file": "phone-ticket", "caption": "A ticket on a phone", "alt": "A ticket at a phone's width, with a link back to the list", "phone": true}
   ]
 }

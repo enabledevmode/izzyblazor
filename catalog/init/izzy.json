@@ -15,24 +15,24 @@
     "type": "object",
     "properties": {
       "Preset": {
-        "type": "string", "enum": ["Standard", "Compact", "Soft", "Editorial"], "default": "Standard",
+        "title": "Theme preset", "type": "string", "enum": ["Standard", "Compact", "Soft", "Editorial"], "default": "Standard",
         "description": "The theme preset: Standard (36px controls, Blue on Neutral), Compact (dense, for data and admin), Soft (roomy, for consumer apps) or Editorial (for reading and docs)."
       },
       "Brand": {
-        "type": "string", "default": "",
+        "title": "Brand color", "type": "string", "default": "",
         "pattern": "^$|^(blue|ink|indigo|violet|teal|green|rose)$|^#([0-9a-f]{3}|[0-9a-f]{6})$",
         "description": "The brand color: blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a. Empty keeps the preset's."
       },
       "Interactivity": {
-        "type": "string", "enum": ["None", "Server"], "default": "None",
+        "title": "Render mode", "type": "string", "enum": ["None", "Server"], "default": "None",
         "description": "For an MVC or Razor Pages app: None keeps every new page static; Server lets you make a page interactive over a circuit. A Blazor Web App keeps its own."
       },
       "KeepCss": {
-        "type": "boolean", "default": false,
+        "title": "Keep existing CSS", "type": "boolean", "default": false,
         "description": "Leaves Bootstrap where App.razor links it, instead of putting it in a cascade layer under IzzyBlazor's."
       },
       "Mcp": {
-        "type": "boolean", "default": false,
+        "title": "Connect coding agents", "type": "boolean", "default": false,
         "description": "Sets up AI assistants as izzy agent does: the IzzyBlazor skill, and the docs server (izzyblazor.com/mcp) and izzy mcp in .mcp.json for Claude Code and Visual Studio, .vscode/mcp.json for VS Code and .cursor/mcp.json for Cursor."
       }
     }

@@ -18,7 +18,7 @@
         "description": "FirstUse: nothing has been added yet, so it offers the one action that adds something. NoResults: a search or filter matched nothing, so it offers to clear it; keep the filters above it."
       },
       "Href": { "type": "string", "default": "", "description": "Where the button goes. Empty uses the sample's: customers/new to add, customers to clear." },
-      "Into": { "type": "string", "default": "", "description": "The page it goes on, at the end. Usually left empty and placed with --at." }
+      "Into": { "title": "Page to place it on", "type": "string", "default": "", "description": "The page it goes on, at the end. Usually left empty and placed with --at." }
     }
   },
   "accessibility": [

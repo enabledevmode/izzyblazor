@@ -15,5 +15,9 @@
   },
   "rename": [
     { "if": "UseWebAssembly && InteractiveAtRoot", "paths": { "{{ProjectName}}/Components/Pages/Placeholder.razor": "./{{ProjectName}}.Client/Pages/Placeholder.razor" } }
+  ],
+  "screens": [
+    {"file": "home", "caption": "Home", "alt": "The site's home page under its navigation bar, with the footer's links"},
+    {"file": "phone-home", "caption": "Home on a phone", "alt": "The home page at a phone's width", "phone": true}
   ]
 }

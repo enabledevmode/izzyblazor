@@ -32,5 +32,22 @@
         "{{ProjectName}}/Components/Account/Pages/Manage/DeletePersonalData.razor"
       ]
     }
+  ],
+  "screens": [
+    {"file": "dashboard", "caption": "My day", "alt": "My day: the open pipeline, follow-ups due, next moves and recent activity"},
+    {"file": "contacts", "caption": "Contacts", "alt": "The contacts list, with search and filters"},
+    {"file": "contact", "caption": "A contact", "alt": "A contact's page: their details, deals, activities and notes"},
+    {"file": "company", "caption": "A company", "alt": "A company's page: its details, people and deals"},
+    {"file": "pipeline", "caption": "Deal pipeline", "alt": "The deal pipeline: each deal with its company, stage, value and expected close"},
+    {"file": "board", "caption": "Deal pipeline as a board", "alt": "The deal pipeline as a board: a column for each stage with its count and total, and a card for each deal"},
+    {"file": "deal", "caption": "A deal", "alt": "A deal's page: its stage, value and history"},
+    {"file": "calendar", "caption": "Activities", "alt": "The week's activities on a calendar"},
+    {"file": "reports", "caption": "Reports", "alt": "The sales overview: charts of the pipeline and the team's results"},
+    {"file": "team", "caption": "Settings and team", "alt": "Settings and team: the workspace's members and their roles"},
+    {"file": "audit-log", "caption": "Audit log", "alt": "The audit log: who changed what, newest first"},
+    {"file": "sign-in", "caption": "Log in", "alt": "The log-in page"},
+    {"file": "phone-dashboard", "caption": "My day on a phone", "alt": "My day at a phone's width", "phone": true},
+    {"file": "phone-pipeline", "caption": "Deal pipeline on a phone", "alt": "The deal pipeline at a phone's width", "phone": true},
+    {"file": "phone-contact", "caption": "A contact on a phone", "alt": "A contact's page at a phone's width", "phone": true}
   ]
 }

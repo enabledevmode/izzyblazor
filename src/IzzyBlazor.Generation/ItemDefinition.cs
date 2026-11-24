@@ -79,6 +79,7 @@ public sealed class ItemDefinition
             Components = [.. b.Components.Union(k.Components).Order(StringComparer.Ordinal)],
             Modes = k.Modes.Count > 0 ? k.Modes : b.Modes,
             ModesNote = k.Modes.Count > 0 ? k.ModesNote : b.ModesNote,
+            Screens = k.Screens,
             Schema = schema,
             Parameters = ItemParameter.FromSchema(schema),
             Computed = computed,

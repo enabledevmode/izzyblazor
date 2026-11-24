@@ -21,7 +21,7 @@
       "Routable": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the settings page's route and title; the docs previews leave them out." },
       "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "CookieNotice", "description": "The notice's component name." },
       "PageName": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Cookies", "description": "The settings page's component name." },
-      "Into": { "type": "string", "default": "Components/Layout/MainLayout.razor", "description": "The layout the notice is placed in, at the end of its AppShell. When every page runs in the browser, it goes in App.razor after Routes instead, rendered on the server." }
+      "Into": { "title": "Page to place it on", "type": "string", "default": "Components/Layout/MainLayout.razor", "description": "The layout the notice is placed in, at the end of its AppShell. When every page runs in the browser, it goes in App.razor after Routes instead, rendered on the server." }
     }
   },
   "accessibility": [

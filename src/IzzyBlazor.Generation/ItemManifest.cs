@@ -39,6 +39,12 @@ public sealed class ItemManifest
     /// <summary>Why it doesn't run in the modes it leaves out (<c>modesNote</c>), a sentence for its docs page. Null when it has none.</summary>
     public string? ModesNote { get; init; }
 
+    /// <summary>
+    /// A starter's or kit's screenshots, in the order to show them: the docs site has each under
+    /// <c>img/templates/{id}/</c> as <c>{file}.webp</c>, <c>{file}-dark.webp</c> and a <c>-thumb</c> of each.
+    /// </summary>
+    public IReadOnlyList<ItemScreen> Screens { get; init; } = [];
+
     /// <summary>The settings, as a JSON Schema object; the IDE forms and the MCP tools take it as is.</summary>
     public JsonObject Schema { get; init; } = new() { ["type"] = "object", ["properties"] = new JsonObject() };
 
@@ -117,6 +123,7 @@ public sealed class ItemManifest
             Components = (root["components"] as JsonArray)?.Select(c => (string)c!).ToList() ?? [],
             Modes = (root["modes"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>(),
             ModesNote = (string?)root["modesNote"],
+            Screens = (root["screens"] as JsonArray)?.Select(s => new ItemScreen((string)s!["file"]!, (string)s["caption"]!, (string)s["alt"]!, (bool?)s["phone"] ?? false)).ToList() ?? [],
             Schema = schema,
             Parameters = ItemParameter.FromSchema(schema),
             Computed = (root["computed"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>(),
@@ -339,3 +346,6 @@ public sealed record VariationOption(string Label, string Value)
     /// <summary>The option in the address, such as <c>split</c>.</summary>
     public string Slug => Label.ToLowerInvariant().Replace(' ', '-');
 }
+
+/// <summary>A screenshot of a starter or kit: its file name without the extension, a short caption, what it shows, and whether it was taken at a phone's width.</summary>
+public sealed record ItemScreen(string File, string Caption, string Alt, bool Phone = false);

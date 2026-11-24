@@ -23,8 +23,8 @@
       "Author": { "type": "string", "default": "Maya Chen", "description": "Who said it." },
       "Role": { "type": "string", "default": "Engineering lead, Northwind", "description": "Their role and company, under their name." },
       "Photo": { "type": "string", "default": "", "description": "A photo of them, from wwwroot. Empty shows their initials." },
-      "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Testimonials", "description": "The component's name." },
-      "Into": { "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
+      "Name": { "title": "Component name", "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "Testimonials", "description": "The component's name." },
+      "Into": { "title": "Page to place it on", "type": "string", "default": "Components/Pages/Home.razor", "description": "The page it's added to, at the end." }
     }
   },
   "computed": {

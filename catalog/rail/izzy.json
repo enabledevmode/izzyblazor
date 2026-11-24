@@ -17,5 +17,10 @@
   // The account menu's items are only there with accounts.
   "exclude": [
     { "if": "!IndividualLocalAuth", "paths": ["{{ProjectName}}/Components/Layout/AccountMenuItems.razor"] }
+  ],
+  "screens": [
+    {"file": "home", "caption": "Sidebar open", "alt": "The home page with the full-height sidebar open"},
+    {"file": "collapsed", "caption": "Sidebar collapsed", "alt": "The home page with the sidebar collapsed to a rail of icons"},
+    {"file": "phone-home", "caption": "Home on a phone", "alt": "The home page at a phone's width", "phone": true}
   ]
 }

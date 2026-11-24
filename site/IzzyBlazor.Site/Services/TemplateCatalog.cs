@@ -89,76 +89,9 @@ public sealed class TemplateCatalog
     /// <summary>
     /// A starter's or kit's screenshots, in the order its page shows them. Each is four files under
     /// <c>wwwroot/img/templates/{id}/</c>: <c>{file}.webp</c>, <c>{file}-dark.webp</c> and a
-    /// <c>-thumb</c> of each, taken from the app running with its sample data.
+    /// <c>-thumb</c> of each, taken from the app running with its sample data. The list is the manifest's <c>screens</c>, which izzy gives its front ends too.
     /// </summary>
     public static IReadOnlyList<TemplateScreen> Screens(Template template) =>
-        ScreensById.GetValueOrDefault(template.Id) ?? [];
+        [.. template.Manifest.Screens.Select(s => new TemplateScreen(s.File, s.Caption, s.Alt, s.Phone))];
 
-    // Taken Nov 22, 2026 from `izzy new kit crm` running with its sample data, at 1440×900 and 375×812.
-    private static readonly Dictionary<string, IReadOnlyList<TemplateScreen>> ScreensById = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["crm"] =
-        [
-            new("dashboard", "My day", "My day: the open pipeline, follow-ups due, next moves and recent activity"),
-            new("contacts", "Contacts", "The contacts list, with search and filters"),
-            new("contact", "A contact", "A contact's page: their details, deals, activities and notes"),
-            new("company", "A company", "A company's page: its details, people and deals"),
-            new("pipeline", "Deal pipeline", "The deal pipeline: each deal with its company, stage, value and expected close"),
-            new("board", "Deal pipeline as a board", "The deal pipeline as a board: a column for each stage with its count and total, and a card for each deal"),
-            new("deal", "A deal", "A deal's page: its stage, value and history"),
-            new("calendar", "Activities", "The week's activities on a calendar"),
-            new("reports", "Reports", "The sales overview: charts of the pipeline and the team's results"),
-            new("team", "Settings and team", "Settings and team: the workspace's members and their roles"),
-            new("audit-log", "Audit log", "The audit log: who changed what, newest first"),
-            new("sign-in", "Log in", "The log-in page"),
-            new("phone-dashboard", "My day on a phone", "My day at a phone's width", Phone: true),
-            new("phone-pipeline", "Deal pipeline on a phone", "The deal pipeline at a phone's width", Phone: true),
-            new("phone-contact", "A contact on a phone", "A contact's page at a phone's width", Phone: true),
-        ],
-        // The starters: taken Nov 21, 2026 from each made as MyApp (artifacts/crm-tools/starter-galleries.sh).
-        ["blazor"] =
-        [
-            new("home", "Home", "The home page: the welcome panel and the app's theme in sample components"),
-            new("counter", "Counter", "The counter page"),
-            new("weather", "Weather", "The weather page: a table of forecasts that sorts and filters"),
-            new("contact", "Contact", "The contact page: details beside a form"),
-            new("phone-home", "Home on a phone", "The home page at a phone's width", Phone: true),
-            new("phone-weather", "Weather on a phone", "The weather page at a phone's width", Phone: true),
-        ],
-        ["sidebar"] =
-        [
-            new("home", "Home", "The home page in the sidebar shell: the welcome panel and the app's theme in sample components"),
-            new("phone-home", "Home on a phone", "The home page at a phone's width, the sidebar behind a menu button", Phone: true),
-        ],
-        ["topnav"] =
-        [
-            new("home", "Home", "The home page under the top navigation bar"),
-            new("phone-home", "Home on a phone", "The home page at a phone's width", Phone: true),
-        ],
-        ["rail"] =
-        [
-            new("home", "Sidebar open", "The home page with the full-height sidebar open"),
-            new("collapsed", "Sidebar collapsed", "The home page with the sidebar collapsed to a rail of icons"),
-            new("phone-home", "Home on a phone", "The home page at a phone's width", Phone: true),
-        ],
-        ["docs"] =
-        [
-            new("home", "Home", "The docs site's home page"),
-            new("article", "An article", "An article: the pages list, the article, and On this page beside it"),
-            new("phone-article", "An article on a phone", "An article at a phone's width", Phone: true),
-        ],
-        ["inbox"] =
-        [
-            new("home", "Home", "The home page in the list and detail shell"),
-            new("list", "The list", "The tickets list, with nothing chosen"),
-            new("ticket", "A ticket", "A ticket open beside the list"),
-            new("phone-list", "The list on a phone", "The tickets list at a phone's width", Phone: true),
-            new("phone-ticket", "A ticket on a phone", "A ticket at a phone's width, with a link back to the list", Phone: true),
-        ],
-        ["site"] =
-        [
-            new("home", "Home", "The site's home page under its navigation bar, with the footer's links"),
-            new("phone-home", "Home on a phone", "The home page at a phone's width", Phone: true),
-        ],
-    };
 }
