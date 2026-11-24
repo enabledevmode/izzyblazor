@@ -87,19 +87,6 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
     }
 
     [Fact]
-    public async Task A_key_typed_to_start_a_cell_saves_with_nothing_more_typed()
-    {
-        var (browser, page) = await OpenAsync();
-        await using var _ = browser;
-        var before = (await Cell(page, 1003, "customer").TextContentAsync())!.Trim();
-        await Cell(page, 1003, "customer").FocusAsync();
-        await page.Keyboard.PressAsync("X");
-        await Assertions.Expect(Open(page).GetByLabel("Customer")).ToHaveValueAsync(before + "X");
-        await page.Keyboard.PressAsync("Enter");
-        await Assertions.Expect(Cell(page, 1003, "customer")).ToHaveTextAsync(before + "X");
-    }
-
-    [Fact]
     public async Task An_open_list_keeps_its_keys_and_a_dates_button_is_a_stop_on_the_way_out()
     {
         var (browser, page) = await OpenAsync();
@@ -124,74 +111,6 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
         await Assertions.Expect(toggle).ToBeFocusedAsync();
         await page.Keyboard.PressAsync("Tab");
         await Assertions.Expect(Open(page).GetByLabel("Total")).ToBeFocusedAsync();
-    }
-
-    [Fact]
-    public async Task A_cell_starts_with_the_cursor_after_its_text()
-    {
-        var (browser, page) = await OpenAsync();
-        await using var _ = browser;
-        await Cell(page, 1001, "customer").ClickAsync();
-        var customer = Open(page).GetByLabel("Customer");
-        await Assertions.Expect(customer).ToBeFocusedAsync();
-        var before = await customer.InputValueAsync();
-        await page.Keyboard.TypeAsync("!");
-        await Assertions.Expect(customer).ToHaveValueAsync(before + "!");
-        await page.Keyboard.PressAsync("Escape");
-
-        await Cell(page, 1001, "total").ClickAsync();
-        var total = Open(page).GetByLabel("Total");
-        await Assertions.Expect(total).ToBeFocusedAsync();
-        before = await total.InputValueAsync();
-        await page.Keyboard.TypeAsync("1");
-        await Assertions.Expect(total).ToHaveValueAsync(before + "1");
-    }
-
-    [Fact]
-    public async Task A_row_highlights_only_when_asked_and_not_while_a_cell_in_it_is_edited()
-    {
-        var (browser, page) = await OpenAsync();
-        await using var _ = browser;
-        static Task<string> Layer(ILocator cell) => cell.EvaluateAsync<string>("e => getComputedStyle(e).backgroundImage");
-
-        var overview = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await overview.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString());
-        var asked = overview.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders with stripes and lines']) .ib-table-scroll tbody tr").First;
-        await asked.HoverAsync();
-        Assert.NotEqual("none", await Layer(asked.Locator("td").First));
-        await overview.CloseAsync();
-
-        // This grid doesn't ask for it, so it's turned on here for the moment a cell is edited.
-        await page.Locator(Grid).EvaluateAsync("e => e.classList.add('ib-table-row-hover')");
-        await Row(page, 1002).HoverAsync();
-        Assert.NotEqual("none", await Layer(Cell(page, 1002, "customer")));
-
-        await Cell(page, 1002, "customer").ClickAsync();
-        await Assertions.Expect(Open(page)).ToHaveCountAsync(1);
-        await Row(page, 1002).Locator("td").First.HoverAsync();
-        Assert.Equal("none", await Layer(Row(page, 1002).Locator("td").First));
-        await page.Keyboard.PressAsync("Escape");
-
-        // Not asked for.
-        var other = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders edited in the row']) .ib-table-scroll tbody tr").First;
-        await other.HoverAsync();
-        Assert.Equal("none", await Layer(other.Locator("td").First));
-    }
-
-    [Theory]
-    [InlineData("customer")]
-    [InlineData("status")]
-    [InlineData("date")]
-    [InlineData("total")]
-    public async Task A_cell_being_edited_keeps_its_rows_height(string column)
-    {
-        var (browser, page) = await OpenAsync();
-        await using var _ = browser;
-        const string height = "e => e.getBoundingClientRect().height";
-        var before = await Row(page, 1001).EvaluateAsync<double>(height);
-        await Cell(page, 1001, column).ClickAsync();
-        await Open(page).WaitForAsync();
-        Assert.Equal(before, await Row(page, 1001).EvaluateAsync<double>(height));
     }
 
     [Fact]

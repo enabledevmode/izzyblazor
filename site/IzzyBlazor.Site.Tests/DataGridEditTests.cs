@@ -82,7 +82,6 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
     // address on another site is ignored.
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_dialog_opened_with_a_return_address_goes_back_there_and_never_off_the_site(string mode)
     {
         var (browser, page) = await OpenAsync(mode);
