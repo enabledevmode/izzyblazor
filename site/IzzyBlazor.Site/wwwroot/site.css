@@ -997,21 +997,11 @@ html:has(> body > .frame) body { margin: 0; }
 }
 
 /* A block's page. */
-/* An item's page (T2): the "Get it" card first on phones; from 1280px it's a 420px column at the end, staying in
-   view beside the pictures and options. */
-.site-item { display: flex; flex-direction: column; gap: var(--ib-space-7); }
-.site-item-main { display: flex; flex-direction: column; gap: var(--ib-space-4); min-width: 0; }
-.site-item-main > h2 { margin-block-start: var(--ib-space-6); }
-.site-item-main > h2:first-child { margin-block-start: 0; }
-@media (width >= 1280px) {
-  .site-item { display: grid; grid-template-columns: minmax(0, 1fr) 26.25rem; gap: var(--ib-space-8); align-items: start; }
-  .site-item-main { grid-area: 1 / 1; }
-  .site-item-get { grid-area: 1 / 2; position: sticky; top: calc(var(--ib-shell-header-h, 3.5rem) + var(--ib-space-6)); }
-}
-/* A block's page (T3): the card that adds it, then its settings. The sheet puts them side by side; the real
-   settings table (four columns, long defaults) needs the page's width, so they stack. */
-.site-block-get { display: flex; flex-direction: column; gap: var(--ib-space-8); margin-block-start: var(--ib-space-6); }
-.site-block-get > .site-getit { max-width: 33rem; }
+/* An item's page, a template's (T2) or a block's (T3): one column. The card that gets it sits under the pictures
+   or the preview, at a card's width; the options or settings table after it has the page's width (four columns,
+   long defaults). The T2 sheet's side column was drawn without the docs sidebar and left the table too narrow. */
+.site-item-get { display: flex; flex-direction: column; gap: var(--ib-space-8); margin-block-start: var(--ib-space-6); }
+.site-item-get > .site-getit { max-width: 33rem; }
 .site-block-settings { display: flex; flex-direction: column; gap: var(--ib-space-4); min-width: 0; }
 /* The card's numbered steps: a 24px number, then the step's name, command and note. */
 .site-getit .ib-code-block, .site-getit pre { margin: 0; }
@@ -1082,6 +1072,13 @@ html:has(> body > .frame) body { margin: 0; }
    which wraps at 16rem; the description takes the rest of the width. */
 .site-settings :is(.site-choices, .site-default) { white-space: nowrap; }
 .site-settings .site-default-long { display: inline-block; width: 16rem; white-space: normal; }
+/* Under 1280px the table is narrower than its four columns: a long run of choices (None | Server | WebAssembly |
+   Auto) wraps between them at 9rem and a sentence-long default at 12rem; the other columns stay on one line.
+   (No percentage in the max-width: a cell sizing its column reads one as none.) Stacked on a phone they wrap too. */
+@media (width < 1280px) {
+  .site-settings .site-choices { display: inline-block; width: max-content; max-width: 9rem; white-space: normal; }
+  .site-settings .site-default-long { width: 12rem; }
+}
 
 /* Block pictures follow the site's scheme: the root's explicit choice, else the system's. */
 .site-pic-dark { display: none; }

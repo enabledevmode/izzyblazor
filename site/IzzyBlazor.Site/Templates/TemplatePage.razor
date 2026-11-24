@@ -6,7 +6,8 @@
 @*
     A starter's or kit's page, generated from its manifest (catalog/<id>/izzy.json): the commands
     that create it (GetIt), its screenshots (a Carousel of its screens, each in the light and the dark scheme, that open
-    full size in a Lightbox; its picture when it has none), the options it takes, and the render modes it supports.
+    full size in a Lightbox; its picture when it has none), the options it takes, the render modes it supports and
+    the starter it's built on. One column, in a block page's order.
 *@
 
 @if (_template is not null)
@@ -33,38 +34,6 @@
             </Row>
             <div class="site-lead">@_template.Manifest.Summary</div>
         </Stack>
-
-        @* T2: the pictures and the options beside the "Get it" card, which stays in view; on phones the card comes first. *@
-        <div class="site-item">
-        <div class="site-item-get">
-            @if (!_template.Free)
-            {
-                <GetIt Title="Get it" Pro Command="@Command" />
-            }
-            else if (_template.Account)
-            {
-                <GetIt Title="Get it" Account Step="Create the app" Command="@Command">
-                    <LoginNote>This opens your browser so you can approve the sign-in. If you don’t have a free account yet, you can create one there in one step.</LoginNote>
-                    <ChildContent>
-                        <Row><Button Href="@AccountService.SignIn" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Create free account</Button></Row>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">izzy generates it on your own machine without a connection. The code belongs to you, and nothing checks a license when it runs.</TextBlock>
-                    </ChildContent>
-                    <SignedInContent>
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">izzy generates it on your own machine without a connection. The code belongs to you, and nothing checks a license when it runs.</TextBlock>
-                    </SignedInContent>
-                </GetIt>
-            }
-            else
-            {
-                <GetIt Title="Get it" Command="@($"dotnet new {TemplateExport.ShortName(_template.Manifest)} -n MyApp")">
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                        No account needed. <Anchor Href="docs/get-started/create-app">Install the template</Anchor> first if you haven’t.
-                        Or, with izzy: <code>@Command</code>
-                    </TextBlock>
-                </GetIt>
-            }
-        </div>
-        <div class="site-item-main">
 
         @if (_screens.Count > 0)
         {
@@ -110,14 +79,35 @@
             </div>
         }
 
-        @if (_template.Manifest.Base is { } made && Templates.ById(made.Item) is { } on)
-        {
-            <Heading Level="2" id="built-on">Built on</Heading>
-            <TextBlock>
-                @_template.Name is made over the <Anchor Href="@on.Href">@on.Name</Anchor> starter, so it has that starter's
-                shell, theme and account pages, with some of its options decided for you.
-            </TextBlock>
-        }
+        @* The card that creates it, under the pictures, as a block's is under its preview (T3). *@
+        <div class="site-item-get">
+            @if (!_template.Free)
+            {
+                <GetIt Title="Get it" Pro Command="@Command" />
+            }
+            else if (_template.Account)
+            {
+                <GetIt Title="Get it" Account Step="Create the app" Command="@Command">
+                    <LoginNote>This opens your browser so you can approve the sign-in. If you don’t have a free account yet, you can create one there in one step.</LoginNote>
+                    <ChildContent>
+                        <Row><Button Href="@AccountService.SignIn" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Create free account</Button></Row>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">izzy generates it on your own machine without a connection. The code belongs to you, and nothing checks a license when it runs.</TextBlock>
+                    </ChildContent>
+                    <SignedInContent>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">izzy generates it on your own machine without a connection. The code belongs to you, and nothing checks a license when it runs.</TextBlock>
+                    </SignedInContent>
+                </GetIt>
+            }
+            else
+            {
+                <GetIt Title="Get it" Command="@($"dotnet new {TemplateExport.ShortName(_template.Manifest)} -n MyApp")">
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                        No account needed. <Anchor Href="docs/get-started/create-app">Install the template</Anchor> first if you haven’t.
+                        Or, with izzy: <code>@Command</code>
+                    </TextBlock>
+                </GetIt>
+            }
+        </div>
 
         @if (_options.Count > 0)
         {
@@ -133,7 +123,7 @@
                 }
             </TextBlock>
             <Code Block Language="bash">@OptionExample</Code>
-            <Table Items="_options" Caption="@($"{_template.Name} options")" Size="ControlSize.Sm" Class="site-params site-settings" Bordered="false" SmallScreen="TableSmallScreen.Stack">
+            <Table Items="_options" Caption="@($"{_template.Name} options")" Size="ControlSize.Sm" Class="site-params site-settings" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(44)">
                 <Columns>
                     <TemplateColumn Title="Option"><code class="site-member-name">@($"--{context!.Option}")</code></TemplateColumn>
                     <TemplateColumn Title="Type or choices">
@@ -171,8 +161,15 @@
                 </TextBlock>
             }
         }
-        </div>
-        </div>
+
+        @if (_template.Manifest.Base is { } made && Templates.ById(made.Item) is { } on)
+        {
+            <Heading Level="2" id="built-on">Built on</Heading>
+            <TextBlock>
+                @_template.Name is made over the <Anchor Href="@on.Href">@on.Name</Anchor> starter, so it has that starter's
+                shell, theme and account pages, with some of its options decided for you.
+            </TextBlock>
+        }
     </article>
 }
 

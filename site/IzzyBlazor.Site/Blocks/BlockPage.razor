@@ -88,7 +88,7 @@
         </div>
 
         @* T3: the card that adds it, then its settings. *@
-        <div class="site-block-get">
+        <div class="site-item-get">
         @if (!_block.Free)
         {
             <GetIt Title="Add it to your project" Pro Command="@($"izzy add block {_block.Id}")" />
@@ -112,7 +112,7 @@
             Each setting is a flag on <code>izzy add</code>. The flag syntax isn't final; for now it looks like this:
         </TextBlock>
         <Code Block Language="bash">@FlagExample</Code>
-        <Table Items="_settings" Caption="@($"{_block.Name} settings")" Size="ControlSize.Sm" Class="site-params site-settings" Bordered="false" SmallScreen="TableSmallScreen.Stack">
+        <Table Items="_settings" Caption="@($"{_block.Name} settings")" Size="ControlSize.Sm" Class="site-params site-settings" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(44)">
             <Columns>
                 <TemplateColumn Title="Name"><code class="site-member-name">@context!.Name</code></TemplateColumn>
                 <TemplateColumn Title="Type or choices">
