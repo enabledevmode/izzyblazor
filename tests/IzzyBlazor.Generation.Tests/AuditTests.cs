@@ -61,7 +61,9 @@ public sealed class AuditTests : IDisposable
             { "accepted": [ { "rule": "color-contrast", "selector": ".quiet", "reason": "The footnote is quiet on purpose.", "by": "Ada", "on": "2026-11-24" } ] }
             """);
         const string picture = "<img src=\"data:image/gif;base64,R0lGODlhAQABAAAAACw=\">";
-        var body = $"{picture}<p class=\"quiet\" style=\"color:#aaa\">Prices exclude tax</p><div class=\"sample\"><span style=\"color:#bbb\">Unavailable</span></div>";
+        var body = $"{picture}<p class=\"quiet\" style=\"color:#aaa\">Prices exclude tax</p><div class=\"sample\"><span style=\"color:#bbb\">Unavailable</span></div>"
+            // The same sample drawn in an iframe: the element is in the frame, what it is inside is around it.
+            + "<div class=\"sample\"><iframe title=\"Preview\" srcdoc=\"<body style='background:#fff'><span style='color:#bbb'>Unavailable</span></body>\"></iframe></div>";
         using var site = new Site(() => $"<!doctype html><html lang=\"en\"><head><title>Orders</title></head><body style=\"background:#fff\"><main><h1>Orders</h1>{body}</main></body></html>");
 
         (int Exit, string Output, string Error) Audit(params string[] options)
@@ -74,10 +76,10 @@ public sealed class AuditTests : IDisposable
 
         var first = Audit("--out", "first", "--fail-on", "real");
         Assert.True(first.Exit == 5, first.Error);
-        Assert.Contains("3 findings: 1 real, 1 accepted, 1 false positive.", first.Output);
+        Assert.Contains("4 findings: 1 real, 1 accepted, 2 false positive.", first.Output);
         var verdicts = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "first", "results.json")))!["pages"]![0]!["violations"]!.AsArray()
             .SelectMany(rule => rule!["nodes"]!.AsArray().Select(node => $"{(string)rule["id"]!}: {(string)node!["verdict"]!["is"]!}")).Order().ToList();
-        Assert.Equal(["color-contrast: accepted", "color-contrast: false positive", "image-alt: real"], verdicts);
+        Assert.Equal(["color-contrast: accepted", "color-contrast: false positive", "color-contrast: false positive", "image-alt: real"], verdicts);
         Assert.Contains("The footnote is quiet on purpose (Ada, 2026-11-24)", File.ReadAllText(Path.Combine(_work, "first", "report.md")));
         Assert.Contains("- [ ] **Images must have alternative text** (`image-alt`", File.ReadAllText(Path.Combine(_work, "first", "tasks.md")));
 

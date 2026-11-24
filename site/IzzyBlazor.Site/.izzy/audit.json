@@ -1,8 +1,9 @@
 {
   // What izzy audit should know about this site. A component's docs page shows it several times, so
-  // two landmarks inside its examples may share a name.
+  // two landmarks inside its examples may share a name. An example that is a page of its own is drawn
+  // in an iframe, in .ex-window.
   "demoPages": [
-    { "pages": "/docs/components/**", "examples": ".ib-example-preview" }
+    { "pages": "/docs/components/**", "examples": ".ib-example-preview, .ex-window" }
   ],
   "accepted": [
     {

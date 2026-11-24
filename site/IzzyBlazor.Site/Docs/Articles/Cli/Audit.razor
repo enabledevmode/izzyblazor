@@ -103,8 +103,9 @@
             report with your reason and doesn't fail a build that uses <Code>--fail-on real</Code> or
             <Code>--fail-on new</Code>. <Code>rule</Code> and <Code>reason</Code> are required.
             <Code>selector</Code> is a CSS selector for the element or one it is inside, and <Code>pages</Code> is a
-            path, where <Code>*</Code> stands for one part and <Code>**</Code> for any number. A selector can't
-            reach an element inside an iframe: accept those by rule and page.
+            path, where <Code>*</Code> stands for one part and <Code>**</Code> for any number. A selector
+            also finds an element in an iframe of your own site, and what the iframe is inside counts as around
+            the element.
         </TextBlock>
         <Code Block Language="json" Title=".izzy/audit.json">@ProjectFile</Code>
         <TextBlock>

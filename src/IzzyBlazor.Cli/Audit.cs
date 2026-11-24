@@ -18,6 +18,19 @@ static partial class Audit
     /// <summary>The axe-core inside this izzy.</summary>
     public static string Engine => field ??= Resource("axe.min.js");
 
+    // What every window gets as it is made: axe as a function that starts it, not axe started. axe keeps the
+    // document it starts in, and the browser can make an iframe's window on its first, empty document and keep it
+    // for the page that loads there: axe started then checks the empty one. The page that is audited starts axe
+    // in itself and in the frames it can reach (Collect); a frame from another site starts its own once loaded.
+    static string Loader => field ??= "window.__izzyAxe = function () { if (!window.axe) (function () {\n" + Engine + """
+
+        }).call(window); };
+        if (window !== window.top) window.addEventListener("load", function () {
+          try { if (window.top.document) return; } catch { }
+          window.__izzyAxe();
+        });
+        """;
+
     public static string EngineVersion => field ??= EngineHeader().Match(Engine) is { Success: true } m ? m.Groups[1].Value : "unknown";
 
     static string Resource(string name)
@@ -51,8 +64,8 @@ static partial class Audit
                 await browser.Send("Page.enable");
                 await browser.Send("Runtime.enable");
                 await browser.Send("Page.setLifecycleEventsEnabled", new JsonObject { ["enabled"] = true });
-                // axe in every document, frames too, before the page's own scripts: it then checks inside iframes.
-                await browser.Send("Page.addScriptToEvaluateOnNewDocument", new JsonObject { ["source"] = Engine });
+                // axe for every document, frames too, so it checks inside iframes.
+                await browser.Send("Page.addScriptToEvaluateOnNewDocument", new JsonObject { ["source"] = Loader });
                 // The app's selectors are read once, before any page: a wrong one stops the run, where it would
                 // otherwise only show on a page that has a finding of its rule.
                 if (judge is not null)
@@ -157,7 +170,9 @@ static partial class Audit
 
     // What a page answers with, as a string: axe's violations with each element, and what it couldn't decide as counts
     // by reason. A judge's selector tests run here, on the element itself: each element answers with the keys of
-    // those that fit. An element inside an iframe can't be reached from the page, so it fits none.
+    // those that fit. axe hands over no element for one inside an iframe: it is found again from its target, a
+    // selector for each frame on the way, and an ancestor is looked for through the frames around it, so an
+    // example drawn in an iframe is inside its example. A frame from another site can't be read: its elements fit none.
     // The keys of the claims whose selectors the browser can't read.
     const string Selectors = """
         JSON.stringify(__CLAIMS__.filter(c => [c.matches, c.closest, c.has, c.examples].some(s => {
@@ -169,22 +184,59 @@ static partial class Audit
     const string Collect = """
         (async () => {
           const claims = __CLAIMS__;
+          const start = (w) => {
+            try {
+              w.__izzyAxe();
+              for (const frame of w.document.querySelectorAll("iframe, frame")) start(frame.contentWindow);
+            } catch { }
+          };
+          start(window);
           const r = await axe.run(document, { resultTypes: ["violations", "incomplete"], elementRef: claims.length > 0 });
           const refused = new Set();
+          // The element of a node: axe's, or the one its target leads to. Each part of a target but the last is
+          // an iframe (a list of parts goes through shadow roots).
+          const find = (root, selector) => Array.isArray(selector)
+            ? selector.reduce((scope, part, at) => scope && (at ? scope.shadowRoot : scope) && (at ? scope.shadowRoot : scope).querySelector(part), root)
+            : root.querySelector(selector);
+          const elementOf = (n) => {
+            if (n.element) return n.element;
+            try {
+              let root = document;
+              for (const [at, part] of n.target.entries()) {
+                const found = root && find(root, part);
+                if (!found || at === n.target.length - 1) return found || null;
+                root = found.contentDocument;
+              }
+            } catch { }
+            return null;
+          };
+          // The element or an ancestor, in its own document or one that frames it.
+          const closest = (element, selector) => {
+            for (let e = element; e; e = e.ownerDocument.defaultView && e.ownerDocument.defaultView.frameElement) {
+              const found = e.closest(selector);
+              if (found) return found;
+            }
+            return null;
+          };
           const fits = (claim, element, related) => {
             try {
               if (claim.matches && !element.matches(claim.matches)) return false;
-              if (claim.closest && !element.closest(claim.closest)) return false;
+              if (claim.closest && !closest(element, claim.closest)) return false;
               if (claim.has && !element.querySelector(claim.has)) return false;
               // Inside an example, or sharing its fault with something that is (two landmarks with one name).
-              if (claim.examples && ![element].concat(related).some(e => e.closest(claim.examples))) return false;
+              if (claim.examples && ![element].concat(related).some(e => closest(e, claim.examples))) return false;
               return true;
-            } catch { refused.add(claim.key); return false; }
+            } catch (e) {
+              // A selector the browser can't read; anything else (a frame gone since) fits nothing.
+              if (e instanceof DOMException && e.name === "SyntaxError") refused.add(claim.key);
+              return false;
+            }
           };
           const answer = (rule, n) => {
-            if (!claims.length || !n.element) return undefined;
-            const related = n.any.concat(n.all, n.none).flatMap(c => c.relatedNodes || []).map(x => x.element).filter(Boolean);
-            return claims.filter(c => (c.rule === "*" || c.rule === rule) && fits(c, n.element, related)).map(c => c.key);
+            const element = claims.length ? elementOf(n) : null;
+            if (!element) return undefined;
+            const related = n.any.concat(n.all, n.none).flatMap(c => c.relatedNodes || []).map(elementOf).filter(Boolean);
+            return claims.filter(c => (c.rule === "*" || c.rule === rule) && fits(c, element, related)).map(c => c.key);
           };
           // Text cut in the middle of a character (an emoji at the 300th place) can't be written as JSON.
           const whole = (text) => text.toWellFormed ? text.toWellFormed() : text;
