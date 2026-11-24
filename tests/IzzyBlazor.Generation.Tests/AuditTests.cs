@@ -91,6 +91,26 @@ public sealed class AuditTests : IDisposable
         Assert.Contains("- [x] **Images must have alternative text** (`image-alt`", tasks);
     }
 
+    [BrowserFact]
+    public void A_site_without_a_sitemap_is_audited_by_following_its_links()
+    {
+        // Every address answers with this page, so the site is its root and the page it links to.
+        const string html = "<!doctype html><html lang=\"en\"><head><title>Shop</title><base href=\"/\"></head><body><main><h1>Shop</h1><a href=\"orders\">Orders</a> <a href=\"https://example.com/\">Elsewhere</a></main></body></html>";
+        using var site = new Site(() => html);
+        var pro = Path.Combine(_work, "pro");
+        Directory.CreateDirectory(Path.Combine(pro, ".audit"));
+        File.WriteAllText(Path.Combine(pro, ".audit", "pack.json"), """{ "version": "test", "entries": [] }""");
+
+        var (output, error) = (new StringWriter(), new StringWriter());
+        var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, output, error, proRoot: pro)
+            .Run(["audit", "--site", site.Url, "--sizes", "1440", "--schemes", "light", "--out", "site"]);
+
+        Assert.True(exit == 0, error.ToString());
+        Assert.Contains("2 pages found by following links", error.ToString());
+        var pages = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "site", "results.json")))!["pages"]!.AsArray().Select(p => new Uri((string)p!["url"]!).AbsolutePath).ToList();
+        Assert.Equal(["/", "/orders"], pages);
+    }
+
     /// <summary>A page served on this machine: whatever <paramref name="html"/> gives at the time it is asked for.</summary>
     sealed class Site : IDisposable
     {

@@ -264,8 +264,7 @@ static partial class Audit
         if (run["baseline"] is { } baseline)
             text.Append($"\nAgainst the run of {((string?)baseline["at"] ?? "an unknown date")[..Math.Min(10, ((string?)baseline["at"] ?? "an unknown date").Length)]} (`{(string)baseline["file"]!}`): {(int)baseline["new"]!} new, {baseline["fixed"]!.AsArray().Count} fixed.\n");
 
-        text.Append("\n## What was checked\n\n| Page | Width | Scheme | Elements found |\n|---|---|---|---|\n");
-        foreach (var page in pages) text.Append(CheckedRow(page));
+        text.Append('\n').Append(Checked(pages));
 
         var section = "";
         foreach (var group in groups)

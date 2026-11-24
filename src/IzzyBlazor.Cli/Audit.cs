@@ -28,36 +28,61 @@ static partial class Audit
 
     /// <summary>
     /// Audits each address at each width and scheme; <paramref name="progress"/> hears of each page as it starts.
-    /// With a <paramref name="judge"/>, each finding gets its verdict.
+    /// With a <paramref name="judge"/>, each finding gets its verdict. <paramref name="cookies"/> go with every
+    /// request to the addresses' sites. A long run is shared between <paramref name="browsers"/> browsers.
     /// </summary>
-    public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null, Judge? judge = null)
+    public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null, Judge? judge = null,
+        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1)
     {
-        await using var browser = await Chromium.StartAsync(browserPath);
-        var product = (string?)(await browser.Send("Browser.getVersion"))["product"] ?? Path.GetFileName(browserPath);
-        await browser.Send("Page.enable");
-        await browser.Send("Runtime.enable");
-        await browser.Send("Page.setLifecycleEventsEnabled", new JsonObject { ["enabled"] = true });
-        // axe in every document, frames too, before the page's own scripts: it then checks inside iframes.
-        await browser.Send("Page.addScriptToEvaluateOnNewDocument", new JsonObject { ["source"] = Engine });
-        // The app's selectors are read once, before any page: a wrong one stops the run, where it would
-        // otherwise only show on a page that has a finding of its rule.
-        if (judge is not null)
-            judge.Refuse(JsonNode.Parse((string)(await browser.Evaluate(Selectors.Replace("__CLAIMS__", judge.Claims())))!)!.AsArray().Select(k => (string)k!));
+        var loads = (from width in widths from scheme in schemes from url in urls select (Width: width, Scheme: scheme, Url: url)).ToList();
+        var pages = new JsonObject[loads.Count];
+        var sites = urls.Select(u => Uri.TryCreate(u, UriKind.Absolute, out var parsed) ? parsed.GetLeftPart(UriPartial.Authority) : null).Where(s => s is not null).Distinct().ToList();
+        var next = -1;
+        string? product = null;
+        using var stop = new CancellationTokenSource();
 
-        var pages = new JsonArray();
-        foreach (var width in widths)
+        // One browser's share: it takes the next load until none is left, or another browser's failure ends the run.
+        async Task Work()
         {
-            await browser.Send("Emulation.setDeviceMetricsOverride", new JsonObject { ["width"] = width, ["height"] = width < 600 ? 800 : 900, ["deviceScaleFactor"] = 1, ["mobile"] = width < 600 });
-            foreach (var scheme in schemes)
+            try
             {
-                await browser.Send("Emulation.setEmulatedMedia", new JsonObject { ["features"] = new JsonArray(new JsonObject { ["name"] = "prefers-color-scheme", ["value"] = scheme }) });
-                foreach (var url in urls)
+                await using var browser = await Chromium.StartAsync(browserPath);
+                product ??= (string?)(await browser.Send("Browser.getVersion"))["product"] ?? Path.GetFileName(browserPath);
+                await browser.Send("Page.enable");
+                await browser.Send("Runtime.enable");
+                await browser.Send("Page.setLifecycleEventsEnabled", new JsonObject { ["enabled"] = true });
+                // axe in every document, frames too, before the page's own scripts: it then checks inside iframes.
+                await browser.Send("Page.addScriptToEvaluateOnNewDocument", new JsonObject { ["source"] = Engine });
+                // The app's selectors are read once, before any page: a wrong one stops the run, where it would
+                // otherwise only show on a page that has a finding of its rule.
+                if (judge is not null)
+                    judge.Refuse(JsonNode.Parse((string)(await browser.Evaluate(Selectors.Replace("__CLAIMS__", judge.Claims())))!)!.AsArray().Select(k => (string)k!));
+                foreach (var cookie in cookies ?? [])
+                    foreach (var site in sites)
+                        await browser.Send("Network.setCookie", new JsonObject { ["name"] = cookie.Key, ["value"] = cookie.Value, ["url"] = site });
+
+                (int, string)? set = null;
+                while (!stop.IsCancellationRequested && Interlocked.Increment(ref next) is var at && at < loads.Count)
                 {
-                    progress?.Invoke($"{url} at {width}, {scheme}");
-                    pages.Add(await Page(browser, url, width, scheme, judge));
+                    var load = loads[at];
+                    if (set != (load.Width, load.Scheme))
+                    {
+                        await browser.Send("Emulation.setDeviceMetricsOverride", new JsonObject { ["width"] = load.Width, ["height"] = load.Width < 600 ? 800 : 900, ["deviceScaleFactor"] = 1, ["mobile"] = load.Width < 600 });
+                        await browser.Send("Emulation.setEmulatedMedia", new JsonObject { ["features"] = new JsonArray(new JsonObject { ["name"] = "prefers-color-scheme", ["value"] = load.Scheme }) });
+                        set = (load.Width, load.Scheme);
+                    }
+                    progress?.Invoke($"{(loads.Count > 8 ? $"[{at + 1}/{loads.Count}] " : "")}{load.Url} at {load.Width}, {load.Scheme}");
+                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge);
                 }
             }
+            catch
+            {
+                stop.Cancel();
+                throw;
+            }
         }
+        await Task.WhenAll(Enumerable.Range(0, Math.Clamp(browsers, 1, Math.Max(1, loads.Count))).Select(_ => Work()));
+
         var run = new JsonObject
         {
             ["tool"] = "izzy audit",
@@ -67,7 +92,7 @@ static partial class Audit
             ["at"] = DateTimeOffset.Now.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture),
             ["widths"] = new JsonArray([.. widths.Select(w => (JsonNode)w)]),
             ["schemes"] = new JsonArray([.. schemes.Select(s => (JsonNode)s)]),
-            ["pages"] = pages,
+            ["pages"] = new JsonArray([.. pages]),
         };
         if (judge is not null) run["verdicts"] = new JsonObject { ["pack"] = judge.PackVersion, ["project"] = judge.ProjectFile };
         return run;
@@ -274,8 +299,7 @@ static partial class Audit
             text.Append('\n');
         }
 
-        text.Append("## What was checked\n\n| Page | Width | Scheme | Elements found |\n|---|---|---|---|\n");
-        foreach (var page in pages) text.Append(CheckedRow(page));
+        text.Append(Checked(pages));
 
         if (rules.Count > 0) text.Append("\n## Findings\n");
         foreach (var rule in rules)
@@ -292,6 +316,31 @@ static partial class Audit
         }
 
         text.Append(Closing(run));
+        return text.ToString();
+    }
+
+    // What was checked: each load of a few pages, or for a site each page with its loads together.
+    static string Checked(List<JsonObject> pages)
+    {
+        var text = new StringBuilder();
+        var addresses = pages.GroupBy(p => (string)p["url"]!).ToList();
+        if (pages.Count <= 16)
+        {
+            text.Append("## What was checked\n\n| Page | Width | Scheme | Elements found |\n|---|---|---|---|\n");
+            foreach (var page in pages) text.Append(CheckedRow(page));
+            return text.ToString();
+        }
+        var each = pages.Select(p => $"{(int)p["width"]!}px {(string)p["scheme"]!}").Distinct().ToList();
+        text.Append($"## What was checked\n\n{addresses.Count} pages, each at {string.Join(", ", each)}.\n\n| Page | Elements found |\n|---|---|\n");
+        foreach (var address in addresses)
+        {
+            var count = address.SelectMany(p => p["violations"]!.AsArray()).SelectMany(v => v!["nodes"]!.AsArray()).Select(n => (string?)n!["id"]).Distinct().Count();
+            var failed = address.Where(p => p["error"] is not null).ToList();
+            var note = failed.Count == address.Count() ? $"Not checked: {Cell((string)failed[0]["error"]!)}" : failed.Count > 0 ? $"{count} ({failed.Count} of {address.Count()} loads failed)" : $"{count}";
+            if (address.FirstOrDefault(p => (int?)p["status"] is >= 400) is { } answered) note += $" (the page answered {(int)answered["status"]!})";
+            if (address.FirstOrDefault(p => p["landed"] is not null) is { } led) note += $" (it led to {Cell((string)led["landed"]!)}, which is what was checked)";
+            text.Append($"| {Cell(address.Key)} | {note} |\n");
+        }
         return text.ToString();
     }
 
@@ -355,8 +404,10 @@ static partial class Audit
         var urls = pages.Select(p => (string)p["url"]!).Distinct().ToList();
         var text = new StringBuilder();
         text.Append($"Audited {(urls.Count == 1 ? urls[0] : $"{urls.Count} pages")} at {string.Join(" and ", run["widths"]!.AsArray().Select(w => $"{w}px"))}, {string.Join(" and ", run["schemes"]!.AsArray().Select(s => (string)s!))}, with axe-core {(string)run["engine"]!["version"]!}.\n");
-        foreach (var page in pages.Where(p => p["error"] is not null))
+        var failed = pages.Where(p => p["error"] is not null).ToList();
+        foreach (var page in failed.Take(5))
             text.Append($"Not checked: {(string)page["url"]!} at {(int)page["width"]!}px, {(string)page["scheme"]!}: {(string)page["error"]!}\n");
+        if (failed.Count > 5) text.Append($"…and {failed.Count - 5} more loads that weren't checked: the report lists them.\n");
         foreach (var page in pages.Where(p => (int?)p["status"] is >= 400).DistinctBy(p => (string)p["url"]!))
             text.Append($"{(string)page["url"]!} answered {(int)page["status"]!}: what was checked is its error page.\n");
         foreach (var page in pages.Where(p => p["landed"] is not null).DistinctBy(p => (string)p["url"]!))

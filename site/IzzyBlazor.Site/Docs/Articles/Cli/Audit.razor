@@ -58,6 +58,29 @@
             the <Code>IZZY_BROWSER</Code> variable to its path.
         </TextBlock>
 
+        <Heading Level="2">Audit the whole site</Heading>
+        <TextBlock>
+            With IzzyBlazor Pro, <Code>--site</Code> audits every page of a site. izzy takes the pages from the site's
+            <Code>sitemap.xml</Code>. Without one, it starts at the address you give and follows the links to the
+            site's other pages. With <Code>--run</Code>, it audits the whole app and needs no address:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit --run --site</Code>
+        <TextBlock>
+            An address with a path keeps the audit inside it: <Code>izzy audit --site https://localhost:5001/docs</Code>
+            audits <Code>/docs</Code> and the pages under it. A page is a path, so two addresses that differ only
+            after the <Code>?</Code> are audited once. izzy stops at 500 pages; change that with
+            <Code>--max-pages</Code>. A long run uses up to three browsers side by side.
+        </TextBlock>
+        <TextBlock>
+            To audit pages of your own choosing, list their addresses in a file, one a line, and pass it with
+            <Code>--urls</Code>:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit --urls pages.txt --run</Code>
+        <TextBlock>
+            Following links finds only what a link in the page's HTML leads to. A page reached another way, such
+            as from a menu drawn by script, needs a sitemap or a line in the file.
+        </TextBlock>
+
         <Heading Level="2">Verdicts</Heading>
         <TextBlock>
             With IzzyBlazor Pro, each finding gets a verdict and its reason. A tool's findings are not all
@@ -156,6 +179,10 @@
     private static readonly Row[] Options =
     [
         new("--run", "Starts the app in this project, or the one --project names, and stops it after the audit."),
+        new("--site", "Audits every page of the site: its sitemap's, else those its links lead to. Pro."),
+        new("--urls <file>", "Audits the addresses a file lists, one a line. Pro."),
+        new("--max-pages 500", "The most pages --site audits."),
+        new("--cookie name=value", "Sends a cookie with every request, for pages behind a sign-in. Repeat it for more cookies."),
         new("--sizes 1440,375", "The widths to check, in pixels."),
         new("--schemes light,dark", "The color schemes to check."),
         new("--out <folder>", "Where the files go, in place of a new folder in .izzy/audit/."),

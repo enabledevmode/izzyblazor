@@ -37,8 +37,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
-          izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]
-          izzy audit [<path> ...] --run [--project <path>]
+          izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--cookie <name=value>] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]
+          izzy audit --site <url> [--max-pages 500], or izzy audit --urls <file>
+          izzy audit [<path> ...] --run [--site] [--project <path>]
           izzy agent [--project <path>] [--dry-run]
           izzy mcp
           izzy login [--no-browser]
@@ -64,7 +65,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         --fail-on any ends with exit code 5 when there are findings, for CI. With IzzyBlazor Pro each finding
         has a verdict (real, needs a person, accepted, demo page, false positive), your own decisions are read
         from .izzy/audit.json, --format tasks writes tasks.md, and --baseline <results.json> with --fail-on new
-        fails on real findings the past run lacks.
+        fails on real findings the past run lacks. --site audits every page of a site: those its sitemap.xml
+        lists, else those its links lead to; izzy audit --run --site is the whole app. --urls <file> audits
+        a list, one address a line. --cookie sends a cookie with every request, for pages behind a sign-in.
         izzy agent writes what a coding agent reads in your project: the IzzyBlazor skill, and the docs server
         and izzy mcp in the MCP settings of Claude Code, Copilot, Cursor and Visual Studio. izzy mcp is the
         server those settings start: izzy's commands as tools, for an agent, with a free account. izzy agent
@@ -217,8 +220,17 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // izzy audit https://localhost:5001/orders: the page in a browser on this machine, checked with axe-core.
     int AuditPages(Args args)
     {
-        const string usage = "izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json], or izzy audit [<path> ...] --run [--project <path>]";
+        const string usage = "izzy audit <url> [--site] [--urls <file>] [--max-pages 500] [--cookie <name=value>] [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json], or izzy audit [<path> ...] --run [--site] [--project <path>]";
         var run = args.Switch("run");
+        // --site with an address, or alone after one (or with --run, for the app's root).
+        var site = args.Has("site");
+        var siteStart = site ? args.Options.First(o => o.Name == "site").Value : null;
+        args.Options.RemoveAll(o => o.Name == "site");
+        var listFile = args.Take("urls");
+        var maxPages = args.Take("max-pages") is { } most ? int.TryParse(most, out var limit) && limit >= 1 ? limit : throw new UsageException($"--max-pages takes a number of pages: \"{most}\" isn't one.") : 500;
+        var cookies = new List<KeyValuePair<string, string>>();
+        while (args.Take("cookie") is { } cookie)
+            cookies.Add(cookie.Split('=', 2) is [{ Length: > 0 } name, var value] ? KeyValuePair.Create(name.Trim(), value) : throw new UsageException($"--cookie takes name=value: \"{cookie}\" has no =."));
         var json = args.Switch("json");
         var folder = args.Take("project");
         var given = args.Take("browser");
@@ -244,8 +256,26 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (widths.Count == 0 || schemes.Count == 0 || formats.Length == 0) throw new UsageException($"Usage: {usage}");
 
         var pages = args.Words.Skip(1).ToList();
-        if (!run && pages.Count == 0) throw new UsageException($"Say which page: izzy audit https://localhost:5001/, or izzy audit --run to start this project's app. Usage: {usage}");
-        if (run && pages.Count == 0) pages.Add("/");
+        if (listFile is not null)
+        {
+            var file = Path.GetFullPath(listFile, workingDirectory);
+            if (!File.Exists(file)) throw new UsageException($"--urls: there is no {listFile}.");
+            pages.AddRange(File.ReadLines(file).Select(line => line.Trim()).Where(line => line.Length > 0 && line[0] != '#'));
+            if (pages.Count == 0) throw new UsageException($"{listFile} lists no addresses: one a line.");
+        }
+        if (site)
+        {
+            // The site's start: the address given with --site, else the first page, else the app's root.
+            if (siteStart is null && pages.Count > 0) (siteStart, pages) = (pages[0], pages[1..]);
+            siteStart ??= run ? "/" : throw new UsageException("--site needs the site's address: izzy audit --site https://localhost:5001/, or izzy audit --run --site for this project's app.");
+            if (!HasPro)
+            {
+                error.WriteLine("Auditing a whole site comes with IzzyBlazor Pro. Free audits one page: izzy audit <url>.");
+                return 3;
+            }
+        }
+        if (!run && !site && pages.Count == 0) throw new UsageException($"Say which page: izzy audit https://localhost:5001/, or izzy audit --run to start this project's app. Usage: {usage}");
+        if (run && !site && pages.Count == 0) pages.Add("/");
         if (pages.Count > 1 && !HasPro)
         {
             error.WriteLine($"Auditing several pages in one run comes with IzzyBlazor Pro: this run audits {pages[0]}.");
@@ -273,20 +303,36 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var decisions = Path.Combine(home, ".izzy", "audit.json");
         var judge = pack is null ? null : new Audit.Judge(pack, File.Exists(decisions) ? decisions : null);
 
+        var saying = new object();
         void Progress(string line)
         {
-            if (!json) error.WriteLine(line);
+            if (json) return;
+            lock (saying) error.WriteLine(line);
         }
         using var app = run ? Audit.App.StartAsync(csproj!, Progress).GetAwaiter().GetResult() : null;
-        var urls = pages.Select(page =>
+        string Resolve(string page)
         {
             if (app is not null && page.StartsWith('/')) return app.Url + page;
             var address = page.Contains("://", StringComparison.Ordinal) ? page : "http://" + page;
             return Uri.TryCreate(address, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" ? uri.ToString()
                 : throw new UsageException(run ? $"\"{page}\" isn't a path in the app (/orders) or an address." : $"\"{page}\" isn't an address: izzy audit https://localhost:5001/orders.");
-        }).ToList();
+        }
+        var urls = pages.Select(Resolve).ToList();
+        if (site)
+        {
+            var start = Resolve(siteStart!);
+            Progress($"Looking for the pages of {start}");
+            var found = Audit.Discover(new Uri(start), maxPages, cookies).GetAwaiter().GetResult();
+            Progress(found.FromSitemap ? $"sitemap.xml lists {found.Found} page{(found.Found == 1 ? "" : "s")}." : $"No sitemap.xml: {found.Pages.Count} page{(found.Pages.Count == 1 ? "" : "s")} found by following links.");
+            if (found.Found > found.Pages.Count)
+                error.WriteLine(found.FromSitemap ? $"This run audits the first {found.Pages.Count} of them. For more, raise --max-pages." : $"The search stopped at {found.Pages.Count} pages, and the site has more. For more, raise --max-pages.");
+            urls = [.. urls.Concat(found.Pages).Distinct(StringComparer.OrdinalIgnoreCase)];
+        }
 
-        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress, judge).GetAwaiter().GetResult();
+        // A long run is shared between up to three browsers.
+        var loads = urls.Count * widths.Count * schemes.Count;
+        var browsers = loads >= 24 ? Math.Clamp(Environment.ProcessorCount / 2, 1, 3) : 1;
+        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress, judge, cookies, browsers).GetAwaiter().GetResult();
         if (baseline is not null) Audit.Compare(results, baseline, baselineFile!.Replace('\\', '/'));
         var failing = failOn switch
         {
@@ -318,7 +364,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (formats.Contains("md")) File.WriteAllText(Path.Combine(target, "report.md"), Audit.Markdown(results));
         if (formats.Contains("tasks")) File.WriteAllText(Path.Combine(target, "tasks.md"), Audit.Tasks(results));
         output.Write(Audit.Summary(results));
-        var shown = Path.GetRelativePath(workingDirectory, target).Replace('\\', '/');
+        // Beside the project it is a short path from here; somewhere else it is the whole path.
+        var shown = (Path.GetRelativePath(workingDirectory, target) is var near && !near.StartsWith("..", StringComparison.Ordinal) ? near : target).Replace('\\', '/');
         output.WriteLine(formats.Contains("md") ? $"Report: {shown}/report.md" : formats.Contains("tasks") ? $"Tasks: {shown}/tasks.md" : $"Results: {shown}/results.json");
         return exit;
     }
