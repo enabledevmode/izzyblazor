@@ -69,6 +69,32 @@ public sealed class ComponentTests : IDisposable
         Assert.Contains("namespace Acme.Client.Pages;", File.ReadAllText(Path.Combine(_work, "Acme.Client", "Pages", "Orders.cs")));
     }
 
+    // The page's names stay the page's: a type that one of its members hides is reached by a @using name, and a
+    // second copy of an example gets a local of its own.
+    [Fact]
+    public void An_example_keeps_clear_of_the_names_a_page_has()
+    {
+        ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("blazor"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme")), _work);
+        int Line(string page, string start) => Array.FindIndex(File.ReadAllLines(Path.Combine(_work, page)), l => l.StartsWith(start, StringComparison.Ordinal)) + 1;
+
+        // Home has an Orders list of its own, and Table's example an Orders class.
+        const string home = "Components/Pages/Home.razor";
+        var result = Izzy("add", "component", "Table", "--at", $"{home}:{Line(home, "<Column")}");
+        Assert.True(result.Exit == 0 && result.Error.Length == 0, result.Error);
+        var text = File.ReadAllText(Path.Combine(_work, home));
+        Assert.Contains("@using Orders2 = Acme.Components.Pages.Orders", text);
+        Assert.Contains("<Table Items=\"Orders2.All\"", text);
+        Assert.Contains("<Chart Items=\"Orders\"", text);
+
+        const string weather = "Components/Pages/Weather.razor";
+        for (var copy = 0; copy < 2; copy++)
+            Assert.Equal(0, Izzy("add", "component", "Diff", "--example", "computed", "--at", $"{weather}:{Line(weather, "<Container")}").Exit);
+        text = File.ReadAllText(Path.Combine(_work, weather));
+        Assert.Contains("var lines = TextDiff.Compare(Before, After);", text);
+        Assert.Contains("var lines2 = TextDiff.Compare(Before2, After2);", text);
+        Assert.Contains("<Diff Lines=\"lines2\" />", text);
+    }
+
     // An app restored against a package that holds the data is described by that data: its own version's.
     [Fact]
     public void An_app_is_described_by_the_data_in_its_own_package()

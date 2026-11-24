@@ -23,7 +23,8 @@ static partial class ExampleInsert
     /// <param name="imports">The text of the <c>_Imports.razor</c> files that apply to the page.</param>
     /// <param name="library">The components, to tell an attribute that holds C# from one that holds text.</param>
     /// <param name="codeBehind">The page's <c>.razor.cs</c> file, when it has one: its members' names are taken too.</param>
-    public static (List<TextInsert> Inserts, List<string> Warnings) Place(string page, string path, int offset, string source, string imports, Components library, string? codeBehind = null)
+    /// <param name="qualified">Types of the example's own files that a member of the page hides, each with its full name: the example gets a <c>@using</c> name for it.</param>
+    public static (List<TextInsert> Inserts, List<string> Warnings) Place(string page, string path, int offset, string source, string imports, Components library, string? codeBehind = null, IReadOnlyDictionary<string, string>? qualified = null)
     {
         var eol = page.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
         var (directives, markup, code) = Split(source.Replace("\r\n", "\n", StringComparison.Ordinal));
@@ -50,6 +51,17 @@ static partial class ExampleInsert
         foreach (var name in overrides)
             warnings.Add($"{path} already overrides {name}, so the example's is {renames[name]}(): call it from yours.");
 
+        // A type the page hides gets another name by a @using, as a clashing member gets one. Its full name in
+        // place wouldn't do: a part of it can be hidden too (an app named "app" has Program's app).
+        var aliases = new List<string>();
+        foreach (var (type, full) in (qualified ?? new Dictionary<string, string>()).Where(q => !renames.ContainsKey(q.Key)))
+        {
+            var number = 2;
+            while (taken.Contains(type + number) || names.Contains(type + number) || renames.ContainsValue(type + number)) number++;
+            renames[type] = type + number;
+            if (!here.Contains($"@using {type + number} = {full}")) aliases.Add($"@using {type + number} = {full}");
+        }
+
         // A form's name is unique on a page.
         var forms = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (Match m in FormName().Matches(source))
@@ -68,7 +80,20 @@ static partial class ExampleInsert
             code = RenameCode(code, renames, overrides);
             markup = RenameMarkup(markup, renames, library);
             needed = needed.Select(d => Inject().Match(d) is { Success: true } m && renames.TryGetValue(m.Groups[1].Value, out var to) ? d[..m.Groups[1].Index] + to : d).ToList();
+            needed.AddRange(aliases);
         }
+        // A local of a @{ } block belongs to the page's one render method, so the example's can't have the name of
+        // one the page has (the same example added twice).
+        var pageLocals = Locals(page);
+        var locals = Locals(markup);
+        var relocated = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var name in locals.Where(pageLocals.Contains))
+        {
+            var number = 2;
+            while (pageLocals.Contains(name + number) || locals.Contains(name + number) || taken.Contains(name + number)) number++;
+            relocated[name] = name + number;
+        }
+        if (relocated.Count > 0) markup = RenameMarkup(markup, relocated, library);
         foreach (var (from, to) in forms)
         {
             code = code.Replace($"\"{from}\"", $"\"{to}\"", StringComparison.Ordinal);
@@ -199,6 +224,30 @@ static partial class ExampleInsert
             if (start == 0) return "";
             start = start >= 2 ? page.LastIndexOf('\n', start - 2) + 1 : 0;
         }
+    }
+
+    // What the @{ } blocks in markup declare: variables (out and pattern ones too) and local functions.
+    static HashSet<string> Locals(string markup)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        var comments = RazorPage.Comments(markup);
+        for (var i = 0; i < markup.Length - 1; i++)
+        {
+            if (markup[i] != '@' || markup[i + 1] != '{' || comments.Any(c => i >= c.Start && i < c.End)) continue;
+            var close = RazorPage.MatchBrace(markup, i + 1);
+            if (close < 0) break;
+            foreach (var node in CSharpSyntaxTree.ParseText("class C { void M() {" + markup[(i + 2)..close] + "\n}}").GetRoot().DescendantNodes())
+            {
+                switch (node)
+                {
+                    case VariableDeclaratorSyntax { Parent.Parent: LocalDeclarationStatementSyntax } variable: names.Add(variable.Identifier.Text); break;
+                    case SingleVariableDesignationSyntax designation: names.Add(designation.Identifier.Text); break;
+                    case LocalFunctionStatementSyntax function: names.Add(function.Identifier.Text); break;
+                }
+            }
+            i = close;
+        }
+        return names;
     }
 
     sealed record Declared(string Name, bool Override);
@@ -389,7 +438,7 @@ static partial class ExampleInsert
         return result.ToString();
     }
 
-    // The names in a stretch of C#, outside its strings: "Delete {file}" keeps its word, and {file} is code again.
+    // The names in a stretch of C#, outside its strings and comments: "Delete {file}" keeps its word, and {file} is code again.
     static string RenameCSharp(string text, Regex word, Dictionary<string, string> renames)
     {
         var result = new StringBuilder();
@@ -400,7 +449,16 @@ static partial class ExampleInsert
         }
         for (var i = 0; i < text.Length; i++)
         {
-            if (text[i] == '\'' && RazorPage.CharEnd(text, i) is var charEnd and > 0)
+            if (text[i] == '/' && i + 1 < text.Length && text[i + 1] is '/' or '*')
+            {
+                Flush(i);
+                var end = text[i + 1] == '/' ? text.IndexOf('\n', i) : text.IndexOf("*/", i + 2, StringComparison.Ordinal) is var close and >= 0 ? close + 2 : -1;
+                if (end < 0) end = text.Length;
+                result.Append(text, i, end - i);
+                code = end;
+                i = end - 1;
+            }
+            else if (text[i] == '\'' && RazorPage.CharEnd(text, i) is var charEnd and > 0)
             {
                 Flush(i);
                 result.Append(text, i, charEnd - i + 1);

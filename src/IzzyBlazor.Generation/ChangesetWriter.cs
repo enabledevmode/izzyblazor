@@ -154,6 +154,24 @@ public static class ChangesetWriter
         var fullRoot = Path.GetFullPath(root);
         var full = Path.GetFullPath(Path.Combine(fullRoot, path));
         if (!ProjectInfo.Inside(fullRoot, full)) throw new GenerationException($"{path} is outside the project.");
+        // A link inside the project (a symlink, a junction) that leads out of it is not a way out for a write.
+        var real = Real(full);
+        if (real != full && !ProjectInfo.Inside(Real(fullRoot), real))
+            throw new GenerationException($"{path} goes through a link to {real}, outside the project. izzy writes inside the project only.");
         return full;
+    }
+
+    // The path with the links along it followed; a part that doesn't exist yet stays as written.
+    static string Real(string full, int depth = 0)
+    {
+        var current = Path.GetPathRoot(full) ?? "";
+        foreach (var part in full[current.Length..].Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries))
+        {
+            current = Path.Combine(current, part);
+            FileSystemInfo info = Directory.Exists(current) ? new DirectoryInfo(current) : new FileInfo(current);
+            if (depth < 16 && info.LinkTarget is not null && info.ResolveLinkTarget(returnFinalTarget: true) is { } target)
+                current = Real(target.FullName, depth + 1);
+        }
+        return current;
     }
 }

@@ -89,11 +89,97 @@ static partial class RazorPage
             {
                 i = charEnd;
             }
+            else if (c == '<' && MarkupStart(text, i) && ElementEnd(text, i) is var element and >= 0)
+            {
+                // Markup inside the code (a render fragment, a block's own elements): a brace in its text is text.
+                i = element;
+            }
             else if (c == '{') depth++;
             else if (c == '}' && --depth == 0) return i;
         }
         return -1;
     }
+
+    // Whether the < here opens an element written inside C#: after an @ (a template, @<p>…</p>), or first on its line.
+    static bool MarkupStart(string text, int at)
+    {
+        if (at + 1 >= text.Length || !char.IsLetter(text[at + 1])) return false;
+        if (at > 0 && text[at - 1] == '@') return true;
+        var line = text.LastIndexOf('\n', Math.Max(at - 1, 0)) + 1;
+        return text.AsSpan(line, at - line).Trim().Length == 0;
+    }
+
+    static readonly HashSet<string> VoidElements = new(StringComparer.OrdinalIgnoreCase)
+        { "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr" };
+
+    /// <summary>
+    /// The index of the last character of the element whose tag opens at <paramref name="open"/>: its
+    /// <c>/&gt;</c>, or the <c>&gt;</c> of its closing tag, past the elements, comments and code inside it.
+    /// -1 when what's there doesn't read as one element (a comparison, a tag left open).
+    /// </summary>
+    public static int ElementEnd(string text, int open)
+    {
+        var i = open + 1;
+        while (i < text.Length && (char.IsLetterOrDigit(text[i]) || text[i] is '.' or '-' or '_' or ':')) i++;
+        var name = text[(open + 1)..i];
+        if (name.Length == 0) return -1;
+        // The tag, to its >: a quoted value or an @( ) may hold one.
+        for (; i < text.Length && text[i] != '>'; i++)
+        {
+            var c = text[i];
+            if (c is '"' or '\'')
+            {
+                i = text.IndexOf(c, i + 1);
+                if (i < 0) return -1;
+            }
+            else if (c == '@' && i + 1 < text.Length && text[i + 1] == '(')
+            {
+                i = MatchBracket(text, i + 1);
+                if (i < 0) return -1;
+            }
+            else if (c is '<' or ';' or '{' or '}') return -1;
+        }
+        if (i >= text.Length) return -1;
+        if (text[i - 1] == '/' || VoidElements.Contains(name)) return i;
+        for (i++; i < text.Length; i++)
+        {
+            var c = text[i];
+            var next = i + 1 < text.Length ? text[i + 1] : '\0';
+            if (c == '@' && next == '*')
+            {
+                i = text.IndexOf("*@", i + 2, StringComparison.Ordinal) is var end and >= 0 ? end + 1 : text.Length;
+            }
+            else if (c == '<' && text.AsSpan(i).StartsWith("<!--"))
+            {
+                i = text.IndexOf("-->", i + 4, StringComparison.Ordinal) is var end and >= 0 ? end + 2 : text.Length;
+            }
+            else if (c == '@' && next == '{')
+            {
+                i = MatchBrace(text, i + 1);
+                if (i < 0) return -1;
+            }
+            else if (c == '@' && (next == '(' || CodeKeyword().Match(text, i) is { Success: true }))
+            {
+                // An expression, or a statement's condition: a < in it is not a tag.
+                i = MatchBracket(text, text.IndexOf('(', i));
+                if (i < 0) return -1;
+            }
+            else if (c == '<' && next == '/')
+            {
+                var end = text.IndexOf('>', i);
+                return end >= 0 && text.AsSpan(i + 2, end - i - 2).Trim().SequenceEqual(name) ? end : -1;
+            }
+            else if (c == '<' && char.IsLetter(next))
+            {
+                i = ElementEnd(text, i);
+                if (i < 0) return -1;
+            }
+        }
+        return -1;
+    }
+
+    [GeneratedRegex(@"\G@(?:if|foreach|for|while|switch|using|lock)\s*\(")]
+    private static partial Regex CodeKeyword();
 
     /// <summary>
     /// The index of the bracket that closes the <c>(</c>, <c>[</c> or <c>{</c> at <paramref name="open"/>, past

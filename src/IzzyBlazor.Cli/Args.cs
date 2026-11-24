@@ -5,7 +5,8 @@ sealed class UsageException(string message) : Exception(message);
 
 /// <summary>
 /// A command line split into words before the first option (the command and item) and options. An option takes
-/// the next word as its value unless that word starts with "-"; the CLI's own switches never take one.
+/// the next word as its value unless that word starts with "-" and isn't a number (<c>--min -5</c>); the CLI's
+/// own switches never take one.
 /// </summary>
 sealed class Args
 {
@@ -35,11 +36,14 @@ sealed class Args
             string? value = null;
             var equals = name.IndexOf('=');
             if (equals >= 0) (name, value) = (name[..equals], name[(equals + 1)..]);
-            else if (!Switches.Contains(name) && i + 1 < args.Length && !args[i + 1].StartsWith('-')) value = args[++i];
+            else if (!Switches.Contains(name) && i + 1 < args.Length && (!args[i + 1].StartsWith('-') || Number(args[i + 1]))) value = args[++i];
             parsed.Options.Add((name.ToLowerInvariant(), value));
         }
         return parsed;
     }
+
+    // -5 and -.5 are values, not options.
+    static bool Number(string word) => word.Length > 1 && (char.IsAsciiDigit(word[1]) || (word[1] == '.' && word.Length > 2 && char.IsAsciiDigit(word[2])));
 
     public bool Has(string name) => Options.Any(o => o.Name == name);
 

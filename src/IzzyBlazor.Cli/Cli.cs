@@ -442,6 +442,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var flags = Flags(args);
         NoSettings(args);
         if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
+        if (flags.Overwrite) throw new UsageException("izzy add component adds to a page and never replaces a file: leave --overwrite out.");
 
         JsonNode? listed = null;
         string text;
@@ -508,18 +509,19 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 : (project.RootNamespace, where);
             var space = string.Join('.', new[] { root }.Concat(inside.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(NamespacePart)));
             var codeBehind = project.ReadFile(path + ".cs");
-            (inserts, warnings) = ExampleInsert.Place(page, path, offset, text.Replace("__PageNamespace__", space, StringComparison.Ordinal), imports.ToString(), Library, codeBehind);
             var taken = ExampleInsert.Names(page, imports.ToString(), codeBehind);
-            foreach (var file in Library.Example((string)listed!["id"]!)!["files"]?.AsArray() ?? [])
+            var files = Library.Example((string)listed!["id"]!)!["files"]?.AsArray() ?? [];
+            // A member of the page with a type's name hides the type inside the page (a Home with an Orders list,
+            // and the example's Orders class): there the example reaches the type by a @using name of its own.
+            var hidden = files.SelectMany(file => Regex.Matches((string)file!["source"]!, @"\b(?:class|struct|enum|interface|record)\s+(?!class\b|struct\b)(\w+)").Select(m => m.Groups[1].Value))
+                .Where(taken.Contains).Distinct().ToDictionary(type => type, type => $"{space}.{type}", StringComparer.Ordinal);
+            (inserts, warnings) = ExampleInsert.Place(page, path, offset, text.Replace("__PageNamespace__", space, StringComparison.Ordinal), imports.ToString(), Library, codeBehind, hidden);
+            foreach (var file in files)
             {
                 // A model the example keeps in a file of its own goes beside the page, in the page's namespace.
                 var target = (where.Length > 0 ? where + "/" : "") + (string)file!["name"]!;
                 var written = Regex.Replace((string)file["source"]!, @"^namespace [\w.]+;", $"namespace {space};", RegexOptions.Multiline);
                 var existing = project.ReadFile(target);
-                // A member of the page with a type's name hides the type inside the page.
-                foreach (Match type in Regex.Matches(written, @"\b(?:class|struct|enum|interface|record)\s+(?!class\b|struct\b)(\w+)"))
-                    if (taken.Contains(type.Groups[1].Value))
-                        warnings.Add($"{path} has a member named {type.Groups[1].Value}, which hides the type {type.Groups[1].Value} in {(string)file["name"]!} that the example uses: rename the page's.");
                 if (existing is null) creates.Add(new FileCreate(target, written, null));
                 else if (existing.ReplaceLineEndings("\n") != written) warnings.Add($"{target} exists with other content, so the example's {(string)file["name"]!} wasn't written: it holds the types the example uses.");
             }
