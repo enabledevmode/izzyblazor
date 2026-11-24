@@ -49,6 +49,27 @@ public sealed class SetupTests : IDisposable
     }
 
     // A component added to the library and missing here would clash in an app with no fix written for it.
+    // izzy init pins izzy in the app's tool manifest: a new file, or added beside the tools the app has, or its
+    // version changed to the library's.
+    [Fact]
+    public void Init_adds_izzy_to_the_apps_tool_manifest()
+    {
+        static string Apply(string text, TextInsert insert) => text[..insert.Offset] + insert.Text + text[(insert.Offset + insert.Length)..];
+
+        var none = Cli.ToolManifest.Change(_ => null, "1.2.3");
+        Assert.Equal(".config/dotnet-tools.json", none.Create!.Path);
+        Assert.Equal("1.2.3", (string)System.Text.Json.Nodes.JsonNode.Parse(none.Create.Text!)!["tools"]!["izzyblazor.cli"]!["version"]!);
+
+        const string theirs = "{\n  \"version\": 1,\n  \"isRoot\": true,\n  \"tools\": {\n    \"dotnet-ef\": {\n      \"version\": \"10.0.0\",\n      \"commands\": [\n        \"dotnet-ef\"\n      ],\n      \"rollForward\": false\n    }\n  }\n}\n";
+        var added = Apply(theirs, Cli.ToolManifest.Change(path => path == ".config/dotnet-tools.json" ? theirs : null, "1.2.3").Insert!);
+        var tools = System.Text.Json.Nodes.JsonNode.Parse(added)!["tools"]!;
+        Assert.Equal(("10.0.0", "1.2.3"), ((string)tools["dotnet-ef"]!["version"]!, (string)tools["izzyblazor.cli"]!["version"]!));
+
+        Assert.Equal((null, null, null), Cli.ToolManifest.Change(_ => added, "1.2.3"));
+        var bumped = Apply(added, Cli.ToolManifest.Change(_ => added, "1.3.0").Insert!);
+        Assert.Equal("1.3.0", (string)System.Text.Json.Nodes.JsonNode.Parse(bumped)!["tools"]!["izzyblazor.cli"]!["version"]!);
+    }
+
     [Fact]
     public void The_clash_list_names_every_component()
     {

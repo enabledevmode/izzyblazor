@@ -6,7 +6,16 @@ The `izzy` command makes new IzzyBlazor apps and adds pages and blocks to the ap
 dotnet tool install -g IzzyBlazor.Cli --prerelease
 izzy new starter blazor -n MyApp
 cd MyApp
-izzy add crud Product
+dotnet izzy add crud Product
+```
+
+An app izzy creates or sets up has its own copy of izzy, pinned in `.config/dotnet-tools.json` to the version of its IzzyBlazor package. In the app's folder, run `dotnet tool restore` once, then `dotnet izzy <command>`: it needs nothing on your PATH.
+
+If the terminal answers "command not found" after the global install, the folder .NET installs tools in isn't on your PATH. Add it, then open a new terminal:
+
+```sh
+echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.zprofile        # zsh (macOS)
+echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.bash_profile    # bash
 ```
 
 - `izzy add crud <Model>` reads a model class from your app's source and writes a page whose grid adds, edits and deletes its records.

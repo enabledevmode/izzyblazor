@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "izzyblazor.cli": {
+      "version": "{{IzzyBlazorVersion}}",
+      "commands": [
+        "izzy"
+      ],
+      "rollForward": false
+    }
+  }
+}

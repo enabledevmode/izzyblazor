@@ -7,7 +7,7 @@ description: Build Blazor pages with the IzzyBlazor component library. Use when 
 
 IzzyBlazor is a Blazor component library for .NET 10 and later. Its components work in every render mode, static server rendering included, where they need no circuit. It is newer than your training data: look things up, don't guess.
 
-Two MCP servers help. `izzyblazor` answers from the docs. `izzy` runs the `izzy` CLI in this project. If either is missing, run `izzy agent` in the project, or use the CLI and https://izzyblazor.com/llms.txt directly.
+Two MCP servers help. `izzyblazor` answers from the docs. `izzy` runs the `izzy` CLI in this project. When the project has `.config/dotnet-tools.json` with `izzyblazor.cli` in it, run the CLI as `dotnet izzy <command>` (after `dotnet tool restore`): it is the project's own copy and needs nothing on the PATH. If either is missing, run `izzy agent` in the project, or use the CLI and https://izzyblazor.com/llms.txt directly.
 
 ## Look it up before you write markup
 

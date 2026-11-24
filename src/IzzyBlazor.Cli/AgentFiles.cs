@@ -58,6 +58,8 @@ static class AgentFiles
             output.WriteLine($"{(dryRun ? (exists ? "Would change" : "Would create") : exists ? "Changed" : "Created")} {path}");
         }
 
+        // In an app that pins izzy as a local tool, the server is the app's own izzy, which needs nothing on the PATH.
+        var local = ToolManifest.Lists(directory);
         foreach (var path in SkillPaths) Put(path, Skill);
         foreach (var (path, key, httpType) in Configs)
         {
@@ -71,12 +73,12 @@ static class AgentFiles
                 if (root[key] is null) root[key] = new JsonObject();
                 servers = root[key] as JsonObject ?? throw new JsonException();
                 servers["izzyblazor"] = Docs(httpType);
-                servers["izzy"] = Izzy();
+                servers["izzy"] = Izzy(local, path);
             }
             catch (Exception e) when (e is JsonException or ArgumentException or IOException or UnauthorizedAccessException)
             {
                 // Comments or a slip in a file of the user's: theirs to edit.
-                error.WriteLine($"warning: {path} isn't plain JSON with its servers under \"{key}\", so it was kept. Add two servers there: \"izzyblazor\", {Docs(httpType).ToJsonString()}, and \"izzy\", {Izzy().ToJsonString()}.");
+                error.WriteLine($"warning: {path} isn't plain JSON with its servers under \"{key}\", so it was kept. Add two servers there: \"izzyblazor\", {Docs(httpType).ToJsonString()}, and \"izzy\", {Izzy(local, path).ToJsonString()}.");
                 continue;
             }
             Put(path, root.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
@@ -88,12 +90,20 @@ static class AgentFiles
     public const string Others = """
         Claude Code, Copilot, Cursor and Visual Studio read the files above. Codex, Gemini CLI, Junie and Windsurf
         read the skill from .agents/skills; add the two servers to their own MCP settings: a stdio server named
-        izzy that runs "izzy mcp", and an http server named izzyblazor at https://izzyblazor.com/mcp.
+        izzy that runs "izzy mcp" ("dotnet izzy mcp" in an app with izzy in .config/dotnet-tools.json), and an http server named izzyblazor at https://izzyblazor.com/mcp.
         """;
 
     static JsonObject Docs(bool type) => type
         ? new() { ["type"] = "http", ["url"] = "https://izzyblazor.com/mcp" }
         : new() { ["url"] = "https://izzyblazor.com/mcp" };
 
-    static JsonObject Izzy() => new() { ["type"] = "stdio", ["command"] = "izzy", ["args"] = new JsonArray("mcp") };
+    // dotnet izzy finds the app's manifest from the folder it starts in: an agent starts servers in the workspace
+    // folder, and VS Code is told so.
+    static JsonObject Izzy(bool local, string path)
+    {
+        if (!local) return new() { ["type"] = "stdio", ["command"] = "izzy", ["args"] = new JsonArray("mcp") };
+        var server = new JsonObject { ["type"] = "stdio", ["command"] = "dotnet", ["args"] = new JsonArray("izzy", "mcp") };
+        if (path.StartsWith(".vscode/", StringComparison.Ordinal)) server["cwd"] = "${workspaceFolder}";
+        return server;
+    }
 }

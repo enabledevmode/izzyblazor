@@ -75,20 +75,20 @@ The app has its own accounts, kept by ASP.NET Core Identity.
 <!--#endif -->
 ## Add to it
 
-The `izzy` command adds finished parts to this app (`dotnet tool install -g IzzyBlazor.Cli --prerelease`).
+The `izzy` command adds finished parts to this app. The app comes with its own copy, at the version of its IzzyBlazor package (`.config/dotnet-tools.json`), so nothing needs to be on your PATH. Run `dotnet tool restore` once after cloning the app, then:
 
 ```
-izzy list                 # the blocks, starters and kits you can add
-izzy add block hero       # a page section, placed on a page for you
-izzy add crud Product     # a page that lists, adds, edits and deletes a model class
+dotnet izzy list                 # the blocks, starters and kits you can add
+dotnet izzy add block hero       # a page section, placed on a page for you
+dotnet izzy add crud Product     # a page that lists, adds, edits and deletes a model class
 ```
 
-Add `--dry-run` to see what a command would change before it writes anything. Some items come with a free account: `izzy login` signs this machine in once.
+Add `--dry-run` to see what a command would change before it writes anything. Some items come with a free account: `dotnet izzy login` signs this machine in once.
 
 <!--#if (Mcp) -->
 ## Coding agents
 
-`.mcp.json` connects your coding agent to IzzyBlazor's docs server, so it can look up components and examples while it works. `izzy agent` also adds a skill that teaches it to build with IzzyBlazor.
+`.mcp.json` connects your coding agent to IzzyBlazor's docs server, so it can look up components and examples while it works. `dotnet izzy agent` also adds a skill that teaches it to build with IzzyBlazor.
 
 <!--#endif -->
 ## Learn more

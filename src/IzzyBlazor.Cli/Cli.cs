@@ -74,6 +74,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     public int Run(string[] arguments)
     {
+        // In an app that pins izzy as a local tool, the commands izzy names are written as the app runs them.
+        _data = output;
+        if (ToolManifest.Lists(workingDirectory)) (output, error) = (new LocalToolWriter(output), new LocalToolWriter(error));
         try
         {
             var args = Args.Parse(arguments);
@@ -134,6 +137,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     }
 
     bool _generates;
+
+    // Where data goes (JSON, a file's text): the output as it was given, with nothing renamed in it.
+    TextWriter _data = TextWriter.Null;
 
     Catalog Catalog => field ??= proRoot is null && account?.Catalog(error, _generates) is { } copy
         ? Catalog.Load(catalogRoot, copy, ItemTier.Account)
@@ -545,7 +551,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         {
             if (flags.Json || stdin) throw new UsageException("--json and --stdin give a page's changes: say where with --at <file>:<line>.");
             // Nowhere to put it: shown, as a block with no page is.
-            output.Write(text.Replace("__PageNamespace__", "MyApp.Components.Pages", StringComparison.Ordinal).TrimEnd('\n') + "\n");
+            _data.Write(text.Replace("__PageNamespace__", "MyApp.Components.Pages", StringComparison.Ordinal).TrimEnd('\n') + "\n");
             error.WriteLine($"{name} isn't placed on a page: add this where it goes, or place it with --at <file>:<line>.");
             var files = listed is null ? [] : (Library.Example((string)listed["id"]!)!["files"]?.AsArray() ?? []).Select(f => (string)f!["name"]!).ToList();
             if (files.Count > 0)
@@ -870,10 +876,14 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         // --mcp: the agent files are izzy agent's to write, which keeps what a settings file of the user's has.
         var agent = generated.Settings.GetValueOrDefault("Mcp") == "true";
         var configs = generated.Creates.Select(c => c.Path).Concat(generated.Conflicts).Where(c => c.EndsWith("mcp.json", StringComparison.Ordinal)).ToList();
+        // izzy as a tool of the app, at the version of the IzzyBlazor it references (this izzy's, when init adds it).
+        var library = ProjectVersion(Path.Combine(project.Directory!, project.Host)) is { } referenced && ToolManifest.Exact(referenced) ? referenced : Generator.IzzyBlazorVersion;
+        var tool = ToolManifest.Change(project.ReadFile, library);
+        if (tool.Warning is not null) warnings.Add(tool.Warning);
         var changes = new Changeset
         {
-            Creates = [.. generated.Creates.Where(c => !configs.Contains(c.Path))],
-            Inserts = [.. generated.Inserts, .. Setup.QualifyClashes(project)],
+            Creates = [.. generated.Creates.Where(c => !configs.Contains(c.Path)), .. tool.Create is null ? Array.Empty<FileCreate>() : [tool.Create]],
+            Inserts = [.. generated.Inserts, .. Setup.QualifyClashes(project), .. tool.Insert is null ? Array.Empty<TextInsert>() : [tool.Insert]],
             // A package the project has already is nothing to do.
             Packages = [.. generated.Packages.Where(p => !References(Path.Combine(project.Directory!, p.Project), p.Id))],
             Conflicts = [.. generated.Conflicts.Except(configs)],
@@ -896,9 +906,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     int Build(ProjectInfo project, bool quiet)
     {
         var csproj = Path.Combine(project.Directory!, project.Host, project.Name + ".csproj");
-        var start = new ProcessStartInfo("dotnet") { WorkingDirectory = project.Directory!, RedirectStandardOutput = true, RedirectStandardError = true };
-        foreach (var a in new[] { "build", csproj, "-nologo", "-v", "q" }) start.ArgumentList.Add(a);
-        using var process = Process.Start(start) ?? throw new GenerationException("Couldn't start dotnet.");
+        using var process = DotnetHost.Start(project.Directory!, ["build", csproj, "-nologo", "-v", "q"], "so the app wasn't built. The changes above were written: run dotnet build yourself.");
         var stdout = process.StandardOutput.ReadToEndAsync();
         var stderr = process.StandardError.ReadToEndAsync();
         process.WaitForExit();
@@ -928,7 +936,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     {
         var blocked = changes.Conflicts.Count > 0 && !flags.Overwrite;
         var write = !flags.DryRun && !blocked;
-        if (flags.Diff) output.Write(ChangesetWriter.Diff(changes, project));
+        if (flags.Diff) _data.Write(ChangesetWriter.Diff(changes, project));
         if (flags.Json) Print(ChangesetJson(changes, write));
         foreach (var warning in changes.Warnings) error.WriteLine($"warning: {warning}");
         if (blocked)
@@ -965,6 +973,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                     Dotnet(directory, quiet, "add", csproj, "package", package.Id, "--version", package.Version);
             }
         if (changes.Restore) Dotnet(directory, quiet, "restore");
+        // The app's own izzy, from its tool manifest: with a new app's packages, or when init put it there.
+        if ((changes.Restore || existing) && changes.Creates.Select(c => c.Path).Concat(changes.Inserts.Select(i => i.Path)).Any(ToolManifest.Is))
+            Dotnet(directory, quiet, "tool", "restore");
         Record(directory, item.Manifest.Id, changes.Settings);
         // A new app says where to go next: its README has how to run it, what was made and, where it has
         // accounts, how to log in.
@@ -1012,15 +1023,18 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     void Dotnet(string directory, bool quiet, params string[] arguments)
     {
-        var start = new ProcessStartInfo("dotnet") { WorkingDirectory = directory, RedirectStandardOutput = true, RedirectStandardError = true };
-        foreach (var a in arguments) start.ArgumentList.Add(a);
-        using var process = Process.Start(start) ?? throw new GenerationException("Couldn't start dotnet.");
+        var command = $"dotnet {string.Join(' ', arguments)}";
+        var where = Path.GetRelativePath(workingDirectory, directory) is var shown && shown == "." ? "this folder" : shown;
+        using var process = DotnetHost.Start(directory, arguments, $"so {command} didn't run. The files above were written: run it yourself in {where}.");
         var stdout = process.StandardOutput.ReadToEndAsync();
         var stderr = process.StandardError.ReadToEndAsync();
         process.WaitForExit();
         if (process.ExitCode != 0)
-            error.WriteLine($"warning: dotnet {string.Join(' ', arguments)} failed:\n{stdout.Result}{stderr.Result}");
+            error.WriteLine(arguments[0] == "tool"
+                ? $"warning: {command} failed, so dotnet izzy isn't ready in this app yet. Run it again there:\n{stdout.Result}{stderr.Result}"
+                : $"warning: {command} failed:\n{stdout.Result}{stderr.Result}");
         else if (!quiet && arguments[0] == "restore") output.WriteLine("Restored packages");
+        else if (!quiet && arguments[0] == "tool") output.WriteLine("Restored izzy as a tool of the app: dotnet izzy runs it here");
     }
 
     // The item a command names by its kind and id (izzy describe block hero). crud and init are named alone,
@@ -1150,7 +1164,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         new(m.Parameters.Where(p => p.ProChoices.Count > 0)
             .Select(p => KeyValuePair.Create(p.Name, (JsonNode?)new JsonArray(p.ProChoices.Select(c => (JsonNode)c).ToArray()))));
 
-    void Print(JsonNode node) => output.Write(node.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
+    void Print(JsonNode node) => _data.Write(node.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
 
     static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
 }

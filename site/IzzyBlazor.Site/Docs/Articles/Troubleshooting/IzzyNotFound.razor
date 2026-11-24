@@ -1,0 +1,73 @@
+@page "/docs/troubleshooting/izzy-not-found"
+
+@* dotnet tool install -g puts izzy in ~/.dotnet/tools, which Homebrew and script installs of .NET don't put
+   on the PATH. Two fixes: the PATH line, or the app's own copy (dotnet izzy, from .config/dotnet-tools.json). *@
+
+<ArticlePage Section="troubleshooting" Slug="izzy-not-found">
+    <Lead>
+        Add <Code>~/.dotnet/tools</Code> to your PATH and open a new terminal, or run the app's own copy of izzy
+        with <Code>dotnet izzy</Code>.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Problem</Heading>
+        <TextBlock>
+            <Code>dotnet tool install -g IzzyBlazor.Cli --prerelease</Code> says the tool was installed, but the next
+            command fails:
+        </TextBlock>
+        <Code Block Language="bash">@NotFound</Code>
+        <TextBlock>
+            On Windows the message is "'izzy' is not recognized as an internal or external command".
+        </TextBlock>
+
+        <Heading Level="2">Cause</Heading>
+        <TextBlock>
+            .NET installs global tools in <Code>~/.dotnet/tools</Code> (<Code>%USERPROFILE%\.dotnet\tools</Code> on
+            Windows). Microsoft's installer adds that folder to your PATH. A .NET installed with Homebrew or with the
+            install script doesn't, and neither does a shell that hasn't been restarted since the install. izzy is
+            there, and the terminal doesn't look there. A .NET tool can't change your PATH when it's installed.
+        </TextBlock>
+
+        <Heading Level="2">Fix</Heading>
+        <TextBlock>Add the folder to your PATH, then open a new terminal.</TextBlock>
+        <Heading Level="3">zsh, the default on macOS</Heading>
+        <Code Block Language="bash">@Zsh</Code>
+        <Heading Level="3">bash</Heading>
+        <Code Block Language="bash">@Bash</Code>
+        <Heading Level="3">Windows</Heading>
+        <TextBlock>
+            Open a new terminal: the installer's PATH change applies to terminals opened after it. If izzy still isn't
+            found, add <Code>%USERPROFILE%\.dotnet\tools</Code> to your user PATH in Settings, under "Edit environment
+            variables for your account".
+        </TextBlock>
+        <TextBlock>To check, run <Code>izzy --version</Code> in the new terminal.</TextBlock>
+
+        <Heading Level="2">Without changing your PATH</Heading>
+        <TextBlock>
+            An app that izzy created or set up has its own copy of izzy, pinned in
+            <Code>.config/dotnet-tools.json</Code> to the version of its IzzyBlazor package. In the app's folder:
+        </TextBlock>
+        <Code Block Language="bash">@InApp</Code>
+        <TextBlock>
+            <Code>dotnet</Code> finds the app's izzy from the manifest, so the PATH doesn't matter. To run the global
+            install once without changing anything, give its full path: <Code>~/.dotnet/tools/izzy init</Code>.
+            The <Anchor Href="docs/cli/overview">CLI overview</Anchor> describes both ways to run izzy.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string NotFound = "zsh: command not found: izzy";
+
+    private const string Zsh = """
+        echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.zprofile
+        """;
+
+    private const string Bash = """
+        echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.bash_profile
+        """;
+
+    private const string InApp = """
+        dotnet tool restore
+        dotnet izzy --version
+        """;
+}

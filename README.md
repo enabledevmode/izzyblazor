@@ -75,6 +75,10 @@ IzzyBlazor is in preview, so name the latest version from NuGet.
    izzy init
    ```
 
+   If the terminal answers "command not found", `~/.dotnet/tools` isn't on your PATH: add it
+   (`echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.zprofile` for zsh, `~/.bash_profile` for bash) and open a
+   new terminal. Afterwards the app has its own copy of izzy: `dotnet tool restore`, then `dotnet izzy <command>`.
+
 2. **Build your pages.** Use the components in your pages, and generate a grid page for any model when you
    need one:
 

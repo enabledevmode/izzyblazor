@@ -303,13 +303,15 @@ static partial class Audit
                 port = ((IPEndPoint)probe.LocalEndpoint).Port;
             }
             var url = $"http://127.0.0.1:{port}";
-            var start = new ProcessStartInfo(Dotnet()) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(csproj)! };
+            var start = new ProcessStartInfo(DotnetHost.Path) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(csproj)! };
             foreach (var argument in (string[])["run", "--project", csproj, "--no-launch-profile"]) start.ArgumentList.Add(argument);
             start.Environment["ASPNETCORE_URLS"] = url;
             start.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
             start.Environment["DOTNET_ENVIRONMENT"] = "Development";
             progress($"Starting {Path.GetFileNameWithoutExtension(csproj)} at {url}");
-            var process = Process.Start(start) ?? throw new GenerationException("dotnet run didn't start.");
+            Process process;
+            try { process = Process.Start(start) ?? throw new GenerationException("dotnet run didn't start, so nothing was audited."); }
+            catch (System.ComponentModel.Win32Exception) { throw new GenerationException("izzy couldn't start dotnet (it isn't on the PATH, and DOTNET_ROOT doesn't point at it), so nothing was audited. Start the app yourself and give izzy audit its address."); }
             var app = new App(process, url);
             AppDomain.CurrentDomain.ProcessExit += app.Kill;
             process.OutputDataReceived += (_, e) => { lock (app._said) app._said.AppendLine(e.Data); };
@@ -334,15 +336,6 @@ static partial class Audit
             lock (app._said) said = string.Join('\n', app._said.ToString().Trim().Split('\n').TakeLast(15));
             app.Dispose();
             throw new GenerationException($"The app didn't start, so nothing was audited. dotnet run said:\n{said}");
-        }
-
-        // The dotnet that runs izzy, when it says which; else the one on the PATH.
-        static string Dotnet()
-        {
-            if (Environment.GetEnvironmentVariable("DOTNET_HOST_PATH") is { Length: > 0 } host && File.Exists(host)) return host;
-            if (Environment.ProcessPath is { } own && Path.GetFileNameWithoutExtension(own).Equals("dotnet", StringComparison.OrdinalIgnoreCase)) return own;
-            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is { Length: > 0 } root && Path.Combine(root, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet") is var inRoot && File.Exists(inRoot)) return inRoot;
-            return "dotnet";
         }
 
         void Kill(object? sender, EventArgs e)

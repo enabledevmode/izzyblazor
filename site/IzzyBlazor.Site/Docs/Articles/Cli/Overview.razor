@@ -12,7 +12,29 @@
     </Lead>
     <ChildContent>
         <Heading Level="2">Install</Heading>
+        <TextBlock>
+            izzy is a .NET tool, and you can run it two ways. An app that izzy created or set up has its own copy. To
+            create an app or to set up one you have, install izzy for your whole machine.
+        </TextBlock>
+        <Heading Level="3">In an app</Heading>
+        <TextBlock>
+            <Code>izzy new</Code>, the <Code>dotnet new</Code> templates and <Code>izzy init</Code> each add izzy to
+            the app's tool manifest, <Code>.config/dotnet-tools.json</Code>, at the version of the IzzyBlazor package
+            the app references. In the app's folder, restore it once, then run it through <Code>dotnet</Code>:
+        </TextBlock>
+        <Code Block Language="bash">@InApp</Code>
+        <TextBlock>
+            This needs nothing on your PATH, and everyone who clones the app gets the same izzy. Commit the manifest
+            with your app. Inside such an app, izzy writes the commands it tells you to run as <Code>dotnet izzy</Code>.
+            The rest of these pages write <Code>izzy</Code>: put <Code>dotnet</Code> before it when you use the app's copy.
+        </TextBlock>
+        <Heading Level="3">On your machine</Heading>
         <Code Block Language="bash">dotnet tool install -g IzzyBlazor.Cli --prerelease</Code>
+        <TextBlock>
+            .NET puts the command in <Code>~/.dotnet/tools</Code> (<Code>%USERPROFILE%\.dotnet\tools</Code> on
+            Windows). When the terminal answers "command not found", that folder isn't on your PATH: see
+            <Anchor Href="docs/troubleshooting/izzy-not-found">izzy: command not found</Anchor>.
+        </TextBlock>
         <TextBlock>
             The CLI has the same version as the library. To update it, run the same command with <Code>update</Code>
             instead of <Code>install</Code>.
@@ -50,6 +72,7 @@
             <ListItem><Anchor Href="docs/cli/templates">Templates</Anchor>: create an app from a starter or an app kit.</ListItem>
             <ListItem><Anchor Href="docs/cli/blocks">Blocks</Anchor>: add a hero, pricing or a sign-up form to a page.</ListItem>
             <ListItem><Anchor Href="docs/cli/crud">CRUD pages</Anchor>: create a page to display, add, edit and delete a model's records.</ListItem>
+            <ListItem><Anchor Href="docs/cli/audit">Accessibility audit</Anchor>: check a page with axe-core and get a report.</ListItem>
             <ListItem><Anchor Href="docs/cli/changes">Previewing changes</Anchor>: see a change before izzy makes it.</ListItem>
             <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: set up your assistant with <Code>izzy agent</Code>.</ListItem>
             <ListItem><Anchor Href="docs/cli/license">License</Anchor>: what you can do with the code izzy creates.</ListItem>
@@ -58,6 +81,11 @@
 </ArticlePage>
 
 @code {
+    private const string InApp = """
+        dotnet tool restore
+        dotnet izzy list
+        """;
+
     private sealed record Row(string Name, string Text);
 
     private static readonly Row[] Commands =
@@ -68,6 +96,7 @@
         new("izzy add component <Name> --at <file>:<line>", "Adds a component's usage example from these docs to a page. See Components."),
         new("izzy add crud <Model>", "Creates a page to display, add, edit and delete a model's records."),
         new("izzy login", "Signs this machine in to your free IzzyBlazor account, which the app starters, blocks and kits come with. See Your account."),
+        new("izzy audit <url>", "Checks a page's accessibility with axe-core in the Chrome or Edge on your machine, and writes a report. See Accessibility audit."),
         new("izzy agent", "Sets up your AI assistant in your app. It writes a skill that teaches the assistant to build with IzzyBlazor, and connects the docs server and izzy mcp. See AI assistants."),
         new("izzy mcp", "Runs izzy's commands as tools for your AI assistant. izzy agent adds it to your assistant's settings."),
         new("izzy list", "Lists the starters, kits, blocks and components. To list one kind, name it, such as izzy list block or izzy list component."),

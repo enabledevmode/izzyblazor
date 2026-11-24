@@ -131,6 +131,9 @@ public static class Articles
             new("interactive-stops-responding", "Interactive parts stop responding in production", "Unplug",
                 "An interactive page's circuit lives on one server: behind a load balancer, turn on sticky sessions, or run one server.")
                 { Area = "Interactive and hosting", Modes = ["interactive"] },
+            new("izzy-not-found", "izzy: command not found", "SquareTerminal",
+                "The folder .NET installs tools in isn't on your PATH: add it, or run the app's own copy with dotnet izzy.")
+                { Area = "The izzy CLI" },
         ]) { IndexOnly = true },
     ];
 

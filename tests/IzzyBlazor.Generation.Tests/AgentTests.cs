@@ -85,8 +85,20 @@ public sealed class AgentTests : IDisposable
         var servers = JsonNode.Parse(File.ReadAllText(Path.Combine(app, ".mcp.json")))!["mcpServers"]!;
         Assert.Equal("tickets-mcp", (string)servers["tickets"]!["command"]!);
         Assert.Equal("https://izzyblazor.com/mcp", (string)servers["izzyblazor"]!["url"]!);
-        Assert.Equal(["izzy", "mcp"], [(string)servers["izzy"]!["command"]!, (string)servers["izzy"]!["args"]![0]!]);
-        Assert.Equal("stdio", (string)JsonNode.Parse(File.ReadAllText(Path.Combine(app, ".vscode", "mcp.json")))!["servers"]!["izzy"]!["type"]!);
+        // The app pins izzy as a tool of its own, so the server is the app's izzy: nothing on the PATH is needed.
+        Assert.Contains("\"izzyblazor.cli\"", File.ReadAllText(Path.Combine(app, ".config", "dotnet-tools.json")));
+        Assert.Equal(["dotnet", "izzy", "mcp"], [(string)servers["izzy"]!["command"]!, .. servers["izzy"]!["args"]!.AsArray().Select(a => (string)a!)]);
+        var code = JsonNode.Parse(File.ReadAllText(Path.Combine(app, ".vscode", "mcp.json")))!["servers"]!["izzy"]!;
+        Assert.Equal(("stdio", "${workspaceFolder}"), ((string)code["type"]!, (string)code["cwd"]!));
+        // And the commands izzy names there are the app's.
+        Assert.Contains("dotnet izzy describe block <id>", Izzy(app, "list").Out);
+
+        // An app without the manifest gets the izzy on the PATH.
+        Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Plain", "--no-restore").Exit);
+        var plain = Path.Combine(_work, "Plain");
+        Directory.Delete(Path.Combine(plain, ".config"), recursive: true);
+        Assert.Equal(0, Izzy(plain, "agent").Exit);
+        Assert.Equal("izzy", (string)JsonNode.Parse(File.ReadAllText(Path.Combine(plain, ".mcp.json")))!["mcpServers"]!["izzy"]!["command"]!);
 
         Assert.Contains("Nothing to change", Izzy(app, "agent").Out);
     }
