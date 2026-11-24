@@ -13,6 +13,17 @@ public class AvatarRenderTests : BunitContext
     public void Initials_come_from_first_and_last_words(string name, string expected) =>
         Assert.Equal(expected, Avatar.InitialsOf(name));
 
+    // The initials are text on the button, so they're in its name: voice control finds it by what it shows.
+    [Fact]
+    public void An_icon_button_names_itself_with_the_initials_its_avatar_shows()
+    {
+        var button = Render<IconButton>(p => p.Add(b => b.Label, "Account")
+            .AddChildContent<Avatar>(a => a.Add(x => x.Name, "Jamie Davis").Add(x => x.Decorative, true))).Find("button");
+
+        Assert.Equal("Account, JD", button.GetAttribute("aria-label"));
+        Assert.Equal("Account", button.GetAttribute("title"));
+    }
+
     [Fact]
     public void Photo_is_a_background_over_the_initials_with_the_url_escaped()
     {

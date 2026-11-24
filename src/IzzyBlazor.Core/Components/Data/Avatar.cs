@@ -106,6 +106,16 @@ public class Avatar : LayoutItemBase, IDisposable
 
     [CascadingParameter] private AvatarGroup? Group { get; set; }
 
+    // In an IconButton's place for an icon: the initials it shows go into the button's name.
+    [CascadingParameter] private IconButton? Button { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        Button?.Shows(Src is null ? Initials ?? InitialsOf(Name) : null);
+    }
+
     private AvatarSize ResolvedSize => Size ?? Group?.Size ?? AvatarSize.Md;
 
     /// <summary>The initials shown for a name: the first letters of its first and last words.</summary>

@@ -12,7 +12,7 @@ namespace IzzyBlazor;
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a native <c>button</c>, or an <c>a</c> with <see cref="Href"/>, so Enter, Space and focus work as the browser defines them.</item>
-/// <item><see cref="Label"/> is required and becomes its <c>aria-label</c>; the icon itself is hidden from screen readers. Content in its place is named by the label too: make an Avatar <c>Decorative</c>.</item>
+/// <item><see cref="Label"/> is required and becomes its <c>aria-label</c>; the icon itself is hidden from screen readers. Content in its place is named by the label too: make an Avatar <c>Decorative</c>. Initials an Avatar shows are added to the name ("Account, JD"), so voice control finds the button by the text on it.</item>
 /// <item>The tooltip is the native <c>title</c>, so it shows on mouse hover, not on keyboard focus. Inside a <see cref="Tooltip"/> it has none, and the Tooltip shows on hover and focus.</item>
 /// <item>A loading button (not a link) keeps focus and sets <c>aria-busy</c> and <c>aria-disabled</c>; screen readers hear <see cref="ButtonBase.LoadingLabel"/> before the label ("Loading Delete").</item>
 /// <item>A disabled or loading link loses its <c>href</c>, keeps <c>role="link"</c> and sets <c>aria-disabled</c>.</item>
@@ -70,6 +70,19 @@ public class IconButton : ButtonBase
     /// <summary>Runs on click on interactive pages (a link still navigates).</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    // The text its content shows in the icon's place: an Avatar's initials. Visible text belongs in the
+    // name (WCAG 2.5.3), so someone using voice control can say what they see.
+    private string? _shown;
+
+    internal void Shows(string? text)
+    {
+        if (_shown == text) return;
+        _shown = text;
+        StateHasChanged();
+    }
+
+    private string AccessibleName => string.IsNullOrEmpty(_shown) || Label.Contains(_shown, StringComparison.OrdinalIgnoreCase) ? Label : $"{Label}, {_shown}";
 
     /// <inheritdoc />
     protected override bool IconOnly => true;
@@ -137,7 +150,7 @@ public class IconButton : ButtonBase
         }
 
         // Loading reads like Button's: "Loading Delete" (LoadingLabel, then the label).
-        builder.AddAttribute(13, "aria-label", Loading ? $"{LoadingLabel ?? TextDefaults.Loading} {Label}" : Label);
+        builder.AddAttribute(13, "aria-label", Loading ? $"{LoadingLabel ?? TextDefaults.Loading} {Label}" : ChildContent is null ? Label : AccessibleName);
         // The native tooltip, unless a Tooltip around it shows one.
         if (InTooltip is null)
         {
@@ -159,7 +172,12 @@ public class IconButton : ButtonBase
 
         if (ChildContent is not null && !Loading)
         {
-            builder.AddContent(23, ChildContent);
+            // The content can tell the button what text it shows.
+            builder.OpenComponent<CascadingValue<IconButton>>(23);
+            builder.AddComponentParameter(24, nameof(CascadingValue<IconButton>.Value), this);
+            builder.AddComponentParameter(25, nameof(CascadingValue<IconButton>.IsFixed), true);
+            builder.AddComponentParameter(26, nameof(CascadingValue<IconButton>.ChildContent), ChildContent);
+            builder.CloseComponent();
         }
         else
         {
