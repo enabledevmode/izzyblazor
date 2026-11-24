@@ -356,11 +356,10 @@
 }
 
 /* The story sections of the landing and pricing pages (design board, page SB · Story drafts). A section is
-   56px above and below on phones and 96px from 1024px (48 and 72 for the tight one), under a hairline. */
+   56px above and below on phones and 96px from 1024px (48 and 72 for the tight one). */
 .site-story.site-story { padding-block: 3.5rem; }
 .site-story-tight.site-story-tight { padding-block: 3rem; }
 @media (width >= 1024px) { .site-story.site-story { padding-block: 6rem; } .site-story-tight.site-story-tight { padding-block: 4.5rem; } }
-:root.site .site-line { border-block-start: 1px solid var(--ib-color-border); }
 /* The components section between them: 48px, then 88px. */
 .site-story-show.site-story-show { padding-block: 3rem; }
 @media (width >= 1024px) { .site-story-show.site-story-show { padding-block: 5.5rem; } }
@@ -1110,8 +1109,8 @@ html:has(> body > .frame) body { margin: 0; }
 .site-template-phones .site-template-screen { height: 100%; aspect-ratio: 375 / 812; }
 
 /*
- * The pricing page (PR1 on the design board): a 1120px column, its numbers from the sheet. Sections are
- * divided by a hairline; the founding-price band is the one gray one.
+ * The pricing page (PR1 on the design board): a 1120px column, its numbers from the sheet. A change of
+ * background divides its sections, as on the home page; a hairline only where two plain ones meet.
  */
 .site-pricing-col { max-inline-size: 70rem; margin-inline: auto; }
 .site-pricing-band { border-block-start: 1px solid var(--ib-color-border); }
