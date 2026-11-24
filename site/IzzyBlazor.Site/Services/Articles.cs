@@ -34,6 +34,8 @@ public static class Articles
                 "Create an app from a starter or an app kit, with its name, folder and options."),
             new("blocks", "Blocks", "LayoutTemplate",
                 "Add a hero, pricing or a sign-up form, and place it on a page or at a line."),
+            new("components", "Components", "Component",
+                "Add a component's example to a page, and list every component's options."),
             new("crud", "CRUD pages", "Table2",
                 "A page to list, add, edit and delete a model's records, from a class in your app."),
             new("changes", "Previewing changes", "FileDiff",

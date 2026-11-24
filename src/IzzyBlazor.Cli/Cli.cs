@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -18,7 +19,7 @@ namespace IzzyBlazor.Cli;
 /// <param name="proRoot">The private catalog, with the account items' files and the Pro items (IZZY_PRO_CATALOG); null for the public catalog only.</param>
 /// <param name="access">What the private catalog holds: all of it, or an account's copy.</param>
 /// <param name="account">This machine's IzzyBlazor account, whose copy of the catalog is used when <paramref name="proRoot"/> is null.</param>
-sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null, ItemTier access = ItemTier.Pro, AccountSession? account = null)
+sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null, ItemTier access = ItemTier.Pro, AccountSession? account = null, TextReader? input = null)
 {
     const string Help = """
         izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalog.
@@ -30,6 +31,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy describe component --all --json
           izzy describe crud|init [--json]
           izzy add block <id> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
+          izzy add component <Name> [--example <name> | --tag] --at <file>:<line>[:<col>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy inspect <file>:<line>:<col> [--stdin] [--project <path>] --json
+          izzy set <file>:<line>:<col> --<option> <value> ... [--unset <option>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
@@ -39,6 +43,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy logout
           izzy account
 
+        izzy add component puts a component's usage example from the docs on a page: its markup at the line,
+        its @using lines at the top and its @code members in the page's @code. --example takes another of its
+        examples (izzy describe component <Name> lists them); --tag puts the tag alone, at the column too.
+        izzy inspect answers with the component at a place on a page and what each of its attributes says, for
+        an editor's side panel (a free account). izzy set changes or removes its options there (IzzyBlazor Pro).
         izzy add crud makes a page whose grid adds, edits and deletes a model's records (list, detail and
         form pages are --mode pages, Pro), for a model class in your app read from its source: no build needed.
         izzy init sets up IzzyBlazor in the app you have: a Blazor Web App, or an MVC or Razor Pages app, which
@@ -81,6 +90,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "list" => List(args),
                 "describe" => Describe(args),
                 "add" => Add(args),
+                "inspect" => Inspect(args),
+                "set" => Set(args),
                 "new" => New(args),
                 "init" => Init(args),
                 "agent" => Agent(args),
@@ -89,7 +100,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "login" => Login(args),
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account").Status(output),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, new, init, agent, mcp, login, logout, account."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, agent, mcp, login, logout, account."),
             };
         }
         catch (ProRequiredException e)
@@ -298,6 +309,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     int Add(Args args)
     {
+        if (args.Words.Count > 1 && args.Words[1].Equals("component", StringComparison.OrdinalIgnoreCase)) return AddComponent(args);
         // izzy add block hero: the kind, then the id. izzy add crud <Model>: the model after it.
         var isCrud = args.Words.Count > 1 && args.Words[1].Equals("crud", StringComparison.OrdinalIgnoreCase);
         var crud = args.Words.Count == 3 && isCrud;
@@ -389,6 +401,213 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             foreach (var e in examples) output.WriteLine($"  {((string)e!["name"]!).PadRight(wide)}  {(string)e["title"]!}{((bool)e["interactiveOnly"]! ? " (interactive pages)" : "")}");
         }
         return 0;
+    }
+
+    // izzy add component Select --at Components/Pages/Home.razor:12: the docs' usage example, in three parts
+    // (ExampleInsert), or with --tag the tag alone. With --stdin the page's text is read from standard input
+    // (an editor's buffer, perhaps unsaved) and nothing is written: the changes are the answer.
+    int AddComponent(Args args)
+    {
+        const string usage = "izzy add component <Name> [--example <name> | --tag] --at <file>:<line>[:<col>]";
+        Words(args, 3, usage);
+        var component = Library.Find(args.Words[2]);
+        var name = (string)component["name"]!;
+        var tag = args.Switch("tag");
+        var wanted = args.Take("example");
+        if (tag && wanted is not null) throw new UsageException("--tag adds the tag alone and --example an example: give one of them.");
+        var stdin = args.Switch("stdin");
+        var at = args.Take("at");
+        var folder = args.Take("project");
+        var flags = Flags(args);
+        NoSettings(args);
+        if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
+
+        JsonNode? listed = null;
+        string text;
+        if (tag)
+        {
+            var required = Library.Parameters(component).Where(p => (bool?)p["required"] == true).Select(p => $" {(string)p["name"]!}=\"\"");
+            var content = (component["slots"]?.AsArray() ?? []).Any(s => (string)s!["name"]! == "ChildContent");
+            text = $"<{name}{string.Concat(required)}{(content ? $"></{name}>" : " />")}";
+        }
+        else
+        {
+            var examples = component["examples"]?.AsArray() ?? [];
+            listed = examples.FirstOrDefault(e => ((string)e!["name"]!).Equals(wanted ?? "usage", StringComparison.OrdinalIgnoreCase) || ((string)e["id"]!).Equals(wanted, StringComparison.OrdinalIgnoreCase));
+            if (listed is null)
+                throw new UsageException(wanted is null
+                    ? $"{name} has no usage example. izzy describe component {name} lists its examples, and --tag adds the tag alone."
+                    : $"{name} has no example named \"{wanted}\". izzy describe component {name} lists them.");
+            text = (string)Library.Example((string)listed["id"]!)!["source"]!;
+        }
+        if (at is null)
+        {
+            // Nowhere to put it: shown, as a block with no page is.
+            output.Write(text.TrimEnd('\n') + "\n");
+            error.WriteLine($"{name} isn't placed on a page: add this where it goes, or place it with --at <file>:<line>.");
+            return 0;
+        }
+
+        var project = ProjectInfo.FromProject(FindProject(folder));
+        var (path, line, column) = Position(at, project);
+        var page = stdin ? (input ?? Console.In).ReadToEnd() : project.ReadFile(path) ?? throw new UsageException($"{path} isn't in the project.");
+        var inserts = new List<TextInsert>();
+        var creates = new List<FileCreate>();
+        var warnings = new List<string>();
+        if (tag)
+        {
+            // At a column the tag goes into the line as it is; at a line it takes a line of its own.
+            if (column is { } col) inserts.Add(new TextInsert(path, RazorPage.Offset(page, path, line, col), text, Inserts.Hash(page)));
+            else
+            {
+                var (offset, body) = Inserts.AtLine(page, path, line, text);
+                inserts.Add(new TextInsert(path, offset, body, Inserts.Hash(page)));
+            }
+        }
+        else
+        {
+            var imports = new StringBuilder();
+            for (var directory = Path.GetDirectoryName(path); directory is not null; directory = Path.GetDirectoryName(directory))
+            {
+                imports.Append(project.ReadFile((directory.Length > 0 ? directory.Replace('\\', '/') + "/" : "") + "_Imports.razor")).Append('\n');
+                if (directory.Length == 0) break;
+            }
+            var (offset, _) = Inserts.AtLine(page, path, line, "");
+            var where = Path.GetDirectoryName(path)!.Replace('\\', '/');
+            // The page's namespace: its files' own, where the example's sample-data files go too.
+            var space = string.Join('.', new[] { project.RootNamespace }.Concat(where.Split('/', StringSplitOptions.RemoveEmptyEntries)));
+            (inserts, warnings) = ExampleInsert.Place(page, path, offset, text.Replace("__PageNamespace__", space, StringComparison.Ordinal), imports.ToString(), Library);
+            foreach (var file in Library.Example((string)listed!["id"]!)!["files"]?.AsArray() ?? [])
+            {
+                // A model the example keeps in a file of its own goes beside the page, in the page's namespace.
+                var target = (where.Length > 0 ? where + "/" : "") + (string)file!["name"]!;
+                var written = Regex.Replace((string)file["source"]!, @"^namespace [\w.]+;", $"namespace {space};", RegexOptions.Multiline);
+                var existing = project.ReadFile(target);
+                if (existing is null) creates.Add(new FileCreate(target, written, null));
+                else if (existing.ReplaceLineEndings("\n") != written) warnings.Add($"{target} exists with other content, so the example's {(string)file["name"]!} wasn't written: it holds the types the example uses.");
+            }
+            if ((bool?)listed["interactiveOnly"] == true && !page.Contains("@rendermode", StringComparison.Ordinal)
+                && project.ReadFile(project.Host + "Components/App.razor")?.Contains("@rendermode", StringComparison.Ordinal) != true)
+                warnings.Add($"This example needs an interactive page, and {path} has no @rendermode.");
+        }
+
+        var changes = new Changeset { Creates = creates, Inserts = inserts, Packages = [], Conflicts = [], Warnings = warnings };
+        var write = !flags.DryRun && !stdin;
+        if (flags.Diff && !stdin) output.Write(ChangesetWriter.Diff(changes, project));
+        if (flags.Json) Print(ChangesetJson(changes, write));
+        foreach (var warning in warnings) error.WriteLine($"warning: {warning}");
+        if (!write)
+        {
+            if (!flags.Json && !flags.Diff) Summary(changes, "Would create", "Would change", "Would add package");
+            return 0;
+        }
+        ChangesetWriter.Apply(changes, project.Directory!);
+        if (!flags.Json) Summary(changes, "Created", "Changed", "Added package");
+        return 0;
+    }
+
+    // What this run may do: the private catalog on this machine (IzzyBlazor's own builds) and a run with no
+    // account service stand for the access they were given; otherwise it's the sign-in's.
+    ItemTier Plan => proRoot is not null || account is null ? access : account.Plan;
+
+    // izzy inspect Components/Pages/Home.razor:12:8 --json: the component there, as data for an inspector.
+    int Inspect(Args args)
+    {
+        const string usage = "izzy inspect <file>:<line>:<col> [--stdin] --json";
+        Words(args, 2, usage);
+        var stdin = args.Switch("stdin");
+        var folder = args.Take("project");
+        if (!args.Switch("json")) throw new UsageException($"izzy inspect answers as data. Usage: {usage}");
+        NoSettings(args);
+        if (Plan == ItemTier.Free)
+        {
+            error.WriteLine("Inspecting a component comes with a free IzzyBlazor account. Run izzy login.");
+            return 4;
+        }
+        var (page, path, tag) = TagAt(args.Words[1], folder, stdin, usage);
+        Print(TagEdit.Inspect(page, path, tag, Library));
+        return 0;
+    }
+
+    // izzy set Components/Pages/Home.razor:12:8 --variant Outline --unset size: the edit, as a changeset.
+    int Set(Args args)
+    {
+        const string usage = "izzy set <file>:<line>:<col> --<option> <value> ... [--unset <option>]";
+        Words(args, 2, usage);
+        var stdin = args.Switch("stdin");
+        var folder = args.Take("project");
+        var flags = Flags(args);
+        var changes = new List<(string, string?)>();
+        while (args.Take("unset") is { } removed) changes.Add((removed, null));
+        // What's left are the component's options. One with no value is a switch turned on.
+        changes.AddRange(args.Options.Select(o => (o.Name, (string?)(o.Value ?? "true"))));
+        if (changes.Count == 0) throw new UsageException($"Nothing to set. Usage: {usage}");
+        if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
+        if (Plan != ItemTier.Pro)
+        {
+            error.WriteLine("Changing a component's options with izzy set comes with IzzyBlazor Pro.");
+            return 3;
+        }
+        var (page, path, tag) = TagAt(args.Words[1], folder, stdin, usage);
+        var project = ProjectInfo.FromProject(FindProject(folder));
+        var edits = TagEdit.Set(page, path, tag, Library, changes);
+        var changeset = new Changeset { Creates = [], Inserts = edits, Packages = [], Conflicts = [], Warnings = [] };
+        var write = !flags.DryRun && !stdin;
+        if (flags.Diff && !stdin) output.Write(ChangesetWriter.Diff(changeset, project));
+        if (flags.Json) Print(ChangesetJson(changeset, write));
+        if (edits.Count == 0)
+        {
+            if (!flags.Json) output.WriteLine("Nothing to change.");
+            return 0;
+        }
+        if (!write)
+        {
+            if (!flags.Json && !flags.Diff) Summary(changeset, "Would create", "Would change", "Would add package");
+            return 0;
+        }
+        ChangesetWriter.Apply(changeset, project.Directory!);
+        if (!flags.Json) Summary(changeset, "Created", "Changed", "Added package");
+        return 0;
+    }
+
+    // The page (from standard input for an editor's buffer) and the component's tag at <file>:<line>:<col>.
+    (string Page, string Path, RazorTag Tag) TagAt(string at, string? folder, bool stdin, string usage)
+    {
+        var project = ProjectInfo.FromProject(FindProject(folder));
+        var (path, line, column) = Position(at, project);
+        if (column is not { } col) throw new UsageException($"Give the column too. Usage: {usage}");
+        var page = stdin ? (input ?? Console.In).ReadToEnd() : project.ReadFile(path) ?? throw new UsageException($"{path} isn't in the project.");
+        var tag = TagEdit.Find(page, RazorPage.Offset(page, path, line, col), Library)
+            ?? throw new UsageException($"No IzzyBlazor component at {path}:{line}:{col}.");
+        return (page, path, tag);
+    }
+
+    // <file>:<line> or <file>:<line>:<col>, the file relative to here (or absolute), inside the project.
+    (string Path, int Line, int? Column) Position(string at, ProjectInfo project)
+    {
+        var parts = at.Split(':');
+        int? column = null;
+        var count = parts.Length;
+        // The last one or two parts are numbers; what's before them is the file (C:\app\Home.razor has a colon too).
+        if (count >= 3 && int.TryParse(parts[^1], out var second) && int.TryParse(parts[^2], out var first) && first >= 1 && second >= 1)
+        {
+            column = second;
+            count -= 2;
+            return Named(first);
+        }
+        if (count >= 2 && int.TryParse(parts[^1], out var line) && line >= 1)
+        {
+            count -= 1;
+            return Named(line);
+        }
+        throw new UsageException($"--at is <file>:<line> or <file>:<line>:<col>, such as Components/Pages/Home.razor:12, not \"{at}\".");
+
+        (string, int, int?) Named(int line)
+        {
+            var file = string.Join(':', parts[..count]);
+            try { return (project.Relative(Path.GetFullPath(file, workingDirectory)), line, column); }
+            catch (GenerationException) { throw new UsageException($"{file} isn't in the project."); }
+        }
     }
 
     // The IzzyBlazor version the app in this folder references, for a front end to compare with the data's.

@@ -34,6 +34,7 @@ The catalog has starters, app kits, pages and blocks (hero, pricing, FAQ, contac
 3. `add_item` with `dryRun: true` shows the changes as a diff. Run it again without `dryRun` to write them.
 4. `add_crud` makes a page that lists, adds, edits and deletes a model class's records.
 5. `init_app` sets IzzyBlazor up in an app that doesn't have it. `new_app` makes a new app.
+6. `add_item` with `kind: "component"` and `at` puts a component's usage example from the docs on a page, with its sample data and code. `describe_item` with `kind: "component"` gives a component's options.
 
 If a tool answers that the user must run `izzy login`, tell them: it is a free account and takes a minute. If an item is Pro, say so and build it from components instead. Files that exist with other content are never replaced unless you pass `overwrite`, so ask first.
 

@@ -194,31 +194,63 @@ public static partial class CliData
     static string? Plain(string? html) =>
         html is null ? null : Spaces().Replace(WebUtility.HtmlDecode(Tags().Replace(BlockTags().Replace(html, " "), "")), " ").Trim();
 
+    /// <summary>Stands for the namespace of the page an example lands on, in a <c>@using Alias = ...</c> line.</summary>
+    public const string PageNamespace = "__PageNamespace__";
+
     // Every example under the folder, by the id the site gives it: Examples/Button/MultiSubmit.razor
-    // is button-multi-submit.
+    // is button-multi-submit. An example made to go into another app: with the lines the docs hide, the
+    // sample-data files it uses (named by a file line, used by type name, or reached by a using of
+    // another example's folder), and the using the docs site gives every page for 24.Rem.
     static Dictionary<string, CliExample> Sources(string root)
     {
+        // The .cs files beside the examples, by folder, each with the types it declares.
+        var beside = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Select(path => (Folder: Path.GetFileName(Path.GetDirectoryName(path)!), Name: Path.GetFileName(path),
+                Source: File.ReadAllText(path).Replace("\r\n", "\n", StringComparison.Ordinal)))
+            .Select(f => (f.Folder, f.Name, f.Source, Types: TypeName().Matches(f.Source).Select(m => m.Groups[1].Value).ToList()))
+            .ToList();
+
         var sources = new Dictionary<string, CliExample>(StringComparer.Ordinal);
         foreach (var path in Directory.EnumerateFiles(root, "*.razor", SearchOption.AllDirectories))
         {
             var folder = Path.GetRelativePath(root, Path.GetDirectoryName(path)!).Replace('\\', '/');
             if (folder == ".") continue;
             var raw = File.ReadAllText(path).Replace("\r\n", "\n", StringComparison.Ordinal);
-            List<CliExampleFile>? files = null;
-            foreach (Match file in FileLine().Matches(raw))
+            var files = new List<CliExampleFile>();
+            void Take(string from, string name)
             {
-                var beside = Path.Combine(Path.GetDirectoryName(path)!, file.Groups[1].Value);
-                (files ??= []).Add(new CliExampleFile(file.Groups[1].Value, File.ReadAllText(beside).Replace("\r\n", "\n", StringComparison.Ordinal)));
+                if (files.Any(f => f.Name == name)) return;
+                // The docs site imports IzzyBlazor for all its code; another app's .cs files may not.
+                if (beside.FirstOrDefault(f => f.Folder == from && f.Name == name) is { Source: not null } file)
+                    files.Add(new CliExampleFile(name, file.Source.Contains("using IzzyBlazor;", StringComparison.Ordinal) ? file.Source : "using IzzyBlazor;\n\n" + file.Source));
             }
+            foreach (Match file in FileLine().Matches(raw)) Take(folder, file.Groups[1].Value);
+
             var source = new StringBuilder();
             foreach (var line in raw.Split('\n'))
             {
                 var trimmed = line.Trim();
                 if (trimmed is "@* hide *@" or "@* /hide *@" || FileLine().IsMatch(trimmed)) continue;
+                // @using IzzyBlazor.Site.Examples.Table: that folder's types come along, into the page's namespace.
+                if (SiteUsing().Match(trimmed) is { Success: true } used)
+                {
+                    var from = used.Groups["folder"].Value;
+                    var type = used.Groups["type"].Value;
+                    foreach (var f in beside.Where(f => f.Folder == from && (type.Length == 0 ? f.Types.Any(t => Regex.IsMatch(raw, $@"\b{Regex.Escape(t)}\b")) : f.Types.Contains(type))))
+                        Take(from, f.Name);
+                    if (used.Groups["alias"].Success) source.Append($"@using {used.Groups["alias"].Value} = {PageNamespace}.{type}\n");
+                    continue;
+                }
                 source.Append(line).Append('\n');
             }
+            var text = source.ToString().Trim('\n') + "\n";
+            foreach (var f in beside.Where(f => f.Folder == folder && f.Types.Any(t => Regex.IsMatch(text, $@"\b{Regex.Escape(t)}\b")))) Take(folder, f.Name);
+            // 24.Rem: the docs site imports the unit shorthands for every page.
+            if (UnitShorthand().IsMatch(text) && !text.Contains("@using IzzyBlazor.Units", StringComparison.Ordinal)) text = "@using IzzyBlazor.Units\n" + text;
+            // A file that needs the docs site beyond its own namespace line can't travel: the mark keeps the example out.
+            if (files.Any(f => NamespaceLine().Replace(f.Source, "").Contains("IzzyBlazor.Site", StringComparison.Ordinal))) text += "@* IzzyBlazor.Site *@\n";
             var id = $"{Kebab(folder.Replace('/', '-'))}-{Kebab(Path.GetFileNameWithoutExtension(path))}";
-            sources[id] = new CliExample(Path.GetFileName(path), source.ToString().Trim('\n') + "\n", files);
+            sources[id] = new CliExample(Path.GetFileName(path), text, files.Count > 0 ? files : null);
         }
         return sources;
     }
@@ -231,6 +263,18 @@ public static partial class CliData
 
     [GeneratedRegex(@"^\s*@\* file: (\S+\.cs) \*@\s*$", RegexOptions.Multiline)]
     private static partial Regex FileLine();
+
+    [GeneratedRegex(@"\b(?:class|record|struct|enum|interface)\s+(\w+)")]
+    private static partial Regex TypeName();
+
+    [GeneratedRegex(@"^@using\s+(?:(?<alias>\w+)\s*=\s*)?IzzyBlazor\.Site\.Examples\.(?<folder>\w+)(?:\.(?<type>\w+))?\s*$")]
+    private static partial Regex SiteUsing();
+
+    [GeneratedRegex(@"\b\d+(?:\.\d+)?\.[A-Z][a-z]+\b")]
+    private static partial Regex UnitShorthand();
+
+    [GeneratedRegex(@"^namespace [\w.]+;", RegexOptions.Multiline)]
+    private static partial Regex NamespaceLine();
 
     [GeneratedRegex("</?(p|li|ul|ol|br|div|pre)[^>]*>")]
     private static partial Regex BlockTags();

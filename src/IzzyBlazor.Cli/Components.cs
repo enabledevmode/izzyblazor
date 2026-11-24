@@ -147,6 +147,23 @@ sealed class Components
         _ => null,
     };
 
+    /// <summary>
+    /// A tag's options by name, each with whether it takes text (a string) rather than C#; null for a tag that
+    /// isn't a component's.
+    /// </summary>
+    public Dictionary<string, bool>? Options(string tag)
+    {
+        if (!_byName.TryGetValue(tag, out var c) || !string.Equals((string)c["name"]!, tag, StringComparison.Ordinal)) return null;
+        var options = new Dictionary<string, bool>(StringComparer.Ordinal);
+        foreach (var p in Parameters(c)) options.TryAdd((string)p["name"]!, (string)p["kind"]! == "string");
+        return options;
+    }
+
+    /// <summary>A component's options, its own and then its bases'.</summary>
+    public IEnumerable<JsonObject> Parameters(JsonObject c) =>
+        c["parameters"]!.AsArray().Select(p => p!.AsObject())
+            .Concat((c["bases"]?.AsArray() ?? []).SelectMany(b => _bases.TryGetValue((string)b!, out var shared) ? shared["parameters"]!.AsArray().Select(p => p!.AsObject()) : []));
+
     /// <summary>The names of a base's options, for the text form of describe.</summary>
     public IEnumerable<string> BaseOptions(string name) =>
         _bases.TryGetValue(name, out var shared) ? shared["parameters"]!.AsArray().Select(p => (string)p!["name"]!) : [];

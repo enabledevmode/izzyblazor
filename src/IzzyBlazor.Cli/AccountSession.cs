@@ -58,6 +58,9 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     /// <summary>Whether this machine has a sign-in or a CI key.</summary>
     public bool SignedIn => CiKey || ReadKey(out _) is not null;
 
+    /// <summary>What this machine's sign-in reaches: nothing signed out, an account's items, or Pro's. A CI key is an account's.</summary>
+    public ItemTier Plan => CiKey ? ItemTier.Account : ReadKey(out _)?.Tier ?? ItemTier.Free;
+
     // IZZY_KEY holds a key made on the account page: only the service can say whether it's a live one, but a
     // value that isn't one at all is known here, and unlocks nothing.
     bool CiKey => ciKey is { Length: >= 40 } && ciKey.StartsWith("izzyci_", StringComparison.Ordinal);

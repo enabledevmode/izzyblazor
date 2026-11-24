@@ -1,0 +1,86 @@
+@page "/docs/cli/components"
+
+@* izzy add component <Name>: an example from the docs on a page, the tag alone, listing and describing
+   components, and inspect and set for an editor. *@
+
+<ArticlePage Section="cli" Slug="components">
+    <Lead>
+        <Code>izzy add component</Code> puts a component's example from these docs on a page in your app, with the
+        sample data and code it needs. izzy also lists every component and its options, in the terminal or as JSON.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Add a component's example</Heading>
+        <TextBlock>
+            Run <Code>izzy add component</Code> in your app's folder with the component's name, and set <Code>--at</Code>
+            to the file and line where it goes:
+        </TextBlock>
+        <Code Block Language="bash">izzy add component Select --at Components/Pages/Signup.razor:12</Code>
+        <TextBlock>
+            izzy adds the component's usage example, the first one on its docs page. The example's markup goes at the
+            line. Its <Code>@@using</Code> lines go at the top of the page, and its fields, methods and classes go into
+            the page's <Code>@@code</Code> block.
+        </TextBlock>
+        <TextBlock>
+            When the page already has a name the example uses, such as <Code>Model</Code> or a form's name, the
+            example's gets a number: <Code>Model2</Code>. When both override the same method, such as
+            <Code>OnInitialized</Code>, izzy adds the example's as a method of its own and tells you to call it.
+        </TextBlock>
+
+        <Heading Level="2">Choose another example</Heading>
+        <TextBlock>
+            To add another of the component's examples, set <Code>--example</Code> to its name. To list the names, run
+            <Code>izzy describe component</Code>:
+        </TextBlock>
+        <Code Block Language="bash">izzy describe component DataGrid
+izzy add component DataGrid --example editing --at Components/Pages/Orders.razor:8</Code>
+        <TextBlock>
+            An example that keeps its sample data in a file of its own, as the grid's orders are, gets that file beside
+            your page.
+        </TextBlock>
+
+        <Heading Level="2">Add the tag alone</Heading>
+        <TextBlock>
+            To add only the component's tag, with its required options left empty, set <Code>--tag</Code>. Add a column
+            after the line to put it inside the line:
+        </TextBlock>
+        <Code Block Language="bash">izzy add component QrCode --tag --at Components/Pages/Ticket.razor:20:9</Code>
+
+        <Heading Level="2">List and describe components</Heading>
+        <TextBlock>
+            <Code>izzy list component</Code> lists the components with what each one does.
+            <Code>izzy describe component Button</Code> lists a component's options with their types and defaults, its
+            content, its events and its examples. Both describe the version of IzzyBlazor that this izzy came with.
+        </TextBlock>
+
+        <Heading Level="2">For editors</Heading>
+        <TextBlock>
+            An editor's side panel is built on four commands. Each answers with JSON when you add <Code>--json</Code>.
+            The last three read the page from standard input with <Code>--stdin</Code>, so they work on a file you
+            haven't saved.
+        </TextBlock>
+        <Table Items="Commands" Caption="Commands for an editor" Grow>
+            <Columns>
+                <TemplateColumn Title="Command" Context="row"><Code>@row.Command</Code></TemplateColumn>
+                <PropertyColumn Property="r => r.Does" Title="What it does" />
+                <PropertyColumn Property="r => r.Needs" Title="Needs" />
+            </Columns>
+        </Table>
+        <TextBlock>
+            <Code>izzy set</Code> writes a value as Razor does for the option's type: <Code>Variant="ButtonVariant.Outline"</Code>
+            for an enum, a bare <Code>Disabled</Code> for a switch. A value on the page that is an expression, such as
+            <Code>Size="@@_size"</Code>, is reported as one and stays as it is until you set another.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Command, string Does, string Needs);
+
+    private static readonly Row[] Commands =
+    [
+        new("izzy describe component --all --json", "Every component and part with its options as a JSON Schema.", "Nothing"),
+        new("izzy add component <Name> --tag --at <file>:<line>:<col>", "The edit that inserts the tag at the cursor.", "Nothing"),
+        new("izzy inspect <file>:<line>:<col>", "The component at the cursor and what each of its attributes says.", "A free account"),
+        new("izzy set <file>:<line>:<col> --<option> <value>", "The edit that sets an option, or removes it with --unset.", "IzzyBlazor Pro"),
+    ];
+}
