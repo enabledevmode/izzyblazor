@@ -81,6 +81,10 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\brand\nuget\icon.png" Pack="true" PackagePath="\" Visible="false" />
     <None Include="$(RepoRoot)docs\nuget-readme.md" Pack="true" PackagePath="\README.md" Visible="false" />
+    <!-- The components as data for the izzy CLI (the API, the docs' examples), so izzy describes the version an
+         app references. The docs' generator makes it, so it's packed only when a build gives it:
+         -p:IzzyComponentsData=<path> (release.yml). NuGet doesn't read tools/, so no app's build sees it. -->
+    <None Condition="'$(IzzyComponentsData)' != '' And Exists('$(IzzyComponentsData)')" Include="$(IzzyComponentsData)" Pack="true" PackagePath="tools\izzy\components.json" Visible="false" />
   </ItemGroup>
 
 </Project>

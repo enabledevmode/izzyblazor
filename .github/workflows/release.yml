@@ -105,7 +105,13 @@ jobs:
         run: bash build/asset-budget.sh
 
       - name: Pack
-        run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts
+        # IzzyBlazor.Core carries the component data the CLI's build made, for izzy to read from an app's package.
+        shell: bash
+        run: |
+          data="$PWD/src/IzzyBlazor.Cli/obj/Release/components.json"
+          test -f "$data" || { echo "::error::No component data at $data."; exit 1; }
+          dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts -p:IzzyComponentsData="$data"
+          unzip -l artifacts/IzzyBlazor.Core.*.nupkg | grep -q "tools/izzy/components.json" || { echo "::error::IzzyBlazor.Core was packed without tools/izzy/components.json."; exit 1; }
 
       - name: Release notes
         # docs/releases/<tag>.md, when there is one, heads the GitHub release's notes.

@@ -49,7 +49,9 @@ izzy add component DataGrid --example editing --at Components/Pages/Orders.razor
         <TextBlock>
             <Code>izzy list component</Code> lists the components with what each one does.
             <Code>izzy describe component Button</Code> lists a component's options with their types and defaults, its
-            content, its events and its examples. Both describe the version of IzzyBlazor that this izzy came with.
+            content, its events and its examples. In an app you've restored, izzy describes the version of IzzyBlazor
+            the app references: the data comes from the app's own IzzyBlazor.Core package. Outside an app, or in an
+            app on a version before 0.1.0-alpha.26, it describes the version this izzy came with and says so.
         </TextBlock>
 
         <Heading Level="2">For editors</Heading>

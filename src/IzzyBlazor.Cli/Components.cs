@@ -26,6 +26,29 @@ sealed class Components
         foreach (var b in file["bases"]!.AsArray()) _bases[(string)b!["name"]!] = b.AsObject();
     }
 
+    /// <summary>The newest shape of the file this izzy reads.</summary>
+    public const int Format = 1;
+
+    /// <summary>
+    /// The data in an app's own IzzyBlazor.Core package, when the file there is one this izzy reads; null
+    /// when it's missing, damaged or of a newer shape.
+    /// </summary>
+    public static Components? FromPackage(string path)
+    {
+        try
+        {
+            if (!File.Exists(path) || JsonNode.Parse(File.ReadAllText(path)) is not JsonObject file) return null;
+            return ((int?)file["format"] ?? 1) <= Format ? new Components(file) { Source = "package" } : null;
+        }
+        catch (Exception e) when (e is IOException or System.Text.Json.JsonException or InvalidOperationException or NullReferenceException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Where the data came from: the app's package, or this tool.</summary>
+    public string Source { get; private init; } = "tool";
+
     public static Components Load(string path) =>
         File.Exists(path)
             ? new Components(JsonNode.Parse(File.ReadAllText(path))!.AsObject())

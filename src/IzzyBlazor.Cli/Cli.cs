@@ -367,11 +367,13 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         {
             Words(args, 2, usage);
             if (!json) throw new UsageException("--all answers as data: izzy describe component --all --json.");
-            var folder = args.Take("project");
+            var folder = _projectFolder = args.Take("project");
             NoSettings(args);
             Print(new JsonObject
             {
                 ["version"] = Library.Version,
+                // "package": the app's own IzzyBlazor.Core; "tool": this izzy's copy.
+                ["source"] = Library.Source,
                 ["projectVersion"] = ProjectVersion(folder),
                 ["components"] = new JsonArray(Library.All.Select(c => (JsonNode)Library.Describe(c)).ToArray()),
             });
@@ -436,7 +438,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (tag && wanted is not null) throw new UsageException("--tag adds the tag alone and --example an example: give one of them.");
         var stdin = args.Switch("stdin");
         var at = args.Take("at");
-        var folder = args.Take("project");
+        var folder = _projectFolder = args.Take("project");
         var flags = Flags(args);
         NoSettings(args);
         if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
@@ -551,7 +553,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         const string usage = "izzy inspect <file>:<line>:<col> [--stdin] --json";
         Words(args, 2, usage);
         var stdin = args.Switch("stdin");
-        var folder = args.Take("project");
+        var folder = _projectFolder = args.Take("project");
         if (!args.Switch("json")) throw new UsageException($"izzy inspect answers as data. Usage: {usage}");
         NoSettings(args);
         if (Plan == ItemTier.Free)
@@ -570,7 +572,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         const string usage = "izzy set <file>:<line>:<col> --<option> <value> ... [--unset <option>]";
         Words(args, 2, usage);
         var stdin = args.Switch("stdin");
-        var folder = args.Take("project");
+        var folder = _projectFolder = args.Take("project");
         var flags = Flags(args);
         var changes = new List<(string, string?)>();
         while (args.Take("unset") is { } removed) changes.Add((removed, null));
@@ -676,7 +678,39 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     Components? _library;
 
-    Components Library => _library ??= Components.Load(Path.Combine(AppContext.BaseDirectory, "components.json"));
+    // The app's own version of the components where its IzzyBlazor.Core package holds the data (alpha.26 on);
+    // else this tool's, with a line saying so when the app is on another version.
+    Components Library => _library ??= LoadLibrary();
+
+    // The --project a command was given, for finding the app's package.
+    string? _projectFolder;
+
+    Components LoadLibrary()
+    {
+        if (PackageData() is { } path && Components.FromPackage(path) is { } packaged) return packaged;
+        var own = Components.Load(Path.Combine(AppContext.BaseDirectory, "components.json"));
+        if (ProjectVersion(_projectFolder) is { } app && app != own.Version)
+            error.WriteLine($"Using this izzy's component data ({own.Version}); the app is on {app}.");
+        return own;
+    }
+
+    // tools/izzy/components.json in the IzzyBlazor.Core package the app restored, from its obj/project.assets.json.
+    string? PackageData()
+    {
+        try
+        {
+            var project = ProjectInfo.FromProject(FindProject(_projectFolder));
+            var assets = Path.Combine(project.Directory!, project.Host, "obj", "project.assets.json");
+            if (!File.Exists(assets) || JsonNode.Parse(File.ReadAllText(assets)) is not JsonObject restored) return null;
+            var library = restored["libraries"]?.AsObject().FirstOrDefault(l => l.Key.StartsWith("IzzyBlazor.Core/", StringComparison.OrdinalIgnoreCase)).Value;
+            if ((string?)library?["type"] != "package" || (string?)library["path"] is not { } relative) return null;
+            return (restored["packageFolders"]?.AsObject() ?? []).Select(f => Path.Combine(f.Key, relative, "tools", "izzy", "components.json")).FirstOrDefault(File.Exists);
+        }
+        catch (Exception e) when (e is UsageException or GenerationException or IOException or System.Text.Json.JsonException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
 
     int New(Args args)
     {

@@ -69,6 +69,31 @@ public sealed class ComponentTests : IDisposable
         Assert.Contains("namespace Acme.Client.Pages;", File.ReadAllText(Path.Combine(_work, "Acme.Client", "Pages", "Orders.cs")));
     }
 
+    // An app restored against a package that holds the data is described by that data: its own version's.
+    [Fact]
+    public void An_app_is_described_by_the_data_in_its_own_package()
+    {
+        ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("blazor"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme")), _work);
+        Assert.Equal("tool", (string)JsonNode.Parse(Izzy("describe", "component", "--all", "--json").Out)!["source"]!);
+
+        // What a restore leaves: obj/project.assets.json naming the package's folder, and the package with its data.
+        var packages = Path.Combine(_work, "packages");
+        var data = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "components.json")))!;
+        data["version"] = "9.9.9";
+        Directory.CreateDirectory(Path.Combine(packages, "izzyblazor.core", "9.9.9", "tools", "izzy"));
+        File.WriteAllText(Path.Combine(packages, "izzyblazor.core", "9.9.9", "tools", "izzy", "components.json"), data.ToJsonString());
+        Directory.CreateDirectory(Path.Combine(_work, "obj"));
+        File.WriteAllText(Path.Combine(_work, "obj", "project.assets.json"), new JsonObject
+        {
+            ["libraries"] = new JsonObject { ["IzzyBlazor.Core/9.9.9"] = new JsonObject { ["type"] = "package", ["path"] = "izzyblazor.core/9.9.9" } },
+            ["packageFolders"] = new JsonObject { [packages + Path.DirectorySeparatorChar] = new JsonObject() },
+        }.ToJsonString());
+
+        var described = JsonNode.Parse(Izzy("describe", "component", "--all", "--json").Out)!;
+        Assert.Equal("package", (string)described["source"]!);
+        Assert.Equal("9.9.9", (string)described["version"]!);
+    }
+
     [Fact]
     public void A_tag_is_inspected_with_an_account_and_its_options_set_with_Pro()
     {

@@ -14,6 +14,9 @@ namespace IzzyBlazor.DocsGen;
 /// <summary>The whole file.</summary>
 public sealed record CliFile
 {
+    /// <summary>The file's shape. An izzy that meets a higher number than it knows uses its own copy.</summary>
+    public int Format { get; init; } = 1;
+
     public required string Version { get; init; }
 
     /// <summary>The docs' groups, in their order.</summary>
