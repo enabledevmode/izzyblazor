@@ -21,6 +21,7 @@ All text is outlined, so the SVGs need no fonts installed.
 | `social/` | `banner-1500x500.{svg,png}` | X and LinkedIn header. |
 | `hero/` | `hero-{dark,light}.{svg,png}` (1600×800, PNG at 2x) | Docs landing page, video intros, slides. |
 | `nuget/` | `icon.png` (128×128) | `<PackageIcon>` in the .csproj. |
+| `vscode/` | `icon.png` (256×256), `activitybar.svg`, `activitybar-letters.svg` | VS Code extension: the extension icon (ink tile) and the one-color Activity Bar icon. See `vscode/README.md` for the package.json snippet. |
 | `badges/` | `mode-{static,interactive}-{light,dark}.svg`, PNGs in `png/` | The Static · Interactive switch with one mode lit, for demos and video thumbnails. |
 | `badges/` | `mode-both-{light,dark}.svg`, PNGs in `png/` | Every render mode with a dot each (Static SSR, Server, WebAssembly, Auto), for marketing. Used on the hero and social cards. |
 

@@ -7,7 +7,7 @@ namespace IzzyBlazor.Generation;
 /// Applies conditions and tokens to a template file. Conditions are whole lines in the file type's comment
 /// syntax, as <c>dotnet new</c> reads them, so one file works in both: <c>@*#if (X) *@</c> in Razor,
 /// <c>#if (X)</c> in C#, <c>/*#if (X) */</c> in CSS, <c>//#if (X)</c> in JSON, <c>&lt;!--#if (X) --&gt;</c>
-/// in XML and HTML; then <c>#elif (Y)</c>, <c>#else</c> and <c>#endif</c> in the same syntax. A directive
+/// in XML, HTML and Markdown; then <c>#elif (Y)</c>, <c>#else</c> and <c>#endif</c> in the same syntax. A directive
 /// line is removed whole, with its line break; lines in a branch not taken go with it.
 /// <para>
 /// A loop, in the same syntax, repeats its lines for each record of a list the project gives (a fact whose
@@ -27,6 +27,7 @@ internal static partial class TemplateText
         [".css"] = Block(), [".scss"] = Block(),
         [".json"] = Line(),
         [".csproj"] = Xml(), [".props"] = Xml(), [".targets"] = Xml(), [".xml"] = Xml(), [".html"] = Xml(), [".config"] = Xml(),
+        [".md"] = Xml(),
     };
 
     /// <summary>Files copied byte for byte: no conditions, no tokens.</summary>

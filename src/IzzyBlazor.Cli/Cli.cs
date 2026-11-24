@@ -464,6 +464,15 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             }
         if (changes.Restore) Dotnet(directory, quiet, "restore");
         Record(directory, item.Manifest.Id, changes.Settings);
+        // A new app says where to go next: its README has how to run it, what was made and, where it has
+        // accounts, how to log in.
+        if (!quiet && !existing && changes.Creates.Any(c => c.Path == "README.md"))
+        {
+            var folder = Path.GetRelativePath(Environment.CurrentDirectory, directory);
+            output.WriteLine();
+            output.WriteLine(folder == "." ? "Next: open README.md." : $"Next: cd {folder}, then open README.md.");
+            output.WriteLine("It says how to run the app, what was made and where to go from here.");
+        }
         return 0;
     }
 
