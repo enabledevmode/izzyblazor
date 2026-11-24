@@ -22,7 +22,9 @@ static partial class TagEdit
         if (tags.FirstOrDefault(t => offset >= t.Start && offset < t.End) is { } inside) return inside;
         // Open and close tags up to the offset, in order: what's still open is what the offset is inside.
         var open = new List<RazorTag>();
-        var closes = Close().Matches(page).Where(m => m.Index < offset).Select(m => (m.Index, Name: m.Groups[1].Value)).ToList();
+        // A closing tag in a comment closes nothing.
+        var comments = RazorPage.Comments(page);
+        var closes = Close().Matches(page).Where(m => m.Index < offset && !comments.Any(c => m.Index >= c.Start && m.Index < c.End)).Select(m => (m.Index, Name: m.Groups[1].Value)).ToList();
         var next = 0;
         foreach (var tag in tags.Where(t => t.End <= offset))
         {
@@ -106,6 +108,8 @@ static partial class TagEdit
     /// </summary>
     public static List<TextInsert> Set(string page, string path, RazorTag tag, Components library, IReadOnlyList<(string Option, string? Value)> changes)
     {
+        // The last value given for an option is the one that counts.
+        changes = changes.GroupBy(c => c.Option.Replace("-", "", StringComparison.Ordinal), StringComparer.OrdinalIgnoreCase).Select(g => g.Last()).ToList();
         var component = library.Find(tag.Name);
         var parameters = library.Parameters(component).GroupBy(p => (string)p["name"]!).Select(g => g.First()).ToList();
         var hash = Inserts.Hash(page);
@@ -116,9 +120,10 @@ static partial class TagEdit
             var parameter = parameters.FirstOrDefault(p => Same((string)p["name"]!, option))
                 ?? throw new UsageException($"{tag.Name} has no option named \"{option}\". izzy describe component {tag.Name} lists them.");
             var name = (string)parameter["name"]!;
-            if (tag.Attributes.Any(a => a.Name.StartsWith($"@bind-{name}", StringComparison.Ordinal)))
+            if (tag.Attributes.Any(a => a.Name == $"@bind-{name}" || a.Name.StartsWith($"@bind-{name}:", StringComparison.Ordinal)))
                 throw new UsageException($"{name} is bound with @bind-{name}: change what it's bound to on the page.");
-            var existing = tag.Attributes.FirstOrDefault(a => a.Name == name);
+            // HTML reads an attribute's name in any case, and so does Razor for a component's.
+            var existing = tag.Attributes.FirstOrDefault(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             if (value is null)
             {
                 if (existing is null) continue;
@@ -128,7 +133,9 @@ static partial class TagEdit
                 edits.Add(new TextInsert(path, from, "", hash) { Length = existing.End - from });
                 continue;
             }
-            var text = Attribute(name, parameter, value);
+            if (ReferenceEquals(value, Switch) && (string)parameter["kind"]! != "bool")
+                throw new UsageException($"{name} needs a value: --{option} <value>.");
+            var text = Attribute(name, parameter, ReferenceEquals(value, Switch) ? "true" : value);
             if (existing is not null) edits.Add(new TextInsert(path, existing.Start, text, hash) { Length = existing.End - existing.Start });
             else added.Add(text);
         }
@@ -140,6 +147,9 @@ static partial class TagEdit
         }
         return edits;
     }
+
+    /// <summary>The value of an option given with none: on, for one that's true or false.</summary>
+    public static readonly string Switch = new("true");
 
     // The attribute as Razor writes it for the option's kind.
     static string Attribute(string name, JsonObject parameter, string value)

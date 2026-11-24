@@ -32,15 +32,34 @@ static partial class RazorPage
     public static List<(int Start, int Open, int Close)> CodeBlocks(string text)
     {
         var blocks = new List<(int, int, int)>();
+        var comments = Comments(text);
         foreach (Match m in CodeStart().Matches(text))
         {
             if (blocks.Count > 0 && m.Index < blocks[^1].Item3) continue;
+            // One that's commented out is text.
+            if (comments.Any(c => m.Index > c.Start && m.Index < c.End)) continue;
             var open = m.Index + m.Length - 1;
             var close = MatchBrace(text, open);
             if (close < 0) break;
             blocks.Add((m.Index, open, close));
         }
         return blocks;
+    }
+
+    /// <summary>The Razor (<c>@* *@</c>) and HTML comments outside any <c>@code</c> block that starts before them.</summary>
+    public static List<(int Start, int End)> Comments(string text)
+    {
+        var comments = new List<(int, int)>();
+        for (var i = 0; i < text.Length - 1; i++)
+        {
+            var (open, close) = text[i] == '@' && text[i + 1] == '*' ? ("@*", "*@") : text.AsSpan(i).StartsWith("<!--") ? ("<!--", "-->") : (null, null);
+            if (open is null) continue;
+            var end = text.IndexOf(close!, i + open.Length, StringComparison.Ordinal);
+            end = end < 0 ? text.Length : end + close!.Length;
+            comments.Add((i, end));
+            i = end - 1;
+        }
+        return comments;
     }
 
     /// <summary>The index of the brace that closes the one at <paramref name="open"/>, past strings and comments; -1 when there is none.</summary>
@@ -76,8 +95,53 @@ static partial class RazorPage
         return -1;
     }
 
-    // The last character of the string starting at the quote: plain, verbatim (@"") or raw (""").
-    static int StringEnd(string text, int quote)
+    /// <summary>
+    /// The index of the bracket that closes the <c>(</c>, <c>[</c> or <c>{</c> at <paramref name="open"/>, past
+    /// the strings and characters of the C# inside; -1 when there is none.
+    /// </summary>
+    public static int MatchBracket(string text, int open)
+    {
+        var depth = 0;
+        for (var i = open; i < text.Length; i++)
+        {
+            var c = text[i];
+            if (c == '"') i = StringEnd(text, i);
+            else if (c == '\'' && CharEnd(text, i) is var charEnd and > 0) i = charEnd;
+            else if (c is '(' or '[' or '{') depth++;
+            else if (c is ')' or ']' or '}' && --depth == 0) return i;
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Just past the expression that starts at an <c>@</c>: <c>@(…)</c>, or a name with its members, calls and
+    /// indexers (<c>@L["Save"]</c>, <c>@Url("home").Value</c>). The <c>@</c>'s own index when it starts neither.
+    /// </summary>
+    public static int ExpressionEnd(string text, int at)
+    {
+        var i = at + 1;
+        if (i < text.Length && text[i] == '(') return MatchBracket(text, i) is var close and >= 0 ? close + 1 : at;
+        if (i >= text.Length || !(char.IsLetter(text[i]) || text[i] == '_')) return at;
+        while (i < text.Length)
+        {
+            if (char.IsLetterOrDigit(text[i]) || text[i] == '_') i++;
+            else if (text[i] is '(' or '[')
+            {
+                var close = MatchBracket(text, i);
+                if (close < 0) return i;
+                i = close + 1;
+            }
+            // A member: .Name, ?.Name, !.Name; a dot that ends a sentence is not one.
+            else if (text[i] == '.' && i + 1 < text.Length && (char.IsLetter(text[i + 1]) || text[i + 1] == '_')) i++;
+            else if (text[i] is '?' or '!' && i + 2 < text.Length && text[i + 1] == '.' && (char.IsLetter(text[i + 2]) || text[i + 2] == '_')) i += 2;
+            else if (text[i] == '?' && i + 1 < text.Length && text[i + 1] == '[') i++;
+            else break;
+        }
+        return i;
+    }
+
+    /// <summary>The last character of the string starting at the quote: plain, verbatim (@"") or raw (""").</summary>
+    public static int StringEnd(string text, int quote)
     {
         if (text.AsSpan(quote).StartsWith("\"\"\""))
         {
@@ -102,7 +166,7 @@ static partial class RazorPage
     }
 
     // 'a' or '\n': an apostrophe in markup text (It's) is not a character.
-    static int CharEnd(string text, int quote) =>
+    public static int CharEnd(string text, int quote) =>
         quote + 2 < text.Length && text[quote + 1] != '\\' && text[quote + 2] == '\'' ? quote + 2
         : quote + 3 < text.Length && text[quote + 1] == '\\' && text[quote + 3] == '\'' ? quote + 3
         : -1;
@@ -131,6 +195,8 @@ static partial class RazorPage
                 continue;
             }
             if (i + 1 >= text.Length || !char.IsAsciiLetter(text[i + 1])) continue;
+            // new List<Card>() is a type's argument, not a tag.
+            if (i > 0 && (char.IsLetterOrDigit(text[i - 1]) || text[i - 1] == '_')) continue;
             if (Tag(text, i) is { } tag)
             {
                 tags.Add(tag);
@@ -180,6 +246,7 @@ static partial class RazorPage
             else
             {
                 var valueStart = i;
+                if (text[i] == '@' && ExpressionEnd(text, i) is var expressionEnd && expressionEnd > i) i = expressionEnd;
                 while (i < text.Length && !char.IsWhiteSpace(text[i]) && text[i] != '>' && !(text[i] == '/' && i + 1 < text.Length && text[i + 1] == '>')) i++;
                 attributes.Add(new RazorAttribute(attribute, attributeStart, i, valueStart, i - valueStart, '\0'));
             }
@@ -187,15 +254,15 @@ static partial class RazorPage
         return null;
     }
 
-    // The closing quote of a value: one inside @( ... ) is the expression's own.
+    // The closing quote of a value: one inside an expression (@(…), @L["Save"], @Url("home")) is the expression's own.
     static int ValueEnd(string text, int from, char quote)
     {
-        var parens = 0;
         for (var i = from; i < text.Length; i++)
         {
-            if (text[i] == '(' && (parens > 0 || (i > from - 1 && i > 0 && text[i - 1] == '@'))) parens++;
-            else if (text[i] == ')' && parens > 0) parens--;
-            else if (text[i] == quote && parens == 0) return i;
+            if (text[i] == quote) return i;
+            // @@ is an @ in text.
+            if (text[i] == '@' && i + 1 < text.Length && text[i + 1] == '@') i++;
+            else if (text[i] == '@' && ExpressionEnd(text, i) is var end && end > i) i = end - 1;
         }
         return -1;
     }
@@ -215,6 +282,6 @@ static partial class RazorPage
         return Math.Min(offset + column - 1, end);
     }
 
-    [GeneratedRegex(@"^[ \t]*@code\s*\{", RegexOptions.Multiline)]
+    [GeneratedRegex(@"^[ \t]*@(?:code|functions)\s*\{", RegexOptions.Multiline)]
     private static partial Regex CodeStart();
 }

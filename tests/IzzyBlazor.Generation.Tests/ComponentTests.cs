@@ -59,6 +59,16 @@ public sealed class ComponentTests : IDisposable
         await ProjectBuild.BuildAsync(_work, "Acme with every usage example");
     }
 
+    // An example's sample-data file goes in the namespace of the project the page is in: the .Client one's here.
+    [Fact]
+    public void An_example_on_a_Client_page_puts_its_file_in_the_Client_namespace()
+    {
+        ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("blazor"), ProjectBuild.StarterSettings("Interactivity=Auto"), ProjectInfo.ForNewProject("Acme")), _work);
+        var result = Izzy("add", "component", "Table", "--at", "Acme.Client/Pages/Counter.razor:3");
+        Assert.True(result.Exit == 0, result.Error);
+        Assert.Contains("namespace Acme.Client.Pages;", File.ReadAllText(Path.Combine(_work, "Acme.Client", "Pages", "Orders.cs")));
+    }
+
     [Fact]
     public void A_tag_is_inspected_with_an_account_and_its_options_set_with_Pro()
     {

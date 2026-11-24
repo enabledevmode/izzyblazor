@@ -116,14 +116,17 @@ sealed class Components
             ["type"] = kind switch
             {
                 "bool" => "boolean",
-                "number" => type.TrimEnd('?') is "int" or "long" ? "integer" : "number",
+                // Responsive<int> holds whole numbers too.
+                "number" => (type.StartsWith("Responsive<", StringComparison.Ordinal) ? type["Responsive<".Length..].TrimEnd('>') : type).TrimEnd('?') is "int" or "long" ? "integer" : "number",
                 _ => "string",
             },
         };
         if (p["values"] is { } values) schema["enum"] = values.DeepClone();
         if ((string?)p["default"] is { } written)
         {
+            // An enum's default is sometimes written by its member alone (Center).
             if (Default(kind, written) is { } value) schema["default"] = value;
+            else if (kind == "enum" && p["values"]!.AsArray().Any(v => (string)v! == written)) schema["default"] = written;
             else schema["x-default"] = written;
         }
         if ((string?)p["summary"] is { } summary) schema["description"] = summary;

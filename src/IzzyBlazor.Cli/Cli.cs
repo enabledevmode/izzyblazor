@@ -217,6 +217,12 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             throw new UsageException($"\"{kind}\" isn't a kind of item. Usage: {usage}");
         var json = args.Switch("json");
         NoSettings(args);
+        // A tool with no component data still lists the catalog.
+        if (kind is null && !File.Exists(Path.Combine(AppContext.BaseDirectory, "components.json")))
+        {
+            components = false;
+            error.WriteLine("This izzy has no component data (components.json is missing beside it), so the components aren't listed. Reinstall the tool.");
+        }
         var items = Catalog.Items.Values.Select(i => i.Manifest)
             .Where(m => m.Kind != ItemKind.Setup)
             .Where(m => kind is null || m.Kind.ToString().Equals(kind, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -455,14 +461,20 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         if (at is null)
         {
+            if (flags.Json || stdin) throw new UsageException("--json and --stdin give a page's changes: say where with --at <file>:<line>.");
             // Nowhere to put it: shown, as a block with no page is.
-            output.Write(text.TrimEnd('\n') + "\n");
+            output.Write(text.Replace("__PageNamespace__", "MyApp.Components.Pages", StringComparison.Ordinal).TrimEnd('\n') + "\n");
             error.WriteLine($"{name} isn't placed on a page: add this where it goes, or place it with --at <file>:<line>.");
+            var files = listed is null ? [] : (Library.Example((string)listed["id"]!)!["files"]?.AsArray() ?? []).Select(f => (string)f!["name"]!).ToList();
+            if (files.Count > 0)
+                error.WriteLine($"It uses {string.Join(" and ", files)}, which --at writes beside the page; MyApp.Components.Pages stands for the page's namespace.");
             return 0;
         }
 
         var project = ProjectInfo.FromProject(FindProject(folder));
         var (path, line, column) = Position(at, project);
+        RazorFile(path);
+        if (column is not null && !tag) throw new UsageException("A column places a tag: add --tag, or give the line alone for the example.");
         var page = stdin ? (input ?? Console.In).ReadToEnd() : project.ReadFile(path) ?? throw new UsageException($"{path} isn't in the project.");
         var inserts = new List<TextInsert>();
         var creates = new List<FileCreate>();
@@ -487,15 +499,25 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             }
             var (offset, _) = Inserts.AtLine(page, path, line, "");
             var where = Path.GetDirectoryName(path)!.Replace('\\', '/');
-            // The page's namespace: its files' own, where the example's sample-data files go too.
-            var space = string.Join('.', new[] { project.RootNamespace }.Concat(where.Split('/', StringSplitOptions.RemoveEmptyEntries)));
-            (inserts, warnings) = ExampleInsert.Place(page, path, offset, text.Replace("__PageNamespace__", space, StringComparison.Ordinal), imports.ToString(), Library);
+            // The page's namespace: its files' own, where the example's sample-data files go too. It's the
+            // namespace of the project the page is in, then the folders inside that project, as Razor names them.
+            var (root, inside) = project.Client is { } client && path.StartsWith(client, StringComparison.Ordinal) ? (project.ClientNamespace ?? project.RootNamespace, where[Math.Min(client.Length, where.Length)..])
+                : project.Host.Length > 0 && path.StartsWith(project.Host, StringComparison.Ordinal) ? (project.RootNamespace, where[Math.Min(project.Host.Length, where.Length)..])
+                : (project.RootNamespace, where);
+            var space = string.Join('.', new[] { root }.Concat(inside.Split('/', StringSplitOptions.RemoveEmptyEntries).Select(NamespacePart)));
+            var codeBehind = project.ReadFile(path + ".cs");
+            (inserts, warnings) = ExampleInsert.Place(page, path, offset, text.Replace("__PageNamespace__", space, StringComparison.Ordinal), imports.ToString(), Library, codeBehind);
+            var taken = ExampleInsert.Names(page, imports.ToString(), codeBehind);
             foreach (var file in Library.Example((string)listed!["id"]!)!["files"]?.AsArray() ?? [])
             {
                 // A model the example keeps in a file of its own goes beside the page, in the page's namespace.
                 var target = (where.Length > 0 ? where + "/" : "") + (string)file!["name"]!;
                 var written = Regex.Replace((string)file["source"]!, @"^namespace [\w.]+;", $"namespace {space};", RegexOptions.Multiline);
                 var existing = project.ReadFile(target);
+                // A member of the page with a type's name hides the type inside the page.
+                foreach (Match type in Regex.Matches(written, @"\b(?:class|struct|enum|interface|record)\s+(?!class\b|struct\b)(\w+)"))
+                    if (taken.Contains(type.Groups[1].Value))
+                        warnings.Add($"{path} has a member named {type.Groups[1].Value}, which hides the type {type.Groups[1].Value} in {(string)file["name"]!} that the example uses: rename the page's.");
                 if (existing is null) creates.Add(new FileCreate(target, written, null));
                 else if (existing.ReplaceLineEndings("\n") != written) warnings.Add($"{target} exists with other content, so the example's {(string)file["name"]!} wasn't written: it holds the types the example uses.");
             }
@@ -506,7 +528,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
         var changes = new Changeset { Creates = creates, Inserts = inserts, Packages = [], Conflicts = [], Warnings = warnings };
         var write = !flags.DryRun && !stdin;
-        if (flags.Diff && !stdin) output.Write(ChangesetWriter.Diff(changes, project));
+        if (flags.Diff && !stdin && !flags.Json) output.Write(ChangesetWriter.Diff(changes, project));
         if (flags.Json) Print(ChangesetJson(changes, write));
         foreach (var warning in warnings) error.WriteLine($"warning: {warning}");
         if (!write)
@@ -553,7 +575,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var changes = new List<(string, string?)>();
         while (args.Take("unset") is { } removed) changes.Add((removed, null));
         // What's left are the component's options. One with no value is a switch turned on.
-        changes.AddRange(args.Options.Select(o => (o.Name, (string?)(o.Value ?? "true"))));
+        changes.AddRange(args.Options.Select(o => (o.Name, (string?)(o.Value ?? TagEdit.Switch))));
         if (changes.Count == 0) throw new UsageException($"Nothing to set. Usage: {usage}");
         if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
         if (Plan != ItemTier.Pro)
@@ -566,7 +588,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var edits = TagEdit.Set(page, path, tag, Library, changes);
         var changeset = new Changeset { Creates = [], Inserts = edits, Packages = [], Conflicts = [], Warnings = [] };
         var write = !flags.DryRun && !stdin;
-        if (flags.Diff && !stdin) output.Write(ChangesetWriter.Diff(changeset, project));
+        if (flags.Diff && !stdin && !flags.Json) output.Write(ChangesetWriter.Diff(changeset, project));
         if (flags.Json) Print(ChangesetJson(changeset, write));
         if (edits.Count == 0)
         {
@@ -588,11 +610,24 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     {
         var project = ProjectInfo.FromProject(FindProject(folder));
         var (path, line, column) = Position(at, project);
+        RazorFile(path);
         if (column is not { } col) throw new UsageException($"Give the column too. Usage: {usage}");
         var page = stdin ? (input ?? Console.In).ReadToEnd() : project.ReadFile(path) ?? throw new UsageException($"{path} isn't in the project.");
         var tag = TagEdit.Find(page, RazorPage.Offset(page, path, line, col), Library)
             ?? throw new UsageException($"No IzzyBlazor component at {path}:{line}:{col}.");
         return (page, path, tag);
+    }
+
+    static void RazorFile(string path)
+    {
+        if (!path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase)) throw new UsageException($"{path} isn't a .razor file: components go on a page or in a component.");
+    }
+
+    // A folder's name as Razor writes it in a namespace: my-area is my_area, 2024 is _2024.
+    static string NamespacePart(string folder)
+    {
+        var part = new string(folder.Select(c => char.IsLetterOrDigit(c) || c == '_' ? c : '_').ToArray());
+        return part.Length > 0 && char.IsDigit(part[0]) ? "_" + part : part;
     }
 
     // <file>:<line> or <file>:<line>:<col>, the file relative to here (or absolute), inside the project.
@@ -630,7 +665,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         {
             var project = ProjectInfo.FromProject(FindProject(folder));
             var csproj = File.ReadAllText(Path.Combine(project.Directory!, project.Host, project.Name + ".csproj"));
-            return Regex.Match(csproj, """PackageReference\s+Include="IzzyBlazor(\.Core)?"\s+Version="([^"]+)" """.TrimEnd(), RegexOptions.IgnoreCase) is { Success: true } m ? m.Groups[2].Value : null;
+            return Regex.Match(csproj, """<PackageReference\s[^>]*?Include="IzzyBlazor(?:\.Core)?"[^>]*>""", RegexOptions.IgnoreCase) is { Success: true } reference
+                && Regex.Match(reference.Value, """Version="([^"]+)" """.TrimEnd(), RegexOptions.IgnoreCase) is { Success: true } m ? m.Groups[1].Value : null;
         }
         catch (Exception e) when (e is UsageException or GenerationException or IOException)
         {

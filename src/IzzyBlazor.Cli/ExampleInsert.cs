@@ -22,7 +22,8 @@ static partial class ExampleInsert
     /// <param name="source">The example's source.</param>
     /// <param name="imports">The text of the <c>_Imports.razor</c> files that apply to the page.</param>
     /// <param name="library">The components, to tell an attribute that holds C# from one that holds text.</param>
-    public static (List<TextInsert> Inserts, List<string> Warnings) Place(string page, string path, int offset, string source, string imports, Components library)
+    /// <param name="codeBehind">The page's <c>.razor.cs</c> file, when it has one: its members' names are taken too.</param>
+    public static (List<TextInsert> Inserts, List<string> Warnings) Place(string page, string path, int offset, string source, string imports, Components library, string? codeBehind = null)
     {
         var eol = page.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
         var (directives, markup, code) = Split(source.Replace("\r\n", "\n", StringComparison.Ordinal));
@@ -30,10 +31,7 @@ static partial class ExampleInsert
 
         // The names the page has, and the ones the example brings.
         var pageBlocks = RazorPage.CodeBlocks(page);
-        var taken = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (_, open, close) in pageBlocks)
-            foreach (var member in Members(page[(open + 1)..close])) taken.Add(member.Name);
-        foreach (Match m in Inject().Matches(page)) taken.Add(m.Groups[1].Value);
+        var taken = Names(page, imports, codeBehind);
 
         var here = new HashSet<string>(page.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n').Concat(imports.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n')).Select(l => l.Trim()), StringComparer.Ordinal);
         var needed = directives.Where(d => !here.Contains(d)).ToList();
@@ -81,11 +79,14 @@ static partial class ExampleInsert
         var inserts = new List<TextInsert>();
         string Lines(string text) => text.Replace("\n", eol, StringComparison.Ordinal);
 
+        // A page whose last line has no line break gets one before what's added after it.
+        string Lead(int at) => at == page.Length && page.Length > 0 && !page.EndsWith('\n') ? "\n" : "";
+
         // Directives: after the page's own, at its top.
         if (needed.Count > 0)
         {
             var top = DirectivesEnd(page);
-            inserts.Add(new TextInsert(path, top, Lines(string.Join("\n", needed) + "\n"), hash));
+            inserts.Add(new TextInsert(path, top, Lines(Lead(top) + string.Join("\n", needed) + "\n"), hash));
         }
 
         // Markup: at the line, indented as that line is (or the one before it, when it's blank).
@@ -93,7 +94,9 @@ static partial class ExampleInsert
         {
             var indent = Indent(page, offset);
             var body = string.Join("\n", markup.Split('\n').Select(l => l.Length > 0 ? indent + l : l)) + "\n";
-            inserts.Add(new TextInsert(path, offset, Lines(body), hash));
+            // After directives added at the same place, the break is already there.
+            var lead = needed.Count > 0 && DirectivesEnd(page) == offset ? "" : Lead(offset);
+            inserts.Add(new TextInsert(path, offset, Lines(lead + body), hash));
         }
 
         // Code: inside the page's last @code block, or in one of its own at the end.
@@ -112,11 +115,29 @@ static partial class ExampleInsert
             else
             {
                 var body = string.Join("\n", code.Trim('\n').Split('\n').Select(l => l.Length > 0 ? "    " + l : l));
-                var lead = page.Length == 0 || page.EndsWith('\n') ? "\n" : "\n\n";
-                inserts.Add(new TextInsert(path, page.Length, Lines($"{lead}@code {{\n{body}\n}}\n"), hash));
+                // What was added at the page's end before this already ends in a line break.
+                var ended = page.Length == 0 || page.EndsWith('\n') || inserts.Any(i => i.Offset == page.Length);
+                inserts.Add(new TextInsert(path, page.Length, Lines($"{(ended ? "\n" : "\n\n")}@code {{\n{body}\n}}\n"), hash));
             }
         }
         return (inserts, warnings);
+    }
+
+    /// <summary>
+    /// The names a page's own code has: the members of its <c>@code</c> blocks and of its code-behind file, and
+    /// what it and its <c>_Imports.razor</c> files inject.
+    /// </summary>
+    public static HashSet<string> Names(string page, string imports, string? codeBehind)
+    {
+        var taken = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (_, open, close) in RazorPage.CodeBlocks(page))
+            foreach (var member in Members(page[(open + 1)..close])) taken.Add(member.Name);
+        foreach (Match m in Inject().Matches(page)) taken.Add(m.Groups[1].Value);
+        foreach (Match m in Inject().Matches(imports)) taken.Add(m.Groups[1].Value);
+        if (codeBehind is not null)
+            foreach (var type in CSharpSyntaxTree.ParseText(codeBehind).GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Parent is not TypeDeclarationSyntax))
+                foreach (var member in Members(type)) taken.Add(member.Name);
+        return taken;
     }
 
     /// <summary>An example's directives, its markup and the inside of its <c>@code</c> blocks.</summary>
@@ -185,8 +206,12 @@ static partial class ExampleInsert
     // What a @code block declares: its fields, properties, methods and nested types.
     static List<Declared> Members(string code)
     {
+        return Wrapped(code) is { } type ? Members(type) : [];
+    }
+
+    static List<Declared> Members(TypeDeclarationSyntax type)
+    {
         var declared = new List<Declared>();
-        if (Wrapped(code) is not { } type) return declared;
         foreach (var member in type.Members)
         {
             switch (member)
@@ -232,6 +257,9 @@ static partial class ExampleInsert
             if (token.Parent is IdentifierNameSyntax { Parent: AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax } assignment } left && assignment.Left == left) continue;
             // A member of a nested type is not the page's.
             if (token.Parent is MemberDeclarationSyntax or VariableDeclaratorSyntax && !Direct(token.Parent, type)) continue;
+            // record Feedback(string Answer) declares Feedback's own Answer, and Answer: names an argument.
+            if (token.Parent is ParameterSyntax { Parent.Parent: TypeDeclarationSyntax }) continue;
+            if (token.Parent is IdentifierNameSyntax { Parent: NameColonSyntax }) continue;
             edits.Add((token.SpanStart, token.Span.Length, renames[token.Text]));
         }
         foreach (var method in type.Members.OfType<MethodDeclarationSyntax>().Where(m => overrides.Contains(m.Identifier.Text)))
@@ -261,14 +289,13 @@ static partial class ExampleInsert
         return false;
     }
 
-    // In markup a name is C# only in some places: after an @, and in an attribute that takes a value other
-    // than text. "Save" on a button's face stays.
+    // In markup a name is C# only in some places: after an @, in a code block's statements, and in an attribute
+    // that takes a value other than text. "Save" on a button's face stays, and so does a word inside a string.
     static string RenameMarkup(string markup, Dictionary<string, string> renames, Components library)
     {
         var word = new Regex(@"(?<![\w.])(" + string.Join("|", renames.Keys.OrderByDescending(k => k.Length).Select(Regex.Escape)) + @")(?!\w)");
-        string Rename(string text) => word.Replace(text, m => renames[m.Value]);
 
-        var spans = new List<(int Start, int Length)>();
+        var spans = new List<(int Start, int End)>();
         foreach (var tag in RazorPage.Tags(markup))
         {
             var options = library.Options(tag.Name);
@@ -278,34 +305,148 @@ static partial class ExampleInsert
                 // On a component, an option that takes text holds text, as an HTML attribute (class, id) does; the rest hold C#.
                 var isCode = a.Name.StartsWith('@') || value.StartsWith('@')
                     || (options is not null && char.IsUpper(a.Name[0]) && !(options.TryGetValue(a.Name, out var text) && text));
-                if (isCode) spans.Add((a.ValueStart, a.ValueLength));
+                if (isCode) spans.Add((a.ValueStart, a.ValueStart + a.ValueLength));
             }
         }
-        // @name, @name.Member, @(expression), and the condition of @if, @foreach and the like.
-        foreach (Match m in Expression().Matches(markup))
+
+        // @name, @name.Member, @(expression), @{ statements }, and the conditions and statements of @if, @foreach and the like.
+        var comments = RazorPage.Comments(markup);
+        for (var i = 0; i < markup.Length - 1; i++)
         {
-            if (spans.Any(s => m.Index >= s.Start && m.Index < s.Start + s.Length)) continue;
-            var end = m.Index + m.Length;
-            if (m.Value.EndsWith('('))
+            if (markup[i] != '@') continue;
+            if (comments.FirstOrDefault(c => i >= c.Start && i < c.End) is { End: > 0 } comment) { i = comment.End - 1; continue; }
+            if (markup[i + 1] == '@') { i++; continue; }
+            if (markup[i + 1] == '{')
             {
-                var depth = 1;
-                while (end < markup.Length && depth > 0)
-                {
-                    if (markup[end] == '(') depth++;
-                    else if (markup[end] == ')') depth--;
-                    end++;
-                }
+                if (RazorPage.MatchBrace(markup, i + 1) is var close and >= 0) { spans.Add((i, close)); i = close; }
+                continue;
             }
-            spans.Add((m.Index, end - m.Index));
+            if (Keyword().Match(markup, i) is { Success: true } keyword && keyword.Index == i)
+            {
+                var open = i + keyword.Length - 1;
+                var close = RazorPage.MatchBracket(markup, open);
+                if (close < 0) continue;
+                spans.Add((open, close));
+                Body(close + 1);
+                i = close;
+                continue;
+            }
+            if (RazorPage.ExpressionEnd(markup, i) is var end && end > i) { spans.Add((i, end)); i = end - 1; }
+        }
+
+        // The braces after a condition: the statements between the markup, then an else's own condition and braces.
+        void Body(int at)
+        {
+            while (at < markup.Length && char.IsWhiteSpace(markup[at])) at++;
+            if (at >= markup.Length || markup[at] != '{') return;
+            var close = RazorPage.MatchBrace(markup, at);
+            if (close < 0) return;
+            var line = at + 1;
+            while (line < close)
+            {
+                var next = markup.IndexOf('\n', line) is var newline and >= 0 && newline < close ? newline : close;
+                var text = markup[line..next];
+                var trimmed = text.TrimStart(' ', '\t', '}');
+                var from = line + (text.Length - trimmed.Length);
+                if (Statement().Match(trimmed) is { Success: true } statement)
+                {
+                    var open = from + statement.Length - 1;
+                    if (RazorPage.MatchBracket(markup, open) is var end and >= 0) spans.Add((open, end));
+                }
+                else if (trimmed.TrimEnd().EndsWith(';') && !trimmed.StartsWith('<') && !trimmed.StartsWith('@') && !Entity().IsMatch(trimmed))
+                {
+                    spans.Add((from, next));
+                }
+                line = next + 1;
+            }
+            var after = close + 1;
+            while (after < markup.Length && char.IsWhiteSpace(markup[after])) after++;
+            if (Else().Match(markup, after) is not { Success: true } other || other.Index != after) return;
+            after += other.Length;
+            if (other.Groups[1].Success)
+            {
+                var open = after - 1;
+                var end = RazorPage.MatchBracket(markup, open);
+                if (end < 0) return;
+                spans.Add((open, end));
+                after = end + 1;
+            }
+            Body(after);
+        }
+
+        // Spans can sit inside one another (an attribute in a @{ } block): each stretch is renamed once.
+        var merged = new List<(int Start, int End)>();
+        foreach (var span in spans.OrderBy(sp => sp.Start))
+        {
+            if (merged.Count > 0 && span.Start <= merged[^1].End) merged[^1] = (merged[^1].Start, Math.Max(merged[^1].End, span.End));
+            else merged.Add(span);
         }
         var result = new StringBuilder(markup);
-        foreach (var (start, length) in spans.OrderByDescending(s => s.Start))
+        foreach (var (start, end) in merged.OrderByDescending(sp => sp.Start))
         {
-            var renamed = Rename(markup.Substring(start, length));
-            result.Remove(start, length).Insert(start, renamed);
+            result.Remove(start, end - start).Insert(start, RenameCSharp(markup[start..end], word, renames));
         }
         return result.ToString();
     }
+
+    // The names in a stretch of C#, outside its strings: "Delete {file}" keeps its word, and {file} is code again.
+    static string RenameCSharp(string text, Regex word, Dictionary<string, string> renames)
+    {
+        var result = new StringBuilder();
+        var code = 0;
+        void Flush(int to)
+        {
+            if (to > code) result.Append(word.Replace(text[code..to], m => renames[m.Value]));
+        }
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '\'' && RazorPage.CharEnd(text, i) is var charEnd and > 0)
+            {
+                Flush(i);
+                result.Append(text, i, charEnd - i + 1);
+                code = charEnd + 1;
+                i = charEnd;
+            }
+            else if (text[i] == '"')
+            {
+                Flush(i);
+                var end = Math.Min(RazorPage.StringEnd(text, i), text.Length - 1);
+                var literal = text[i..(end + 1)];
+                var interpolated = i > 0 && (text[i - 1] == '$' || (text[i - 1] == '@' && i > 1 && text[i - 2] == '$'));
+                if (!interpolated) result.Append(literal);
+                else
+                {
+                    // The holes are code; {{ is a brace.
+                    for (var j = 0; j < literal.Length; j++)
+                    {
+                        if (literal[j] == '{' && j + 1 < literal.Length && literal[j + 1] == '{') { result.Append("{{"); j++; }
+                        else if (literal[j] == '{' && RazorPage.MatchBracket(literal, j) is var close and > 0)
+                        {
+                            result.Append('{').Append(RenameCSharp(literal[(j + 1)..close], word, renames)).Append('}');
+                            j = close;
+                        }
+                        else result.Append(literal[j]);
+                    }
+                }
+                code = end + 1;
+                i = end;
+            }
+        }
+        Flush(text.Length);
+        return result.ToString();
+    }
+
+    [GeneratedRegex(@"\G@(?:if|foreach|for|while|switch|using|lock)\s*\(")]
+    private static partial Regex Keyword();
+
+    [GeneratedRegex(@"^(?:else\s+if|if|foreach|for|while|switch|using|lock)\s*\(")]
+    private static partial Regex Statement();
+
+    [GeneratedRegex(@"\Gelse(?:\s+(if)\s*\()?")]
+    private static partial Regex Else();
+
+    [GeneratedRegex(@"&#?\w+;\s*$")]
+    private static partial Regex Entity();
 
     [GeneratedRegex(@"^\s*@(using|inject|attribute|implements|inherits|rendermode|typeparam)\b")]
     private static partial Regex Directive();
@@ -319,6 +460,4 @@ static partial class ExampleInsert
     [GeneratedRegex("FormName\\s*=\\s*\"([^\"]+)\"")]
     private static partial Regex FormName();
 
-    [GeneratedRegex(@"@(?:(?:if|foreach|for|while|switch|using|lock)\s*\(|\(|[A-Za-z_][\w.!?\[\]]*\(?)")]
-    private static partial Regex Expression();
 }

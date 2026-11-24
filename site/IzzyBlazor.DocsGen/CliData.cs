@@ -98,15 +98,20 @@ public static partial class CliData
 
     static readonly JsonSerializerOptions Json = new(ApiFile.JsonOptions) { WriteIndented = false, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault };
 
+    static readonly string[] NeedsSite = ["IzzyBlazor.Site", "./examples/", "Microsoft.Extensions.AI"];
+
     public static string Write(ApiFile api, string registryPath, string examplesRoot)
     {
         var registry = JsonNode.Parse(File.ReadAllText(registryPath), documentOptions: new() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true })!;
         var documented = registry["components"]!.AsArray().Select(c => c!.AsObject()).ToList();
         var byName = documented.ToDictionary(c => (string)c["name"]!, StringComparer.Ordinal);
+        // A part two components list (MenuItem: Menu and ContextMenu) belongs to the one it's named for.
         var partOf = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var c in documented)
-            foreach (var part in c["parts"]?.AsArray() ?? [])
-                partOf.TryAdd((string)part!, (string)c["id"]!);
+        foreach (var owners in documented.SelectMany(c => (c["parts"]?.AsArray() ?? []).Select(p => (Part: (string)p!, Owner: c))).GroupBy(p => p.Part))
+        {
+            static int Shared(string a, string b) => a.Zip(b).TakeWhile(p => p.First == p.Second).Count();
+            partOf[owners.Key] = (string)owners.MaxBy(o => Shared(owners.Key, (string)o.Owner["name"]!)).Owner["id"]!;
+        }
 
         var enums = api.Types.Where(t => t.Kind == "enum").ToDictionary(t => t.Name, StringComparer.Ordinal);
         var sources = Sources(examplesRoot);
@@ -126,7 +131,8 @@ public static partial class CliData
                 {
                     var exampleId = (string)e!["id"]!;
                     // An example that uses the docs site's own types can't go into another app.
-                    if (!sources.TryGetValue(exampleId, out var source) || source.Source.Contains("IzzyBlazor.Site", StringComparison.Ordinal)) continue;
+                    // So can't one that loads the site's own script, or needs a package the app may not have.
+                    if (!sources.TryGetValue(exampleId, out var source) || NeedsSite.Any(mark => source.Source.Contains(mark, StringComparison.Ordinal))) continue;
                     examples[exampleId] = source;
                     var modes = e["modes"]?.AsArray().Select(m => (string)m!).ToList();
                     refs.Add(new CliExampleRef(exampleId, exampleId.StartsWith(id + "-", StringComparison.Ordinal) ? exampleId[(id!.Length + 1)..] : exampleId,
@@ -217,9 +223,17 @@ public static partial class CliData
             if (folder == ".") continue;
             var raw = File.ReadAllText(path).Replace("\r\n", "\n", StringComparison.Ordinal);
             var files = new List<CliExampleFile>();
+            var declared = new List<string>();
+            var clash = false;
             void Take(string from, string name)
             {
                 if (files.Any(f => f.Name == name)) return;
+                // Two files that declare one name (an OrderStatus each) can't share the page's namespace.
+                if (beside.FirstOrDefault(f => f.Folder == from && f.Name == name) is { Types: not null } taken)
+                {
+                    clash |= taken.Types.Any(declared.Contains);
+                    declared.AddRange(taken.Types);
+                }
                 // The docs site imports IzzyBlazor for all its code; another app's .cs files may not.
                 if (beside.FirstOrDefault(f => f.Folder == from && f.Name == name) is { Source: not null } file)
                     files.Add(new CliExampleFile(name, file.Source.Contains("using IzzyBlazor;", StringComparison.Ordinal) ? file.Source : "using IzzyBlazor;\n\n" + file.Source));
@@ -227,6 +241,7 @@ public static partial class CliData
             foreach (Match file in FileLine().Matches(raw)) Take(folder, file.Groups[1].Value);
 
             var source = new StringBuilder();
+            var froms = new List<string>();
             foreach (var line in raw.Split('\n'))
             {
                 var trimmed = line.Trim();
@@ -239,12 +254,19 @@ public static partial class CliData
                     foreach (var f in beside.Where(f => f.Folder == from && (type.Length == 0 ? f.Types.Any(t => Regex.IsMatch(raw, $@"\b{Regex.Escape(t)}\b")) : f.Types.Contains(type))))
                         Take(from, f.Name);
                     if (used.Groups["alias"].Success) source.Append($"@using {used.Groups["alias"].Value} = {PageNamespace}.{type}\n");
+                    froms.Add(from);
                     continue;
                 }
                 source.Append(line).Append('\n');
             }
             var text = source.ToString().Trim('\n') + "\n";
-            foreach (var f in beside.Where(f => f.Folder == folder && f.Types.Any(t => Regex.IsMatch(text, $@"\b{Regex.Escape(t)}\b")))) Take(folder, f.Name);
+            // Table.OrderStatus, a name by its folder on the site, is OrderStatus in the page's namespace.
+            foreach (var from in froms)
+                foreach (var type in beside.Where(f => f.Folder == from && files.Any(taken => taken.Name == f.Name)).SelectMany(f => f.Types))
+                    text = Regex.Replace(text, $@"(?<![\w.]){Regex.Escape(from)}\.{Regex.Escape(type)}\b", type);
+            // The example's own folder: a file with a type it names that no file taken already declares.
+            foreach (var f in beside.Where(f => f.Folder == folder && f.Types.Any(t => !declared.Contains(t) && Regex.IsMatch(text, $@"\b{Regex.Escape(t)}\b"))).ToList()) Take(folder, f.Name);
+            if (clash) text += "@* IzzyBlazor.Site *@\n";
             // 24.Rem: the docs site imports the unit shorthands for every page.
             if (UnitShorthand().IsMatch(text) && !text.Contains("@using IzzyBlazor.Units", StringComparison.Ordinal)) text = "@using IzzyBlazor.Units\n" + text;
             // A file that needs the docs site beyond its own namespace line can't travel: the mark keeps the example out.
