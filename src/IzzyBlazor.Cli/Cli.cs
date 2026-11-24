@@ -239,17 +239,30 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             foreach (var c in named) output.WriteLine($"{((string)c["name"]!).PadRight(wide)}  {(string?)c["category"],-17}  {(string?)c["summary"]}");
             return 0;
         }
+        // A heading a kind when everything is listed (starters, kits, blocks, then the components); one kind is its rows alone.
         var width = items.Count == 0 ? 0 : items.Max(m => m.Id.Length);
-        foreach (var m in items)
+        foreach (var group in items.GroupBy(m => m.Kind).OrderBy(g => g.Key switch { ItemKind.Starter => 0, ItemKind.Kit => 1, ItemKind.Block => 2, _ => 3 }))
         {
-            var pro = m.Parameters.Where(p => p.ProChoices.Count > 0).Select(p => $"{p.Name} {string.Join(", ", p.ProChoices)}").ToList();
-            output.WriteLine($"{m.Id.PadRight(width)}  {Lower(m.Kind),-7}  {m.Summary}{(m.Tier == ItemTier.Account ? " (free account)" : "")}{(pro.Count > 0 ? $" (Pro: {string.Join("; ", pro)})" : "")}");
+            if (kind is null)
+            {
+                // crud is described by its id alone: izzy describe crud.
+                var describe = group.Key is ItemKind.Starter or ItemKind.Kit or ItemKind.Block ? $"each described by izzy describe {Lower(group.Key)} <id>" : $"described by izzy describe {string.Join("|", group.Select(m => m.Id))}";
+                output.WriteLine($"{group.Key}s ({group.Count()}), {describe}:");
+            }
+            foreach (var m in group)
+            {
+                var pro = m.Parameters.Where(p => p.ProChoices.Count > 0).Select(p => $"{p.Name} {string.Join(", ", p.ProChoices)}").ToList();
+                output.WriteLine($"{(kind is null ? "  " : "")}{m.Id.PadRight(width)}  {m.Summary}{(m.Tier == ItemTier.Account ? " (free account)" : "")}{(pro.Count > 0 ? $" (Pro: {string.Join("; ", pro)})" : "")}");
+            }
+            if (kind is null)
+            {
+                output.WriteLine();
+            }
         }
         if (components)
         {
             // With everything else, the components are names only, a line a group: izzy list component has their rows.
             var groups = Library.Documented.GroupBy(c => (string)c["category"]!).ToList();
-            output.WriteLine();
             output.WriteLine($"Components ({groups.Sum(g => g.Count())}), each described by izzy describe component <Name>:");
             foreach (var g in groups) output.WriteLine($"  {g.Key}: {string.Join(", ", g.Select(c => (string)c["name"]!))}");
         }

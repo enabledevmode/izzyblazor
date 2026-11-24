@@ -28,7 +28,7 @@
             page:
         </TextBlock>
         <figure class="site-diagram">
-            <div class="site-diagram-scroll ib-scroll">@((MarkupString)OnePart)</div>
+            <div class="site-diagram-scroll ib-scroll" tabindex="0" role="group" aria-label="Diagram">@((MarkupString)OnePart)</div>
             <figcaption>The page is static HTML. Only the interactive part has a circuit.</figcaption>
         </figure>
         <Code Block Language="razor" Title="Order.razor">@Page</Code>
@@ -82,7 +82,7 @@
         </TextBlock>
 
         <Heading Level="2">When a circuit is worth it</Heading>
-        <Prose Class="site-table ib-scroll">
+        <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
             <table>
                 <thead><tr><th>The part</th><th>Why it's interactive</th></tr></thead>
                 <tbody>

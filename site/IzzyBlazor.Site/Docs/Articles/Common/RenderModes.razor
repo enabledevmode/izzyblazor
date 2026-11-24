@@ -43,7 +43,7 @@
             </ListItem>
         </List>
         <figure class="site-diagram">
-            <div class="site-diagram-scroll ib-scroll">@((MarkupString)Where)</div>
+            <div class="site-diagram-scroll ib-scroll" tabindex="0" role="group" aria-label="Diagram">@((MarkupString)Where)</div>
             <figcaption>Where a page's components run once it has loaded. Auto uses Interactive Server on the first visit, and WebAssembly on later visits, once the runtime is cached.</figcaption>
         </figure>
         <TextBlock>
@@ -59,9 +59,9 @@
             The table shows what a few components do in each case. Each column adds to the one before it, so a static page
             also does everything in the first column.
         </TextBlock>
-        <Prose Class="site-table ib-scroll">
+        <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
             <table>
-                <thead><tr><th></th><th>With JavaScript off</th><th>Static, with IzzyBlazor's script</th><th>Interactive</th></tr></thead>
+                <thead><tr><td></td><th>With JavaScript off</th><th>Static, with IzzyBlazor's script</th><th>Interactive</th></tr></thead>
                 <tbody>
                     <tr><td>Dialog</td><td>Opens from a trigger as a native modal, or from a <code>?dialog=id</code> link. When opened from a link, it isn't modal, so focus can leave it.</td><td>A dialog the server opens becomes a real modal. After it closes, <code>?dialog=id</code> is removed from the URL.</td><td><code>@@bind-Open</code></td></tr>
                     <tr><td>Table</td><td>Sorts, filters and pages through the URL</td><td>Adds a select-all checkbox. Filters apply as the user types.</td><td>Sorting, paging, filters and selection bind to C#</td></tr>
@@ -78,7 +78,7 @@
             set a render mode for each page, for the whole app on <Code>Routes</Code>, or for
             <Anchor Href="docs/architecture/interactive-parts">one component on a static page</Anchor>.
         </TextBlock>
-        <Prose Class="site-table ib-scroll">
+        <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
             <table>
                 <thead><tr><th>Render mode</th><th>Pick it for</th></tr></thead>
                 <tbody>

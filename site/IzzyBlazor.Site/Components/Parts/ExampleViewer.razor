@@ -51,7 +51,7 @@
             {
                 @* Links, with the choice in the address (?phone=), so it stays through the example's own
                    links, such as a grid row's button on a static page, and works with no script. *@
-                <nav class="ex-widths" aria-label="Preview width">
+                <nav class="ex-widths" aria-label="@($"Preview width: {Title}")">
                     <a href="@WidthHref(false)" title="Desktop width" aria-current="@(_phone ? null : "true")"><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></a>
                     <a href="@WidthHref(true)" title="Phone width" aria-current="@(_phone ? "true" : null)"><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></a>
                 </nav>
@@ -70,10 +70,20 @@
                 <Tab Label="Code" Value="code">@Source</Tab>
             </Tabs>
         }
-        @if (Note is not null)
+        @if (Note is not null || _cli is not null)
         {
-            @* Under the box, labeled with its mode, so it reads as what that mode does here. *@
-            <div class="ex-below">@Notes</div>
+            @* Under the box: the note, labeled with its mode, so it reads as what that mode does here; and on a
+               component's own page, the command that puts its usage example on a page of the reader's app. *@
+            <div class="ex-below">
+                @Notes
+                @if (_cli is not null)
+                {
+                    <div class="ex-cli">
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Add this example to a page with the <Anchor Href="docs/cli/components">izzy CLI</Anchor>:</TextBlock>
+                        <Code Block Language="bash">@_cli</Code>
+                    </div>
+                }
+            </div>
         }
     </section>
 }
@@ -100,6 +110,9 @@
     private bool _phone;
     private List<string> _phones = [];
 
+    // The command for a component's usage example, on that component's own page.
+    private string? _cli;
+
     // The address with this example at a phone's width or not; the others keep theirs.
     private string WidthHref(bool phone)
     {
@@ -125,6 +138,9 @@
         _type = Catalog.TypeOf(Example)
             ?? throw new InvalidOperationException($"Example \"{Example}\" is in components.json but has no Examples/.../*.razor file.");
         _example = found.Example;
+        _cli = Example == $"{found.Component.Id}-usage" && Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].TrimEnd('/') == Registry.OverviewHref(found.Component)
+            ? $"izzy add component {found.Component.Name} --at <file>:<line>"
+            : null;
         _source = Catalog.SourceOf(Example);
         _phones = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query).TryGetValue("phone", out var phones) ? phones.OfType<string>().ToList() : [];
         _phone = (WidthSwitch || _example.WidthSwitch) && _phones.Contains(Example);

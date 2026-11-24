@@ -713,6 +713,10 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .ex-fixed-mode, .ex-mode { margin: 0; white-space: nowrap; }
 .ex-needs-live { display: flex; align-items: center; justify-content: center; padding: var(--ib-space-6); }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
+/* The command for the usage example: its line, then the command. */
+.ex-below { display: flex; flex-direction: column; gap: var(--ib-space-3); min-width: 0; }
+.ex-cli { display: flex; flex-direction: column; gap: var(--ib-space-1); min-width: 0; }
+.ex-cli > .ib-text { margin: 0; }
 /* The note's lines line up after the mode's name, not under it. */
 .ex-note { display: flex; align-items: baseline; gap: var(--ib-space-2); margin: 0; text-wrap: pretty; }
 /* The mode's name, a badge as the mode chips are, so the note reads as about it. */
@@ -1137,7 +1141,7 @@ html:has(> body > .frame) body { margin: 0; }
 /* The drawing: a project window (its tree and a model's code) with the wizard over its end. Below 1280px
    only the wizard, 300px wide and centered. */
 .site-ide { position: relative; display: flex; flex-direction: column; margin: 0; font-size: 0.75rem; }
-.site-ide-bar, .site-ide-back, .site-ide > figcaption { display: none; }
+.site-ide-bar, .site-ide-back, .site-ide > .site-ide-caption { display: none; }
 .site-wizard { align-self: center; width: 18.75rem; max-width: 100%; overflow: hidden; border: 1px solid var(--ib-color-border); border-radius: 0.625rem; background: var(--ib-color-surface); box-shadow: 0 12px 32px rgb(20 20 19 / 0.14); }
 .site-wizard-head { display: flex; align-items: center; gap: var(--ib-space-2); padding: 0.75rem 0.875rem; border-block-end: 1px solid var(--ib-color-border); font-size: 0.875rem; font-weight: 600; }
 .site-wizard-head .ib-icon { width: 1rem; height: 1rem; }
@@ -1162,7 +1166,7 @@ html:has(> body > .frame) body { margin: 0; }
   .site-ide-bar { display: flex; align-items: center; gap: 0.375rem; height: 2rem; padding-inline: 0.75rem; border-block-end: 1px solid var(--ib-color-border); background: var(--ib-color-fill); color: var(--ib-color-muted); }
   .site-ide-bar > i { width: 0.625rem; height: 0.625rem; border-radius: 9999px; background: var(--ib-color-fill-strong, var(--ib-color-border)); }
   .site-ide-bar > span { margin-inline-start: 0.625rem; }
-  .site-ide > figcaption { display: block; position: absolute; inset: 0.5rem 0.875rem auto auto; color: var(--ib-color-muted); }
+  .site-ide > .site-ide-caption { display: block; position: absolute; inset: 0.5rem 0.875rem auto auto; color: var(--ib-color-muted); }
   .site-ide-back { display: flex; position: absolute; inset: 2.0625rem 0 0; font-family: var(--ib-font-mono); }
   .site-ide-tree { display: flex; flex-direction: column; width: 11.25rem; padding-block: 0.5rem; border-inline-end: 1px solid var(--ib-color-border); color: var(--ib-color-muted); }
   .site-ide-tree > span { display: flex; align-items: center; height: 1.625rem; padding-inline-start: 0.5rem; }

@@ -15,7 +15,7 @@
             with queries against your <Code>DbContext</Code>:
         </TextBlock>
         <figure class="site-diagram">
-            <div class="site-diagram-scroll ib-scroll">@((MarkupString)OnServer)</div>
+            <div class="site-diagram-scroll ib-scroll" tabindex="0" role="group" aria-label="Diagram">@((MarkupString)OnServer)</div>
             <figcaption>Static and Interactive Server: the page and the store both run on the server.</figcaption>
         </figure>
         <Code Block Language="csharp" Title="Data/EfCustomerStore.cs">@Store</Code>

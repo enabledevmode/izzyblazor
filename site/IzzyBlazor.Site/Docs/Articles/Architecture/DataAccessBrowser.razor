@@ -17,7 +17,7 @@
             <Anchor Href="docs/architecture/data-access-server">the server's store</Anchor>:
         </TextBlock>
         <figure class="site-diagram">
-            <div class="site-diagram-scroll ib-scroll">@((MarkupString)InBrowser)</div>
+            <div class="site-diagram-scroll ib-scroll" tabindex="0" role="group" aria-label="Diagram">@((MarkupString)InBrowser)</div>
             <figcaption>WebAssembly and Auto: the page runs in the browser, and its store calls the server.</figcaption>
         </figure>
         <Code Block Language="csharp" Title="HttpCustomerStore.cs (client)">@HttpStore</Code>

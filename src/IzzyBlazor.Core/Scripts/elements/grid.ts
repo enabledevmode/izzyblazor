@@ -16,7 +16,7 @@ import { openMenuAt, ownTrigger, setupContextMenu } from "../context-menu";
  * Selection keys click the row's own checkbox, so the bar, ranges and binding stay in one place.
  */
 
-const CONTROLS = "a[href], button, input:not([type=hidden], .ib-table-select-inline), select, textarea, summary, [contenteditable]:not([contenteditable=false]), [tabindex]:not(td, th, tr)";
+const CONTROLS = "a[href], button, input:not([type=hidden], .ib-table-select-inline), select, textarea, summary, [contenteditable]:not([contenteditable=false]), [tabindex]:not(td, th, tr, .ib-table-select-inline)";
 const KEEPS_ARROWS = "input:not([type=checkbox], [type=button], [type=submit], [type=reset]), select, textarea, [contenteditable]:not([contenteditable=false]), [role=combobox], [role=slider], [role=spinbutton]";
 const CELLS = "td, th";
 // Parts loaded where they're needed: a TreeList's cascade, and the tooltip for text cut off at one line.

@@ -57,7 +57,7 @@
             <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="3">
                 @foreach (var article in _section.Articles)
                 {
-                    <Card Title="@article.Title" Href="@_section.HrefOf(article)" Description="@article.Summary" Size="ControlSize.Sm" Class="site-linkcard">
+                    <Card Title="@article.Title" TitleLevel="2" Href="@_section.HrefOf(article)" Description="@article.Summary" Size="ControlSize.Sm" Class="site-linkcard">
                         <CardHeader><Pictogram Name="@article.Icon" /></CardHeader>
                     </Card>
                 }

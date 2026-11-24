@@ -38,7 +38,7 @@ else
                            internal base such as ButtonBase means nothing to a reader. *@
                         @if (ShowDeclaredOn && member.DeclaredOn is { } declared && Registry.ApiHref(declared, member.Name) is { } from)
                         {
-                            <span>From <Anchor Href="@from" Underline="AnchorUnderline.Hover">@declared</Anchor></span>
+                            <span>From <Anchor Href="@from">@declared</Anchor></span>
                         }
                         <ModeChips Modes="member.Modes" />
                         <ModeChips Modes="member.BindModes" Subject="@("@bind")" />

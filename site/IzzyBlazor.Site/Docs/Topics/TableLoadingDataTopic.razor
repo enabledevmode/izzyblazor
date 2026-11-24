@@ -35,7 +35,7 @@
 
 <Heading Level="2">Paging without a total</Heading>
 <TextBlock>Some data pages by cursor: each page comes with an opaque token for the next one, as many APIs and logs do. Other data has no total. For either, set <Code>Paging</Code> to a paging style that pages by cursor, and return the next cursor from your <Code>ItemsProvider</Code>.</TextBlock>
-<Prose Class="site-table ib-scroll">
+<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
     <table>
         <thead><tr><th>Paging style</th><th>What the user sees</th><th>Total</th></tr></thead>
         <tbody>

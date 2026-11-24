@@ -22,7 +22,7 @@
 <ExampleViewer Example="text-field-masks" />
 <TextBlock>The server does the same when the form posts, so <Code>416.555.0199</Code> posted with JavaScript off binds as <Code>(416) 555-0199</Code>. A value with an empty slot is invalid.</TextBlock>
 <TextBlock>Show the format in <Code>Placeholder</Code>, such as <Code>(000) 000-0000</Code>. Screen readers don't hear the mask, and some don't read a placeholder, so when the label doesn't make the format plain, say it in the <Code>Hint</Code> too.</TextBlock>
-<Prose Class="site-table ib-scroll">
+<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
     <table>
         <thead><tr><th>In the mask</th><th>Takes</th></tr></thead>
         <tbody>
@@ -63,7 +63,7 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>A mask's error comes from the app's text. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll">
+<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
     <table>
         <thead><tr><th>IzzyText</th><th>Sets</th><th>Default</th></tr></thead>
         <tbody>

@@ -28,10 +28,10 @@
 
         <Heading Level="2">How each render mode learns who the user is</Heading>
         <figure class="site-diagram">
-            <div class="site-diagram-scroll ib-scroll">@((MarkupString)Flow)</div>
+            <div class="site-diagram-scroll ib-scroll" tabindex="0" role="group" aria-label="Diagram">@((MarkupString)Flow)</div>
             <figcaption>The cookie reaches the server with each request, and a circuit reads it once, as it starts. A page in the browser gets the user's name and roles with its first HTML.</figcaption>
         </figure>
-        <Prose Class="site-table ib-scroll">
+        <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
             <table>
                 <thead><tr><th>Render mode</th><th>The user comes from</th><th>How long it's kept</th></tr></thead>
                 <tbody>
