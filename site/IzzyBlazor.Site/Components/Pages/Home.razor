@@ -30,7 +30,14 @@
             </TextBlock>
             <div class="site-hero-actions">
                 <Button Href="docs/get-started/create-app" Size="ControlSize.Lg">Get started</Button>
-                <Button Href="@AccountService.SignIn" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create free account</Button>
+                @if (SignedIn)
+                {
+                    <Button Href="templates" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse templates</Button>
+                }
+                else
+                {
+                    <Button Href="@AccountService.SignIn" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create free account</Button>
+                }
             </div>
         </div>
         @* Pictures of the page /frame/home-store, at a desktop's width and a phone's (HomePosterTests takes them),
@@ -235,8 +242,16 @@
             }
         </div>
         <div class="site-free-actions">
-            <Button Href="@AccountService.SignIn" Size="ControlSize.Lg">Create free account</Button>
-            <Anchor Href="pricing" Underline="AnchorUnderline.Hover" Class="site-action">See pricing<Icon Name="Lucide.ArrowRight" /></Anchor>
+            @if (SignedIn)
+            {
+                <Button Href="templates" Size="ControlSize.Lg">Browse templates</Button>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">You’re signed in. Run <code>izzy login</code> once on each machine.</TextBlock>
+            }
+            else
+            {
+                <Button Href="@AccountService.SignIn" Size="ControlSize.Lg">Create free account</Button>
+                <Anchor Href="pricing" Underline="AnchorUnderline.Hover" Class="site-action">See pricing<Icon Name="Lucide.ArrowRight" /></Anchor>
+            }
         </div>
         <p class="site-free-note">
             <Icon Name="Lucide.LockOpen" />
@@ -270,12 +285,24 @@
         <TextBlock Color="Color.Muted">Start with the components today. They’re free, open source and interactive in every render mode, including static SSR.</TextBlock>
         <div class="site-close-actions">
             <Button Href="docs/get-started/create-app" Size="ControlSize.Lg">Get started</Button>
-            <Button Href="@AccountService.SignIn" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create free account</Button>
+            @if (SignedIn)
+                {
+                    <Button Href="templates" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse templates</Button>
+                }
+                else
+                {
+                    <Button Href="@AccountService.SignIn" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create free account</Button>
+                }
         </div>
     </div>
 </Section>
 
 @code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // The account service's cookie says this browser is signed in: the prompts to make an account go.
+    private bool SignedIn => AccountService.SignedIn(HttpContext?.Request) is not null;
+
     // The hero's dashboard, as a page of its own.
     private const string RunningHref = "frame/home-store";
 

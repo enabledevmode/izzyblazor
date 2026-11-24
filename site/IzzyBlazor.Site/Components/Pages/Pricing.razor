@@ -140,6 +140,10 @@
                             {
                                 <Badge Variant="BadgeVariant.Outline" Size="BadgeSize.Sm" Pill>Founding price</Badge>
                             }
+                            else if (level.Id == "free" && SignedIn)
+                            {
+                                <Badge Status="Status.Success" Size="BadgeSize.Sm" Pill>Your plan</Badge>
+                            }
                         </div>
                         <p>@level.For</p>
                     </div>
@@ -158,6 +162,11 @@
                         {
                             <Button Size="ControlSize.Lg" StartIcon="Lucide.Check" FullWidth Disabled>Reserved</Button>
                             <p class="site-pricing-note">We’ll email @_reserved at launch.</p>
+                        }
+                        else if (level.Id == "free" && SignedIn)
+                        {
+                            <Button Href="templates" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>Browse templates</Button>
+                            <p class="site-pricing-note">@level.Note</p>
                         }
                         else
                         {
@@ -376,6 +385,9 @@
 
     // The address that was just reserved: the form's answer, and the Pro card's.
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // The account service's cookie says this browser is signed in: the free account is its plan.
+    private bool SignedIn => AccountService.SignedIn(HttpContext?.Request) is not null;
 
     private string? _reserved;
     private bool _failed;

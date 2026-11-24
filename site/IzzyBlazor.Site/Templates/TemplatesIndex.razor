@@ -12,6 +12,11 @@
         <div class="site-lead">Each template is a working app that izzy generates into your project, and the code is yours to change.</div>
     </Stack>
 
+    @if (AccountService.SignedIn(HttpContext?.Request) is not null)
+    {
+        <Alert Status="Status.Info">You’re signed in with a free account. Every template without a Pro label is yours. Run <code>izzy login</code> once on each machine.</Alert>
+    }
+
     <section class="site-blocks-how" aria-labelledby="how-templates-work">
         <Heading Level="2" Size="TextSize.Md" id="how-templates-work">How templates work</Heading>
         <Grid Columns="new() { Base = 1, Md = 3 }" Gap="5">
@@ -66,3 +71,7 @@
         </section>
     }
 </article>
+
+@code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+}

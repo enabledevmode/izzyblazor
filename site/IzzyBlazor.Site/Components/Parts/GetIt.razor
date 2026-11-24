@@ -1,7 +1,7 @@
 @* How to get a template or a block (design board, page A · Access, T2 and T3): the command in a Card. An item
    that comes with an account leads with izzy login, as numbered steps, since the command alone fails on a
-   machine that hasn't signed in. A Pro item says so and points at the founding price. The site can't see the
-   account's sign-in, so this is always the signed-out form. *@
+   machine that hasn't signed in. A Pro item says so and points at the founding price. Signed in (the account
+   service's cookie), an account item is its command alone and a line saying the account includes it. *@
 <Card Class="site-getit">
     <CardBody Gap="3">
         <Heading Level="2" Size="TextSize.Md" id="get-it">@Title</Heading>
@@ -14,6 +14,19 @@
                     <Button Href="pricing" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Reserve the founding price</Button>
                 </Stack>
             </Alert>
+        }
+        else if (Account && SignedIn)
+        {
+            <Code Block>@Command</Code>
+            @if (StepNote is not null)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@StepNote</TextBlock>
+            }
+            <Row Gap="2" Align="Align.Start" Wrap="false">
+                <Icon Name="Lucide.CircleCheck" />
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Included in your free account. If this machine hasn’t run <code>izzy login</code> yet, run it once first.</TextBlock>
+            </Row>
+            @SignedInContent
         }
         else if (Account)
         {
@@ -69,6 +82,13 @@
 
     /// <summary>The line under step 2's command.</summary>
     [Parameter] public RenderFragment? StepNote { get; set; }
+
+    /// <summary>What closes the card of an account item for a signed-in visitor, in place of the content that offers an account.</summary>
+    [Parameter] public RenderFragment? SignedInContent { get; set; }
+
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    private bool SignedIn => AccountService.SignedIn(HttpContext?.Request) is not null;
 
     /// <summary>What closes the card.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
