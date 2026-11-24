@@ -12,7 +12,9 @@
 
 @* The landing page tells one story (design board, page SB · Story drafts, Story 1): the hero, what a circuit
    or a download costs, what IzzyBlazor does instead, the components, who made it, three steps to a running app,
-   the free account, Pro, and a closing call. Every heading is a sentence or an instruction. *@
+   the free account, Pro, and a closing call. Every heading is a sentence or an instruction. After the hero
+   the sections alternate, page then band: each band answers the plain section before it, and the change of
+   color is the divider (the hero's own bottom border is the one line, between it and the plain section after). *@
 
 @* The hero (L1): a centered column (the headline with its Ember line, what it is and the two ways in) over
    the app the library builds, as pictures: a desktop window with its phone over the window's lower start
@@ -77,7 +79,7 @@
 </Section>
 
 @* The value: what the components do instead. *@
-<Section Class="site-band site-story site-line">
+<Section Class="site-band site-story">
     <div class="site-story-col">
         <div class="site-story-head">
             <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Your pages stay interactive without a circuit</Heading>
@@ -88,7 +90,7 @@
 </Section>
 
 @* The components by what they're for: an index of four groups, each with its count and a way into the docs. *@
-<Section Class="site-story-show site-line">
+<Section Class="site-story-show">
     <Stack Gap="6">
         <Row Gap="4" Justify="Justify.Between" Align="Align.End" Wrap>
             <Stack Gap="2">
@@ -124,7 +126,7 @@
 </Section>
 
 @* The guide: a note from the maker, then four facts as proof. Each fact opens its page. *@
-<Section Class="site-story site-line">
+<Section Class="site-band site-story">
     <div class="site-guide">
         <div class="site-guide-note">
             <Heading Level="2" Wrap="TextWrap.Balance" Class="site-guide-title">I built the library I needed</Heading>
@@ -150,7 +152,7 @@
 </Section>
 
 @* The plan: three steps, two with the command that does them. *@
-<Section Class="site-story site-line">
+<Section Class="site-story">
     <div class="site-story-col site-story-col-steps">
         <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Get a running app in three steps</Heading>
         <StorySteps Items="Plan" />
@@ -162,7 +164,7 @@
 </Section>
 
 @* L4, free with an account: the offer between the library and Pro. *@
-<Section Class="site-band site-free site-line">
+<Section Class="site-band site-free">
     <div class="site-free-col">
         <div class="site-free-intro">
             <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Free with an account</Heading>
@@ -219,7 +221,7 @@
 </Section>
 
 @* The close. The newsletter's form is in the footer. *@
-<Section Class="site-band site-story site-line">
+<Section Class="site-band site-story">
     <div class="site-close">
         <Heading Level="2" Wrap="TextWrap.Balance" Class="site-h2">Build Blazor apps that load fast and work for everyone</Heading>
         <TextBlock Color="Color.Muted">Start with the components today. They’re free, open source and interactive in every render mode, including static SSR.</TextBlock>

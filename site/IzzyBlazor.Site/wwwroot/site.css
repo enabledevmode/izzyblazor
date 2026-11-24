@@ -19,6 +19,11 @@
   background: light-dark(var(--ib-color-fill-subtle), #191b20);
   border-block-start: 1px solid light-dark(transparent, var(--ib-color-border));
 }
+/* A card on a band is lighter than the band: white on the gray in light mode, a shade above it in dark,
+   where the library's surface is nearly the band's own color. */
+:root.site .site-band :is(.site-proof, .site-free-card, .site-show, .site-bridge) {
+  background: light-dark(var(--ib-color-surface), #202228);
+}
 
 /*
  * The docs site's own styles: page layout, the example viewer and API reference blocks. Everything
