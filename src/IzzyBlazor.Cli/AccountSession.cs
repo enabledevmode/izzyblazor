@@ -35,7 +35,9 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
 
     string KeyPath => Path.Combine(home, "key");
     string CatalogRoot => Path.Combine(home, "catalog");
-    string CatalogFolder => Path.Combine(CatalogRoot, version);
+    // Pro's copy has more in it than an account's, so each has its folder: when the plan changes, the copy on
+    // the machine is the wrong one, and the right one is downloaded in its place.
+    string CatalogFolder => Path.Combine(CatalogRoot, Plan == ItemTier.Pro ? $"{version}.pro" : version);
     DateTimeOffset Now => clock?.Invoke() ?? DateTimeOffset.UtcNow;
 
     /// <summary>The account service from the environment: <c>~/.izzy</c> (or <c>IZZY_HOME</c>) and <c>IZZY_KEY</c>.</summary>
@@ -60,6 +62,12 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
 
     /// <summary>What this machine's sign-in reaches: nothing signed out, an account's items, or Pro's. A CI key is an account's.</summary>
     public ItemTier Plan => CiKey ? ItemTier.Account : ReadKey(out _)?.Tier ?? ItemTier.Free;
+
+    /// <summary>Whether Pro is here as a preview: the account reserved the founding price, and Pro isn't on sale yet.</summary>
+    public bool Preview => !CiKey && ReadKey(out _) is { Tier: ItemTier.Pro, Preview: true };
+
+    /// <summary>What a Pro command says once when Pro is a preview.</summary>
+    public const string PreviewNote = "Pro preview: free until Pro goes on sale. Tell us what works and what doesn't: support@izzyblazor.com.";
 
     // IZZY_KEY holds a key made on the account page: only the service can say whether it's a live one, but a
     // value that isn't one at all is known here, and unlocks nothing.
@@ -209,8 +217,15 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
     }
 
     /// <summary>izzy account: who this machine is signed in as.</summary>
-    public int Status(TextWriter output)
+    public int Status(TextWriter output, bool json = false)
     {
+        if (json)
+        {
+            // For an editor: "free" is an account without Pro; signed out, there is no plan.
+            var signedIn = ciKey is not null ? CiKey : ReadKey(out _) is not null;
+            output.WriteLine(new JsonObject { ["signedIn"] = signedIn, ["plan"] = !signedIn ? null : Preview ? "preview" : Plan == ItemTier.Pro ? "pro" : "free" }.ToJsonString());
+            return 0;
+        }
         if (ciKey is not null)
         {
             output.WriteLine(CiKey ? "Using the key in IZZY_KEY." : NotCiKey);
@@ -222,7 +237,9 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
             output.WriteLine("Not signed in. Run izzy login.");
             return 0;
         }
-        output.WriteLine($"Signed in. Plan: {(key.Tier == ItemTier.Pro ? "Pro" : "Free")}.");
+        output.WriteLine($"Signed in. Plan: {(key.Tier != ItemTier.Pro ? "Free" : key.Preview ? "Pro preview" : "Pro")}.");
+        if (key is { Tier: ItemTier.Pro, Preview: true })
+            output.WriteLine("You reserved the founding price, so Pro is yours to use until it goes on sale. Tell us what works and what doesn't: support@izzyblazor.com.");
         output.WriteLine(state == AccountKeyState.Expired
             ? "The sign-in needs renewing. izzy renews it the next time this machine is online."
             : $"The sign-in renews by itself, by {key.Expires.ToLocalTime():MMMM d, yyyy} at the latest.");

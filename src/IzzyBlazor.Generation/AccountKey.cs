@@ -29,7 +29,8 @@ public enum AccountKeyState
 /// <param name="KeyId">Which of the service's signing keys signed it.</param>
 /// <param name="Issued">When it was signed.</param>
 /// <param name="Expires">Its last moment; the service signs a new one before then.</param>
-public sealed record AccountKey(string Account, ItemTier Tier, string Machine, string KeyId, DateTimeOffset Issued, DateTimeOffset Expires)
+/// <param name="Preview">Pro as a preview, for an account that reserved the founding price before Pro went on sale.</param>
+public sealed record AccountKey(string Account, ItemTier Tier, string Machine, string KeyId, DateTimeOffset Issued, DateTimeOffset Expires, bool Preview = false)
 {
     const string Prefix = "izzy1";
 
@@ -39,7 +40,7 @@ public sealed record AccountKey(string Account, ItemTier Tier, string Machine, s
     /// <summary>The key as text, signed with the service's private key.</summary>
     public string Sign(ECDsa privateKey)
     {
-        var payload = Encoding.UTF8.GetBytes(new JsonObject
+        var claims = new JsonObject
         {
             ["account"] = Account,
             ["tier"] = Tier == ItemTier.Pro ? "pro" : "account",
@@ -47,7 +48,10 @@ public sealed record AccountKey(string Account, ItemTier Tier, string Machine, s
             ["kid"] = KeyId,
             ["issued"] = Issued.ToUnixTimeSeconds(),
             ["expires"] = Expires.ToUnixTimeSeconds(),
-        }.ToJsonString());
+        };
+        // Written only when set: a key without it reads the same in every izzy.
+        if (Preview) claims["preview"] = true;
+        var payload = Encoding.UTF8.GetBytes(claims.ToJsonString());
         return $"{Prefix}.{Base64Url(payload)}.{Base64Url(privateKey.SignData(payload, HashAlgorithmName.SHA256))}";
     }
 
@@ -74,7 +78,8 @@ public sealed record AccountKey(string Account, ItemTier Tier, string Machine, s
                 (string)json["machine"]!,
                 (string)json["kid"]!,
                 DateTimeOffset.FromUnixTimeSeconds((long)json["issued"]!),
-                DateTimeOffset.FromUnixTimeSeconds((long)json["expires"]!));
+                DateTimeOffset.FromUnixTimeSeconds((long)json["expires"]!),
+                (bool?)json["preview"] == true);
             if (!Verify(payload, FromBase64Url(parts[2]), key.KeyId, publicKeys)) return null;
             // A clock set back to before the key was made would keep an old key in date for ever.
             if (key.Issued > now + ClockSkew) return null;

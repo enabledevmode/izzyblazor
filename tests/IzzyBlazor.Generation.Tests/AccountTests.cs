@@ -94,6 +94,28 @@ public sealed class AccountTests : IDisposable
         Assert.Equal(4, Izzy("new", "starter", "sidebar", "-n", "Acme", "--dry-run").Exit);
     }
 
+    [AccountFact]
+    public void A_reserved_founding_price_brings_Pro_as_a_preview_with_the_audit_pack()
+    {
+        var bundle = AccountBundle.Export(Path.Combine(ProjectBuild.RepoRoot, "catalog"), ProjectBuild.PrivateCatalog!, ItemTier.Pro);
+        var service = new Service(_signing, bundle) { Preview = true };
+        (int Exit, string Out, string Error) Izzy(params string[] args)
+        {
+            var (output, error) = (new StringWriter(), new StringWriter());
+            var session = new AccountSession(_home, new Uri("https://account.test/"), PublicKeys, "9.9.9", handler: service, clock: () => Now, open: _ => { }, wait: _ => { });
+            var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _home, output, error, account: session).Run(args);
+            return (exit, output.ToString(), error.ToString());
+        }
+
+        Assert.Equal(0, Izzy("login").Exit);
+        Assert.Contains("Plan: Pro preview", Izzy("account").Out);
+        Assert.Equal("""{"signedIn":true,"plan":"preview"}""", Izzy("account", "--json").Out.Trim());
+        // Pro's copy of the catalog: the pack izzy audit judges with, and crud's Pro pages.
+        Assert.True(File.Exists(Path.Combine(_home, "catalog", "9.9.9.pro", ".audit", "pack.json")));
+        var pages = Izzy("describe", "crud", "--json");
+        Assert.True(pages.Exit == 0, pages.Error);
+    }
+
     public void Dispose()
     {
         _signing.Dispose();
@@ -107,6 +129,9 @@ public sealed class AccountTests : IDisposable
 
         public bool Down { get; set; }
 
+        /// <summary>The account reserved the founding price: its key is Pro's, as a preview.</summary>
+        public bool Preview { get; set; }
+
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             if (Down) throw new HttpRequestException("The service is down.");
@@ -119,7 +144,7 @@ public sealed class AccountTests : IDisposable
                 }),
                 "/v1/device/token" => ++TokenRequests == 1
                     ? Json(HttpStatusCode.BadRequest, new JsonObject { ["error"] = "authorization_pending" })
-                    : Json(HttpStatusCode.OK, new JsonObject { ["key"] = new AccountKey("acct_1", ItemTier.Account, "m_1", "k1", Now, Now.AddDays(30)).Sign(signing) }),
+                    : Json(HttpStatusCode.OK, new JsonObject { ["key"] = new AccountKey("acct_1", Preview ? ItemTier.Pro : ItemTier.Account, "m_1", "k1", Now, Now.AddDays(30), Preview).Sign(signing) }),
                 "/v1/catalog/9.9.9" when request.Headers.Authorization?.Parameter is { Length: > 0 } => new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new ByteArrayContent(bundle),

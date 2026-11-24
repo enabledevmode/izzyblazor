@@ -43,7 +43,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy mcp
           izzy login [--no-browser]
           izzy logout
-          izzy account
+          izzy account [--json]
 
         izzy add component puts a component's usage example from the docs on a page: its markup at the line,
         its @using lines at the top and its @code members in the page's @code. --example takes another of its
@@ -112,7 +112,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "bundle" => Bundle(args),
                 "login" => Login(args),
                 "logout" => Account(args, "izzy logout").Logout(output),
-                "account" => Account(args, "izzy account").Status(output),
+                "account" => Account(args, "izzy account [--json]", "json").Status(output, args.Switch("json")),
                 var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, audit, agent, mcp, login, logout, account."),
             };
         }
@@ -145,18 +145,19 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     TextWriter _data = TextWriter.Null;
 
     Catalog Catalog => field ??= proRoot is null && account?.Catalog(error, _generates) is { } copy
-        ? Catalog.Load(catalogRoot, copy, ItemTier.Account)
+        ? Catalog.Load(catalogRoot, copy, account.Plan == ItemTier.Pro ? ItemTier.Pro : ItemTier.Account)
         : Catalog.Load(catalogRoot, proRoot, access);
 
     // izzy bundle <file>: an account's copy of the private catalog as a zip, for the release workflow to send to
     // the account service. Not in the help: it needs the private catalog, which only IzzyBlazor's own builds have.
     int Bundle(Args args)
     {
-        Words(args, 2, "izzy bundle <file>");
+        Words(args, 2, "izzy bundle <file> [--pro]");
+        var pro = args.Switch("pro");
         NoSettings(args);
         if (proRoot is null) throw new UsageException("izzy bundle needs the private catalog (IZZY_PRO_CATALOG).");
         var file = Path.GetFullPath(args.Words[1], workingDirectory);
-        File.WriteAllBytes(file, AccountBundle.Export(catalogRoot, proRoot));
+        File.WriteAllBytes(file, AccountBundle.Export(catalogRoot, proRoot, pro ? ItemTier.Pro : ItemTier.Account));
         output.WriteLine($"Wrote {file}.");
         return 0;
     }
@@ -263,6 +264,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             return 3;
         }
         if (verdicts && pack is null) throw new GenerationException("This machine's copy of the catalog has no audit pack, so findings get no verdicts. Run izzy login to download it again.");
+        if (!json && (pack is not null || pages.Count > 1)) PreviewNote();
         var decisions = Path.Combine(home, ".izzy", "audit.json");
         var judge = pack is null ? null : new Audit.Judge(pack, File.Exists(decisions) ? decisions : null);
 
@@ -667,6 +669,12 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // account service stand for the access they were given; otherwise it's the sign-in's.
     ItemTier Plan => proRoot is not null || account is null ? access : account.Plan;
 
+    // Said once by a command that is Pro's, when Pro is here as a preview.
+    void PreviewNote()
+    {
+        if (proRoot is null && account is { Preview: true }) error.WriteLine(AccountSession.PreviewNote);
+    }
+
     // izzy inspect Components/Pages/Home.razor:12:8 --json: the component there, as data for an inspector.
     int Inspect(Args args)
     {
@@ -705,6 +713,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             error.WriteLine("Changing a component's options with izzy set comes with IzzyBlazor Pro.");
             return 3;
         }
+        if (!flags.Json) PreviewNote();
         var (page, path, tag) = TagAt(args.Words[1], folder, stdin, usage);
         var project = ProjectInfo.FromProject(FindProject(folder));
         var edits = TagEdit.Set(page, path, tag, Library, changes);

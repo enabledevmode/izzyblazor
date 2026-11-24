@@ -24,8 +24,16 @@ public static partial class AccountBundle
     /// <param name="publicRoot">The public catalog, with every item's manifest.</param>
     /// <param name="privateRoot">The private catalog.</param>
     /// <returns>The zip, the same bytes for the same files.</returns>
-    public static byte[] Export(string publicRoot, string privateRoot)
+    public static byte[] Export(string publicRoot, string privateRoot) => Export(publicRoot, privateRoot, ItemTier.Account);
+
+    /// <summary>
+    /// Writes the bundle for <paramref name="tier"/>. An account's is described above. Pro's is the whole
+    /// private catalog as it is: every item's folder, with the Pro items and layouts, and <c>.audit/</c>, the
+    /// pack izzy audit judges findings with.
+    /// </summary>
+    public static byte[] Export(string publicRoot, string privateRoot, ItemTier tier)
     {
+        if (tier == ItemTier.Pro) return ExportAll(privateRoot);
         using var buffer = new MemoryStream();
         using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
         {
@@ -54,6 +62,26 @@ public static partial class AccountBundle
                     }
                     using var stream = Entry(zip, $"{id}/files/{path}").Open();
                     stream.Write(bytes);
+                }
+            }
+        }
+        return buffer.ToArray();
+    }
+
+    static byte[] ExportAll(string privateRoot)
+    {
+        using var buffer = new MemoryStream();
+        using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var folders = Directory.EnumerateDirectories(privateRoot).Where(d => Path.GetFileName(d) is var name && (name == ".audit" || !name.StartsWith('.')));
+            foreach (var folder in folders.Order(StringComparer.Ordinal))
+            {
+                var id = Path.GetFileName(folder);
+                Entry(zip, id + "/");
+                foreach (var file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+                {
+                    using var stream = Entry(zip, $"{id}/{Path.GetRelativePath(folder, file).Replace('\\', '/')}").Open();
+                    stream.Write(File.ReadAllBytes(file));
                 }
             }
         }

@@ -172,6 +172,10 @@ jobs:
           dotnet src/IzzyBlazor.Cli/bin/Release/net10.0/IzzyBlazor.Cli.dll bundle "$RUNNER_TEMP/account.zip"
           curl --fail-with-body -sS -X PUT -H "Authorization: Bearer $ACCOUNT_UPLOAD_TOKEN" --data-binary @"$RUNNER_TEMP/account.zip" "https://account.izzyblazor.com/v1/admin/catalog/$VERSION"
           rm "$RUNNER_TEMP/account.zip"
+          # Pro's copy: the whole private catalog, with the audit pack. It goes to accounts with Pro or its preview.
+          dotnet src/IzzyBlazor.Cli/bin/Release/net10.0/IzzyBlazor.Cli.dll bundle "$RUNNER_TEMP/pro.zip" --pro
+          curl --fail-with-body -sS -X PUT -H "Authorization: Bearer $ACCOUNT_UPLOAD_TOKEN" --data-binary @"$RUNNER_TEMP/pro.zip" "https://account.izzyblazor.com/v1/admin/catalog/$VERSION?tier=pro"
+          rm "$RUNNER_TEMP/pro.zip"
 
   publish:
     needs: build
