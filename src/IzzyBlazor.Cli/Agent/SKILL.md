@@ -30,7 +30,7 @@ Names, parameters and defaults are IzzyBlazor's own, not Bootstrap's, MudBlazor'
 The catalog has starters, app kits, pages and blocks (hero, pricing, FAQ, contact, footer and more) that are already accessible and work in every render mode.
 
 1. `list_items` shows what exists and which items are Pro. The tools themselves need a free account.
-2. `describe_item` gives an item's settings.
+2. `describe_item` gives an item's settings. Pass its `kind` with its id, as `list_items` gives them.
 3. `add_item` with `dryRun: true` shows the changes as a diff. Run it again without `dryRun` to write them.
 4. `add_crud` makes a page that lists, adds, edits and deletes a model class's records.
 5. `init_app` sets IzzyBlazor up in an app that doesn't have it. `new_app` makes a new app.

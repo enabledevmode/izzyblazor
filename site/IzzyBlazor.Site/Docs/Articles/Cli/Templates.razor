@@ -37,7 +37,7 @@
             with accounts says how to log in: Izzy CRM's lists the sample team it makes and their password.
         </TextBlock>
         <TextBlock>
-            To list the templates, run <Code>izzy list --kind starter</Code> or <Code>izzy list --kind kit</Code>.
+            To list the templates, run <Code>izzy list starter</Code> or <Code>izzy list kit</Code>.
         </TextBlock>
 
         <Heading Level="2">Options</Heading>
@@ -46,8 +46,8 @@
         </TextBlock>
         <Code Block Language="bash">izzy new starter topnav -n Admin --auth Individual --preset Compact --brand teal</Code>
         <TextBlock>
-            To list a template's options, run <Code>izzy describe</Code> with its name, such as
-            <Code>izzy describe topnav</Code>. A kit decides some of its starter's options for you, so it lists fewer.
+            To list a template's options, run <Code>izzy describe</Code> with its kind and id, such as
+            <Code>izzy describe starter topnav</Code>. A kit decides some of its starter's options for you, so it lists fewer.
             The starters' options are explained in <Anchor Href="docs/get-started/create-app">Create an app</Anchor>.
         </TextBlock>
 

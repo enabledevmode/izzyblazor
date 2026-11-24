@@ -8,7 +8,7 @@ public sealed record Block(ItemDefinition Definition)
     /// <summary>The manifest.</summary>
     public ItemManifest Manifest => Definition.Manifest;
 
-    /// <summary>The id, as in <c>izzy add hero</c> and <c>/blocks/hero</c>.</summary>
+    /// <summary>The id, as in <c>izzy add block hero</c> and <c>/blocks/hero</c>.</summary>
     public string Id => Manifest.Id;
 
     /// <summary>The name, such as "Hero".</summary>

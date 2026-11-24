@@ -90,7 +90,7 @@ To make each setup change yourself, see [Set up by hand](https://izzyblazor.com/
 ### Free with an account
 
 A [free account](https://izzyblazor.com/pricing) adds six app starters, 15 page blocks and Izzy CRM, a complete
-sample app, all generated on your machine as code you own (`izzy login`, then `izzy add hero`). You don't need
+sample app, all generated on your machine as code you own (`izzy login`, then `izzy add block hero`). You don't need
 an account for the components, the docs or the starter above.
 
 ## What's included

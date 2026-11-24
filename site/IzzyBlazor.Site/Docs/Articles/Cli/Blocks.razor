@@ -1,6 +1,6 @@
 @page "/docs/cli/blocks"
 
-@* izzy add <block>: where a block goes, --into and --at, recipes, settings, and the .Client project. *@
+@* izzy add block <id>: where a block goes, --into and --at, recipes, settings, and the .Client project. *@
 
 <ArticlePage Section="cli" Slug="blocks">
     <Lead>
@@ -11,7 +11,7 @@
     <ChildContent>
         <Heading Level="2">Add a block</Heading>
         <TextBlock>Run <Code>izzy add</Code> in your app's folder with the block's name. Add its settings as options:</TextBlock>
-        <Code Block Language="bash">izzy add hero --layout Split</Code>
+        <Code Block Language="bash">izzy add block hero --layout Split</Code>
         <TextBlock>
             izzy puts the block's component in <Code>Components/Blocks</Code> and adds the block to a page. Most blocks go at
             the end of <Code>Home.razor</Code>. A footer goes in the layout.
@@ -26,11 +26,11 @@
             Some items are recipes, such as an empty state. A recipe has no usual place on a page, so you always choose
             the line:
         </TextBlock>
-        <Code Block Language="bash">izzy add empty-state --at Components/Pages/Orders.razor:24</Code>
+        <Code Block Language="bash">izzy add block empty-state --at Components/Pages/Orders.razor:24</Code>
 
         <Heading Level="2">Settings</Heading>
         <TextBlock>
-            To list a block's settings, run <Code>izzy describe</Code> with its name, such as <Code>izzy describe hero</Code>.
+            To list a block's settings, run <Code>izzy describe block</Code> with its id, such as <Code>izzy describe block hero</Code>.
             The settings have the same names as the starter's options in <Code>dotnet new</Code>, so you can use the same
             spelling in both.
         </TextBlock>

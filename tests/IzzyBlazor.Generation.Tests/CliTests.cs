@@ -29,27 +29,27 @@ public sealed class CliTests : IDisposable
         Assert.Equal(0, Izzy(_work, "new", "starter", "Blazor", "-n", "Acme", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
 
-        var preview = Izzy(app, "add", "Hero", "--layout", "Split", "--dry-run", "--json");
+        var preview = Izzy(app, "add", "block", "Hero", "--layout", "Split", "--dry-run", "--json");
         Assert.Equal(0, preview.Exit);
         var json = JsonNode.Parse(preview.Out)!;
         Assert.False((bool)json["written"]!);
         Assert.Equal(["Components/Blocks/Hero.razor", "wwwroot/images/hero-screenshot.svg"], json["creates"]!.AsArray().Select(c => (string)c!["path"]!));
         Assert.False(File.Exists(Path.Combine(app, "Components", "Blocks", "Hero.razor")));
 
-        Assert.Equal(0, Izzy(app, "add", "hero", "--layout", "Split").Exit);
+        Assert.Equal(0, Izzy(app, "add", "block", "hero", "--layout", "Split").Exit);
         Assert.Contains("<Grid Columns=", File.ReadAllText(Path.Combine(app, "Components", "Blocks", "Hero.razor")));
-        Assert.Contains("Nothing to change", Izzy(Path.Combine(app, "Components"), "add", "hero", "--layout", "Split").Out);
+        Assert.Contains("Nothing to change", Izzy(Path.Combine(app, "Components"), "add", "block", "hero", "--layout", "Split").Out);
 
-        var other = Izzy(app, "add", "hero", "--layout", "Centered");
+        var other = Izzy(app, "add", "block", "hero", "--layout", "Centered");
         Assert.Equal(2, other.Exit);
         Assert.Contains("Components/Blocks/Hero.razor", other.Error);
 
         // A section goes below what the page already has, so a landing page builds top to bottom.
-        Assert.Equal(0, Izzy(app, "add", "features").Exit);
+        Assert.Equal(0, Izzy(app, "add", "block", "features").Exit);
         var home = File.ReadAllText(Path.Combine(app, "Components", "Pages", "Home.razor")).TrimEnd();
         Assert.EndsWith("<Features />", home);
         Assert.True(home.IndexOf("<Hero />", StringComparison.Ordinal) < home.IndexOf("<Features />", StringComparison.Ordinal));
-        Assert.Equal(3, Izzy(app, "add", "features", "--layout", "Rows").Exit);
+        Assert.Equal(3, Izzy(app, "add", "block", "features", "--layout", "Rows").Exit);
 
         var items = JsonNode.Parse(File.ReadAllText(Path.Combine(app, ".izzy", "items.json")))!["items"]!.AsArray();
         Assert.Equal(["blazor", "hero", "features"], items.Select(i => (string)i!["id"]!));
@@ -64,7 +64,7 @@ public sealed class CliTests : IDisposable
         var app = Path.Combine(_work, "Acme");
         var home = File.ReadAllText(Path.Combine(app, "Components", "Pages", "Home.razor"));
 
-        var added = Izzy(app, "add", "hero", "--at", "Components/Pages/Counter.razor:3");
+        var added = Izzy(app, "add", "block", "hero", "--at", "Components/Pages/Counter.razor:3");
         Assert.Equal(0, added.Exit);
         Assert.Equal("<Hero />", File.ReadAllLines(Path.Combine(app, "Components", "Pages", "Counter.razor"))[2]);
         Assert.Equal(home, File.ReadAllText(Path.Combine(app, "Components", "Pages", "Home.razor")));
@@ -78,12 +78,12 @@ public sealed class CliTests : IDisposable
         Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Acme", "--no-restore").Exit);
         var app = Path.Combine(_work, "Acme");
 
-        Assert.Equal(0, Izzy(app, "add", "hero", "--eyebrow", "Say \"hi\" @you", "--headline", "Fast & <simple>").Exit);
+        Assert.Equal(0, Izzy(app, "add", "block", "hero", "--eyebrow", "Say \"hi\" @you", "--headline", "Fast & <simple>").Exit);
         var hero = File.ReadAllText(Path.Combine(app, "Components", "Blocks", "Hero.razor"));
         Assert.Contains("Label=\"Say &quot;hi&quot; &#64;you\"", hero);
         Assert.Contains(">Fast &amp; &lt;simple&gt;</Heading>", hero);
 
-        Assert.Equal(0, Izzy(app, "add", "articles", "--link-base", "a\"b/").Exit);
+        Assert.Equal(0, Izzy(app, "add", "block", "articles", "--link-base", "a\"b/").Exit);
         Assert.Contains("new(\"a\\\"b/blog/", File.ReadAllText(Path.Combine(app, "Components", "Blocks", "Articles.razor")));
     }
 

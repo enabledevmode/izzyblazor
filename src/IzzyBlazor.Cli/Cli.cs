@@ -24,9 +24,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalog.
 
         Usage:
-          izzy list [--kind starter|kit|page|block|section|recipe] [--json]
-          izzy describe <item> [--json]
-          izzy add <item> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
+          izzy list [starter|kit|block] [--json]
+          izzy describe starter|kit|block <id> [--json]
+          izzy describe crud|init [--json]
+          izzy add block <id> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
@@ -40,7 +41,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         form pages are --mode pages, Pro), for a model class in your app read from its source: no build needed.
         izzy init sets up IzzyBlazor in the app you have: a Blazor Web App, or an MVC or Razor Pages app, which
         gets a Blazor root beside its pages. It builds the app afterwards and says how to fix a name clash.
-        Settings are the item's, as izzy describe <item> lists them, such as --layout Split.
+        Settings are the item's, as izzy describe lists them (izzy describe block hero), such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
         izzy agent writes what a coding agent reads in your project: the IzzyBlazor skill, and the docs server
@@ -193,8 +194,13 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     int List(Args args)
     {
-        Words(args, 1, "izzy list");
-        var kind = args.Take("kind");
+        // izzy list block: the kind is a word, as it is in izzy add block hero.
+        const string usage = "izzy list [starter|kit|block] [--json]";
+        if (args.Words.Count > 2) throw new UsageException($"Usage: {usage}");
+        if (args.Take("kind") is { } option) throw new UsageException($"The kind is a word: izzy list {option.ToLowerInvariant()}.");
+        var kind = args.Words.Count == 2 ? args.Words[1] : null;
+        if (kind is not null && !Enum.GetValues<ItemKind>().Any(k => k != ItemKind.Setup && k.ToString().Equals(kind, StringComparison.OrdinalIgnoreCase)))
+            throw new UsageException($"\"{kind}\" isn't a kind of item. Usage: {usage}");
         var json = args.Switch("json");
         NoSettings(args);
         var items = Catalog.Items.Values.Select(i => i.Manifest)
@@ -222,7 +228,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     int Describe(Args args)
     {
-        var item = Item(args, "izzy describe <item>");
+        var item = Item(args, "izzy describe", "izzy describe starter|kit|block <id> [--json], or izzy describe crud|init");
         var json = args.Switch("json");
         NoSettings(args);
         var m = item.Manifest;
@@ -252,7 +258,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         output.WriteLine($"{m.Name} ({m.Id}), {Lower(m.Kind)}{m.Tier switch { ItemTier.Pro => ", Pro", ItemTier.Account => ", free account", _ => "" }}");
         if (m.Summary is not null) output.WriteLine(m.Summary);
         output.WriteLine();
-        output.WriteLine(m.Kind.MakesProject() ? $"{m.NewCommand()} -n <name> [settings]" : $"izzy add {m.Id} [settings]");
+        output.WriteLine(m.Kind.MakesProject() ? $"{m.NewCommand()} -n <name> [settings]" : m.Kind == ItemKind.Setup ? "izzy init [settings]" : $"{m.AddCommand()} [settings]");
         output.WriteLine();
         output.WriteLine("Settings:");
         foreach (var p in m.Parameters.Where(p => !p.Hidden))
@@ -272,14 +278,15 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     int Add(Args args)
     {
-        // izzy add crud <Model>: the one item with a word after its id.
+        // izzy add block hero: the kind, then the id. izzy add crud <Model>: the model after it.
         var isCrud = args.Words.Count > 1 && args.Words[1].Equals("crud", StringComparison.OrdinalIgnoreCase);
         var crud = args.Words.Count == 3 && isCrud;
         if (args.Words.Count == 2 && isCrud) throw new UsageException("Usage: izzy add crud <Model>, such as izzy add crud Customer.");
-        var item = crud ? Catalog["crud"] : Item(args, "izzy add <item>");
+        var item = crud ? Catalog["crud"] : Item(args, "izzy add", "izzy add block <id>");
         if (item.Manifest.Kind == ItemKind.Setup) throw new UsageException("IzzyBlazor's setup runs with izzy init.");
         if (item.Manifest.Kind.MakesProject())
             throw new UsageException($"{item.Manifest.Id} makes a new project: {item.Manifest.NewCommand()} -n <name>.");
+        if (!crud && item.Manifest.Id == "crud") throw new UsageException("Usage: izzy add crud <Model>, such as izzy add crud Customer.");
         var project = ProjectInfo.FromProject(FindProject(args.Take("project")));
         var host = Path.Combine(project.Directory!, project.Host, project.Name + ".csproj");
         if (!ReferencesIzzyBlazor(File.ReadAllText(host)))
@@ -309,7 +316,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (args.Words[1] is not ("starter" or "kit")) throw new UsageException($"Usage: {usage}");
         var item = Catalog[args.Words[2]];
         if (!item.Manifest.Kind.MakesProject())
-            throw new UsageException($"{item.Manifest.Id} goes into a project you have: izzy add {item.Manifest.Id}.");
+            throw new UsageException($"{item.Manifest.Id} goes into a project you have: {item.Manifest.AddCommand()}.");
         if (!item.Manifest.Kind.ToString().Equals(args.Words[1], StringComparison.OrdinalIgnoreCase))
             throw new UsageException($"{item.Manifest.Id} is a {item.Manifest.Kind.ToString().ToLowerInvariant()}: {item.Manifest.NewCommand()} -n <name>.");
         var name = args.Take("name");
@@ -529,10 +536,26 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         else if (!quiet && arguments[0] == "restore") output.WriteLine("Restored packages");
     }
 
-    ItemDefinition Item(Args args, string usage)
+    // The item a command names by its kind and id (izzy describe block hero). crud and init are named alone,
+    // as their own commands name them. An id with no kind is answered with the command to type.
+    ItemDefinition Item(Args args, string command, string usage)
     {
-        Words(args, 2, usage);
-        return Catalog[args.Words[1]];
+        if (args.Words.Count == 2)
+        {
+            if (!Catalog.Items.TryGetValue(args.Words[1], out var alone)) throw new UsageException($"Usage: {usage}");
+            if (alone.Manifest.Kind == ItemKind.Setup || alone.Manifest.Id == "crud") return alone;
+            if (command == "izzy add" && alone.Manifest.Kind.MakesProject())
+                throw new UsageException($"{alone.Manifest.Id} makes a new project: {alone.Manifest.NewCommand()} -n <name>.");
+            throw new UsageException($"Say what {alone.Manifest.Id} is: {command} {alone.Manifest.Kind.ToString().ToLowerInvariant()} {alone.Manifest.Id}.");
+        }
+        Words(args, 3, usage);
+        var item = Catalog[args.Words[2]];
+        if (item.Manifest.Kind == ItemKind.Setup || item.Manifest.Id == "crud")
+            throw new UsageException($"{item.Manifest.Id} is named alone: {(command == "izzy add" ? item.Manifest.Kind == ItemKind.Setup ? "izzy init" : item.Manifest.AddCommand() : $"{command} {item.Manifest.Id}")}.");
+        var kind = item.Manifest.Kind.ToString().ToLowerInvariant();
+        if (!kind.Equals(args.Words[1], StringComparison.OrdinalIgnoreCase))
+            throw new UsageException($"{item.Manifest.Id} is a {kind}: {command} {kind} {item.Manifest.Id}.");
+        return item;
     }
 
     static void Words(Args args, int count, string usage)

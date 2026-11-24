@@ -28,7 +28,7 @@ sealed class Args
                 : null;
             if (name is null)
             {
-                if (parsed.Options.Count > 0) throw new UsageException($"\"{word}\" follows an option that takes no value. Put the item first: izzy add hero --layout Split.");
+                if (parsed.Options.Count > 0) throw new UsageException($"\"{word}\" follows an option that takes no value. Put the item first: izzy add block hero --layout Split.");
                 parsed.Words.Add(word);
                 continue;
             }

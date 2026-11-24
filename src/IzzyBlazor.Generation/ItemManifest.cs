@@ -199,6 +199,13 @@ public static class ItemKinds
     /// for a component.
     /// </summary>
     public static string NewCommand(this ItemManifest manifest) => $"izzy new {manifest.Kind.ToString().ToLowerInvariant()} {manifest.Id}";
+
+    /// <summary>
+    /// The command that adds an item to a project: <c>izzy add block hero</c>, the kind and then the id, so a
+    /// block and a component may share a name. The crud page is named alone and takes a model.
+    /// </summary>
+    public static string AddCommand(this ItemManifest manifest) =>
+        manifest.Id == "crud" ? "izzy add crud <Model>" : $"izzy add {manifest.Kind.ToString().ToLowerInvariant()} {manifest.Id}";
 }
 
 /// <summary>The item a kit is made over.</summary>

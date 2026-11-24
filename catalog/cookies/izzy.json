@@ -16,7 +16,7 @@
     "type": "object",
     "properties": {
       "SettingsRoute": { "type": "string", "default": "cookies", "description": "The settings page's address, without the leading slash: the footer's Cookie settings link goes here." },
-      "PolicyHref": { "type": "string", "default": "privacy", "description": "Where \"Cookie policy\" goes, such as the privacy page from izzy add legal." },
+      "PolicyHref": { "type": "string", "default": "privacy", "description": "Where \"Cookie policy\" goes, such as the privacy page from izzy add block legal." },
       "Floating": { "type": "boolean", "default": true, "x-hidden": true, "description": "Pins the notice to the window; the docs previews show it in place." },
       "Routable": { "type": "boolean", "default": true, "x-hidden": true, "description": "Writes the settings page's route and title; the docs previews leave them out." },
       "Name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$", "default": "CookieNotice", "description": "The notice's component name." },

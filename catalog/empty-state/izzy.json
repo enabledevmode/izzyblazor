@@ -1,5 +1,5 @@
 // The free empty state: what a list shows when there's nothing in it, as markup put on your page
-// at a line (izzy add empty-state --at Components/Pages/Customers.razor:42). EmptyState is the
+// at a line (izzy add block empty-state --at Components/Pages/Customers.razor:42). EmptyState is the
 // component; this is the recipe: the design's copy, icon, border and one action for each case.
 {
   "id": "empty-state",

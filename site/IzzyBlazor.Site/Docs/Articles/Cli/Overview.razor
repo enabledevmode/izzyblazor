@@ -27,7 +27,7 @@
         </Table>
         <TextBlock>
             Run <Code>izzy add</Code> in your app's folder. To see what you can add, run <Code>izzy list</Code>. To see an
-            item's settings, run <Code>izzy describe</Code>.
+            item's settings, run <Code>izzy describe</Code> with its kind and id, such as <Code>izzy describe block hero</Code>.
         </TextBlock>
 
         <Heading Level="2">The code is yours</Heading>
@@ -64,12 +64,12 @@
     [
         new("izzy new starter|kit <id> -n <name>", "Creates a new app from a starter or an app kit, as dotnet new does, such as izzy new starter sidebar or izzy new kit crm. See Create an app and Templates."),
         new("izzy init", "Sets up IzzyBlazor in an app you already have. See Add to an existing app."),
-        new("izzy add <item>", "Adds a block or a page to your app."),
+        new("izzy add block <id>", "Adds a block to your app, such as izzy add block hero."),
         new("izzy add crud <Model>", "Creates a page to display, add, edit and delete a model's records."),
         new("izzy login", "Signs this machine in to your free IzzyBlazor account, which the app starters, blocks and kits come with. See Your account."),
         new("izzy agent", "Sets up your AI assistant in your app. It writes a skill that teaches the assistant to build with IzzyBlazor, and connects the docs server and izzy mcp. See AI assistants."),
         new("izzy mcp", "Runs izzy's commands as tools for your AI assistant. izzy agent adds it to your assistant's settings."),
-        new("izzy list", "Lists the starters, blocks, pages and recipes you can add. To list one kind, add --kind, such as --kind block."),
-        new("izzy describe <item>", "Lists an item's settings. With --json, it also lists the components the item uses, how it works in each render mode, and its accessibility notes."),
+        new("izzy list", "Lists the starters, kits and blocks. To list one kind, name it, such as izzy list block."),
+        new("izzy describe starter|kit|block <id>", "Lists an item's settings, such as izzy describe block hero. With --json, it also lists the components the item uses, how it works in each render mode, and its accessibility notes."),
     ];
 }

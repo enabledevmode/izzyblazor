@@ -91,18 +91,18 @@
         <div class="site-block-get">
         @if (!_block.Free)
         {
-            <GetIt Title="Add it to your project" Pro Command="@($"izzy add {_block.Id}")" />
+            <GetIt Title="Add it to your project" Pro Command="@($"izzy add block {_block.Id}")" />
         }
         else if (_block.Account)
         {
-            <GetIt Title="Add it to your project" Account Step="Add the block" Command="@($"izzy add {_block.Id}")">
+            <GetIt Title="Add it to your project" Account Step="Add the block" Command="@($"izzy add block {_block.Id}")">
                 <LoginNote>The account is free. <Anchor Href="@AccountService.SignIn" InheritColor>Create a free account</Anchor></LoginNote>
                 <StepNote>@WritesText</StepNote>
             </GetIt>
         }
         else
         {
-            <GetIt Title="Add it to your project" Command="@($"izzy add {_block.Id}")">
+            <GetIt Title="Add it to your project" Command="@($"izzy add block {_block.Id}")">
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">@WritesText</TextBlock>
             </GetIt>
         }
@@ -258,7 +258,7 @@
         }
     }
 
-    // izzy add hero --layout Split --eyebrow "Now in public beta": the first two variations, picked.
+    // izzy add block hero --layout Split --eyebrow "Now in public beta": the first two variations, picked.
     private string FlagExample
     {
         get
@@ -270,7 +270,7 @@
                 var value = option.Value.Contains(' ') ? $"\"{option.Value}\"" : option.Value;
                 return $"--{flag} {value}";
             });
-            return $"izzy add {_block.Id} {string.Join(' ', flags)}";
+            return $"izzy add block {_block.Id} {string.Join(' ', flags)}";
         }
     }
 

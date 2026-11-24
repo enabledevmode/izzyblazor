@@ -79,7 +79,7 @@ The `izzy` command adds finished parts to this app (`dotnet tool install -g Izzy
 
 ```
 izzy list                 # the blocks, starters and kits you can add
-izzy add hero             # a page section, placed on a page for you
+izzy add block hero       # a page section, placed on a page for you
 izzy add crud Product     # a page that lists, adds, edits and deletes a model class
 ```
 

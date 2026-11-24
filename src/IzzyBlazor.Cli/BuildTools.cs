@@ -53,24 +53,26 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
     [Description("The catalog as JSON: each item's id, kind (starter, kit, page, block, section, recipe), category, summary and tier (free, account for a free account, pro), and any setting choices that are Pro. Call it before writing a page or section by hand.")]
     public string ListItems(
         [Description("Only this kind: starter, kit, page, block, section or recipe. Leave out for all.")] string? kind = null) =>
-        Run(["list", "--json", .. Option("kind", kind)], data: true);
+        Run(["list", .. Word(kind), "--json"], data: true);
 
     [McpServerTool(Name = "describe_item", Title = "Describe an IzzyBlazor catalog item", ReadOnly = true, Idempotent = true, OpenWorld = false)]
     [Description("An item as JSON: its summary, the components it uses, render mode support, accessibility notes and its settings as a JSON schema (each with its choices, default and description). The settings' names are what add_item, new_app and init_app take.")]
     public string DescribeItem(
-        [Description("The item's id, from list_items.")] string item) =>
-        Run(["describe", item, "--json"], data: true);
+        [Description("The item's id, from list_items.")] string item,
+        [Description("The item's kind, from list_items: starter, kit or block. Leave out only for crud and init.")] string? kind = null) =>
+        Run(["describe", .. Word(kind), item, "--json"], data: true);
 
     [McpServerTool(Name = "add_item", Title = "Add a catalog item to the app", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]
-    [Description("Adds a page, block, section or recipe to the app: creates its files, places it on a page and adds the packages it needs. Answers with the files created and changed and any warnings. With dryRun it writes nothing and answers with a diff. Adding the same item again with the same settings changes nothing.")]
+    [Description("Adds a block to the app: creates its files, places it on a page and adds the packages it needs. Answers with the files created and changed and any warnings. With dryRun it writes nothing and answers with a diff. Adding the same item again with the same settings changes nothing.")]
     public string AddItem(
         [Description("The item's id, from list_items.")] string item,
+        [Description("The item's kind, from list_items, such as block.")] string kind = "block",
         [Description("The item's settings by name, as describe_item lists them, such as {\"Layout\": \"Split\"}. Leave out for the defaults.")] Dictionary<string, JsonElement>? settings = null,
         [Description("Where to place it, as <file>:<line>, such as Components/Pages/Home.razor:12. Leave out for the item's own place.")] string? at = null,
         [Description("The app's folder or .csproj file, when it isn't where the server runs.")] string? project = null,
         [Description("Writes nothing and answers with the changes as a diff.")] bool dryRun = false,
         [Description("Replaces files that exist with other content. Ask the user first.")] bool overwrite = false) =>
-        Run(["add", item, .. Settings(settings), .. Option("at", at), .. Option("project", project), .. Flags(dryRun, overwrite)]);
+        Run(["add", .. Word(kind), item, .. Settings(settings), .. Option("at", at), .. Option("project", project), .. Flags(dryRun, overwrite)]);
 
     [McpServerTool(Name = "add_crud", Title = "Add a page that edits a model's records", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]
     [Description("Adds a page whose grid lists, adds, edits and deletes the records of a model class in the app, read from its source (no build needed), with a store for it. describe_item crud lists the settings (Name, Route, Store, Context, Authorize and more). With dryRun it writes nothing and answers with a diff.")]
@@ -120,6 +122,10 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
             _ => throw new McpException(text),
         };
     }
+
+    // A kind, as the word a command takes before the id; crud and init are named alone.
+    static string[] Word(string? kind) =>
+        string.IsNullOrWhiteSpace(kind) ? [] : kind.Trim().All(char.IsLetter) ? [kind.Trim().ToLowerInvariant()] : throw new McpException($"\"{kind}\" isn't a kind of item.");
 
     static string[] Option(string name, string? value) => string.IsNullOrWhiteSpace(value) ? [] : [$"--{name}={value}"];
 
