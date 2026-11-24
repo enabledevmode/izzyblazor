@@ -24,8 +24,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalog.
 
         Usage:
-          izzy list [starter|kit|block] [--json]
+          izzy list [starter|kit|block|component] [--json]
           izzy describe starter|kit|block <id> [--json]
+          izzy describe component <Name> [--json]
+          izzy describe component --all --json
           izzy describe crud|init [--json]
           izzy add block <id> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
@@ -195,11 +197,12 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     int List(Args args)
     {
         // izzy list block: the kind is a word, as it is in izzy add block hero.
-        const string usage = "izzy list [starter|kit|block] [--json]";
+        const string usage = "izzy list [starter|kit|block|component] [--json]";
         if (args.Words.Count > 2) throw new UsageException($"Usage: {usage}");
         if (args.Take("kind") is { } option) throw new UsageException($"The kind is a word: izzy list {option.ToLowerInvariant()}.");
         var kind = args.Words.Count == 2 ? args.Words[1] : null;
-        if (kind is not null && !Enum.GetValues<ItemKind>().Any(k => k != ItemKind.Setup && k.ToString().Equals(kind, StringComparison.OrdinalIgnoreCase)))
+        var components = kind is null || kind.Equals("component", StringComparison.OrdinalIgnoreCase);
+        if (kind is not null && !components && !Enum.GetValues<ItemKind>().Any(k => k != ItemKind.Setup && k.ToString().Equals(kind, StringComparison.OrdinalIgnoreCase)))
             throw new UsageException($"\"{kind}\" isn't a kind of item. Usage: {usage}");
         var json = args.Switch("json");
         NoSettings(args);
@@ -214,7 +217,15 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 ["tier"] = Lower(m.Tier), ["summary"] = m.Summary,
                 ["docs"] = Pictures.Docs(m), ["picture"] = Pictures.Card(m),
                 ["proChoices"] = ProChoices(m),
-            }).ToArray()));
+            }).Concat(components ? Library.Documented.Select(c => (JsonNode)Components.ListEntry(c)) : []).ToArray()));
+            return 0;
+        }
+        if (kind is not null && components)
+        {
+            // izzy list component: a row each, in the docs' groups.
+            var named = Library.Documented.ToList();
+            var wide = named.Max(c => ((string)c["name"]!).Length);
+            foreach (var c in named) output.WriteLine($"{((string)c["name"]!).PadRight(wide)}  {(string?)c["category"],-17}  {(string?)c["summary"]}");
             return 0;
         }
         var width = items.Count == 0 ? 0 : items.Max(m => m.Id.Length);
@@ -223,11 +234,20 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             var pro = m.Parameters.Where(p => p.ProChoices.Count > 0).Select(p => $"{p.Name} {string.Join(", ", p.ProChoices)}").ToList();
             output.WriteLine($"{m.Id.PadRight(width)}  {Lower(m.Kind),-7}  {m.Summary}{(m.Tier == ItemTier.Account ? " (free account)" : "")}{(pro.Count > 0 ? $" (Pro: {string.Join("; ", pro)})" : "")}");
         }
+        if (components)
+        {
+            // With everything else, the components are names only, a line a group: izzy list component has their rows.
+            var groups = Library.Documented.GroupBy(c => (string)c["category"]!).ToList();
+            output.WriteLine();
+            output.WriteLine($"Components ({groups.Sum(g => g.Count())}), each described by izzy describe component <Name>:");
+            foreach (var g in groups) output.WriteLine($"  {g.Key}: {string.Join(", ", g.Select(c => (string)c["name"]!))}");
+        }
         return 0;
     }
 
     int Describe(Args args)
     {
+        if (args.Words.Count > 1 && args.Words[1].Equals("component", StringComparison.OrdinalIgnoreCase)) return DescribeComponent(args);
         var item = Item(args, "izzy describe", "izzy describe starter|kit|block <id> [--json], or izzy describe crud|init");
         var json = args.Switch("json");
         NoSettings(args);
@@ -305,6 +325,90 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             };
         return Finish(item, changes, project, project.Directory!, existing: true, flags);
     }
+
+    // izzy describe component Button: its options, content and events. --all --json is every component and
+    // part in one answer, for an editor's inspector to keep.
+    int DescribeComponent(Args args)
+    {
+        const string usage = "izzy describe component <Name> [--json], or izzy describe component --all --json";
+        var json = args.Switch("json");
+        if (args.Switch("all"))
+        {
+            Words(args, 2, usage);
+            if (!json) throw new UsageException("--all answers as data: izzy describe component --all --json.");
+            var folder = args.Take("project");
+            NoSettings(args);
+            Print(new JsonObject
+            {
+                ["version"] = Library.Version,
+                ["projectVersion"] = ProjectVersion(folder),
+                ["components"] = new JsonArray(Library.All.Select(c => (JsonNode)Library.Describe(c)).ToArray()),
+            });
+            return 0;
+        }
+        Words(args, 3, usage);
+        NoSettings(args);
+        var component = Library.Find(args.Words[2]);
+        var described = Library.Describe(component);
+        if (json)
+        {
+            Print(described);
+            return 0;
+        }
+        var name = (string)component["name"]!;
+        output.WriteLine($"{(string)component["displayName"]!}, component{((string?)component["partOf"] is { } parent ? $", part of {(string)Library.Find(parent)["name"]!}" : "")}");
+        if ((string?)component["summary"] is { } summary) output.WriteLine(summary);
+        if ((string?)component["docs"] is { } docs) output.WriteLine(docs);
+        output.WriteLine();
+        output.WriteLine("Options:");
+        var properties = described["parameters"]!["properties"]!.AsObject();
+        var needed = described["parameters"]!["required"]!.AsArray().Select(r => (string)r!).ToHashSet();
+        foreach (var (option, value) in properties.Where(p => p.Value!["x-group"] is null))
+        {
+            var p = value!.AsObject();
+            var values = p["enum"] is JsonArray choices ? string.Join(" | ", choices.Select(v => (string)v!)) : (string)p["x-type"]!;
+            var start = p["default"] is { } d ? $"  (default {d})" : (string?)p["x-default"] is { } written ? $"  (default {written})" : "";
+            output.WriteLine($"  {option}  {values}{(needed.Contains(option) ? "  (required)" : "")}{start}");
+            if ((string?)p["description"] is { } description) output.WriteLine($"      {description}");
+        }
+        foreach (var shared in (component["bases"]?.AsArray() ?? []).Select(b => (string)b!))
+            if (Library.BaseOptions(shared).Where(o => properties[o]?["x-group"] is not null).ToList() is { Count: > 0 } options)
+                output.WriteLine($"  Shared ({shared}): {string.Join(", ", options)}");
+        void Names(string title, string key)
+        {
+            if (described[key]!.AsArray() is { Count: > 0 } members) output.WriteLine($"{title}: {string.Join(", ", members.Select(m => (string)m!["name"]!))}");
+        }
+        Names("Content", "slots");
+        Names("Events", "events");
+        if (described["parts"]!.AsArray() is { Count: > 0 } parts) output.WriteLine($"Parts: {string.Join(", ", parts.Select(p => (string)p!))}");
+        if (described["examples"]!.AsArray() is { Count: > 0 } examples)
+        {
+            output.WriteLine();
+            output.WriteLine("Examples:");
+            var wide = examples.Max(e => ((string)e!["name"]!).Length);
+            foreach (var e in examples) output.WriteLine($"  {((string)e!["name"]!).PadRight(wide)}  {(string)e["title"]!}{((bool)e["interactiveOnly"]! ? " (interactive pages)" : "")}");
+        }
+        return 0;
+    }
+
+    // The IzzyBlazor version the app in this folder references, for a front end to compare with the data's.
+    string? ProjectVersion(string? folder)
+    {
+        try
+        {
+            var project = ProjectInfo.FromProject(FindProject(folder));
+            var csproj = File.ReadAllText(Path.Combine(project.Directory!, project.Host, project.Name + ".csproj"));
+            return Regex.Match(csproj, """PackageReference\s+Include="IzzyBlazor(\.Core)?"\s+Version="([^"]+)" """.TrimEnd(), RegexOptions.IgnoreCase) is { Success: true } m ? m.Groups[2].Value : null;
+        }
+        catch (Exception e) when (e is UsageException or GenerationException or IOException)
+        {
+            return null;
+        }
+    }
+
+    Components? _library;
+
+    Components Library => _library ??= Components.Load(Path.Combine(AppContext.BaseDirectory, "components.json"));
 
     int New(Args args)
     {

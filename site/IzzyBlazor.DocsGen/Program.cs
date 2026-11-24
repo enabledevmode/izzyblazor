@@ -5,6 +5,7 @@ using IzzyBlazor.DocsGen;
 // Writes izzyblazor.api.json from the built library and its XML docs.
 //
 //   dotnet run --project site/IzzyBlazor.DocsGen -- --out izzyblazor.api.json [--previous released.api.json] [--source src] [--baseline released.api.json]
+//       [--cli-out components.json --registry components.json --examples Examples]
 //
 // With --source (the library's source folder), components written as .razor files take their
 // summary and example from their header comment, since they can't carry an XML doc comment.
@@ -17,6 +18,9 @@ var output = Arg("--out") ?? "izzyblazor.api.json";
 var previousPath = Arg("--previous");
 var sourceRoot = Arg("--source");
 var baselinePath = Arg("--baseline");
+// With --cli-out, also writes the components as the izzy CLI reads them (see CliData), from the
+// site's registry (--registry components.json) and its examples (--examples Examples).
+var cliPath = Arg("--cli-out");
 
 var assemblies = new[]
 {
@@ -64,6 +68,16 @@ var json = JsonSerializer.Serialize(file, ApiFile.JsonOptions).Replace("\r\n", "
 if (!File.Exists(output) || File.ReadAllText(output) != json)
 {
     File.WriteAllText(output, json);
+}
+
+if (cliPath is not null)
+{
+    var cli = CliData.Write(file, Arg("--registry") ?? throw new ArgumentException("--cli-out needs --registry."), Arg("--examples") ?? throw new ArgumentException("--cli-out needs --examples."));
+    Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(cliPath))!);
+    if (!File.Exists(cliPath) || File.ReadAllText(cliPath) != cli)
+    {
+        File.WriteAllText(cliPath, cli);
+    }
 }
 
 Console.WriteLine($"DocsGen: {file.Components.Count} components, {file.Types.Count} types ({version}) -> {output}");

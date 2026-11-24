@@ -17,6 +17,10 @@
     <!-- Roslyn's messages in English only: the tool doesn't show them, and the rest are megabytes. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
+    <!-- The components izzy knows (list, describe, add component): made by DocsGen at build time. -->
+    <ComponentsFile>$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)$(Configuration)/components.json</ComponentsFile>
+    <DocsGenHost>$(DOTNET_HOST_PATH)</DocsGenHost>
+    <DocsGenHost Condition="'$(DocsGenHost)' == ''">dotnet</DocsGenHost>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +30,10 @@
     <!-- izzy mcp: the commands as tools for a coding agent, over stdio. -->
     <PackageReference Include="ModelContextProtocol.Core" Version="2.2.0" />
     <InternalsVisibleTo Include="IzzyBlazor.Generation.Tests" />
+    <!-- Built first and run by GenerateComponents below; not referenced as code. It builds the library, whose
+         build runs npm: -p:IzzyComponents=false leaves the components out, for the release job that only
+         bundles the catalog and must run nothing from npm. -->
+    <ProjectReference Condition="'$(IzzyComponents)' != 'false'" Include="$(RepoRoot)site/IzzyBlazor.DocsGen/IzzyBlazor.DocsGen.csproj" ReferenceOutputAssembly="false" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,10 +44,21 @@
   <ItemGroup>
     <!-- The free catalog, beside the tool's dll: catalog/<item-id>/izzy.json and files/. -->
     <None Include="$(RepoRoot)catalog/**/*" LinkBase="catalog" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+    <!-- The components, beside the tool's dll and beside whatever references it (the tests). -->
+    <None Condition="'$(IzzyComponents)' != 'false'" Include="$(ComponentsFile)" Link="components.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
     <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
     <None Include="$(RepoRoot)docs/nuget-readme-cli.md" Pack="true" PackagePath="\README.md" Visible="false" />
     <None Include="$(RepoRoot)brand/nuget/icon.png" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
+
+  <!-- components.json, from the library's API, the docs site's registry and its examples. DocsGen rewrites
+       it only when it changed. Not in design-time builds, where DocsGen may not be built. -->
+  <Target Name="GenerateComponents" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true' And '$(IzzyComponents)' != 'false'">
+    <MSBuild Projects="$(RepoRoot)site/IzzyBlazor.DocsGen/IzzyBlazor.DocsGen.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration)" RemoveProperties="RuntimeIdentifier;SelfContained">
+      <Output TaskParameter="TargetOutputs" ItemName="DocsGenAssembly" />
+    </MSBuild>
+    <Exec Command="&quot;$(DocsGenHost)&quot; &quot;@(DocsGenAssembly)&quot; --out &quot;$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor.api.json&quot; --source &quot;$(RepoRoot)src&quot; --cli-out &quot;$(ComponentsFile)&quot; --registry &quot;$(RepoRoot)site/IzzyBlazor.Site/components.json&quot; --examples &quot;$(RepoRoot)site/IzzyBlazor.Site/Examples&quot;" />
+  </Target>
 
   <!-- The catalog beside the built tool: cleared, then copied, so a removed item leaves the tool too. -->
   <Target Name="CopyCatalog" AfterTargets="Build">

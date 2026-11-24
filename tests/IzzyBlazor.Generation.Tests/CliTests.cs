@@ -88,6 +88,21 @@ public sealed class CliTests : IDisposable
     }
 
     [Fact]
+    public void A_component_is_described_with_its_options_as_a_form_draws_them()
+    {
+        var button = JsonNode.Parse(Izzy(_work, "describe", "component", "button", "--json").Out)!;
+        var variant = button["parameters"]!["properties"]!["Variant"]!;
+        Assert.Contains("Outline", variant["enum"]!.AsArray().Select(v => (string)v!));
+        Assert.Equal("ButtonVariant.{value}", (string)variant["x-write"]!);
+        Assert.Equal("Solid", (string)variant["default"]!);
+        Assert.Contains("usage", button["examples"]!.AsArray().Select(e => (string)e!["name"]!));
+
+        // Every component and part in one answer, for an editor's inspector.
+        var all = JsonNode.Parse(Izzy(_work, "describe", "component", "--all", "--json").Out)!;
+        Assert.Contains("ActionColumn", all["components"]!.AsArray().Select(c => (string)c!["name"]!));
+    }
+
+    [Fact]
     public async Task The_packed_tool_installs_and_carries_the_catalog()
     {
         var feed = Path.Combine(_work, "feed");
@@ -96,7 +111,10 @@ public sealed class CliTests : IDisposable
         await Run(_work, "tool", "install", "IzzyBlazor.Cli", "--tool-path", tools, "--add-source", feed, "--version", Generator.IzzyBlazorVersion);
 
         var izzy = Path.Combine(tools, OperatingSystem.IsWindows() ? "izzy.exe" : "izzy");
-        Assert.Contains("hero", await Run(_work, izzy, "list"));
+        // The catalog's items, and the components from the data file the build makes.
+        var list = await Run(_work, izzy, "list");
+        Assert.Contains("hero", list);
+        Assert.Contains("DataGrid", list);
         // Dot files ship too: --mcp writes .mcp.json from the catalog.
         await Run(_work, izzy, "new", "starter", "blazor", "-n", "App", "--mcp", "--no-restore");
         Assert.True(File.Exists(Path.Combine(_work, "App", ".mcp.json")));

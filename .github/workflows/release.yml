@@ -154,7 +154,7 @@ jobs:
 
       - name: Build izzy
         if: env.IZZY_PRO_CATALOG != ''
-        run: dotnet build src/IzzyBlazor.Cli --configuration Release
+        run: dotnet build src/IzzyBlazor.Cli --configuration Release -p:IzzyComponents=false
 
       - name: Send the bundle
         if: env.IZZY_PRO_CATALOG != ''
