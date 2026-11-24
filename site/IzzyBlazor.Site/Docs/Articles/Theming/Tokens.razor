@@ -35,6 +35,13 @@
             <Code>Accent.Token("promo")</Code>. Text on the color uses the <Code>on-</Code> partner.
         </TextBlock>
         <Code Block Language="css">@OwnColor</Code>
+        <TextBlock>
+            Give a color you use in many places a name. A C# extension member adds it to <Code>Accent</Code> and
+            <Code>Color</Code>, beside the built-in ones, so IntelliSense lists it and a typo is a compile error. Use one class
+            for each type you extend:
+        </TextBlock>
+        <Code Block Language="csharp">@OwnColorName</Code>
+        <Code Block Language="razor">@OwnColorUse</Code>
 
         <Heading Level="2">Brand shades by hand</Heading>
         <TextBlock>
@@ -164,6 +171,29 @@
           --ib-color-promo: light-dark(#7c3aed, #a78bfa);
           --ib-color-on-promo: light-dark(#ffffff, #1e1b4b);
         }
+        """;
+
+    private const string OwnColorName = """
+        public static class AccentExtensions
+        {
+            extension(Accent)
+            {
+                public static Accent Promo => Accent.Token("promo");
+            }
+        }
+
+        public static class ColorExtensions
+        {
+            extension(Color)
+            {
+                public static Color Promo => Color.Token("promo");
+            }
+        }
+        """;
+
+    private const string OwnColorUse = """
+        <Button Accent="Accent.Promo">Upgrade</Button>
+        <TextBlock Color="Color.Promo">Limited offer</TextBlock>
         """;
 
     private const string BrandShades = """
