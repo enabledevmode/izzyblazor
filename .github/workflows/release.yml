@@ -5,7 +5,7 @@ name: Release
 # so no NuGet key is stored anywhere. The nuget.org policy names this file (release.yml),
 # the enabledevmode/izzyblazor repository and the "release" environment.
 #
-# "build" checks, builds, tests and packs with read-only access, so the npm and build tools never
+# "build" checks, builds, tests (unless CI already passed on the tagged commit) and packs with read-only access, so the npm and build tools never
 # run where a publishing token can be had (the private catalog is cloned before npm installs
 # anything, and its token is gone by then); "account-catalog" sends the account's templates to the
 # account service; "publish" only takes the packages build made, logs in to NuGet and pushes. Who may push v* tags, and approval for the "release" environment,
@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     outputs:
       version: ${{ steps.tag.outputs.version }}
     steps:
@@ -39,6 +40,19 @@ jobs:
           version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | tr -d '\r')
           test "v$version" = "$GITHUB_REF_NAME" || { echo "Tag $GITHUB_REF_NAME doesn't match <Version>$version</Version>."; exit 1; }
           echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # The tag is on a commit of main, which CI tested when it was pushed. When that run passed, its
+      # tests aren't run again here: the same commit builds the same code. Otherwise (CI still
+      # running, failed or never ran) this job runs them itself.
+      - name: CI's result for this commit
+        id: ci
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          result=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$GITHUB_SHA" --event push --json conclusion --jq '.[0].conclusion // ""' || true)
+          echo "CI on $GITHUB_SHA: ${result:-none}"
+          echo "passed=$([ "$result" = success ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -72,8 +86,9 @@ jobs:
       - name: Build
         run: dotnet build izzyblazor.sln --configuration Release
 
-      # Chromium and its system libraries, for the site's browser test (ToolbarWidthTests).
+      # Chromium and its system libraries, for the site's browser tests.
       - name: Install Chromium
+        if: steps.ci.outputs.passed != 'true'
         # When apt can't reach Ubuntu's mirrors, fall back to Chromium alone: the runner image
         # already has most of its libraries, and the browser test says if one is missing.
         shell: bash
@@ -82,6 +97,7 @@ jobs:
           pwsh $pw install --with-deps chromium || { echo "::warning::System packages didn't install; installing Chromium alone."; pwsh $pw install chromium; }
 
       - name: Unit and render tests
+        if: steps.ci.outputs.passed != 'true'
         run: dotnet test izzyblazor.sln --configuration Release --no-build
 
       - name: Asset size budget

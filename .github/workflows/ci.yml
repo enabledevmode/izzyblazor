@@ -9,14 +9,36 @@ permissions:
   contents: read
 
 jobs:
-  build-and-test:
+  # Four jobs side by side: each SDK runs the library's and the site's tests in one job and the
+  # generation tests (which build generated apps) in another, so a push waits for the slowest of
+  # them, not their sum. The Release workflow looks for this workflow's result on the tagged commit.
+  #
+  # .NET 11: the library targets net10.0, and apps on .NET 11 run it there: built with the .NET 11
+  # SDK (its Razor compiler differs) and tested on the .NET 11 runtime, rolled forward.
+  test:
+    name: ${{ matrix.sdk }} ${{ matrix.suite }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [dotnet-10, dotnet-11]
+        suite: [site, generation]
+        include:
+          # pinned: 10.0.403 download 409s from Microsoft origin; revert to 10.0.x once fixed
+          - sdk: dotnet-10
+            version: 10.0.402
+            roll: ''
+          - sdk: dotnet-11
+            version: 11.0.x
+            roll: Major
+    env:
+      DOTNET_ROLL_FORWARD: ${{ matrix.roll }}
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.402  # pinned: 10.0.403 download 409s from Microsoft origin; revert to 10.0.x once fixed
+          dotnet-version: ${{ matrix.version }}
 
       - uses: actions/setup-node@v7
         with:
@@ -44,8 +66,9 @@ jobs:
       - name: Build
         run: dotnet build izzyblazor.sln --configuration Release
 
-      # Chromium and its system libraries, for the site's browser test (ToolbarWidthTests).
+      # Chromium and its system libraries, for the site's browser tests.
       - name: Install Chromium
+        if: matrix.suite == 'site'
         # When apt can't reach Ubuntu's mirrors, fall back to Chromium alone: the runner image
         # already has most of its libraries, and the browser test says if one is missing.
         shell: bash
@@ -53,93 +76,45 @@ jobs:
           pw=site/IzzyBlazor.Site.Tests/bin/Release/net10.0/playwright.ps1
           pwsh $pw install --with-deps chromium || { echo "::warning::System packages didn't install; installing Chromium alone."; pwsh $pw install chromium; }
 
+      # The library's tests. On .NET 11 one is left out: bUnit's net10 build fakes Virtualize's script by
+      # calling its internal OnSpacerBeforeVisible, whose parameters .NET 11 changed (bUnit's net11.0 build has the fix).
+      - name: Library tests
+        if: matrix.suite == 'site'
+        run: dotnet test tests/IzzyBlazor.Tests --configuration Release --no-build --logger "trx;LogFileName=results.trx" --filter "FullyQualifiedName!~${{ matrix.sdk == 'dotnet-11' && 'Virtual_rows_stay_where_they_are_for_a_parents_render' || 'NothingIsLeftOut' }}"
+
       # Browser tests that fail now and then on these runners, never locally: each saves a Playwright
       # trace (TestBrowser), uploaded when the job fails. Open one with `playwright show-trace`.
-      - name: Unit and render tests
+      - name: Site tests
+        if: matrix.suite == 'site'
         env:
           IZZY_TRACE: SchedulerTests,DateFieldPanelTests
-        run: dotnet test izzyblazor.sln --configuration Release --no-build --logger "trx;LogFileName=results.trx"
+        run: dotnet test site/IzzyBlazor.Site.Tests --configuration Release --no-build --logger "trx;LogFileName=results.trx"
+
+      - name: Generation tests
+        if: matrix.suite == 'generation'
+        run: dotnet test tests/IzzyBlazor.Generation.Tests --configuration Release --no-build --logger "trx;LogFileName=results.trx"
 
       - uses: actions/upload-artifact@v7
-        if: failure()
+        if: failure() && matrix.suite == 'site'
         with:
-          name: traces
+          name: traces-${{ matrix.sdk }}
           path: site/IzzyBlazor.Site.Tests/bin/Release/net10.0/traces/*.zip
           if-no-files-found: ignore
 
       - name: Asset size budget
+        if: matrix.sdk == 'dotnet-10' && matrix.suite == 'site'
         shell: bash
         run: bash build/asset-budget.sh
 
       - name: Pack
-        # IzzyBlazor (server apps), IzzyBlazor.Core (any render mode) and IzzyBlazor.Templates (dotnet new).
+        if: matrix.sdk == 'dotnet-10' && matrix.suite == 'site'
+        # IzzyBlazor (server apps), IzzyBlazor.Core (any render mode), IzzyBlazor.Templates (dotnet new) and IzzyBlazor.Cli (izzy).
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts
 
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: build-output
+          name: build-output-${{ matrix.sdk }}-${{ matrix.suite }}
           path: |
             artifacts/*.nupkg
             **/TestResults/*.trx
-
-  # The library targets net10.0, and apps on .NET 11 run it there: build with the .NET 11 SDK (its
-  # Razor compiler differs) and run every test on the .NET 11 runtime, rolled forward.
-  dotnet-11:
-    runs-on: ubuntu-latest
-    env:
-      DOTNET_ROLL_FORWARD: Major
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 11.0.x
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-
-      # The account items' templates (shells, blocks, the CRM kit) are in the private catalog. With the
-      # PRO_CATALOG_TOKEN secret (read access to its contents) it is checked out and the tests that
-      # generate from it run; without it (a fork's pull request) they skip.
-      # Before npm ci: a tool installed there could otherwise watch for the token.
-      - name: Private catalog
-        env:
-          PRO_CATALOG_TOKEN: ${{ secrets.PRO_CATALOG_TOKEN }}
-        shell: bash
-        run: |
-          if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::warning::No PRO_CATALOG_TOKEN: tests of account items are skipped."; exit 0; fi
-          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/enabledevmode/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
-          # The clone's config holds the token: gone before any build tool runs.
-          rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
-          echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
-
-      - name: Install asset tools
-        run: npm ci
-
-      - name: Build
-        run: dotnet build izzyblazor.sln --configuration Release
-
-      - name: Install Chromium
-        # When apt can't reach Ubuntu's mirrors, fall back to Chromium alone: the runner image
-        # already has most of its libraries, and the browser test says if one is missing.
-        shell: bash
-        run: |
-          pw=site/IzzyBlazor.Site.Tests/bin/Release/net10.0/playwright.ps1
-          pwsh $pw install --with-deps chromium || { echo "::warning::System packages didn't install; installing Chromium alone."; pwsh $pw install chromium; }
-
-      # One test left out: bUnit's net10 build fakes Virtualize's script by calling its internal
-      # OnSpacerBeforeVisible, whose parameters .NET 11 changed (bUnit's net11.0 build has the fix).
-      - name: Unit and render tests
-        env:
-          IZZY_TRACE: SchedulerTests,DateFieldPanelTests
-        run: dotnet test izzyblazor.sln --configuration Release --no-build --filter "FullyQualifiedName!~Virtual_rows_stay_where_they_are_for_a_parents_render"
-
-      - uses: actions/upload-artifact@v7
-        if: failure()
-        with:
-          name: traces-dotnet-11
-          path: site/IzzyBlazor.Site.Tests/bin/Release/net10.0/traces/*.zip
-          if-no-files-found: ignore
