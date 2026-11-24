@@ -1,7 +1,6 @@
 @page "/"
 @layout HomeLayout
 @inject Registry Registry
-@using Rows = IzzyBlazor.Site.Examples.Table.Orders
 
 <PageMeta Title="IzzyBlazor: Blazor components for every render mode"
           Description="@Description">
@@ -77,7 +76,7 @@
     </div>
 </Section>
 
-@* The value: what the components do instead, then a picture of each mode. *@
+@* The value: what the components do instead. *@
 <Section Class="site-band site-story site-line">
     <div class="site-story-col">
         <div class="site-story-head">
@@ -85,84 +84,25 @@
             <TextBlock Color="Color.Muted">IzzyBlazor’s components are interactive in every render mode, including static SSR.</TextBlock>
         </div>
         <StoryPoints Items="Value" />
-        <div class="site-story-pictures">
-            <figure><div class="site-media"><ComponentPicture Id="mode-static" /></div><figcaption>Static: no circuit</figcaption></figure>
-            <figure><div class="site-media"><ComponentPicture Id="mode-interactive" /></div><figcaption>Interactive: bound to C#</figcaption></figure>
-        </div>
     </div>
 </Section>
 
-@* The components by what they're for: each card's top is the real component, inert (a picture of
-   it, so the page has no extra tab stops), cropped and fading at the bottom. *@
+@* The components by what they're for: an index of four groups, each with its count and a way into the docs. *@
 <Section Class="site-story-show site-line">
     <Stack Gap="6">
         <Row Gap="4" Justify="Justify.Between" Align="Align.End" Wrap>
             <Stack Gap="2">
-                <Heading Level="2" Size="TextSize.Xl3">Components for real applications</Heading>
-                <TextBlock Size="TextSize.Lg" Color="Color.Muted">@Registry.ComponentCountLabel components, each with live examples, their code and the full API.</TextBlock>
+                <Heading Level="2" Size="TextSize.Xl3">Browse @Registry.ComponentCountLabel components</Heading>
+                <TextBlock Size="TextSize.Lg" Color="Color.Muted">Each one comes with live examples, its code and the full API.</TextBlock>
             </Stack>
             <Anchor Href="docs/components" Underline="AnchorUnderline.Hover" Class="site-action site-action-accent">Browse all components<Icon Name="Lucide.ArrowRight" /></Anchor>
         </Row>
-        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="5">
+        <Grid Columns="new() { Base = 1, Md = 2, Lg = 4 }" Gap="5">
             @foreach (var group in Showcase)
             {
                 <div class="site-show">
-                    <div class="site-show-preview" inert>
-                        @switch (group.Key)
-                        {
-                            case "data":
-                                <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" Caption="Recent orders" QueryPrefix="home-" Size="ControlSize.Sm"
-                                          InitialSort="-total" SelectionMode="SelectionMode.Multiple" @bind-Selection="_picked" RowLabel='o => $"order {o.Number}"'>
-                                    <SelectionActions>
-                                        <Button Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
-                                    </SelectionActions>
-                                    <Columns>
-                                        <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="9.Rem" />
-                                        <TemplateColumn Title="Status" Width="7.Rem">
-                                            <Badge Status="Rows.StatusOf(context.Status)" Dot>@context.Status</Badge>
-                                        </TemplateColumn>
-                                        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="6.Rem" />
-                                    </Columns>
-                                </DataGrid>
-                                break;
-                            case "charts":
-                                @Budget
-                                break;
-                            case "forms":
-                                <Grid Columns="2" Gap="3">
-                                    <TextField Label="Full name" @bind-Value="_name" />
-                                    <TextField Label="Email" @bind-Value="_email" />
-                                    <Select Label="Plan" Items="Plans" @bind-Value="_plan" />
-                                    <DateField Label="Start date" @bind-Value="_start" />
-                                    <SegmentedControl Label="Billing" @bind-Value="_billing" FullWidth />
-                                    <Switch Label="Send me product updates" @bind-Value="_updates" />
-                                </Grid>
-                                break;
-                            case "app":
-                                <Stack Gap="3">
-                                    <Breadcrumb>
-                                        <BreadcrumbItem Href="#">Store</BreadcrumbItem>
-                                        <BreadcrumbItem Href="#">Orders</BreadcrumbItem>
-                                        <BreadcrumbItem>#1064</BreadcrumbItem>
-                                    </Breadcrumb>
-                                    <Stepper Current="3" Label="Order progress">
-                                        <Step Label="Ordered" />
-                                        <Step Label="Packed" />
-                                        <Step Label="Shipped" />
-                                        <Step Label="Delivered" />
-                                    </Stepper>
-                                    <Tabs Label="Order">
-                                        <Tab Label="Details" Icon="Lucide.ReceiptText"><TextBlock Color="Color.Muted">Contoso Ltd · 3 items · $412.80</TextBlock></Tab>
-                                        <Tab Label="Shipping" Icon="Lucide.Truck">Shipping</Tab>
-                                        <Tab Label="History" Icon="Lucide.Clock">History</Tab>
-                                    </Tabs>
-                                    <Alert Status="Status.Warning" Title="2 items are waiting on stock" />
-                                </Stack>
-                                break;
-                        }
-                    </div>
                     <Stack Gap="2" Class="site-show-body">
-                        <Row Gap="4" Justify="Justify.Between" Align="Align.Baseline">
+                        <Row Gap="4" Justify="Justify.Between" Align="Align.Baseline" Class="site-show-head">
                             <Heading Level="3" Size="TextSize.Lg">@group.Title</Heading>
                             <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@Count(group) components</TextBlock>
                         </Row>
@@ -350,37 +290,20 @@
         new("Ship it", "Deploy wherever ASP.NET Core runs. Static pages need no open connection, so they scale like any website."),
     ];
 
-    // The showcase: each card counts the catalog groups it covers.
-    private sealed record ShowGroup(string Key, string Title, string Lead, string[] Groups, string[] Names);
+    // The index: each card counts the catalog groups it covers.
+    private sealed record ShowGroup(string Title, string Lead, string[] Groups, string[] Names);
 
     private static readonly ShowGroup[] Showcase =
     [
-        new("data", "Data", "Grids, trees, lists and scheduling, with sorting, filtering, editing and export.",
+        new("Data", "Grids, trees, lists and scheduling, with sorting, filtering, editing and export.",
             ["Data", "Display", "Media", "Conversation & AI"], ["DataGrid", "TreeList", "Table", "Scheduler", "TreeView", "ListView"]),
-        new("charts", "Charts", "More than twenty chart types and gauges, drawn on the server as SVG, with zoom and drill-down.",
+        new("Charts", "More than twenty chart types and gauges, drawn on the server as SVG, with zoom and drill-down.",
             ["Charts"], ["Chart", "SankeyChart", "PieChart", "HeatmapChart", "Gauge", "Sparkline"]),
-        new("forms", "Forms and inputs", "Validated fields, selection, dates and file uploads, for static and interactive forms.",
+        new("Forms and inputs", "Validated fields, selection, dates and file uploads, for static and interactive forms.",
             ["Inputs", "Date and time", "Dropdowns", "Buttons"], ["Form", "TextField", "DateField", "Combobox", "MultiSelect", "FileUpload"]),
-        new("app", "App structure", "App shells, navigation, tabs, dialogs, drawers and feedback.",
+        new("App structure", "App shells, navigation, tabs, dialogs, drawers and feedback.",
             ["Layout", "Navigation", "Disclosure", "Overlays", "Feedback"], ["AppShell", "TileLayout", "Tabs", "Dialog", "Drawer", "ToastRegion"]),
     ];
 
     private int Count(ShowGroup group) => group.Groups.Sum(g => Registry.InCategory(g).Count());
-
-    // The Charts card's Sankey: the docs' own example.
-    private static readonly RenderFragment Budget = b =>
-    {
-        b.OpenComponent<global::IzzyBlazor.Site.Examples.SankeyChart.Usage>(0);
-        b.CloseComponent();
-    };
-
-    // The Data card's grid: two orders ticked. The Forms card's fields.
-    private Selection? _picked = Selection.Of("1011", "1022");
-    private static readonly string[] Plans = ["Starter", "Team", "Business"];
-    private string? _name = "Ada Lovelace", _email = "ada@example.com", _plan = "Team";
-    private DateOnly? _start = new DateOnly(2026, 12, 1);
-    private bool _updates = true;
-    private Billing _billing = Billing.Yearly;
-
-    private enum Billing { Monthly, Yearly }
 }
