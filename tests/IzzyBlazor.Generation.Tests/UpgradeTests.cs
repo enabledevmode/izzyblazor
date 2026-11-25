@@ -4,7 +4,7 @@ namespace IzzyBlazor.Generation.Tests;
 
 /// <summary>
 /// An app moved across releases that renamed and removed things: izzy update lists them, and izzy upgrade
-/// renames what has a new name in the app's files and lists the rest by file and line. The changes are the
+/// renames what has a new name in the app's files, once --apply approves the plan, and lists the rest by file and line. The changes are the
 /// library's own, from alpha.16 to alpha.22.
 /// </summary>
 public sealed class UpgradeTests : IDisposable
@@ -46,8 +46,11 @@ public sealed class UpgradeTests : IDisposable
         // Finding the uses is Pro's.
         Assert.Equal(3, Izzy(ItemTier.Free, "upgrade").Exit);
 
-        // The release the app came from is the one update recorded.
-        var upgrade = Izzy(ItemTier.Pro, "upgrade");
+        // The release the app came from is the one update recorded. Without --apply it is a plan.
+        var before = File.ReadAllText(page);
+        Assert.Contains("Home.razor:1:7  Icon.Role → Purpose", Izzy(ItemTier.Pro, "upgrade").Out);
+        Assert.Equal(before, File.ReadAllText(page));
+        var upgrade = Izzy(ItemTier.Pro, "upgrade", "--apply");
         Assert.Equal(0, upgrade.Exit);
         Assert.Equal("""
             <Icon Purpose="IconPurpose.Close" />

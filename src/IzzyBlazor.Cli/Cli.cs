@@ -39,7 +39,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
           izzy update [--to <version>] [--global] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
-          izzy upgrade [--from <version>] [--to <version>] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy upgrade [--apply] [--from <version>] [--to <version>] [--project <path>] [--diff] [--json]
           izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--cookie <name=value>] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]
           izzy audit --site <url> [--max-pages 500], or izzy audit --urls <file>
           izzy audit [<path> ...] --run [--site] [--project <path>]
@@ -63,8 +63,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         and the izzy in its tool manifest, then it builds the app. Outside an app, or with --global, it updates
         the izzy on this machine. --to takes a version other than the newest. It ends with what the releases
         in between removed or renamed. izzy upgrade finds where the app uses those, in its .razor and .cs
-        files, and renames what has a new name; the rest it lists by file and line (IzzyBlazor Pro). It starts
-        from the release izzy update moved the app from; --from names it for an app updated by hand.
+        files (IzzyBlazor Pro). It prints the plan and writes nothing: each rename it would make, and what is
+        left to change by hand, by file and line. izzy upgrade --apply makes the renames. It starts from the
+        release izzy update moved the app from; --from names it for an app updated by hand.
         Settings are the item's, as izzy describe lists them (izzy describe block hero), such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
@@ -1148,7 +1149,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             }
         }
         output.WriteLine("Razor takes an old parameter name without a warning, and the page fails when it's opened.");
-        output.WriteLine("izzy upgrade finds where this app uses these and renames what has a new name (IzzyBlazor Pro).");
+        output.WriteLine("izzy upgrade shows where this app uses these, and izzy upgrade --apply renames what has a new name (IzzyBlazor Pro).");
         output.WriteLine($"These are names in C# and Razor. CSS variables and classes a release renamed are in its notes: {Releases.Notes}");
     }
 
@@ -1190,15 +1191,17 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             .Select(m => Regex.Match(m.Value, """\sVersion="([^"]*)" """.TrimEnd(), RegexOptions.IgnoreCase).Groups[1].Value).Where(ToolManifest.Exact)
             .Order(Comparer<string>.Create(Releases.Compare)).FirstOrDefault();
 
-    // izzy upgrade: where the app uses what the releases between two versions removed or renamed. What has a new name is
+    // izzy upgrade: where the app uses what the releases between two versions removed or renamed. It is a plan,
+    // and writes nothing, until --apply says the plan is approved. What has a new name is
     // renamed, as a changeset; the rest is listed by file and line with what to do.
     int Upgrade(Args args)
     {
-        const string usage = "izzy upgrade [--from <version>] [--to <version>] [--project <path>] [--dry-run] [--diff] [--json]";
+        const string usage = "izzy upgrade [--apply] [--from <version>] [--to <version>] [--project <path>] [--diff] [--json]";
         Words(args, 1, usage);
         var from = args.Take("from");
         var to = args.Take("to");
         var folder = args.Take("project");
+        var apply = args.Switch("apply");
         var flags = Flags(args);
         NoSettings(args);
         foreach (var (name, version) in new[] { ("from", from), ("to", to) })
@@ -1242,7 +1245,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var found = uses.Where(u => !u.Closing).ToList();
         var byHand = found.Count(u => u.Fix is null);
         var changeset = new Changeset { Creates = [], Inserts = fixes, Packages = [], Conflicts = [], Warnings = warnings };
-        var write = !flags.DryRun && fixes.Count > 0;
+        var write = apply && !flags.DryRun && fixes.Count > 0;
         // Written first: a file that can't be written ends the command before it says anything was.
         if (write) ChangesetWriter.Apply(changeset, root);
         if (flags.Diff && !flags.Json) output.Write(ChangesetWriter.Diff(changeset, project));
@@ -1264,7 +1267,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         foreach (var warning in warnings) error.WriteLine($"warning: {warning}");
         // Nothing is left of the move once every use has its new name.
-        if (whole && !flags.DryRun && byHand == 0 && warnings.Count == 0 && File.Exists(UpgradeRecord(root))) File.Delete(UpgradeRecord(root));
+        if (whole && !flags.DryRun && (apply || fixes.Count == 0) && byHand == 0 && warnings.Count == 0 && File.Exists(UpgradeRecord(root))) File.Delete(UpgradeRecord(root));
         if (flags.Json) return 0;
         if (found.Count == 0)
         {
@@ -1276,6 +1279,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var renamed = found.Count - byHand;
         if (renamed > 0) output.WriteLine($"{(write ? "Renamed" : "Would rename")} {renamed} in {fixes.Select(f => f.Path).Distinct().Count()} {(fixes.Select(f => f.Path).Distinct().Count() == 1 ? "file" : "files")}.");
         if (byHand > 0) output.WriteLine($"{byHand} to change by hand: {(byHand == 1 ? "it has" : "they have")} no plain new name.");
+        if (renamed > 0 && !write) output.WriteLine($"Nothing was written. To make the {(renamed == 1 ? "rename" : "renames")}: izzy upgrade --apply");
         return 0;
     }
 

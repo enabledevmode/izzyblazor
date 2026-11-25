@@ -53,7 +53,7 @@ If a tool answers that the user must run `izzy login`, tell them: it is a free a
 
 ## Moving to a newer IzzyBlazor
 
-`izzy update` sets the app's IzzyBlazor version and builds; it ends with what the releases in between removed or renamed. Razor takes an old parameter name without a warning, so act on that list. With IzzyBlazor Pro, `izzy upgrade --dry-run --json` gives each use in the app (`uses`: file, line, column, and a `note` saying what to use instead), and `izzy upgrade` makes the plain renames. Change the rest by hand, then build.
+`izzy update` sets the app's IzzyBlazor version and builds; it ends with what the releases in between removed or renamed. Razor takes an old parameter name without a warning, so act on that list. With IzzyBlazor Pro, `izzy upgrade --json` gives each use in the app and writes nothing (`uses`: file, line, column, and a `note` saying what to use instead). Show the person that plan; when they approve it, `izzy upgrade --apply` makes the plain renames. Change the rest by hand, then build.
 
 ## Finish
 
