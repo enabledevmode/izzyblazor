@@ -639,6 +639,12 @@ public static class SiteApp
         }
 
         app.MapMethods("/robots.txt", ["GET", "HEAD"], () => Results.Text(Sitemap.Robots, "text/plain"));
+        // Microsoft reads this to show izzyblazor.com as the publisher of "Continue with Microsoft" on the account
+        // service's sign-in (the Entra app registration's publisher domain). An endpoint, not a file: the build
+        // leaves out folders whose name starts with a dot. The content type must be application/json alone,
+        // with no charset, or Microsoft's check fails.
+        app.MapMethods("/.well-known/microsoft-identity-association.json", ["GET", "HEAD"], () => Results.Bytes(
+            """{"associatedApplications":[{"applicationId":"41c2a094-b47a-42c1-a38b-6b1b11e7075b"}]}"""u8.ToArray(), "application/json"));
         app.MapMethods("/sitemap.xml", ["GET", "HEAD"], (Registry registry, BlockCatalog blocks, TemplateCatalog templates) => Results.Text(Sitemap.Xml(registry, blocks, templates), "application/xml"));
         app.MapMethods("/izzyblazor.api.json", ["GET", "HEAD"], (ApiMetadata api) => Results.Text(api.Json, "application/json"));
         app.MapMethods("/llms.txt", ["GET", "HEAD"], (Registry registry, ApiMetadata api) => Results.Text(LlmsTxt.Of(registry, api), "text/plain; charset=utf-8"));
