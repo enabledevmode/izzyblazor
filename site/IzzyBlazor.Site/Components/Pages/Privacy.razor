@@ -39,6 +39,12 @@
             <Code>izzy login</Code>, when it renews that sign-in, and when you send feedback.
         </TextBlock>
         <TextBlock>
+            At most once a day, izzy asks nuget.org which versions of its package exist, so it can tell you about a
+            newer release. nuget.org is Microsoft's package service, the same one .NET downloads the package from.
+            The request names the package and nothing about you or your app. Set
+            <Code>IZZY_NO_UPDATE_CHECK=1</Code> to turn it off.
+        </TextBlock>
+        <TextBlock>
             <Code>izzy feedback</Code> shows you a post and sends it only when you agree. The post holds what you
             wrote, the command you named, izzy's version, your operating system and your plan. It goes to our public
             discussions on GitHub without your name, your address or your account.

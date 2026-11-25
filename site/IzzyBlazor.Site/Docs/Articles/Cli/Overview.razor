@@ -35,9 +35,28 @@
             Windows). When the terminal answers "command not found", that folder isn't on your PATH: see
             <Anchor Href="docs/troubleshooting/izzy-not-found">izzy: command not found</Anchor>.
         </TextBlock>
+
+        <Heading Level="2">Update</Heading>
         <TextBlock>
-            The CLI has the same version as the library. To update it, run the same command with <Code>update</Code>
-            instead of <Code>install</Code>.
+            The CLI has the same version as the library. When a newer release is out, izzy says so in one line after
+            a command. It never updates by itself.
+        </TextBlock>
+        <TextBlock>
+            In your app's folder, <Code>izzy update</Code> moves the app to the newest release. It changes the version
+            of the IzzyBlazor package in your project files and of izzy in the app's tool manifest, then builds the
+            app. Add <Code>--dry-run</Code> or <Code>--diff</Code> to see the change first, or
+            <Code>--to</Code> with a version to pick the release.
+        </TextBlock>
+        <Code Block Language="bash">@UpdateApp</Code>
+        <TextBlock>
+            Outside an app, or with <Code>--global</Code>, <Code>izzy update</Code> updates the izzy on your machine.
+            It runs <Code>dotnet tool update -g IzzyBlazor.Cli</Code> with the version.
+        </TextBlock>
+        <TextBlock>
+            To learn of a release, izzy asks nuget.org for the package's versions, at most once a day, while a
+            command runs. The request doesn't wait for an answer after the command ends, and it says nothing about
+            you or your app. izzy doesn't ask in CI, with <Code>--json</Code>, or when a script or an editor reads its
+            output. To turn it off, set <Code>IZZY_NO_UPDATE_CHECK=1</Code>.
         </TextBlock>
 
         <Heading Level="2">Commands</Heading>
@@ -86,12 +105,18 @@
         dotnet izzy list
         """;
 
+    private const string UpdateApp = """
+        izzy update --diff
+        izzy update
+        """;
+
     private sealed record Row(string Name, string Text);
 
     private static readonly Row[] Commands =
     [
         new("izzy new starter|kit <id> -n <name>", "Creates a new app from a starter or an app kit, as dotnet new does, such as izzy new starter sidebar or izzy new kit crm. See Create an app and Templates."),
         new("izzy init", "Sets up IzzyBlazor in an app you already have. See Add to an existing app."),
+        new("izzy update", "Moves your app to the newest IzzyBlazor: the package and the app's izzy. Outside an app, it updates the izzy on your machine. See Update."),
         new("izzy add block <id>", "Adds a block to your app, such as izzy add block hero."),
         new("izzy add component <Name> --at <file>:<line>", "Adds a component's usage example from these docs to a page. See Components."),
         new("izzy add crud <Model>", "Creates a page to display, add, edit and delete a model's records."),

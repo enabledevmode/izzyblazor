@@ -18,8 +18,9 @@ namespace IzzyBlazor.Cli;
 /// <param name="error">Errors and warnings.</param>
 /// <param name="proRoot">The private catalog, with the account items' files and the Pro items (IZZY_PRO_CATALOG); null for the public catalog only.</param>
 /// <param name="access">What the private catalog holds: all of it, or an account's copy.</param>
+/// <param name="releases">The releases on nuget.org, for izzy update.</param>
 /// <param name="account">This machine's IzzyBlazor account, whose copy of the catalog is used when <paramref name="proRoot"/> is null.</param>
-sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null, ItemTier access = ItemTier.Pro, AccountSession? account = null, TextReader? input = null)
+sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output, TextWriter error, string? proRoot = null, ItemTier access = ItemTier.Pro, AccountSession? account = null, TextReader? input = null, Releases? releases = null)
 {
     const string Help = """
         izzy: IzzyBlazor apps, blocks and pages from IzzyBlazor's catalog.
@@ -37,6 +38,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
+          izzy update [--to <version>] [--global] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
           izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--cookie <name=value>] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]
           izzy audit --site <url> [--max-pages 500], or izzy audit --urls <file>
           izzy audit [<path> ...] --run [--site] [--project <path>]
@@ -56,6 +58,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         form pages are --mode pages, Pro), for a model class in your app read from its source: no build needed.
         izzy init sets up IzzyBlazor in the app you have: a Blazor Web App, or an MVC or Razor Pages app, which
         gets a Blazor root beside its pages. It builds the app afterwards and says how to fix a name clash.
+        izzy update moves the app in this folder to the newest IzzyBlazor: the package its projects reference
+        and the izzy in its tool manifest, then it builds the app. Outside an app, or with --global, it updates
+        the izzy on this machine. --to takes a version other than the newest.
         Settings are the item's, as izzy describe lists them (izzy describe block hero), such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
@@ -113,6 +118,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "set" => Set(args),
                 "new" => New(args),
                 "init" => Init(args),
+                "update" => Update(args),
                 "audit" => AuditPages(args),
                 "agent" => Agent(args),
                 "mcp" => Mcp(args),
@@ -121,7 +127,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account [--json]", "json").Status(output, args.Switch("json")),
                 "feedback" => Feedback(args),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, audit, agent, mcp, login, logout, account, feedback."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, update, audit, agent, mcp, login, logout, account, feedback."),
             };
         }
         catch (ProRequiredException e)
@@ -1004,6 +1010,176 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var exit = Finish(item, changes, project, directory, existing: false, flags);
         if (exit == 0 && agent) AgentFiles.Write(directory, flags.DryRun, flags.Json ? TextWriter.Null : output, error);
         return exit;
+    }
+
+    // izzy update: the app's IzzyBlazor packages and the izzy in its tool manifest to one version, then a build;
+    // outside an app, or with --global, the izzy on this machine.
+    int Update(Args args)
+    {
+        Words(args, 1, "izzy update [--to <version>] [--global] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]");
+        var to = args.Take("to");
+        var global = args.Switch("global");
+        var folder = args.Take("project");
+        var build = !args.Switch("no-build");
+        var flags = Flags(args);
+        NoSettings(args);
+        if (to is not null && !ToolManifest.Exact(to)) throw new UsageException($"--to takes a version, such as 0.1.0: \"{to}\" isn't one.");
+        if (global && folder is not null) throw new UsageException("--global updates the izzy on this machine, so it takes no --project.");
+        string? csproj = null;
+        if (!global)
+        {
+            try { csproj = FindProject(folder); }
+            catch (UsageException) when (folder is null) { }
+        }
+        var target = to ?? (releases ?? Releases.FromEnvironment()).Latest(TimeSpan.FromSeconds(10))
+            ?? throw new GenerationException("izzy couldn't reach nuget.org to see the newest release. Try again, or name one: izzy update --to <version>.");
+        return csproj is null ? UpdateTool(target, flags.Json, flags.DryRun) : UpdateApp(csproj, target, build, flags);
+    }
+
+    int UpdateApp(string csproj, string target, bool build, (bool Json, bool DryRun, bool Diff, bool Overwrite) flags)
+    {
+        var project = ProjectInfo.FromProject(csproj);
+        var root = project.Directory!;
+        var inserts = new List<TextInsert>();
+        var warnings = new List<string>();
+        var unversioned = new List<string>();
+        string? from = null;
+        var referenced = false;
+        var central = false;
+        foreach (var path in VersionFiles(root))
+        {
+            var text = File.ReadAllText(Path.Combine(root, path));
+            foreach (Match reference in Regex.Matches(text, """<(PackageReference|PackageVersion)\s[^>]*?(?:Include|Update)="(IzzyBlazor(?:\.Core)?)"[^>]*>""", RegexOptions.IgnoreCase))
+            {
+                var isReference = reference.Groups[1].Value.Equals("PackageReference", StringComparison.OrdinalIgnoreCase);
+                referenced |= isReference;
+                central |= !isReference;
+                if (Regex.Match(reference.Value, """\sVersion="([^"]*)" """.TrimEnd(), RegexOptions.IgnoreCase) is not { Success: true } version)
+                {
+                    if (isReference) unversioned.Add(path);
+                    continue;
+                }
+                var at = version.Groups[1];
+                if (!ToolManifest.Exact(at.Value))
+                {
+                    warnings.Add($"{path} sets {reference.Groups[2].Value}'s version as {at.Value}, which izzy leaves as it is: change it by hand.");
+                    continue;
+                }
+                if (from is null || Releases.Compare(at.Value, from) < 0) from = at.Value;
+                if (at.Value != target) inserts.Add(new TextInsert(path, reference.Index + at.Index, target, Generation.Inserts.Hash(text)) { Length = at.Length });
+            }
+        }
+        if (!referenced)
+            throw new UsageException($"{project.Name} doesn't reference the IzzyBlazor package, so there is nothing to update in it. izzy init sets IzzyBlazor up in an app; izzy update --global updates the izzy on this machine.");
+        if (unversioned.Count > 0 && !central)
+            warnings.Add($"{string.Join(", ", unversioned.Distinct())} references IzzyBlazor with its version set somewhere izzy didn't find: set it to {target} there.");
+        // The app's own izzy moves with its library. An app with no manifest, or one without izzy, gets none here.
+        if (ToolManifest.Change(project.ReadFile, target) is { Insert: { Length: > 0 } tool }) inserts.Add(tool);
+
+        var changes = new Changeset { Creates = [], Inserts = inserts, Packages = [], Conflicts = [], Warnings = warnings };
+        var write = !flags.DryRun && inserts.Count > 0;
+        if (flags.Diff) _data.Write(ChangesetWriter.Diff(changes, project));
+        if (flags.Json)
+        {
+            var json = ChangesetJson(changes, write);
+            json["from"] = from;
+            json["to"] = target;
+            Print(json);
+        }
+        foreach (var warning in warnings) error.WriteLine($"warning: {warning}");
+        if (inserts.Count == 0)
+        {
+            if (flags.Json) return 0;
+            if (warnings.Count == 0) output.WriteLine($"Nothing to change: {project.Name} is on IzzyBlazor {target}.");
+            if (Releases.Compare(Generator.IzzyBlazorVersion, target) < 0)
+                output.WriteLine($"The izzy that ran this is {Generator.IzzyBlazorVersion}. To update the one on this machine: izzy update --global");
+            return 0;
+        }
+        var move = from is null ? $"to IzzyBlazor {target}" : $"from IzzyBlazor {from} to {target}";
+        if (!write)
+        {
+            if (!flags.Json && !flags.Diff)
+            {
+                Summary(changes, "Would create", "Would change", "Would add package");
+                output.WriteLine($"Would update {project.Name} {move}");
+            }
+            return 0;
+        }
+        ChangesetWriter.Apply(changes, root);
+        if (!flags.Json)
+        {
+            Summary(changes, "Created", "Changed", "Added package");
+            output.WriteLine($"Updated {project.Name} {move}");
+        }
+        if (inserts.Any(i => ToolManifest.Is(i.Path))) Dotnet(root, flags.Json, "tool", "restore");
+        var exit = build ? Build(project, flags.Json) : 0;
+        if (!flags.Json) output.WriteLine($"What changed in each release: {Releases.Notes}");
+        return exit;
+    }
+
+    // The project files that may hold IzzyBlazor's version, from the app's folder.
+    static IEnumerable<string> VersionFiles(string root) =>
+        Directory.EnumerateFiles(root, "*", new EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 4, IgnoreInaccessible = true })
+            .Where(f => f.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase) || Path.GetFileName(f) is "Directory.Packages.props" or "Directory.Build.props")
+            .Select(f => Path.GetRelativePath(root, f).Replace('\\', '/'))
+            .Where(p => !p.Split('/').Any(part => part is "bin" or "obj" or "node_modules" || part.StartsWith('.')))
+            .Order(StringComparer.Ordinal);
+
+    // The izzy on this machine, with dotnet tool update. A tool can't replace its own files while it runs on
+    // Windows, so there the global izzy starts the update and ends; .NET does it a moment later.
+    int UpdateTool(string target, bool json, bool dryRun)
+    {
+        var mine = Generator.IzzyBlazorVersion;
+        var self = AppContext.BaseDirectory.Contains(Path.Combine(".store", "izzyblazor.cli"), StringComparison.OrdinalIgnoreCase);
+        List<string> arguments = ["tool", "update", "-g", "IzzyBlazor.Cli", "--version", target];
+        if (Releases.Compare(target, mine) < 0) arguments.Add("--allow-downgrade");
+        var command = $"dotnet {string.Join(' ', arguments)}";
+        void Answer(bool written)
+        {
+            if (json) Print(new JsonObject { ["written"] = written, ["from"] = self ? mine : null, ["to"] = target, ["command"] = command });
+        }
+        if (self && target == mine)
+        {
+            Answer(false);
+            if (!json) output.WriteLine($"Nothing to change: izzy is on {mine}.");
+            return 0;
+        }
+        if (dryRun)
+        {
+            Answer(false);
+            if (!json) output.WriteLine($"Would run {command}");
+            return 0;
+        }
+        if (self && OperatingSystem.IsWindows())
+        {
+            var start = new ProcessStartInfo("cmd.exe")
+            {
+                Arguments = $"/c \"ping -n 3 127.0.0.1 >nul & \"{DotnetHost.Path}\" {string.Join(' ', arguments)}{(json ? " >nul 2>&1" : "")}\"",
+                UseShellExecute = false,
+                WorkingDirectory = workingDirectory,
+            };
+            try { Process.Start(start)?.Dispose(); }
+            catch (System.ComponentModel.Win32Exception) { throw new GenerationException($"izzy couldn't start the update. Run it yourself: {command}"); }
+            Answer(true);
+            if (!json) output.WriteLine($"Updating izzy to {target}. .NET replaces it once this command ends, and says so here in a moment.");
+            return 0;
+        }
+        using var process = DotnetHost.Start(workingDirectory, arguments, $"so izzy wasn't updated. Run it yourself: {command}");
+        var stdout = process.StandardOutput.ReadToEndAsync();
+        var stderr = process.StandardError.ReadToEndAsync();
+        process.WaitForExit();
+        Answer(process.ExitCode == 0);
+        if (process.ExitCode != 0)
+        {
+            error.WriteLine($"{command} failed, so izzy wasn't updated:\n{stdout.Result}{stderr.Result}".TrimEnd());
+            return 1;
+        }
+        if (!json)
+        {
+            output.WriteLine($"Updated the izzy on this machine to {target}");
+            output.WriteLine($"What changed in each release: {Releases.Notes}");
+        }
+        return 0;
     }
 
     // IzzyBlazor into the app here: the init item over what Setup reads from the app, the full names of the
