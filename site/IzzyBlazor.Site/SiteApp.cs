@@ -39,10 +39,21 @@ public static class SiteApp
             && string.Equals(referer.Host, request.Host.Host, StringComparison.OrdinalIgnoreCase);
     }
 
+    // What an example's frame is asked for with by the page that shows it: its render mode and
+    // whether it draws a scrollbar. Anything else in its query is a state of the example.
+    private static bool IsFrameSetting(string name) => name is "mode" or "scrollbar";
+
+    /// <summary>
+    /// An example's frame asked for in one of its states (a page of its table, a day of its
+    /// calendar): as endless as a page's query string, and walked the same way (Nov 24, 2026).
+    /// </summary>
+    internal static bool IsStateFrame(HttpRequest request) =>
+        request.Path.StartsWithSegments("/frame") && request.Query.Keys.Any(name => !IsFrameSetting(name));
+
     // A page render with a query string that came through Fly's proxy: the crawlable, endless kind.
-    // Not the examples' frames (a page loads many at once), the circuit, the framework's files,
-    // MCP, static files (a dot in the last segment), or an error page re-executed for a request
-    // already let through.
+    // An example's frame only in one of its states (a page loads many frames at once, each with
+    // its mode). Not the circuit, the framework's files, MCP, static files (a dot in the last
+    // segment), or an error page re-executed for a request already let through.
     private static bool IsQueryPage(HttpContext context)
     {
         var request = context.Request;
@@ -51,7 +62,7 @@ public static class SiteApp
             && request.Headers.ContainsKey("Fly-Client-IP")
             && context.Features.Get<IStatusCodeReExecuteFeature>() is null
             && context.Features.Get<IExceptionHandlerFeature>() is null
-            && !request.Path.StartsWithSegments("/frame")
+            && (!request.Path.StartsWithSegments("/frame") || IsStateFrame(request))
             && !request.Path.StartsWithSegments("/_blazor")
             && !request.Path.StartsWithSegments("/_framework")
             && !request.Path.StartsWithSegments("/search/results")
@@ -283,8 +294,8 @@ public static class SiteApp
             // the limit above; renders piled up on the one shared CPU until the machine ran out of
             // memory. A few render at a time and a short queue waits; the rest get a 503 to retry.
             // Every other page render waits for a slot too, so no crawl, whatever it asks for, can
-            // swamp the one shared CPU: a first visit from outside (not from a page of the site, no
-            // antiforgery cookie of the site's, and not answered by FirstVisitCache) has 2 slots,
+            // swamp the one shared CPU: a first visit from outside (no reader's pass or antiforgery
+            // cookie of the site's, and not answered by FirstVisitCache) has 2 slots,
             // which a crawler from many addresses fills first; readers already on the site have 6 of
             // their own. The queues are short, so a long wait becomes a quick 503 with Retry-After.
             // (A crawler can claim to be a reader; the slots still bound the CPU: 2 + 2 + 6.)
@@ -293,7 +304,7 @@ public static class SiteApp
                     ? RateLimitPartition.GetConcurrencyLimiter(BusyPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 10, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
                 : !IsPageRender(context, reExecuted: true)
                     ? RateLimitPartition.GetNoLimiter("unlimited")
-                : FromThisSite(context.Request) || HasAntiforgeryCookie(context.Request)
+                : ReaderPass.Read(context.Request) is not null || HasAntiforgeryCookie(context.Request)
                     ? RateLimitPartition.GetConcurrencyLimiter(ReadersPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 6, QueueLimit = 40, QueueProcessingOrder = QueueProcessingOrder.OldestFirst })
                     : RateLimitPartition.GetConcurrencyLimiter(VisitorsPartition, _ => new ConcurrencyLimiterOptions { PermitLimit = 2, QueueLimit = 20, QueueProcessingOrder = QueueProcessingOrder.OldestFirst }));
         });
@@ -345,6 +356,9 @@ public static class SiteApp
             .OfType<System.Net.IPNetwork>()
             .ToArray();
         var queryLog = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Crawlers");
+        // How many states of the examples one reader's pass opens a minute: a click every second.
+        var states = PartitionedRateLimiter.Create<string, string>(pass => RateLimitPartition.GetFixedWindowLimiter(
+            pass, _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
         // With RequireCloudflare (a Fly secret, "true"), the site's own name answers only through
         // Cloudflare: a crawler that calls Fly's address straight, skipping Cloudflare's rules, gets
         // a short 403 (Nov 14, 2026). izzyblazor.fly.dev and Fly's health checks still go straight.
@@ -371,9 +385,20 @@ public static class SiteApp
                 return context.Response.WriteAsync("Crawling these pages isn't allowed; see /robots.txt.");
             }
 
-            if (IsQueryPage(context) && ClientKey(context) is var client && rejectionLog.AttemptAcquire("q " + client).IsAcquired)
+            var state = IsQueryPage(context);
+            var reading = HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method);
+            var pass = ReaderPass.Read(context.Request);
+            if (state && ClientKey(context) is var client && rejectionLog.AttemptAcquire("q " + client).IsAcquired)
             {
-                queryLog.LogInformation("Query page {Client} {Via} ({UserAgent}): {Path}", client, ViaCloudflare(context) ? "via Cloudflare" : "direct", agent, context.Request.Path + context.Request.QueryString);
+                // With what it showed for itself, to see how the next crawler passes.
+                queryLog.LogInformation("Query page {Client} {Via} ({UserAgent}; {Signs}): {Path}", client, ViaCloudflare(context) ? "via Cloudflare" : "direct", agent,
+                    $"{(FromThisSite(context.Request) ? "from the site" : "from outside")}, {(pass is null ? "no pass" : "pass")}", context.Request.Path + context.Request.QueryString);
+            }
+
+            // Every page gives its reader a pass (ReaderPass), which the examples' states ask for below.
+            if (!state && reading && pass is null && IsPageRender(context) && !context.Request.Path.StartsWithSegments("/frame"))
+            {
+                ReaderPass.Give(context);
             }
 
             // A page with a query string opened from outside the site goes to the page without it.
@@ -381,14 +406,35 @@ public static class SiteApp
             // (Sec-Fetch-Site, or a Referer from here); a crawler asks for them straight, and each
             // is a fresh render of an endless set (Nov 13, 2026: DataGrid's states, 13 to 15 seconds
             // a page on the shared CPU). A link with a state pasted from elsewhere opens the plain page.
-            if (IsQueryPage(context) && (HttpMethods.IsGet(context.Request.Method) || HttpMethods.IsHead(context.Request.Method)) && !FromThisSite(context.Request))
+            // The mark is a header anyone can send (Nov 24, 2026: a crawler did, from a new address
+            // for every request), so a state also asks for the pass a page of the site gave its
+            // reader. A frame goes to itself as its page shows it.
+            if (state && reading && (pass is null || !FromThisSite(context.Request)))
             {
                 redirected.Set(ClientKey(context) + " " + context.Request.Path, true,
                     new MemoryCacheEntryOptions { Size = 1, AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) });
+                var settings = context.Request.Path.StartsWithSegments("/frame")
+                    ? QueryString.Create(context.Request.Query.Where(q => IsFrameSetting(q.Key)))
+                    : QueryString.Empty;
                 // Absolute, on this host: a path such as //evil.example/ would otherwise be read as
                 // another site's address.
-                context.Response.Redirect(UriHelper.BuildAbsolute(context.Request.Scheme, context.Request.Host, context.Request.PathBase, context.Request.Path));
+                context.Response.Redirect(UriHelper.BuildAbsolute(context.Request.Scheme, context.Request.Host, context.Request.PathBase, context.Request.Path, settings));
                 return Task.CompletedTask;
+            }
+
+            // One pass opens the states one reader would: a crawler that keeps its pass is one
+            // visitor, whatever addresses it comes from.
+            if (state && reading && pass is not null && !states.AttemptAcquire(pass).IsAcquired)
+            {
+                if (rejectionLog.AttemptAcquire("p " + pass).IsAcquired)
+                {
+                    queryLog.LogWarning("One pass, too many states {Client} ({UserAgent}): {Path}", ClientKey(context), agent, context.Request.Path + context.Request.QueryString);
+                }
+
+                context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                context.Response.Headers.RetryAfter = "60";
+                context.Response.ContentType = "text/plain; charset=utf-8";
+                return context.Response.WriteAsync("Too many requests. Try again in a minute.");
             }
 
             return next(context);

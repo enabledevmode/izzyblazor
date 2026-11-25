@@ -13,13 +13,15 @@ namespace IzzyBlazor.Site.Services;
 /// pages (seconds each) until the site stopped answering.
 /// </summary>
 /// <remarks>
-/// Only a request that could be anyone's: a GET or HEAD for a page with no cookie, no query string
-/// (a demo's frame keeps its query, which is part of its key) and not enhanced navigation. Such a
+/// Only a request that could be anyone's: a GET or HEAD for a page with no cookie but the reader's
+/// pass (<see cref="ReaderPass"/>, which changes nothing on a page), no query string (a demo's
+/// frame keeps its mode and scrollbar, which are part of its key; one of its states is rendered
+/// for its reader) and not enhanced navigation. Such a
 /// request sees the page as everyone does: the default render mode and the system's color scheme.
 /// The copies are kept by host, path and whether the browser is Apple's (the search button's
 /// shortcut is in the page). A page with a form gets the visitor's own antiforgery cookie, with
 /// its token in place of the one rendered into the copy, so the form posts as from a fresh render;
-/// a page without one sets no cookie, so the next request is still a first visit. A page with
+/// a page without one sets only the reader's pass, so the next request is still a first visit. A page with
 /// server components keeps for 2 minutes, well inside the 5 their markers stay valid for; any
 /// other for 10. While a page renders, other requests for it wait for that render; if it fails
 /// or its visitor leaves, the next one renders. A copy served carries X-First-Visit-Cache: hit.
@@ -125,8 +127,8 @@ public sealed class FirstVisitCache(RequestDelegate next, IAntiforgery antiforge
     {
         var request = context.Request;
         return (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method))
-            && (!request.QueryString.HasValue || request.Path.StartsWithSegments("/frame"))
-            && request.Headers.Cookie.Count == 0
+            && (!request.QueryString.HasValue || (request.Path.StartsWithSegments("/frame") && !SiteApp.IsStateFrame(request)))
+            && request.Cookies.Keys.All(name => name == ReaderPass.Cookie)
             && !request.Headers.ContainsKey("blazor-enhanced-nav")
             && SiteApp.IsPageRender(context);
     }

@@ -176,30 +176,50 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.Equal(HttpStatusCode.NotFound, (await site.Client.GetAsync("docs/components/data-grid/nonsense")).StatusCode);
     }
 
-    // An example's state in the address, asked for from outside the site (a crawler), goes to the
-    // plain page; a click on the site keeps it. Only through Fly's proxy (Fly-Client-IP).
+    // An example's state in the address goes to the plain page unless a reader asks for it: someone
+    // who opened a page here (and so has the pass it gave) and clicked on the site. A crawler that
+    // sends a click's headers has no pass. Only through Fly's proxy (Fly-Client-IP).
     [Fact]
     public async Task A_query_page_from_outside_the_site_goes_to_the_plain_page()
     {
         using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { BaseAddress = site.Client.BaseAddress };
 
-        async Task<HttpResponseMessage> Get(string? fetchSite)
+        async Task<HttpResponseMessage> Get(string address, string? fetchSite, string? pass = null)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, "docs/components/pagination?page=3");
+            using var request = new HttpRequestMessage(HttpMethod.Get, address);
             request.Headers.Add("Fly-Client-IP", "203.0.113.7");
             if (fetchSite is not null)
             {
                 request.Headers.Add("Sec-Fetch-Site", fetchSite);
             }
 
+            if (pass is not null)
+            {
+                request.Headers.Add("Cookie", pass);
+            }
+
             return await client.SendAsync(request);
         }
 
-        var crawled = await Get(null);
+        const string state = "docs/components/pagination?page=3";
+        var crawled = await Get(state, null);
         Assert.Equal(HttpStatusCode.Redirect, crawled.StatusCode);
         Assert.Equal(new Uri(client.BaseAddress!, "/docs/components/pagination"), crawled.Headers.Location);
-        Assert.Equal(HttpStatusCode.Redirect, (await Get("cross-site")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await Get("same-origin")).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await Get(state, "cross-site")).StatusCode);
+        // The header alone is anyone's to send.
+        Assert.Equal(HttpStatusCode.Redirect, (await Get(state, "same-origin")).StatusCode);
+
+        // A reader: the page gave a pass, and the click carries it.
+        using var page = await Get("docs/components/pagination", "none");
+        var pass = Assert.Single(page.Headers.GetValues("Set-Cookie"), c => c.StartsWith("ib-reader=", StringComparison.Ordinal)).Split(';')[0];
+        Assert.Equal(HttpStatusCode.OK, (await Get(state, "same-origin", pass)).StatusCode);
+        Assert.Equal(HttpStatusCode.Redirect, (await Get(state, "same-origin", pass[..^2] + "xx")).StatusCode);
+
+        // An example's frame in one of its states is the same; as its page shows it, it is anyone's.
+        var frame = await Get("frame/pagination-usage?mode=static&page=3", "same-origin");
+        Assert.Equal(HttpStatusCode.Redirect, frame.StatusCode);
+        Assert.Equal(new Uri(client.BaseAddress!, "/frame/pagination-usage?mode=static"), frame.Headers.Location);
+        Assert.Equal(HttpStatusCode.OK, (await Get("frame/pagination-usage?mode=static", "same-origin")).StatusCode);
 
         // A path that looks like another site's address stays on this one.
         using var sneaky = new HttpRequestMessage(HttpMethod.Get, new Uri(client.BaseAddress!.GetLeftPart(UriPartial.Authority) + "//evil.example/?a=1"));
