@@ -98,8 +98,9 @@
         <TextBlock>
             In the browser the grid's search, sort, filters and paging travel in the request's address, and the server
             runs them in the database. While the server draws the page first, it reads the server's store directly.
-            The API checks what it is sent: the model's validation runs, and only the fields the form edits are
-            saved. It asks for the same sign-in and policies as the pages.
+            The API asks for the same sign-in and policies as the pages. It sends only the fields the pages show, so a
+            property izzy left out stays on the server. It checks what it is sent: the model's validation runs, and
+            only the fields the form edits are saved.
         </TextBlock>
         <TextBlock>
             The model class has to be in the <Code>.Client</Code> project, where the pages can see it. The server
@@ -133,6 +134,6 @@
         new("--store http", "Pro, planned. For an app with a .Client project: writes the pages there and adds an API on the server for them to call."),
         new("--authorize", "Lets only signed-in people open the page. On by default when the app has accounts."),
         new("--view-policy <name>", "Lets only people the authorization policy allows open the page, such as ViewSales."),
-        new("--edit-policy <name>", "Lets only people the policy allows add, edit and delete. Everyone else who can open the page sees the records read-only."),
+        new("--edit-policy <name>", "Lets only people the policy allows add, edit and delete. Everyone else who can open the page sees the records read-only. For the grid page; --mode pages doesn't take it yet."),
     ];
 }

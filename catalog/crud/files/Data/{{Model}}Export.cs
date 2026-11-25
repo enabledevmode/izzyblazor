@@ -15,7 +15,9 @@ public static class {{Model}}Export
         var endpoint = app.MapGet("/{{Route}}/export.xlsx", (HttpContext context, I{{Model}}Store store) => Results.Stream(
             stream => store.ExportAsync(stream, context.Request.QueryString.Value, context.RequestAborted),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "{{FileName}}.xlsx"));
-#if (Authorize)
+#if (HasViewPolicy)
+        endpoint.RequireAuthorization("{{ViewPolicy}}");
+#elif (Authorize)
         endpoint.RequireAuthorization();
 #endif
         return endpoint;

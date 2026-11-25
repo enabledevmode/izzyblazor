@@ -32,7 +32,9 @@ static partial class Crud
             .Where(f => !Regex.IsMatch(f, @"(^|/)(bin|obj|\.izzy|node_modules|\.git)/"))
             .Select(f => (f, File.ReadAllText(Path.Combine(root, f))))
             .ToList();
-        var csproj = File.ReadAllText(Path.Combine(root, project.Host, project.Name + ".csproj"));
+        // Whether a string that isn't nullable is required is the setting of the project the model is in.
+        var csproj = http && Directory.EnumerateFiles(Path.Combine(root, project.Client!), "*.csproj").FirstOrDefault() is { } clientProject
+            ? File.ReadAllText(clientProject) : File.ReadAllText(Path.Combine(root, project.Host, project.Name + ".csproj"));
         var nullable = Regex.IsMatch(csproj, @"<Nullable>\s*enable\s*</Nullable>", RegexOptions.IgnoreCase)
             || DirectoryBuildProps(root).Any(p => Regex.IsMatch(p, @"<Nullable>\s*enable\s*</Nullable>", RegexOptions.IgnoreCase));
         var info = ModelReader.Read(files, model, nullable);
@@ -92,6 +94,24 @@ static partial class Crud
         var other = $"{project.Host}Data/{(context is not null ? "Memory" : "Ef")}{info.Name}Store.cs";
         if (project.ReadFile(other) is not null)
             notes.Add($"{other} is from a run with the other store and isn't used now: delete it.");
+        // The same between the server's pages and the browser's: what the other way wrote breaks the build or doubles the routes.
+        var stale = new List<string>();
+        void Stale(string path) { if (project.ReadFile(path) is not null) stale.Add(path); }
+        if (http)
+        {
+            Stale($"{project.Host}Data/I{info.Name}Store.cs");
+            if (!project.LayoutInBrowser) foreach (var page in (string[])["Index", "Details", "Edit"]) Stale($"{project.Host}Components/Pages/{name}/{page}.razor");
+        }
+        else if (project.Client is { } browser && project.ReadFile($"{browser}Data/Http{info.Name}Store.cs") is not null)
+        {
+            Stale($"{browser}Data/Http{info.Name}Store.cs");
+            Stale($"{browser}Data/I{info.Name}Store.cs");
+            foreach (var page in (string[])["Index", "Details", "Edit"]) Stale($"{browser}Pages/{name}/{page}.razor");
+            Stale($"{project.Host}Data/{info.Name}Api.cs");
+            notes.Add($"{browser}Program.cs registers Http{info.Name}Store, and {project.Host}Program.cs maps {info.Name}Api: remove both lines.");
+        }
+        if (stale.Count > 0)
+            notes.Add($"From a run with {(http ? "the store on the server" : "--store http")}, and in the way now: delete {string.Join(", ", stale)}.");
         // The pages' own files, in the project whose pages they are.
         var layoutFile = project.LayoutInBrowser ? "~/" + project.Client + "Layout/MainLayout.razor" : "Components/Layout/MainLayout.razor";
         var layout = project.ReadFile(project.LayoutInBrowser ? project.Client + "Layout/MainLayout.razor" : project.Host + "Components/Layout/MainLayout.razor");
@@ -107,6 +127,10 @@ static partial class Crud
             else if (authorize == "true" && !Regex.IsMatch(clientProgram, @"\bAddAuthorizationCore\b"))
                 notes.Add($"The pages are behind sign-in, and {project.Client}Program.cs doesn't call AddAuthorizationCore: add it with AddCascadingAuthenticationState and AddAuthenticationStateDeserialization, or the pages fail in the browser.");
         }
+
+        // The Pro pages ask for sign-in and a view policy; who may edit isn't in them yet.
+        if ("Pages".Equals(Given("Mode"), StringComparison.OrdinalIgnoreCase) && settings.GetValueOrDefault("EditPolicy") is { Length: > 0 })
+            throw new UsageException("--edit-policy is the grid page's for now: the list, detail and form pages (--mode pages) don't hide what a person may not do. Use --view-policy for who may open them.");
 
         settings["Model"] = info.Name;
         settings["Name"] = name;
@@ -200,7 +224,7 @@ static partial class Crud
             ["InEf"] = context is not null,
             // In an app whose pages are static unless they say otherwise, a page in the .Client project says so.
             ["ClientRenderMode"] = http && !project.LayoutInBrowser,
-            ["HasHttpClient"] = Regex.IsMatch(clientProgram, @"\bHttpClient\b"),
+            ["HasHttpClient"] = Regex.IsMatch(clientProgram, @"new\s+HttpClient\b|\bAddHttpClient\b|<\s*HttpClient\s*>"),
             // A run with the other store replaces its registration rather than adding a second.
             ["HasStoreRegistration"] = registration.IsMatch(program),
             // The nav links to the pages already (a second run, or a kit's nav): no second link.
@@ -260,6 +284,10 @@ static partial class Crud
             ["UrlKey"] = info.Key.Kind == FieldKind.Text ? "Uri.EscapeDataString(key)" : "key",
             ["KeyLabel"] = info.Key.Label,
             ["KeyLabelLower"] = Lower(info.Key.Label),
+            ["KeyArticle"] = Article(Lower(info.Key.Label)),
+            // A typed key is text, or a number that is never empty.
+            ["KeyTrim"] = info.Key.Kind == FieldKind.Text ? "?.Trim() ?? \"\"" : "",
+            ["KeyText"] = info.Key.Kind == FieldKind.Text ? "" : ".ToString()",
             ["IdInit"] = info.Key.Kind == FieldKind.Text ? " = \"\";" : "",
             ["TitleLabel"] = last is not null ? "Name" : title?.ShortLabel ?? singular,
             ["TitleSortKey"] = titleKey,
@@ -290,6 +318,9 @@ static partial class Crud
         "Length", "Color", "Orientation", "Justify", "Breakpoint", "ButtonVariant", "ControlSize", "TextSize", "FontWeight",
         "ContainerSize", "ContainerAlign", "RequiredMark", "TextFieldType", "DateFieldType", "DataGridSmallScreen",
         "DataGridEditMode", "RowActionOverflow", "Lucide",
+        // The API and the store over HTTP.
+        "Results", "Validator", "ValidationContext", "ValidationResult", "HttpContext", "HttpClient", "HttpStatusCode", "Uri", "Stream",
+        "StatusCodes", "JsonSerializerOptions", "HashSet", "Dictionary", "IResult",
     ];
 
     static string Alias(string name, string suffix) => Taken.Contains(name) || Setup.ComponentNames.Contains(name) ? name + suffix : name;
