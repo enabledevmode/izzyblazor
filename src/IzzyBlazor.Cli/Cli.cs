@@ -78,9 +78,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         fails on real findings the past run lacks. Each finding also names the IzzyBlazor component that drew
         the element and the fix; with --run or --project it has the file and line in your source, and
         --format sarif writes results.sarif for code scanning. --format html writes report.html, the report
-        as one file with a picture of each element, to hand to a client. --site audits every page of a site: those its sitemap.xml
-        lists, else those its links lead to; izzy audit --run --site is the whole app. --urls <file> audits
-        a list, one address a line. --cookie sends a cookie with every request, for pages behind a sign-in.
+        as one file with a picture of each element, to hand to a client. --site audits every page of a
+        site: those its sitemap.xml lists, else those its links lead to; izzy audit --run --site is the
+        whole app. --urls <file> audits a list, one address a line. --cookie sends a cookie with every
+        request, for pages behind a sign-in.
         izzy agent writes what a coding agent reads in your project: the IzzyBlazor skill, and the docs server
         and izzy mcp in the MCP settings of Claude Code, Copilot, Cursor and Visual Studio. izzy mcp is the
         server those settings start: izzy's commands as tools, for an agent, with a free account. izzy agent
@@ -409,6 +410,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         // Beside the project it is a short path from here; somewhere else it is the whole path.
         var shown = (Path.GetRelativePath(workingDirectory, target) is var near && !near.StartsWith("..", StringComparison.Ordinal) ? near : target).Replace('\\', '/');
         output.WriteLine(formats.Contains("md") ? $"Report: {shown}/report.md" : formats.Contains("html") ? $"Report: {shown}/report.html" : formats.Contains("tasks") ? $"Tasks: {shown}/tasks.md" : formats.Contains("sarif") ? $"Results: {shown}/results.sarif" : $"Results: {shown}/results.json");
+        if (formats.Contains("md") && formats.Contains("html")) output.WriteLine($"For a client: {shown}/report.html");
         return exit;
     }
 

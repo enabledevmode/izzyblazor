@@ -28,10 +28,13 @@ static partial class Audit
         readonly ConcurrentDictionary<(string Id, string Scheme), Picture> _taken = new();
         readonly Dictionary<string, HashSet<string>> _groups = new(StringComparer.Ordinal);
 
+        // The findings whose element the page does draw, and no picture came of it (the capture failed, or the
+        // page changed since): a report doesn't say of them that they aren't drawn.
+        readonly ConcurrentDictionary<string, bool> _failed = new();
+
         /// <summary>Takes the pictures of a page's findings: the page is still open, and Collect kept its elements.</summary>
-        public async Task Take(Chromium browser, JsonObject page)
+        public async Task Take(Chromium browser, JsonObject page, int width, string scheme)
         {
-            var (width, scheme) = ((int)page["width"]!, (string)page["scheme"]!);
             var rules = page["violations"]!.AsArray();
             for (var r = 0; r < rules.Count; r++)
             {
@@ -41,31 +44,55 @@ static partial class Audit
                     var id = (string)nodes[n]!["id"]!;
                     if (_taken.ContainsKey((id, scheme))) continue;
                     var group = $"{(string)rules[r]!["id"]!}|{(string?)nodes[n]!["verdict"]?["is"]}|{(string?)nodes[n]!["verdict"]?["why"]}";
+                    // Its place among the group's ten is held while the picture is taken, and given back if none comes.
                     HashSet<string>? pictured;
+                    bool held;
                     lock (_groups)
                     {
                         if (!_groups.TryGetValue(group, out pictured)) _groups[group] = pictured = [];
                         if (!pictured.Contains(id) && pictured.Count >= Shown) continue;
+                        held = pictured.Add(id);
                     }
+                    var took = false;
                     try
                     {
                         // The page outlines the element and says which part of itself to take; null for an
                         // element that isn't drawn (a meta tag, a closed menu's item).
-                        if ((string?)await browser.Evaluate(Outline.Replace("__RULE__", r.ToString()).Replace("__NODE__", n.ToString())) is not { } answer) continue;
-                        var clip = JsonNode.Parse(answer)!.AsObject();
-                        JsonNode shot;
-                        try { shot = await browser.Send("Page.captureScreenshot", new JsonObject { ["format"] = "webp", ["quality"] = 80, ["clip"] = clip.DeepClone(), ["captureBeyondViewport"] = false }); }
+                        try
+                        {
+                            if ((string?)await browser.Evaluate(Outline.Replace("__RULE__", r.ToString()).Replace("__NODE__", n.ToString())) is { } answer)
+                            {
+                                var clip = JsonNode.Parse(answer)!.AsObject();
+                                var scale = (double)clip["scale"]!;
+                                var shot = await browser.Send("Page.captureScreenshot", new JsonObject { ["format"] = "webp", ["quality"] = 80, ["clip"] = clip.DeepClone(), ["captureBeyondViewport"] = false });
+                                if ((string?)shot["data"] is { Length: > 0 } data)
+                                    {
+                                    _taken.TryAdd((id, scheme), new Picture(data, (int)Math.Round((double)clip["width"]! * scale), (int)Math.Round((double)clip["height"]! * scale), width));
+                                    took = true;
+                                }
+                                else _failed[id] = true;
+                            }
+                        }
                         finally { await browser.Evaluate("document.getElementById('__izzy-outline')?.remove()"); }
-                        if ((string?)shot["data"] is not { Length: > 0 } data) continue;
-                        var scale = (double)clip["scale"]!;
-                        _taken.TryAdd((id, scheme), new Picture(data, (int)Math.Round((double)clip["width"]! * scale), (int)Math.Round((double)clip["height"]! * scale), width));
-                        lock (_groups) pictured.Add(id);
                     }
-                    // A picture that couldn't be taken is a finding without one: the audit goes on.
-                    catch (Exception e) when (e is GenerationException or System.Text.Json.JsonException or InvalidOperationException && !browser.Closed) { }
+                    // A picture that couldn't be taken is a finding without one, and the audit goes on. A page
+                    // that failed once (it hangs, or answers with something else) is asked for no more: each
+                    // try can wait two minutes.
+                    catch (Exception e) when (e is GenerationException or System.Text.Json.JsonException or InvalidOperationException or NullReferenceException or InvalidCastException && !browser.Closed)
+                    {
+                        _failed[id] = true;
+                        return;
+                    }
+                    finally
+                    {
+                        if (held && !took) lock (_groups) if (!_taken.ContainsKey((id, "light")) && !_taken.ContainsKey((id, "dark"))) pictured.Remove(id);
+                    }
                 }
             }
         }
+
+        /// <summary>Whether the finding's element is drawn and still has no picture.</summary>
+        public bool Failed(string id) => _failed.ContainsKey(id);
 
         /// <summary>The pictures of a finding, light first.</summary>
         public List<(string Scheme, Picture Picture)> Of(string id) =>
@@ -76,8 +103,9 @@ static partial class Audit
         // with some of the page around it, at most the window, scaled down when it is wider than 960px.
         const string Outline = """
             (async () => {
+              document.getElementById("__izzy-outline")?.remove();
               const e = ((window.__izzyFound || [])[__RULE__] || [])[__NODE__];
-              if (!e || !e.isConnected) return null;
+              if (!e || !e.isConnected) throw new Error("The element is gone.");
               const pad = 32, vw = innerWidth, vh = innerHeight;
               // Where it is in the window, through the frames it is in. An element with no box of its own
               // (display: contents) is where its content is.
@@ -88,32 +116,54 @@ static partial class Audit
                   range.selectNodeContents(e);
                   r = range.getBoundingClientRect();
                 }
-                let x = r.left, y = r.top;
+                let x = r.left, y = r.top, width = r.width, height = r.height;
                 for (let w = e.ownerDocument.defaultView; w && w !== window;) {
                   const frame = w.frameElement;
                   if (!frame) return null;
-                  const around = frame.getBoundingClientRect();
-                  x += around.left + frame.clientLeft;
-                  y += around.top + frame.clientTop;
+                  // The frame's content starts inside its border and padding, and a frame drawn smaller
+                  // (a preview scaled down) draws what is in it smaller too.
+                  const around = frame.getBoundingClientRect(), style = w.parent.getComputedStyle(frame);
+                  const sx = frame.offsetWidth ? around.width / frame.offsetWidth : 1, sy = frame.offsetHeight ? around.height / frame.offsetHeight : 1;
+                  x = around.left + (frame.clientLeft + parseFloat(style.paddingLeft) + x) * sx;
+                  y = around.top + (frame.clientTop + parseFloat(style.paddingTop) + y) * sy;
+                  width *= sx;
+                  height *= sy;
                   w = frame.ownerDocument.defaultView;
                 }
-                return { x, y, width: r.width, height: r.height };
+                return { x, y, width, height };
               };
               const drawn = () => new Promise(done => { requestAnimationFrame(() => requestAnimationFrame(done)); setTimeout(done, 250); });
               let r = rect();
               if (!r || !r.width || !r.height) return null;
               const most = Math.min(600, vh);
               const tall = r.height + 2 * pad > most, wide = r.width + 2 * pad > vw;
-              e.scrollIntoView({ block: tall ? "start" : "center", inline: wide ? "start" : "center", behavior: "instant" });
+              // An element with no box of its own doesn't scroll: what is in it does.
+              (e.getClientRects().length ? e : e.firstElementChild || e.parentElement || e).scrollIntoView({ block: tall ? "start" : "center", inline: wide ? "start" : "center", behavior: "instant" });
               if (tall) scrollBy({ top: -pad, behavior: "instant" });
               await drawn();
               r = rect();
+              // A header that stays at the top of the window covers the top of what was scrolled up to it:
+              // the page is scrolled back by as much as it covers.
+              if (r && tall && e.ownerDocument === document) {
+                const y = Math.max(r.y, 0) + 1;
+                let over = document.elementFromPoint(Math.min(Math.max(r.x + r.width / 2, 1), vw - 1), y);
+                while (over && (over.contains(e) || e.contains(over) || !["sticky", "fixed"].includes(getComputedStyle(over).position))) over = over.parentElement;
+                if (over && over.getBoundingClientRect().bottom > r.y) {
+                  scrollBy({ top: r.y - over.getBoundingClientRect().bottom - pad, behavior: "instant" });
+                  await drawn();
+                  r = rect();
+                }
+              }
               if (!r || r.x >= vw || r.y >= vh || r.x + r.width <= 0 || r.y + r.height <= 0) return null;
+              // An element as wide or as tall as the window has its outline inside the window's edge, where
+              // it shows: one line across the page marks nothing.
+              const edge = 8;
+              const left = Math.max(r.x, edge), top = Math.max(r.y, edge), right = Math.max(Math.min(r.x + r.width, vw - edge), left), bottom = Math.max(Math.min(r.y + r.height, vh - edge), top);
               const mark = document.createElement("div");
               mark.id = "__izzy-outline";
               mark.style.cssText = "all: initial; position: fixed; z-index: 2147483647; pointer-events: none; box-sizing: border-box; border-radius: 2px;"
                 + "outline: 3px solid #d6006f; outline-offset: 2px; box-shadow: 0 0 0 7px #fff;"
-                + `left: ${r.x}px; top: ${r.y}px; width: ${r.width}px; height: ${r.height}px;`;
+                + `left: ${left}px; top: ${top}px; width: ${Math.max(right - left, 1)}px; height: ${Math.max(bottom - top, 1)}px;`;
               document.documentElement.appendChild(mark);
               await drawn();
               const width = Math.min(Math.max(r.width + 2 * pad, 480), vw), height = Math.min(Math.max(r.height + 2 * pad, 160), most);
@@ -137,9 +187,18 @@ static partial class Audit
         var subject = urls.Count == 1 ? urls[0] : sites.Count == 1 ? $"{sites[0]}, {urls.Count} pages" : $"{urls.Count} pages";
         var day = DateTimeOffset.TryParse((string)run["at"]!, System.Globalization.CultureInfo.InvariantCulture, out var at) ? at.ToString("MMMM d, yyyy", System.Globalization.CultureInfo.InvariantCulture) : ((string)run["at"]!)[..10];
 
+        // A contrast is measured once for each scheme: the colors of a dark page are not those of the light one.
+        var measured = new Dictionary<string, List<(string Scheme, JsonNode Contrast)>>(StringComparer.Ordinal);
+        foreach (var page in pages)
+            foreach (var node in page["violations"]!.AsArray().SelectMany(rule => rule!["nodes"]!.AsArray()).Where(n => n!["contrast"] is not null))
+            {
+                if (!measured.TryGetValue((string)node!["id"]!, out var each)) measured[(string)node["id"]!] = each = [];
+                if (each.All(m => m.Scheme != (string)page["scheme"]!)) each.Add(((string)page["scheme"]!, node["contrast"]!));
+            }
+
         var text = new StringBuilder();
         text.Append("<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n");
-        text.Append("<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'\">\n<meta name=\"color-scheme\" content=\"light dark\">\n");
+        text.Append("<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'\">\n<meta name=\"color-scheme\" content=\"light dark\">\n");
         text.Append($"<title>Accessibility audit: {H(subject)}</title>\n<style>\n{Style}</style>\n</head>\n<body>\n");
         text.Append($"<header>\n<p class=\"kicker\">Accessibility audit</p>\n<h1>{H(subject)}</h1>\n");
         text.Append($"<p class=\"made\">{H(day)}. Checked with axe-core {H((string)run["engine"]!["version"]!)} in {H((string?)run["browser"] ?? "a browser")}, at {H(Listed(run["widths"]!.AsArray().Select(w => $"{w}px")))}, in {H(Listed(run["schemes"]!.AsArray().Select(s => (string)s!)))}.</p>\n</header>\n<main>\n");
@@ -176,7 +235,7 @@ static partial class Audit
             text.Append($"<div><dt>Found</dt><dd>{Elements(group.Findings.Count)} on {group.Pages} page{(group.Pages == 1 ? "" : "s")}{(fresh > 0 ? $", {fresh} new" : "")}</dd></div>\n</dl>\n");
             // Those with a picture first: a group has pictures of as many elements as are shown.
             var shown = group.Findings.OrderBy(f => pictures?.Of(f.Id).Count > 0 ? 0 : 1).Take(Shown).ToList();
-            foreach (var finding in shown) text.Append(ElementHtml(finding, pictures));
+            foreach (var finding in shown) text.Append(ElementHtml(finding, pictures, measured.GetValueOrDefault(finding.Id) ?? []));
             if (group.Findings.Count > shown.Count) text.Append($"<p class=\"note\">…and {Elements(group.Findings.Count - shown.Count, "more element")} with the same finding.</p>\n");
             text.Append("</article>\n");
         }
@@ -185,15 +244,30 @@ static partial class Audit
         text.Append("<section aria-labelledby=\"checked\">\n<h2 id=\"checked\">What was checked</h2>\n");
         var addresses = pages.GroupBy(p => (string)p["url"]!).ToList();
         text.Append($"<p>{addresses.Count} page{(addresses.Count == 1 ? "" : "s")}, each at {H(Listed(pages.Select(p => $"{(int)p["width"]!}px {(string)p["scheme"]!}").Distinct()))}.</p>\n");
-        text.Append("<table>\n<thead><tr><th scope=\"col\">Page</th><th scope=\"col\">Elements found</th></tr></thead>\n<tbody>\n");
-        foreach (var address in addresses)
+        // A few loads are listed each, so one that failed has its width, scheme and why; a site's pages once each.
+        if (pages.Count <= 16)
         {
-            var count = address.SelectMany(p => p["violations"]!.AsArray()).SelectMany(v => v!["nodes"]!.AsArray()).Select(n => (string?)n!["id"]).Distinct().Count();
-            var failed = address.Where(p => p["error"] is not null).ToList();
-            var note = failed.Count == address.Count() ? $"Not checked: {(string)failed[0]["error"]!}" : failed.Count > 0 ? $"{count} ({failed.Count} of {address.Count()} loads failed)" : $"{count}";
-            if (address.FirstOrDefault(p => (int?)p["status"] is >= 400) is { } answered) note += $" (the page answered {(int)answered["status"]!})";
-            if (address.FirstOrDefault(p => p["landed"] is not null) is { } led) note += $" (it led to {(string)led["landed"]!}, which is what was checked)";
-            text.Append($"<tr><td>{PageLink(address.Key)}</td><td>{H(note)}</td></tr>\n");
+            text.Append("<table>\n<thead><tr><th scope=\"col\">Page</th><th scope=\"col\">Width</th><th scope=\"col\">Scheme</th><th scope=\"col\">Elements found</th></tr></thead>\n<tbody>\n");
+            foreach (var page in pages)
+            {
+                var count = page["violations"]!.AsArray().Sum(v => v!["nodes"]!.AsArray().Count);
+                var note = (string?)page["error"] is { } error ? $"Not checked: {error}" : (int?)page["status"] is >= 400 and var status ? $"{count} (the page answered {status})" : $"{count}";
+                if ((string?)page["landed"] is { } landed) note += $" (it led to {landed}, which is what was checked)";
+                text.Append($"<tr><td>{PageLink((string)page["url"]!)}</td><td>{(int)page["width"]!}px</td><td>{H((string)page["scheme"]!)}</td><td>{H(Spaces().Replace(note, " "))}</td></tr>\n");
+            }
+        }
+        else
+        {
+            text.Append("<table>\n<thead><tr><th scope=\"col\">Page</th><th scope=\"col\">Elements found</th></tr></thead>\n<tbody>\n");
+            foreach (var address in addresses)
+            {
+                var count = address.SelectMany(p => p["violations"]!.AsArray()).SelectMany(v => v!["nodes"]!.AsArray()).Select(n => (string?)n!["id"]).Distinct().Count();
+                var failed = address.Where(p => p["error"] is not null).ToList();
+                var note = failed.Count == address.Count() ? $"Not checked: {(string)failed[0]["error"]!}" : failed.Count > 0 ? $"{count} ({failed.Count} of {address.Count()} loads failed)" : $"{count}";
+                if (address.FirstOrDefault(p => (int?)p["status"] is >= 400) is { } answered) note += $" (the page answered {(int)answered["status"]!})";
+                if (address.FirstOrDefault(p => p["landed"] is not null) is { } led) note += $" (it led to {(string)led["landed"]!}, which is what was checked)";
+                text.Append($"<tr><td>{PageLink(address.Key)}</td><td>{H(note)}</td></tr>\n");
+            }
         }
         text.Append("</tbody>\n</table>\n</section>\n");
 
@@ -215,7 +289,7 @@ static partial class Audit
     }
 
     // One element: where it was found, its pictures, and what is known of it.
-    static string ElementHtml(Finding finding, Pictures? pictures)
+    static string ElementHtml(Finding finding, Pictures? pictures, List<(string Scheme, JsonNode Contrast)> measured)
     {
         var node = finding.Node;
         var text = new StringBuilder("<div class=\"element\">\n");
@@ -223,7 +297,7 @@ static partial class Audit
         if (pictures is not null)
         {
             var taken = pictures.Of(finding.Id);
-            if (taken.Count == 0) text.Append("<p class=\"note\">No picture: the element isn’t drawn on the page as it loads.</p>\n");
+            if (taken.Count == 0) text.Append(pictures.Failed(finding.Id) ? "<p class=\"note\">No picture of this element could be taken.</p>\n" : "<p class=\"note\">No picture: the element isn’t drawn on the page as it loads.</p>\n");
             else
             {
                 // Side by side when both fit at their own size; a wide one is small at half the page, so they stack.
@@ -237,9 +311,18 @@ static partial class Audit
         void Row(string name, string html) => text.Append($"<div><dt>{name}</dt><dd>{html}</dd></div>\n");
         Row("Selector", $"<code>{H((string)node["target"]!)}</code>");
         Row("HTML", $"<code>{H(Spaces().Replace((string)node["html"]!, " "))}</code>");
-        if ((string?)node["summary"] is { } summary) Row("axe", H(FixLead().Replace(Spaces().Replace(summary, " "), "")));
-        if (node["contrast"] is { } contrast)
-            Row("Measured", $"{Swatch((string?)contrast["foreground"])}{H((string?)contrast["foreground"] ?? "")} on {Swatch((string?)contrast["background"])}{H((string?)contrast["background"] ?? "")}, {H(contrast["ratio"]?.ToString() ?? "")}:1 at {H((string?)contrast["size"] ?? "")}; needs {H((string?)contrast["needs"] ?? "")}");
+        // axe's summary is a lead ("Fix any of the following:") and a line for each way: a list when there are several.
+        if ((string?)node["summary"] is { } summary)
+        {
+            var lines = summary.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var ways = lines.Where(line => !FixLead().IsMatch(line + " ")).ToList();
+            Row("axe", ways.Count <= 1 ? H(FixLead().Replace(Spaces().Replace(summary, " "), "")) : string.Concat(lines.Select(line => FixLead().IsMatch(line + " ") ? $"{H(line)}" : $"<span class=\"way\">{H(line)}</span>")));
+        }
+        // One row when the schemes measure alike, else one for each.
+        static string Colors(JsonNode contrast) => $"{Swatch((string?)contrast["foreground"])}{H((string?)contrast["foreground"] ?? "")} on {Swatch((string?)contrast["background"])}{H((string?)contrast["background"] ?? "")}, {H(contrast["ratio"]?.ToString() ?? "")}:1 at {H((string?)contrast["size"] ?? "")}; needs {H((string?)contrast["needs"] ?? "")}";
+        var colors = measured.Select(m => (m.Scheme, Text: Colors(m.Contrast))).ToList();
+        if (colors.Select(c => c.Text).Distinct().Count() == 1) Row("Measured", colors[0].Text);
+        else foreach (var (scheme, said) in colors) Row($"Measured, {scheme}", said);
         if (node["trace"] is JsonObject trace)
         {
             var docs = (string?)trace["docs"];
@@ -285,7 +368,7 @@ static partial class Audit
     [GeneratedRegex("`([^`]+)`")]
     private static partial Regex CodeSpan();
 
-    [GeneratedRegex("^#[0-9a-fA-F]{3,8}$")]
+    [GeneratedRegex(@"^#[0-9a-fA-F]{3,8}\z")]
     private static partial Regex HexColor();
 
     const string Style = """
@@ -301,7 +384,7 @@ static partial class Audit
           }
         }
         * { box-sizing: border-box; }
-        body { margin: 0 auto; padding: 2.5rem 1.5rem 4rem; max-width: 64rem; background: var(--bg); color: var(--text); font: 1rem/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow-wrap: anywhere; }
+        body { margin: 0 auto; padding: 2.5rem 1.5rem 4rem; max-width: 68rem; background: var(--bg); color: var(--text); font: 1rem/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow-wrap: anywhere; }
         h1 { margin: 0 0 0.5rem; font-size: 1.75rem; line-height: 1.25; }
         h2 { margin: 3rem 0 0.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line); font-size: 1.375rem; line-height: 1.3; }
         h3 { margin: 0 0 0.75rem; font-size: 1.0625rem; line-height: 1.4; }
@@ -336,14 +419,15 @@ static partial class Audit
         .swatch { display: inline-block; width: 0.8em; height: 0.8em; margin-inline-end: 0.3em; border: 1px solid var(--quiet); border-radius: 2px; vertical-align: -0.05em; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
         th, td { padding: 0.4rem 0.75rem 0.4rem 0; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
-        th { color: var(--quiet); font-size: 0.875rem; font-weight: 600; }
+        th { color: var(--quiet); font-size: 0.875rem; font-weight: 600; white-space: nowrap; overflow-wrap: normal; }
+        .way { display: list-item; margin-inline-start: 1.25rem; }
         footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); }
         @media (max-width: 30rem) { .facts > div { grid-template-columns: 1fr; gap: 0; } }
         @media print {
           :root { --bg: #fff; --text: #000; --quiet: #444; --line: #bbb; --soft: #f2f2f2; --link: #000; --real: #8c1d18; --person: #6b4400; --accepted: #173f8a; --other: #444; }
           body { padding: 0; max-width: none; font-size: 10.5pt; }
           .element, .tiles li { break-inside: avoid; }
-          h2, h3 { break-after: avoid; }
+          h2, h3, article > .facts { break-after: avoid; }
         }
 
         """;

@@ -172,7 +172,7 @@ static partial class Audit
             if (tracer is not null) tracer.Trace(page);
             else foreach (var node in page["violations"]!.AsArray().SelectMany(rule => rule!["nodes"]!.AsArray())) node!.AsObject().Remove("at");
             judge?.Decide(page);
-            if (pictures is not null) await pictures.Take(browser, page);
+            if (pictures is not null) await pictures.Take(browser, page, width, scheme);
         }
         catch (GenerationException e)
         {
@@ -262,7 +262,9 @@ static partial class Audit
               return false;
             }
           };
-          if (keep) window.__izzyFound = r.violations.map(v => v.nodes.map(elementOf));
+          // An element in a frame from another site can't be reached: its picture is of the frame.
+          const frameOf = (n) => { try { return n.target.length > 1 ? find(document, n.target[0]) : null; } catch { return null; } };
+          if (keep) window.__izzyFound = r.violations.map(v => v.nodes.map(n => elementOf(n) || frameOf(n)));
           const answer = (rule, n) => {
             const element = claims.length ? elementOf(n) : null;
             if (!element) return undefined;
