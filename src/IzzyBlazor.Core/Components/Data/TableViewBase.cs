@@ -25,4 +25,7 @@ public abstract partial class TableViewBase<TItem> : IDataGridExportFormats
     private protected virtual void ExportFormatChanged()
     {
     }
+
+    /// <summary>The library's text, for a column's own parts, such as its editor.</summary>
+    internal IzzyText Text => TextDefaults;
 }

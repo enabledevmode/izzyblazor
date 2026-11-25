@@ -16,7 +16,9 @@ static partial class Crud
     const int ListColumns = 6;
     const int SearchColumns = 3;
 
-    public static ProjectInfo Prepare(ProjectInfo project, string model, Dictionary<string, string> settings, List<string> notes)
+    /// <param name="notes">Said on every run: what is in the way, or needs a hand.</param>
+    /// <param name="written">Said only by a run that writes: what was made, such as where the records are kept.</param>
+    public static ProjectInfo Prepare(ProjectInfo project, string model, Dictionary<string, string> settings, List<string> notes, List<string> written)
     {
         string? Given(string name) => settings.FirstOrDefault(s => s.Key.Equals(name, StringComparison.OrdinalIgnoreCase)).Value;
 
@@ -38,7 +40,7 @@ static partial class Crud
         var nullable = Regex.IsMatch(csproj, @"<Nullable>\s*enable\s*</Nullable>", RegexOptions.IgnoreCase)
             || DirectoryBuildProps(root).Any(p => Regex.IsMatch(p, @"<Nullable>\s*enable\s*</Nullable>", RegexOptions.IgnoreCase));
         var info = ModelReader.Read(files, model, nullable);
-        foreach (var skipped in info.Skipped) notes.Add($"{info.Name}.{skipped}: left out.");
+        foreach (var skipped in info.Skipped) written.Add($"{info.Name}.{skipped}: left out.");
 
         // The pages in the .Client project can't see a class in the server project; the server sees the client's.
         if (http && !info.File.StartsWith(project.Client!, StringComparison.Ordinal) && (project.Host.Length == 0 || info.File.StartsWith(project.Host, StringComparison.Ordinal)))
@@ -71,7 +73,7 @@ static partial class Crud
             context = contexts[0];
             settings["Context"] = context.Name;
         }
-        else if (http) notes.Add($"No DbContext has a DbSet<{info.Name}>, so behind the API the {Lower(plural)} are kept in memory until the app stops: Memory{info.Name}Store. When there's one, run again with --overwrite.");
+        else if (http) written.Add($"No DbContext has a DbSet<{info.Name}>, so behind the API the {Lower(plural)} are kept in memory until the app stops: Memory{info.Name}Store. When there's one, run again with --overwrite.");
         else if (store.Equals("Ef", StringComparison.OrdinalIgnoreCase))
         {
             if (contexts.Count == 0)
@@ -81,7 +83,7 @@ static partial class Crud
             context = contexts[0];
             settings["Context"] = context.Name;
         }
-        else notes.Add($"The {Lower(plural)} are kept in memory until the app stops: Memory{info.Name}Store. When there's a DbSet<{info.Name}>, run again with --store ef --overwrite.");
+        else written.Add($"The {Lower(plural)} are kept in memory until the app stops: Memory{info.Name}Store. When there's a DbSet<{info.Name}>, run again with --store ef --overwrite.");
         // A key the database doesn't make (an invoice number, or an int with [DatabaseGenerated(None)]) is typed on New.
         var keyInput = !info.KeyGenerated && info.Key.Kind != FieldKind.Guid;
         if (keyInput && (Given("Mode") ?? "Grid").Equals("Grid", StringComparison.OrdinalIgnoreCase))
@@ -128,9 +130,11 @@ static partial class Crud
                 notes.Add($"The pages are behind sign-in, and {project.Client}Program.cs doesn't call AddAuthorizationCore: add it with AddCascadingAuthenticationState and AddAuthenticationStateDeserialization, or the pages fail in the browser.");
         }
 
-        // The Pro pages ask for sign-in and a view policy; who may edit isn't in them yet.
-        if ("Pages".Equals(Given("Mode"), StringComparison.OrdinalIgnoreCase) && settings.GetValueOrDefault("EditPolicy") is { Length: > 0 })
-            throw new UsageException("--edit-policy is the grid page's for now: the list, detail and form pages (--mode pages) don't hide what a person may not do. Use --view-policy for who may open them.");
+        // The nav entry crud wrote on an earlier run, when the words have changed since (--singular, --plural):
+        // only the entry that still reads as crud wrote it, so one you renamed, or a kit's, stays.
+        var named = Recorded(project, info.Name, "Plural");
+        var navRenamed = named is not null && named != plural && layout is not null
+            && Regex.IsMatch(layout, NavEntry(route, named), RegexOptions.IgnoreCase);
 
         settings["Model"] = info.Name;
         settings["Name"] = name;
@@ -228,6 +232,7 @@ static partial class Crud
             // A run with the other store replaces its registration rather than adding a second.
             ["HasStoreRegistration"] = registration.IsMatch(program),
             // The nav links to the pages already (a second run, or a kit's nav): no second link.
+            ["NavRenamed"] = navRenamed,
             ["HasNavLink"] = layout is not null && Regex.IsMatch(layout, $@"<NavItem\b[^>]*\bHref=""/?{Regex.Escape(route)}""", RegexOptions.IgnoreCase),
             ["HasViewPolicy"] = settings.GetValueOrDefault("ViewPolicy") is { Length: > 0 },
             ["HasEditPolicy"] = settings.GetValueOrDefault("EditPolicy") is { Length: > 0 },
@@ -241,6 +246,7 @@ static partial class Crud
             // The pages are the server's alone, unless they run in the browser.
             ["ServerOnly"] = http ? "Components/Pages/{{Name}}/-" : "Components/**",
             ["LayoutFile"] = layoutFile,
+            ["NavEntry"] = navRenamed ? NavEntry(route, named!) : "",
             // The API is the model's, as the store is, whatever --name and --route the pages have.
             ["ApiRoute"] = Kebab(Plural(info.Name)),
             // Auto where the app has circuits too, so the page works before the browser has the app.
@@ -325,17 +331,37 @@ static partial class Crud
 
     static string Alias(string name, string suffix) => Taken.Contains(name) || Setup.ComponentNames.Contains(name) ? name + suffix : name;
 
+    // The text of the nav entry at the route, when it is these words: a pattern for the manifest's replacement.
+    static string NavEntry(string route, string words) =>
+        $@"(?i)(?<=<NavItem\b[^>]*\bHref=""/?{Regex.Escape(route)}""[^>]*>){Regex.Escape(words)}(?=</NavItem>)";
+
+    // A setting of the last run of crud for the model, from .izzy/items.json; null when there's none.
+    static string? Recorded(ProjectInfo project, string model, string setting)
+    {
+        try
+        {
+            var items = System.Text.Json.Nodes.JsonNode.Parse(project.ReadFile(".izzy/items.json") ?? "{}")?["items"] as System.Text.Json.Nodes.JsonArray;
+            return items?.LastOrDefault(i => (string?)i?["id"] == "crud" && (string?)i?["settings"]?["Model"] == model)?["settings"]?[setting]?.GetValue<string>();
+        }
+        catch (Exception e) when (e is System.Text.Json.JsonException or InvalidOperationException or FormatException)
+        {
+            return null;
+        }
+    }
+
     static string Global(string ns, string name) => "global::" + (ns.Length > 0 ? ns + "." : "") + name;
 
     // " { Joined = DateOnly.FromDateTime(DateTime.Today) }" for the editable dates that can't be empty; "()" with none.
+    // A DateTime or DateTimeOffset starts in UTC, the zone its field shows and reads it in: a local midnight would
+    // show as the day before east of UTC, and a local time hours from what was saved.
     static string NewItemInit(IEnumerable<ModelField> fields)
     {
         var dates = fields.Where(f => !f.ReadOnly && !f.Nullable && f.Kind is FieldKind.Date or FieldKind.DateTime)
             .Select(f => $"{f.Name} = {(f.Type.TrimEnd('?') switch
             {
                 "DateOnly" => "DateOnly.FromDateTime(DateTime.Today)",
-                "DateTimeOffset" => f.Kind == FieldKind.Date ? "DateTimeOffset.Now.Date" : "DateTimeOffset.Now",
-                _ => f.Kind == FieldKind.Date ? "DateTime.Today" : "DateTime.Now",
+                "DateTimeOffset" => f.Kind == FieldKind.Date ? "DateTime.UtcNow.Date" : "DateTimeOffset.UtcNow",
+                _ => f.Kind == FieldKind.Date ? "DateTime.UtcNow.Date" : "DateTime.UtcNow",
             })}").ToList();
         return dates.Count == 0 ? "()" : $" {{ {string.Join(", ", dates)} }}";
     }
@@ -344,11 +370,13 @@ static partial class Crud
         [.. fields.Select(f => (IReadOnlyDictionary<string, object>)new Dictionary<string, object>
         {
             ["Name"] = f.Name,
-            ["Label"] = f.Label,
-            ["Column"] = f.ShortLabel,
+            // A date and time is kept and shown in UTC, and its label says so.
+            ["Label"] = f.Label + Zone(f),
+            ["Column"] = f.ShortLabel + Zone(f),
             ["InList"] = columns.Contains(f),
             ["LabelLower"] = Lower(f.Label),
             ["Article"] = Article(Lower(f.Label)),
+            ["Enter"] = Enter(Lower(f.Label)),
             ["Kind"] = f.Kind.ToString(),
             // A bool? can be unset: a Select of Yes and No, not a Switch.
             ["NullableBool"] = f.Kind == FieldKind.Bool && f.Nullable,
@@ -358,10 +386,11 @@ static partial class Crud
             ["Format"] = Format(f.Kind),
             ["HasFormat"] = Format(f.Kind).Length > 0,
             ["FormatAttr"] = Format(f.Kind) is { Length: > 0 } format ? $" Format=\"{format}\"" : "",
-            ["EditableAttr"] = f.ReadOnly ? " Editable=\"false\"" : "",
+            // A Guid that isn't the key is made by code, as in the form pages: shown, not typed.
+            ["EditableAttr"] = f.ReadOnly || f.Kind == FieldKind.Guid ? " Editable=\"false\"" : "",
             // A list narrows by its choices: a filter in the column's header (the text columns have the search).
             ["FilterAttr"] = Filtered(f.Kind) ? " Filterable" : "",
-            ["WidthAttr"] = Width(f.Kind, f.ShortLabel) is { } rem ? $" Width=\"Length.Rem({rem.ToString(CultureInfo.InvariantCulture)})\"" : "",
+            ["WidthAttr"] = Width(f.Kind, f.ShortLabel + Zone(f)) is { } rem ? $" Width=\"Length.Rem({rem.ToString(CultureInfo.InvariantCulture)})\"" : "",
             ["Type"] = f.Type,
             ["EnumType"] = f.Kind == FieldKind.Enum ? typeOf(f) : "",
             // A nullable enum's choices are of the nullable type, as its property is.
@@ -392,6 +421,18 @@ static partial class Crud
         {
             ["Name"] = v.Name, ["Label"] = v.Label, ["Tone"] = Tone(v.Name),
         })];
+
+    static string Zone(ModelField f) => f.Kind == FieldKind.DateTime && !f.Label.Contains("UTC", StringComparison.Ordinal) ? " (UTC)" : "";
+
+    // What a required field says when it's empty: "Enter a name.", and "Enter notes." or "Enter text." for words
+    // that take no article.
+    static string Enter(string label)
+    {
+        var last = label.Split(' ')[^1];
+        var bare = last is "text" or "information" or "info" or "feedback" or "content" or "advice" or "data" or "copy"
+            || (last.EndsWith('s') && !Regex.IsMatch(last, "(ss|us|is)$"));
+        return bare ? $"Enter {label}." : $"Enter {Article(label)} {label}.";
+    }
 
     // How a value is shown in the list and on the detail page.
     static string Format(FieldKind kind) => kind switch

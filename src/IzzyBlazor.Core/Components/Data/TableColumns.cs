@@ -796,7 +796,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
                 return $"The \"{HeaderText}\" column can't be edited: only a settable property of the row itself can, not a nested one or a computed one.";
             }
 
-            return EditTemplate is not null || Underlying == typeof(string) || Underlying.IsEnum || typeof(TValue) == typeof(bool) || IsNumeric(Underlying)
+            return EditTemplate is not null || Underlying == typeof(string) || Underlying.IsEnum || Underlying == typeof(bool) || IsNumeric(Underlying)
                 || Underlying == typeof(DateOnly) || Underlying == typeof(DateTime) || Underlying == typeof(DateTimeOffset)
                 || Underlying == typeof(TimeOnly) || Underlying == typeof(TimeSpan)
                 ? null
@@ -829,11 +829,25 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
                 builder.AddComponentParameter(6, "autofocus", true);
             }
 
+            var text = Table?.Text;
             if (Underlying.IsEnum)
             {
                 var choices = DataFields.EnumChoices(Underlying)!;
                 builder.AddComponentParameter(7, "Items", choices.Select(c => (TValue)Enum.Parse(Underlying, c.Value)).ToList());
                 builder.AddComponentParameter(8, "ItemText", (Func<TValue, string>)(v => choices.FirstOrDefault(c => c.Value == v?.ToString()).Text ?? ""));
+            }
+            else if (IsOptionalBool)
+            {
+                // Yes, No or neither: a checkbox has no third state to post.
+                builder.AddComponentParameter(7, "Items", new List<TValue> { (TValue)(object)true, (TValue)(object)false });
+                builder.AddComponentParameter(8, "ItemText", (Func<TValue, string>)(v => v is true ? text?.Yes ?? "Yes" : text?.No ?? "No"));
+            }
+
+            // A value that can be empty has a choice for it; without one the browser shows the first value for none.
+            if (IsOptionalChoice)
+            {
+                builder.AddComponentParameter(14, "Placeholder", text?.EditNone ?? "None");
+                builder.AddComponentParameter(15, "Clearable", true);
             }
 
             if (field?.Hint is { } hint)
@@ -860,6 +874,10 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         };
     }
 
+    private static bool IsOptionalBool => typeof(TValue) == typeof(bool?);
+
+    private static bool IsOptionalChoice => IsOptionalBool || (Underlying.IsEnum && typeof(TValue) != Underlying);
+
     // Each named outright, so trimming keeps what the column's type can use.
     private void OpenField(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
     {
@@ -883,7 +901,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         {
             builder.OpenComponent<Checkbox>(0);
         }
-        else if (Underlying.IsEnum)
+        else if (Underlying.IsEnum || IsOptionalBool)
         {
             builder.OpenComponent<Select<TValue>>(0);
         }

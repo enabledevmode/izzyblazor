@@ -636,8 +636,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var flags = Flags(args);
         var settings = Settings(item.Manifest, args);
         var notes = new List<string>();
-        if (crud) project = Crud.Prepare(project, args.Words[2], settings, notes);
+        var written = new List<string>();
+        if (crud) project = Crud.Prepare(project, args.Words[2], settings, notes, written);
         var changes = Generator.Generate(item, settings, project, at);
+        // What was made is said by the run that makes it, not by one that changes nothing.
+        if (changes.Creates.Count > 0 || changes.Inserts.Count > 0 || changes.Packages.Count > 0) notes.InsertRange(0, written);
         if (notes.Count > 0)
             changes = new Changeset
             {
@@ -1557,6 +1560,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             throw new UsageException(".izzy/items.json isn't valid JSON, so this item wasn't recorded in it. The files above were written.");
         }
         if (root["items"] is not JsonArray items) root["items"] = items = [];
+        // A model's crud is recorded once, as its last run made it: a second run replaces the first's entry.
+        if (id == "crud" && settings.TryGetValue("Model", out var model))
+            foreach (var earlier in items.Where(i => (string?)i?["id"] == "crud" && (string?)i?["settings"]?["Model"] == model).ToList())
+                items.Remove(earlier);
         items.Add(new JsonObject
         {
             ["id"] = id,

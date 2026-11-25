@@ -114,7 +114,7 @@
 @*#if (Field.CheckRequired) *@
         if (string.IsNullOrWhiteSpace(save.Item.{{Field.Name}}))
         {
-            save.AddError(x => x.{{Field.Name}}, "Enter {{Field.Article}} {{Field.LabelLower}}.");
+            save.AddError(x => x.{{Field.Name}}, "{{Field.Enter}}");
             missing = true;
         }
 @*#endif *@

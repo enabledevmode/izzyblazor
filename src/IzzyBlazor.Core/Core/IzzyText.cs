@@ -362,6 +362,9 @@ public class IzzyText
     /// <summary>A Table filter option for false.</summary>
     public virtual string No { get; set; } = "No";
 
+    /// <summary>A DataGrid edit field's choice for no value, where the column's value can be empty.</summary>
+    public virtual string EditNone { get; set; } = "None";
+
     /// <summary>A Banner's region name.</summary>
     public virtual string Announcement { get; set; } = "Announcement";
 

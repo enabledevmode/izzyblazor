@@ -70,6 +70,7 @@
     { "if": "OverHttp && !HasHttpClient", "file": "{{Client}}Program.cs", "anchor": "await builder.Build().RunAsync();", "position": "before", "text": "builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });\n" },
     { "if": "OverHttp", "file": "{{Client}}Program.cs", "anchor": "await builder.Build().RunAsync();", "position": "before", "text": "builder.Services.AddScoped<{{StoreNamespace}}.I{{Model}}Store, {{StoreNamespace}}.Http{{Model}}Store>();\n\n" },
     { "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "{{RootNamespace}}.Data.{{Model}}Export.Map(app);\n\n" },
+    { "if": "NavRenamed", "file": "{{LayoutFile}}", "position": "replace", "pattern": "{{NavEntry}}", "text": "{{Plural}}" },
     { "if": "NavIcons && !HasNavLink", "file": "{{LayoutFile}}", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"[^>]*\\bIcon=", "position": "after", "text": "<NavItem Href=\"{{Route}}\" Icon=\"Lucide.Rows3\">{{Plural}}</NavItem>\n" },
     { "if": "!NavIcons && !HasNavLink", "file": "{{LayoutFile}}", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"", "position": "after", "text": "<NavItem Href=\"{{Route}}\">{{Plural}}</NavItem>\n" }
   ]
