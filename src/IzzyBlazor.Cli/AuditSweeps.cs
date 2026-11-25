@@ -47,8 +47,9 @@ static partial class Audit
         if ((string?)answer is { } rule) rules.Add(JsonNode.Parse(rule)!);
     }
 
-    // The sweeps of a page as it is audited, at each width and scheme.
-    static async Task<List<JsonNode>> InPage(Chromium browser, JsonObject page)
+    // The sweeps of a page as it is audited, at each width and scheme. Bars are tried in the first scheme
+    // alone: where a page scrolls to is the same in light and in dark.
+    static async Task<List<JsonNode>> InPage(Chromium browser, JsonObject page, bool bars)
     {
         var rules = new List<JsonNode>();
         await browser.Evaluate(Shared);
@@ -59,7 +60,7 @@ static partial class Audit
                     ["is"] = FalsePositive, ["confidence"] = "high",
                     ["why"] = "Measured: the control takes clicks 12 pixels from its center in every direction, through a hit area larger than its box. axe measures the box",
                 };
-        Add(rules, await browser.Evaluate(Obscured));
+        if (bars) Add(rules, await browser.Evaluate(Obscured));
         return rules;
     }
 

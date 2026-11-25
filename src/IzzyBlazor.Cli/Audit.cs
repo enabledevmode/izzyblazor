@@ -166,7 +166,7 @@ static partial class Audit
                 if (sweeps)
                     try
                     {
-                        foreach (var rule in forced ? await InForcedColors(browser, colors) : await InPage(browser, page))
+                        foreach (var rule in forced ? await InForcedColors(browser, colors) : await InPage(browser, page, bars: scheme == colors))
                             page["violations"]!.AsArray().Add(rule);
                     }
                     catch (Exception e) when (e is GenerationException or InvalidOperationException or NullReferenceException or System.Text.Json.JsonException or InvalidCastException or FormatException && !browser.Closed)
