@@ -49,12 +49,13 @@ static partial class Audit
             if (Uri.TryCreate(loc, UriKind.Absolute, out var there) && new Uri(origin, there.AbsolutePath) is var here && Inside(here)) listed.Add(here);
         if (listed.Count > 0)
         {
-            var all = listed.Select(Address).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            // A file a sitemap lists (a PDF) isn't a page to audit.
+            var all = listed.Where(IsPage).DistinctBy(Key, StringComparer.OrdinalIgnoreCase).Select(Address).ToList();
             return new SitePages([.. all.Take(max)], all.Count, FromSitemap: true);
         }
 
         var pages = new List<string>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Address(start) };
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Key(start) };
         var queue = new Queue<Uri>([start]);
         while (queue.Count > 0 && pages.Count < max)
         {
@@ -63,7 +64,7 @@ static partial class Audit
             Uri landed;
             try
             {
-                using var response = await http(page);
+                using var response = await Twice(() => http(page));
                 landed = response.RequestMessage?.RequestUri ?? page;
                 // A page that leads off the site, or to a file, isn't one of its pages.
                 if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType != "text/html" || !Inside(landed)) continue;
@@ -76,10 +77,10 @@ static partial class Audit
                 continue;
             }
             // Where it led is the page (/ that leads to /signin is /signin), once.
-            if (!SameSite(landed, page) || Address(landed) != Address(page))
+            if (!SameSite(landed, page) || !Key(landed).Equals(Key(page), StringComparison.OrdinalIgnoreCase))
             {
-                if (!seen.Add(Address(landed)) && pages.Contains(Address(landed), StringComparer.OrdinalIgnoreCase)) continue;
-                if (queue.Any(waiting => Address(waiting).Equals(Address(landed), StringComparison.OrdinalIgnoreCase))) continue;
+                if (!seen.Add(Key(landed)) && pages.Any(found => Key(new Uri(found)).Equals(Key(landed), StringComparison.OrdinalIgnoreCase))) continue;
+                if (queue.Any(waiting => Key(waiting).Equals(Key(landed), StringComparison.OrdinalIgnoreCase))) continue;
             }
             pages.Add(Address(landed));
             // Links are relative to the page's <base>, which a Blazor app sets to its root.
@@ -88,8 +89,8 @@ static partial class Audit
             {
                 var href = WebUtility.HtmlDecode(link.Groups[1].Success ? link.Groups[1].Value : link.Groups[2].Success ? link.Groups[2].Value : link.Groups[3].Value).Trim();
                 if (href.Length == 0 || href[0] == '#' || !Uri.TryCreate(from, href, out var target) || target.Scheme is not ("http" or "https") || !Inside(target)) continue;
-                if (Path.GetExtension(target.AbsolutePath) is { Length: > 0 } extension && extension.ToLowerInvariant() is not (".html" or ".htm")) continue;
-                if (seen.Add(Address(target))) queue.Enqueue(new Uri(Address(target)));
+                if (!IsPage(target)) continue;
+                if (seen.Add(Key(target))) queue.Enqueue(new Uri(Address(target)));
             }
         }
         if (pages.Count == 0) throw new GenerationException($"{start} didn't answer with a page, so the site's pages couldn't be found.");
@@ -100,8 +101,22 @@ static partial class Audit
     // localhost and 127.0.0.1 with one port are one site; so are a name and the same name in another case.
     static bool SameSite(Uri a, Uri b) => a.Scheme == b.Scheme && a.Port == b.Port && string.Equals(a.Host, b.Host, StringComparison.OrdinalIgnoreCase);
 
-    // A page's address without its query and fragment, and without a slash at its end.
-    static string Address(Uri page) => page.GetLeftPart(UriPartial.Authority) + (page.AbsolutePath.TrimEnd('/') is { Length: > 0 } path ? path : "/");
+    // A page's address without its query and fragment, as the site writes it: /docs/ is asked for as /docs/,
+    // which a site may answer where it doesn't answer /docs.
+    static string Address(Uri page) => page.GetLeftPart(UriPartial.Path);
+
+    // What makes two addresses one page: the address without a slash at its end.
+    static string Key(Uri page) => page.GetLeftPart(UriPartial.Authority) + (page.AbsolutePath.TrimEnd('/') is { Length: > 0 } path ? path : "/");
+
+    // Not a file: an address with no extension, or a page's.
+    static bool IsPage(Uri address) => Path.GetExtension(address.AbsolutePath) is not { Length: > 0 } extension || extension.ToLowerInvariant() is ".html" or ".htm";
+
+    // A request that failed is made once more: one dropped connection shouldn't lose a page and what it links to.
+    static async Task<HttpResponseMessage> Twice(Func<Task<HttpResponseMessage>> get)
+    {
+        try { return await get(); }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException) { return await get(); }
+    }
 
     // The addresses a sitemap lists; a sitemap of sitemaps is followed one level down.
     static async Task<List<string>> Sitemap(Func<Uri, Task<HttpResponseMessage>> http, Uri address, int depth)

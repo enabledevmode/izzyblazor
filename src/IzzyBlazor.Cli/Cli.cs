@@ -317,7 +317,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             return Uri.TryCreate(address, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https" ? uri.ToString()
                 : throw new UsageException(run ? $"\"{page}\" isn't a path in the app (/orders) or an address." : $"\"{page}\" isn't an address: izzy audit https://localhost:5001/orders.");
         }
-        var urls = pages.Select(Resolve).ToList();
+        var urls = pages.Select(Resolve).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         if (site)
         {
             var start = Resolve(siteStart!);

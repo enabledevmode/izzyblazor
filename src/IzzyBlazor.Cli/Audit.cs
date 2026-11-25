@@ -24,7 +24,10 @@ static partial class Audit
     // in itself and in the frames it can reach (Collect); a frame from another site starts its own once loaded.
     static string Loader => field ??= "window.__izzyAxe = function () { if (window.__izzyAxeOn) return; window.__izzyAxeOn = true; (function () {\n" + Engine + """
 
-        }).call(window); };
+        }).call(window);
+          // axe answers frames of its own origin only, unless told: a frame from another site is part of the page.
+          window.axe.configure({ allowedOrigins: ["<unsafe_all_origins>"] });
+        };
         if (window !== window.top) window.addEventListener("load", function () {
           try { if (window.top.document) return; } catch { }
           window.__izzyAxe();

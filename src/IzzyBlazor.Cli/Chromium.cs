@@ -64,7 +64,9 @@ sealed class Chromium : IAsyncDisposable
     {
         var profile = Directory.CreateTempSubdirectory("izzy-browser-").FullName;
         var start = new ProcessStartInfo(path) { RedirectStandardError = true, RedirectStandardOutput = true, UseShellExecute = false };
-        string[] arguments = ["--headless=new", "--remote-debugging-port=0", $"--user-data-dir={profile}", "--no-first-run", "--no-default-browser-check", "--disable-extensions", "--disable-gpu"];
+        string[] arguments = ["--headless=new", "--remote-debugging-port=0", $"--user-data-dir={profile}", "--no-first-run", "--no-default-browser-check", "--disable-extensions", "--disable-gpu",
+            // A frame from another site stays in the page's process, so the audit's script reaches it too.
+            "--disable-site-isolation-trials", "--disable-features=IsolateOrigins,site-per-process"];
         foreach (var argument in arguments) start.ArgumentList.Add(argument);
         // Chromium's sandbox refuses to start as root (a container in CI).
         if (OperatingSystem.IsLinux() && Environment.UserName == "root") start.ArgumentList.Add("--no-sandbox");

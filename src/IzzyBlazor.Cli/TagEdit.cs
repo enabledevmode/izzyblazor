@@ -87,7 +87,8 @@ static partial class TagEdit
     {
         var text = (written ?? "").Trim();
         if (text.StartsWith("@(", StringComparison.Ordinal) && Closes(text, 1) == text.Length - 1) return text[2..^1].Trim();
-        return kind != "string" && text.StartsWith('@') ? text[1..].Trim() : text;
+        // Text is one expression when it is a name with what follows a name: @name, @user.Name, @L["Save"], @Title().
+        return text.StartsWith('@') && (kind != "string" || OneName().IsMatch(text)) ? text[1..].Trim() : text;
 
         // Where the parenthesis at an index closes; -1 when it doesn't. Text in quotes is passed over.
         static int Closes(string text, int open)
@@ -112,7 +113,8 @@ static partial class TagEdit
     {
         // A bare attribute is true.
         if (written is null) return kind == "bool" ? true : null;
-        if (written.StartsWith('@') && kind != "string") written = written[1..].Trim();
+        // @(2) is 2 as @2 is.
+        if (written.StartsWith('@') && kind != "string") written = Code(kind, written);
         switch (kind)
         {
             case "bool":
@@ -124,7 +126,11 @@ static partial class TagEdit
             case "number":
                 return double.TryParse(written, NumberStyles.Float, CultureInfo.InvariantCulture, out var number) ? number : null;
             case "string":
-                return written.Contains('@') ? null : System.Net.WebUtility.HtmlDecode(written);
+                // Razor reads @@ as an @, and an @ between letters or digits (an email address) as text.
+                var text = written.Replace("@@", "\u0001", StringComparison.Ordinal);
+                for (var i = text.IndexOf('@'); i >= 0; i = text.IndexOf('@', i + 1))
+                    if (i == 0 || i == text.Length - 1 || !char.IsLetterOrDigit(text[i - 1]) || !char.IsLetterOrDigit(text[i + 1])) return null;
+                return System.Net.WebUtility.HtmlDecode(text.Replace('\u0001', '@'));
             default:
                 return null;
         }
@@ -205,6 +211,9 @@ static partial class TagEdit
 
     static bool Same(string name, string option) =>
         name.Equals(option.Replace("-", "", StringComparison.Ordinal), StringComparison.OrdinalIgnoreCase);
+
+    [GeneratedRegex(@"^@[A-Za-z_]\w*(?:\.[A-Za-z_]\w*|\([^()]*\)|\[[^\[\]]*\])*$")]
+    private static partial Regex OneName();
 
     [GeneratedRegex(@"</([A-Za-z][\w.]*)\s*>")]
     private static partial Regex Close();
