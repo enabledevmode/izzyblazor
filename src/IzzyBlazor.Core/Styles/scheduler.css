@@ -470,7 +470,10 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    margin: calc(var(--ib-sched-lanes, 0) * var(--ib-sched-lane)) 0 0;
+    /* Under the bars: their rows start where the day number's row (1.75rem) ends, 2px below the number
+       itself, so with bars the list starts 2px lower too. Without that its first row sat 1px under the
+       last bar, which left neither the 24px a target needs. */
+    margin: calc(var(--ib-sched-lanes, 0) * var(--ib-sched-lane) + min(2px, var(--ib-sched-lanes, 0) * 2px)) 0 0;
     padding: 0;
     list-style: none;
   }
@@ -629,6 +632,9 @@
     /* Categories' colors stay: they're what the edges and swatches are for. */
     .ib-sched-swatch,
     .ib-sched-pill::before { forced-color-adjust: none; }
+    /* A fill is replaced by the page's color: the line for now takes a system color, which stays. */
+    .ib-sched-now,
+    .ib-sched-now::before { background-color: Highlight; }
     /* Box shadows are gone in forced colors: today's bar is a border then. */
     :is(.ib-sched-day-head, .ib-sched-cell).ib-sched-today { border-block-start: 3px solid Highlight; }
   }

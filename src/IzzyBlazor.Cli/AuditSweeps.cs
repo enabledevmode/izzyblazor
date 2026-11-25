@@ -285,20 +285,33 @@ static partial class Audit
             }
             return parts.includes("edge") ? "edge" : parts.includes("fill") ? "fill" : null;
           };
-          // What draws a ring for a control with focus: itself, something it is inside, or a part stretched
-          // over that (a card's link). Null when nothing has an outline.
+          // What has an outline near a control: itself, what it is inside, and what is beside it (four levels
+          // up, 600 elements). A part stretched over something (a card's link) counts as that thing. What is
+          // there with focus and wasn't without is the control's ring, wherever the page draws it: on the
+          // control, on a wrapper, or on a button beside a hidden input.
           const ringed = (style) => style.outlineStyle !== "none" && parseFloat(style.outlineWidth) > 0;
-          const ring = (e) => {
-            for (let p = e, up = 0; p && up < 6; p = p.parentElement, up++) {
-              if (ringed(getComputedStyle(p))) return p;
+          const outlines = (e) => {
+            const found = new Set();
+            const look = (p) => {
+              if (ringed(getComputedStyle(p))) found.add(p);
               for (const pseudo of ["::before", "::after"]) {
                 const style = getComputedStyle(p, pseudo);
-                if (style.content !== "none" && style.content !== "normal" && ringed(style)) return (p.offsetParent && p.offsetParent !== document.body ? p.offsetParent : p.parentElement) || p;
+                if (style.content !== "none" && style.content !== "normal" && ringed(style)) found.add((p.offsetParent && p.offsetParent !== document.body ? p.offsetParent : p.parentElement) || p);
               }
+            };
+            let scope = e;
+            for (let p = e, up = 0; p && p !== document.documentElement; p = p.parentElement, up++) {
+              look(p);
+              if (up < 4 && p !== document.body) scope = p;
             }
-            return null;
+            let count = 0;
+            for (const near of scope.querySelectorAll("*")) {
+              if (++count > 600) break;
+              look(near);
+            }
+            return found;
           };
-          return { frames, shown, kind, stops, named, drawn, rgba, ring };
+          return { frames, shown, kind, stops, named, drawn, rgba, outlines };
         })();
         """;
 
@@ -502,20 +515,23 @@ static partial class Audit
         """;
 
     // Where to take a control's picture: itself with some of the page around it, without focus. Around: what
-    // draws a ring for it (an outline on something it is inside, or on a part stretched over that), or null.
+    // gets an outline when it takes focus, other than itself, or null.
     const string Box = """
         (async () => {
           const S = window.__izzyS, e = window.__izzyStops__I__;
           if (!e || !e.isConnected) return null;
+          if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+          e.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+          await S.frames();
+          const before = window.__izzyBefore = S.outlines(e);
           let subject = e;
           if (__AROUND__) {
             e.focus({ preventScroll: true });
             await S.frames();
-            subject = S.ring(e);
-            if (!subject || subject === e) return null;
+            subject = [...S.outlines(e)].find(ring => ring !== e && !before.has(ring));
+            e.blur();
+            if (!subject) return null;
           }
-          if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
-          e.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
           // An input drawn by its label (a radio a pixel wide) is where the label is.
           while (subject.getBoundingClientRect().width < 6 && subject.parentElement) subject = subject.parentElement;
           await S.frames();
@@ -543,7 +559,7 @@ static partial class Audit
           if (!e || !e.isConnected) return JSON.stringify({ shown: false, outline: false });
           e.focus({ preventScroll: true });
           await window.__izzyS.frames();
-          return JSON.stringify({ shown: document.activeElement === e && e.matches(":focus-visible"), outline: !!window.__izzyS.ring(e) });
+          return JSON.stringify({ shown: document.activeElement === e && e.matches(":focus-visible"), outline: [...window.__izzyS.outlines(e)].some(ring => !(window.__izzyBefore || new Set()).has(ring)) });
         })()
         """;
 
