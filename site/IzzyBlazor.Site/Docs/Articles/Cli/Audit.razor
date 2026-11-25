@@ -2,7 +2,7 @@
 
 @* izzy audit <url>: one page checked with axe-core in the machine's own browser; --run; the two files; --fail-on (Audit.cs, Cli.cs).
    Pro: a verdict for each finding from the pack and .izzy/audit.json, tasks.md, --baseline (AuditVerdicts.cs);
-   the component, the fix, the file and line, results.sarif (AuditTrace.cs). *@
+   the component, the fix, the file and line, results.sarif (AuditTrace.cs); report.html with pictures (AuditHtml.cs). *@
 
 <ArticlePage Section="cli" Slug="audit">
     <Lead>
@@ -121,6 +121,16 @@
             findings and each one a person must look at, for an issue or a coding agent.
         </TextBlock>
 
+        <Heading Level="3">A report to hand over</Heading>
+        <TextBlock>
+            <Code>--format html</Code> writes <Code>report.html</Code>, the report as one file for a client or a
+            procurement review. It opens in any browser, in light or dark, and prints. Each element has a picture
+            of the page around it with the element outlined, in each color scheme it was found in. A group of
+            findings shows ten elements and counts the rest. An element the page doesn't draw as it loads, such as
+            an item of a closed menu, has no picture.
+        </TextBlock>
+        <Code Block Language="bash">izzy audit --run --site --format md,json,html</Code>
+
         <Heading Level="3">Fail a build on real or new findings</Heading>
         <TextBlock>
             <Code>--fail-on real</Code> ends with exit code 5 when a finding is real. To hold the line on a site
@@ -228,7 +238,7 @@
         new("--sizes 1440,375", "The widths to check, in pixels."),
         new("--schemes light,dark", "The color schemes to check."),
         new("--out <folder>", "Where the files go, in place of a new folder in .izzy/audit/."),
-        new("--format md,json", "Which files to write. With Pro, tasks adds tasks.md and sarif adds results.sarif."),
+        new("--format md,json", "Which files to write. With Pro, tasks adds tasks.md, html adds report.html and sarif adds results.sarif."),
         new("--project <path>", "The app's project: where --run starts it, and with Pro where a finding's file and line are looked for."),
         new("--json", "Prints the results as JSON and writes no files."),
         new("--fail-on any", "Ends with exit code 5 when there are findings. With Pro, real counts real findings and new counts real findings the baseline lacks."),

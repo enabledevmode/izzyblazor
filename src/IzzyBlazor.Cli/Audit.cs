@@ -47,9 +47,10 @@ static partial class Audit
     /// With a <paramref name="judge"/>, each finding gets its verdict. <paramref name="cookies"/> go with every
     /// request to the addresses' sites. A long run is shared between <paramref name="browsers"/> browsers.
     /// With a <paramref name="tracer"/>, each finding is traced to its component and, with the app's source, its line.
+    /// With <paramref name="pictures"/>, a picture is taken of each element a report shows.
     /// </summary>
     public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null, Judge? judge = null,
-        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1, Tracer? tracer = null)
+        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1, Tracer? tracer = null, Pictures? pictures = null)
     {
         var loads = (from width in widths from scheme in schemes from url in urls select (Width: width, Scheme: scheme, Url: url)).ToList();
         var pages = new JsonObject[loads.Count];
@@ -90,7 +91,7 @@ static partial class Audit
                         set = (load.Width, load.Scheme);
                     }
                     progress?.Invoke($"{(loads.Count > 8 ? $"[{at + 1}/{loads.Count}] " : "")}{load.Url} at {load.Width}, {load.Scheme}");
-                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge, tracer);
+                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge, tracer, pictures);
                     // A browser that died fails every load it is given at once, and so would take the rest of
                     // the run from the browsers that work: the run ends, as for one browser.
                     if (browser.Closed) throw new GenerationException("The browser closed during the audit.");
@@ -120,7 +121,7 @@ static partial class Audit
         return run;
     }
 
-    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge, Tracer? tracer)
+    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge, Tracer? tracer, Pictures? pictures)
     {
         var page = new JsonObject { ["url"] = url, ["width"] = width, ["scheme"] = scheme };
         try
@@ -134,7 +135,7 @@ static partial class Audit
                 await browser.Event(e => (string?)e["method"] == "Page.lifecycleEvent" && (string?)e["params"]?["name"] == "networkIdle" && (string?)e["params"]?["loaderId"] == loader, TimeSpan.FromSeconds(20));
             await Task.Delay(400);
 
-            var answer = await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]").Replace("__MARKS__", tracer?.Marks() ?? "{ \"keys\": [], \"all\": [] }"));
+            var answer = await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]").Replace("__MARKS__", tracer?.Marks() ?? "{ \"keys\": [], \"all\": [] }").Replace("__KEEP__", pictures is null ? "false" : "true"));
             try
             {
                 var found = JsonNode.Parse((string)answer!)!.AsObject();
@@ -171,6 +172,7 @@ static partial class Audit
             if (tracer is not null) tracer.Trace(page);
             else foreach (var node in page["violations"]!.AsArray().SelectMany(rule => rule!["nodes"]!.AsArray())) node!.AsObject().Remove("at");
             judge?.Decide(page);
+            if (pictures is not null) await pictures.Take(browser, page);
         }
         catch (GenerationException e)
         {
@@ -202,6 +204,8 @@ static partial class Audit
           const marked = __MARKS__;
           const marks = new Set(marked.all);
           const keys = new Set(marked.keys);
+          // For the pictures: the elements found stay in the page, in the order of the answer.
+          const keep = __KEEP__;
           // The frames under a document or a shadow root, those inside shadow roots too.
           const framesIn = (root) => {
             const found = [...root.querySelectorAll("iframe, frame")];
@@ -215,7 +219,7 @@ static partial class Audit
             } catch { }
           };
           start(window);
-          const r = await axe.run(document, { resultTypes: ["violations", "incomplete"], elementRef: claims.length > 0 || marks.size > 0 });
+          const r = await axe.run(document, { resultTypes: ["violations", "incomplete"], elementRef: claims.length > 0 || marks.size > 0 || keep });
           const refused = new Set();
           // The element of a node: axe's, or the one its target leads to. Each part of a target but the last is
           // an iframe (a list of parts goes through shadow roots).
@@ -258,6 +262,7 @@ static partial class Audit
               return false;
             }
           };
+          if (keep) window.__izzyFound = r.violations.map(v => v.nodes.map(elementOf));
           const answer = (rule, n) => {
             const element = claims.length ? elementOf(n) : null;
             if (!element) return undefined;

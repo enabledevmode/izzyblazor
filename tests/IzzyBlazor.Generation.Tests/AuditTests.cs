@@ -70,7 +70,7 @@ public sealed class AuditTests : IDisposable
         {
             var (output, error) = (new StringWriter(), new StringWriter());
             var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, output, error, proRoot: pro)
-                .Run(["audit", site.Url, "--sizes", "1440", "--schemes", "light", "--format", "md,json,tasks", .. options]);
+                .Run(["audit", site.Url, "--sizes", "1440", "--schemes", "light", "--format", "md,json,tasks,html", .. options]);
             return (exit, output.ToString(), error.ToString());
         }
 
@@ -82,6 +82,11 @@ public sealed class AuditTests : IDisposable
         Assert.Equal(["color-contrast: accepted", "color-contrast: false positive", "color-contrast: false positive", "image-alt: real"], verdicts);
         Assert.Contains("The footnote is quiet on purpose (Ada, 2026-11-24)", File.ReadAllText(Path.Combine(_work, "first", "report.md")));
         Assert.Contains("- [ ] **Images must have alternative text** (`image-alt`", File.ReadAllText(Path.Combine(_work, "first", "tasks.md")));
+
+        // report.html is one file: each of the four elements has its picture in it, the one in the iframe too.
+        var html = File.ReadAllText(Path.Combine(_work, "first", "report.html"));
+        Assert.Equal(4, html.Split("<img src=\"data:image/webp;base64,").Length - 1);
+        Assert.Contains("&lt;span style=&quot;color:#bbb&quot;&gt;Unavailable&lt;/span&gt;", html);
 
         // The picture gets its text and a button arrives with no name: one fixed, one new.
         body = body.Replace(picture, "<img alt=\"Orders by month\" src=\"data:image/gif;base64,R0lGODlhAQABAAAAACw=\"><button></button>");
