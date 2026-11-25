@@ -95,7 +95,7 @@ public partial class Table<TItem>
         var css = new StringBuilder("@layer izzy.components{@container (width < ").Append(StackWidth).Append("){");
         css.Append(CultureInfo.InvariantCulture, $"{t},{t}>*,{t}>*>tr{{display:block}}");
         // The header's buttons, in a row that wraps.
-        css.Append(CultureInfo.InvariantCulture, $"{t}>thead>tr{{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ib-space-1) var(--ib-space-3);padding:var(--ib-table-py) var(--ib-table-px);border-block-end:1px solid var(--ib-color-border)}}");
+        css.Append(CultureInfo.InvariantCulture, $"{t}>thead>tr{{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ib-space-2) var(--ib-space-3);padding:var(--ib-table-py) var(--ib-table-px);border-block-end:1px solid var(--ib-color-border)}}");
         css.Append(CultureInfo.InvariantCulture, $"{t}>thead>tr>th{{display:block;width:auto;padding:0;border:0}}");
         // Each value's title names its bands instead.
         if (HasBands)

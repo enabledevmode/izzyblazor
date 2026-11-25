@@ -21,6 +21,11 @@
     outline-offset: 2px;
   }
 
+  /* A carousel's track cuts off what is drawn outside a slide: the ring goes inside the picture. */
+  .ib-carousel-track .ib-lightbox-link:focus-visible {
+    outline-offset: -2px;
+  }
+
   .ib-lightbox-thumb-img {
     display: block;
     width: 100%;

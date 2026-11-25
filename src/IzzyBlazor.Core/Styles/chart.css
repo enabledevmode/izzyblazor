@@ -854,6 +854,8 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ib-space-2);
+    /* A target's 24 pixels, with or without script, so nothing moves when it becomes a button. */
+    min-block-size: 1.5rem;
     border-radius: var(--ib-radius-sm);
   }
 

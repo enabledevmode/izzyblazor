@@ -120,6 +120,11 @@
     cursor: ew-resize;
   }
   .ib-chart-sel-handle:hover { border-color: var(--ib-color-on-surface); }
+  /* Each takes the pointer outward from the window, 26 pixels wide (a target's 24, and the pixel
+     or so where the two overlap at the narrowest window), so they never share room. */
+  .ib-chart-sel-handle::before { content: ""; position: absolute; inset-block: -1px; inline-size: 26px; }
+  :is(.ib-chart-sel-start, ib-chart[data-ib-reverse] .ib-chart-sel-end)::before { right: 0; left: auto; }
+  :is(.ib-chart-sel-end, ib-chart[data-ib-reverse] .ib-chart-sel-start)::before { left: 0; right: auto; }
   /* Each handle inside the window's edge it moves, so neither reaches past the strip's ends. */
   .ib-chart-sel-start { left: calc(var(--ib-sel-js, var(--ib-sel-s)) * 100%); margin-inline-start: 0; }
   .ib-chart-sel-end { left: calc(var(--ib-sel-je, var(--ib-sel-e)) * 100%); margin-inline-start: -12px; }

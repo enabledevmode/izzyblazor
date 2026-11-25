@@ -347,7 +347,8 @@ export function extendRange(run: RangeRun | null, boxes: HTMLInputElement[], box
 
 /**
  * Loading on scroll (Paging LoadOnScroll): when the last item comes into view, presses the "load
- * next" trigger after the items, a load that doesn't move focus. On interactive pages it's a hidden
+ * next" trigger after the items, a load that doesn't move focus (not while the Load more button
+ * the keyboard reaches has focus: pressing it loads). On interactive pages it's a hidden
  * button; on static pages the Load more link, which enhanced navigation follows, keeping the scroll.
  * A static page that grew focuses the first new item on arrival, as after a press of Load more:
  * not after a scroll, so this tells focus.ts to skip that once.
@@ -362,6 +363,10 @@ export function setupLoadOnScroll(root: HTMLElement, lastSelector: string, trigg
     const trigger = root.querySelector<HTMLElement>(triggerSelector);
     // A link followed once: its page is on its way, and the patch brings a new last item.
     if (!trigger || trigger === following) return;
+    // The keyboard's Load more has focus: Tab scrolled to it, and a load now would put new items
+    // between it and what is in view, with focus out of sight. The button loads when it is pressed.
+    const focused = document.activeElement;
+    if (focused?.matches(".ib-data-more-on-focus") && root.contains(focused)) return;
     if (trigger instanceof HTMLAnchorElement) {
       following = trigger;
       (document as unknown as Record<symbol, boolean>)[Symbol.for("ib.skipFocusMark")] = true;

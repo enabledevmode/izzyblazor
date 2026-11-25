@@ -58,7 +58,7 @@ static partial class Audit
                 small["nodes"]![at]!["judged"] = new JsonObject
                 {
                     ["is"] = FalsePositive, ["confidence"] = "high",
-                    ["why"] = "Measured: the control takes clicks 12 pixels from its center in every direction, through a hit area larger than its box. axe measures the box",
+                    ["why"] = "Measured: the control takes clicks across a circle of 24 pixels, through a hit area larger than its box. axe measures the box",
                 };
         if (bars) Add(rules, await browser.Evaluate(Obscured));
         return rules;
@@ -317,7 +317,9 @@ static partial class Audit
         """;
 
     // WCAG 2.5.8, after axe: which of the controls axe found small take a click anywhere on a circle of
-    // 24 pixels around their center. Those have the room the criterion asks for.
+    // 24 pixels around their center, or around a point up to eight pixels from it (a hit area that grows to one side:
+    // one of two handles that touch). Those have the room the criterion asks for. The button inside a
+    // select the page styles is the select's own part: a click anywhere on the select is a click on it.
     const string Hits = """
         (async () => {
           const rule = (window.__izzyRules || []).indexOf("target-size");
@@ -325,11 +327,12 @@ static partial class Audit
           for (const [i, e] of ((window.__izzyFound || [])[rule] || []).entries()) {
             if (!e || !e.isConnected || e.ownerDocument !== document) continue;
             e.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
-            const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-            const takes = [0, 1, 2, 3, 4, 5, 6, 7].every(step => {
-              const over = document.elementFromPoint(x + 11.5 * Math.cos(step * Math.PI / 4), y + 11.5 * Math.sin(step * Math.PI / 4));
-              return !!over && e.contains(over);
-            });
+            const whole = e.matches("select > button") ? e.parentElement : e;
+            const r = whole.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+            const takes = [[0, 0], [-4, 0], [4, 0], [0, -4], [0, 4], [-8, 0], [8, 0], [0, -8], [0, 8]].some(([dx, dy]) => [0, 1, 2, 3, 4, 5, 6, 7].every(step => {
+              const over = document.elementFromPoint(x + dx + 11.5 * Math.cos(step * Math.PI / 4), y + dy + 11.5 * Math.sin(step * Math.PI / 4));
+              return !!over && whole.contains(over);
+            }));
             if (takes) hit.push(i);
           }
           scrollTo({ left, top, behavior: "instant" });
@@ -533,10 +536,20 @@ static partial class Audit
             e.blur();
             if (!subject) return null;
           }
+          // A control out of sight until it has focus (a skip link, a button for the keyboard alone) is
+          // where it is drawn with focus: appearing there is how its focus shows.
+          let shown = null;
+          if (subject === e && e.getBoundingClientRect().width < 6) {
+            // Scrolled to as Tab scrolls to it: in a box that scrolls it may be drawn below what shows.
+            e.focus();
+            await S.frames();
+            if (e.getBoundingClientRect().width >= 6) shown = e.getBoundingClientRect();
+            e.blur();
+          }
           // An input drawn by its label (a radio a pixel wide) is where the label is.
-          while (subject.getBoundingClientRect().width < 6 && subject.parentElement) subject = subject.parentElement;
+          while (!shown && subject.getBoundingClientRect().width < 6 && subject.parentElement) subject = subject.parentElement;
           await S.frames();
-          const r = subject.getBoundingClientRect(), pad = 8;
+          const r = shown || subject.getBoundingClientRect(), pad = 8;
           const left = Math.max(0, Math.floor(r.left - pad)), top = Math.max(0, Math.floor(r.top - pad));
           const right = Math.min(innerWidth, Math.ceil(r.right + pad)), bottom = Math.min(innerHeight, Math.ceil(r.bottom + pad));
           if (right - left < 4 || bottom - top < 4) return null;

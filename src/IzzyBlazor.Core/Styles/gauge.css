@@ -294,6 +294,8 @@
     :is(.ib-lgauge-rail, .ib-gauge-readout) { forced-color-adjust: none; }
     .ib-lgauge-track { outline: 1px solid CanvasText; }
     :is(.ib-lgauge-target, .ib-lgauge-needle > span, .ib-lgauge-line) { background: CanvasText; }
+    /* A pointer is only a fill, and its color may be set on it: the text color, so it is always drawn. */
+    .ib-lgauge-pin { background: CanvasText !important; }
   }
 
   @media print {
