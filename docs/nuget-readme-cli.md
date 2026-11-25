@@ -21,7 +21,7 @@ echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.bash_profile    # bash
 - `izzy add crud <Model>` reads a model class from your app's source and writes a page whose grid adds, edits and deletes its records.
 - `izzy init` sets up IzzyBlazor in an app you have: a Blazor Web App, or an MVC or Razor Pages app, which gets a Blazor root beside its pages. It builds the app afterwards and says how to fix a name clash.
 - `izzy update` moves the app to the newest IzzyBlazor: the package in its project files and the izzy in its tool manifest. Outside an app, or with `--global`, it updates the izzy on your machine. izzy says in one line when a newer release is out, and never updates by itself.
-- `izzy upgrade` finds where the app uses what the releases it passed removed or renamed, in its `.razor` and `.cs` files, renames what has a new name, and lists the rest by file and line (Pro). `izzy update` lists the changes themselves.
+- `izzy upgrade` finds where the app uses what the releases between its old version and the new one removed or renamed, in its `.razor` and `.cs` files, renames what has a new name, and lists the rest by file and line (Pro). `izzy update` lists the changes themselves.
 - `izzy list` shows the catalog; `izzy describe block hero` lists an item's settings.
 - `izzy login` signs this machine in to a free IzzyBlazor account, which the app starters, the blocks and the CRM kit come with. In CI, set `IZZY_KEY` to a key from your account page.
 - `izzy audit <url>` checks a page's accessibility with axe-core in the Chrome or Edge on your machine, and writes a report and the results as JSON. `--run` starts your app for it.

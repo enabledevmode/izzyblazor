@@ -14,6 +14,9 @@ namespace IzzyBlazor.Cli;
 /// <param name="Note">What to do instead, when there is more to it than a new name.</param>
 sealed record ReleaseChange(string Release, string Of, string Name, string? Member, string? To, string? Note)
 {
+    /// <summary>Whether the member is one of an object of the type (text.MoveCanceled), not of the type itself (Color.Fill).</summary>
+    public bool Instance { get; init; }
+
     public string Subject => Member is null ? Name : $"{Name}.{Member}";
 
     /// <summary>One line for a person: Icon.Role → Purpose, or Step.Hidden: Use Visible…</summary>
@@ -46,7 +49,7 @@ sealed record ChangeUse(ReleaseChange Change, string Path, int Line, int Column,
 /// What each release removed or renamed (changes.json beside the tool, made as releases are cut), and where
 /// an app's .razor and .cs files use it. A parameter is looked for as an attribute of its component's tags
 /// (with @bind- before it, or Changed or Expression after); a type and its members as words, anywhere in a
-/// file. A method is listed but not looked for: the build names it.
+/// file but a Razor comment. A method is listed but not looked for: the build names it.
 /// </summary>
 sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
 {
@@ -58,7 +61,7 @@ sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
         if (!File.Exists(path)) throw new UsageException("This izzy has no record of what each release changed (changes.json is missing beside it). Reinstall the tool.");
         var releases = JsonNode.Parse(File.ReadAllText(path))!["releases"]!.AsArray();
         return new(releases.SelectMany(r => r!["changes"]!.AsArray().Select(c => new ReleaseChange(
-            (string)r["version"]!, (string)c!["of"]!, (string)c["name"]!, (string?)c["member"], (string?)c["to"], (string?)c["note"]))).ToList());
+            (string)r["version"]!, (string)c!["of"]!, (string)c["name"]!, (string?)c["member"], (string?)c["to"], (string?)c["note"]) { Instance = (bool?)c["instance"] ?? false })).ToList());
     }
 
     /// <summary>The changes of the releases after <paramref name="from"/>, up to and with <paramref name="to"/>, oldest first.</summary>
@@ -86,11 +89,22 @@ sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
             uses.Add(new ChangeUse(change, path, line, column, fix));
         }
 
-        if (path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase))
+        var razor = path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase);
+        var comments = razor ? RazorPage.Comments(text) : [];
+        bool Commented(int at) => comments.Any(c => at >= c.Start && at < c.End);
+        // Where a tag's or an attribute's name is: a type's name there is not the type (FloatPosition="…").
+        var names = new List<(int Start, int End)>();
+        if (razor)
         {
-            foreach (var tag in RazorPage.Tags(text))
+            // The page's tags, and the changed components' tags written as markup in its C# code.
+            var owners = changes.Where(c => c.Of != "type").Select(c => c.Name).ToHashSet(StringComparer.Ordinal);
+            var inCode = RazorPage.CodeBlocks(text).SelectMany(b => TagStart().Matches(text[b.Open..b.Close]).Select(m => RazorPage.TagAt(text, b.Open + m.Index)))
+                .Where(t => t is not null && changes.Any(c => c.Of != "type" && Owns(c, Short(t.Name), library)));
+            foreach (var tag in RazorPage.Tags(text).Concat(inCode!).OrderBy(t => t!.Start))
             {
-                var name = tag.Name[(tag.Name.LastIndexOf('.') + 1)..];
+                var name = Short(tag!.Name);
+                names.Add((tag.Start, tag.NameEnd));
+                names.AddRange(tag.Attributes.Select(a => (a.Start, a.Start + a.Name.Length)));
                 foreach (var change in changes.Where(c => c.Of != "type" && Owns(c, name, library)))
                 {
                     if (change.Member is null)
@@ -108,31 +122,37 @@ sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
             }
             foreach (var change in changes.Where(c => c is { Of: "component", Member: null, To: not null }))
             {
-                var open = uses.Where(u => u.Change == change).Select(u => u.Fix!.Offset).ToHashSet();
-                if (open.Count == 0) continue;
+                if (!uses.Any(u => u.Change == change)) continue;
                 foreach (Match close in Regex.Matches(text, $@"</((?:[\w.]+\.)?{Regex.Escape(change.Name)})\s*>"))
                 {
+                    if (Commented(close.Index)) continue;
                     var at = close.Groups[1].Index + close.Groups[1].Length - change.Name.Length;
                     uses.Add(new ChangeUse(change, path, 0, 0, new TextInsert(path, at, change.To!, hash.Value) { Length = change.Name.Length }));
                 }
             }
         }
 
-        var comments = path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) ? RazorPage.Comments(text) : [];
         // A type and its members, as code writes them: in a .cs file, an @code block or an attribute's value.
         foreach (var change in changes.Where(c => c.Of == "type" && (c.Member is null || Identifier().IsMatch(c.Member))))
         {
-            var pattern = change.Member is null ? $@"(?<!\w){Regex.Escape(change.Name)}\b" : $@"(?<!\w){Regex.Escape(change.Name)}\s*\.\s*{Regex.Escape(change.Member)}\b";
+            var (name, member) = (Regex.Escape(change.Name), change.Member is null ? null : Regex.Escape(change.Member));
+            var pattern = member is null ? $@"(?<!\w){name}\b"
+                // A member of an object (IzzyText's texts): after a dot, or set by name.
+                : change.Instance ? $@"(?<=\.\s*){member}\b(?!\s*\()|(?<![\w.]){member}(?=\s*=[^=>])"
+                : $@"(?<!\w){name}\s*\.\s*{member}\b";
             foreach (Match match in Regex.Matches(text, pattern))
             {
-                // A Razor comment is left as it was written.
-                if (comments.Any(c => match.Index >= c.Start && match.Index < c.End)) continue;
                 var length = (change.Member ?? change.Name).Length;
-                Add(change, match.Index + match.Length - length, length, change.To);
+                var at = match.Index + match.Length - length;
+                // A Razor comment is left as it was written.
+                if (Commented(at) || names.Any(n => at >= n.Start && at < n.End)) continue;
+                Add(change, at, length, change.To);
             }
         }
         return uses.OrderBy(u => u.Line).ThenBy(u => u.Column).ToList();
     }
+
+    static string Short(string tag) => tag[(tag.LastIndexOf('.') + 1)..];
 
     // Whether a tag by this name is the change's component, or a component on the change's base.
     static bool Owns(ReleaseChange change, string tag, Components library) =>
@@ -163,4 +183,8 @@ sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
 
     [GeneratedRegex(@"^\w+$")]
     private static partial Regex Identifier();
+
+    // Where a component's tag may start in C# code: not List<Card>, whose < follows a name.
+    [GeneratedRegex(@"(?<![\w\])])<(?=[A-Z])")]
+    private static partial Regex TagStart();
 }

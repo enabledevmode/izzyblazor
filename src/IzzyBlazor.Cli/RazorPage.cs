@@ -292,6 +292,9 @@ static partial class RazorPage
         return tags;
     }
 
+    /// <summary>The opening tag whose <c>&lt;</c> is here, or null when what follows isn't one.</summary>
+    public static RazorTag? TagAt(string text, int start) => Tag(text, start);
+
     static RazorTag? Tag(string text, int start)
     {
         var i = start + 1;

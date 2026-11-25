@@ -9,7 +9,7 @@
     </Lead>
     <ChildContent>
         <Heading Level="2">See the changes first</Heading>
-        <TextBlock>Add one of these options to any <Code>izzy add</Code> or <Code>izzy init</Code> command:</TextBlock>
+        <TextBlock>Add one of these options to any command that changes your app, such as <Code>izzy add</Code>, <Code>izzy init</Code> or <Code>izzy update</Code>:</TextBlock>
         <Table Items="Previews" Caption="Showing changes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
                 <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
@@ -69,7 +69,7 @@
         new("0", "Done, or there was nothing to change."),
         new("1", "An error, such as an unknown setting, or an app that doesn't build after izzy init."),
         new("2", "A file already exists with different content. Nothing was written."),
-        new("3", "The item or layout needs IzzyBlazor Pro. izzy list marks these items."),
+        new("3", "The item, layout or command needs IzzyBlazor Pro. izzy list marks these items."),
         new("4", "The item comes with a free account, and this machine isn't signed in. Run izzy login."),
         new("5", "izzy audit found problems that --fail-on counts."),
     ];

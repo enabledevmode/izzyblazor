@@ -56,8 +56,9 @@
             With IzzyBlazor Pro, <Code>izzy upgrade</Code> finds where your app uses them, in its
             <Code>.razor</Code> and <Code>.cs</Code> files. It renames what has a new name, and lists the rest by
             file and line with what to use instead. Add <Code>--dry-run</Code> or <Code>--diff</Code> to see
-            the renames first. For an app you updated by hand, name the release it came from with
-            <Code>--from</Code>.
+            the renames first. It starts from the release <Code>izzy update</Code> moved your app from, kept in
+            <Code>.izzy/upgrade.json</Code> until nothing is left to change. For an app you updated by hand, name
+            that release with <Code>--from</Code>.
         </TextBlock>
         <Code Block Language="bash">@UpgradeApp</Code>
         <TextBlock>
@@ -68,7 +69,8 @@
             To learn of a release, izzy asks nuget.org for the package's versions, at most once a day, while a
             command runs. The request doesn't wait for an answer after the command ends, and it says nothing about
             you or your app. izzy doesn't ask in CI, with <Code>--json</Code>, or when a script or an editor reads its
-            output. To turn it off, set <Code>IZZY_NO_UPDATE_CHECK=1</Code>.
+            output. To turn it off, set <Code>IZZY_NO_UPDATE_CHECK=1</Code>. <Code>izzy update</Code> itself asks
+            each time, unless you give it <Code>--to</Code>.
         </TextBlock>
 
         <Heading Level="2">Commands</Heading>
@@ -135,7 +137,7 @@
         new("izzy new starter|kit <id> -n <name>", "Creates a new app from a starter or an app kit, as dotnet new does, such as izzy new starter sidebar or izzy new kit crm. See Create an app and Templates."),
         new("izzy init", "Sets up IzzyBlazor in an app you already have. See Add to an existing app."),
         new("izzy update", "Moves your app to the newest IzzyBlazor: the package and the app's izzy. Outside an app, it updates the izzy on your machine. See Update."),
-        new("izzy upgrade", "Finds where your app uses what the releases it passed removed or renamed, and renames what has a new name (Pro). See Update."),
+        new("izzy upgrade", "Finds where your app uses what the releases between its old version and the new one removed or renamed, and renames what has a new name (Pro). See Update."),
         new("izzy add block <id>", "Adds a block to your app, such as izzy add block hero."),
         new("izzy add component <Name> --at <file>:<line>", "Adds a component's usage example from these docs to a page. See Components."),
         new("izzy add crud <Model>", "Creates a page to display, add, edit and delete a model's records."),

@@ -51,6 +51,10 @@ If a tool answers that the user must run `izzy login`, tell them: it is a free a
 2. If it isn't known, tell the user what you worked around and offer to report it.
 3. Call `report_gap` only after they agree and know the report is public, with a minimal `.razor` repro that uses sample names, never their code or data.
 
+## Moving to a newer IzzyBlazor
+
+`izzy update` sets the app's IzzyBlazor version and builds; it ends with what the releases in between removed or renamed. Razor takes an old parameter name without a warning, so act on that list. With IzzyBlazor Pro, `izzy upgrade --dry-run --json` gives each use in the app (`uses`: file, line, column, and a `note` saying what to use instead), and `izzy upgrade` makes the plain renames. Change the rest by hand, then build.
+
 ## Finish
 
 Build the app (`dotnet build`) and fix what it reports. A component of the app's with the name of one of IzzyBlazor's is fixed by writing the app's full name where it is used. A type clash (CS0104, such as the app's own `Status`) is fixed by qualifying one of them or adding an alias to `_Imports.razor`.

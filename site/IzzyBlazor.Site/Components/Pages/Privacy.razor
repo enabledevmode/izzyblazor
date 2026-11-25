@@ -42,7 +42,8 @@
             At most once a day, izzy asks nuget.org which versions of its package exist, so it can tell you about a
             newer release. nuget.org is Microsoft's package service, the same one .NET downloads the package from.
             The request names the package and nothing about you or your app. Set
-            <Code>IZZY_NO_UPDATE_CHECK=1</Code> to turn it off.
+            <Code>IZZY_NO_UPDATE_CHECK=1</Code> to turn it off. <Code>izzy update</Code> asks the same each time you
+            run it without <Code>--to</Code>, since it needs the newest version.
         </TextBlock>
         <TextBlock>
             <Code>izzy feedback</Code> shows you a post and sends it only when you agree. The post holds what you
