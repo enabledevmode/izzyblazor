@@ -539,12 +539,21 @@ static partial class Audit
           // A control out of sight until it has focus (a skip link, a button for the keyboard alone) is
           // where it is drawn with focus: appearing there is how its focus shows.
           let shown = null;
+          window.__izzyKept = null;
           if (subject === e && e.getBoundingClientRect().width < 6) {
             // Scrolled to as Tab scrolls to it: in a box that scrolls it may be drawn below what shows.
             e.focus();
             await S.frames();
-            if (e.getBoundingClientRect().width >= 6) shown = e.getBoundingClientRect();
+            if (e.getBoundingClientRect().width >= 6) {
+              shown = e.getBoundingClientRect();
+              // Without focus it takes no room, and a box scrolled to its end scrolls back: where each
+              // was is kept, for the picture with focus.
+              const boxes = [];
+              for (let p = e.parentElement; p; p = p.parentElement) if (p.scrollTop || p.scrollLeft) boxes.push([p, p.scrollLeft, p.scrollTop]);
+              window.__izzyKept = { e, boxes, x: scrollX, y: scrollY };
+            }
             e.blur();
+            if (shown) scrollTo({ left: window.__izzyKept.x, top: window.__izzyKept.y, behavior: "instant" });
           }
           // An input drawn by its label (a radio a pixel wide) is where the label is.
           while (!shown && subject.getBoundingClientRect().width < 6 && subject.parentElement) subject = subject.parentElement;
@@ -572,6 +581,11 @@ static partial class Audit
           const e = window.__izzyStops__I__;
           if (!e || !e.isConnected) return JSON.stringify({ shown: false, outline: false });
           e.focus({ preventScroll: true });
+          const kept = window.__izzyKept;
+          if (kept && kept.e === e) {
+            for (const [box, left, top] of kept.boxes) box.scrollTo({ left, top, behavior: "instant" });
+            scrollTo({ left: kept.x, top: kept.y, behavior: "instant" });
+          }
           await window.__izzyS.frames();
           return JSON.stringify({ shown: document.activeElement === e && e.matches(":focus-visible"), outline: [...window.__izzyS.outlines(e)].some(ring => !(window.__izzyBefore || new Set()).has(ring)) });
         })()

@@ -58,4 +58,4 @@ Claude outputs/
 src/IzzyBlazor.Core/wwwroot/site-nav.css
 
 # izzy audit writes its reports here
-.izzy/audit/
+**/.izzy/audit/
