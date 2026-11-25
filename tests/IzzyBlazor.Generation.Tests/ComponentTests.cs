@@ -132,7 +132,8 @@ public sealed class ComponentTests : IDisposable
         Assert.Equal("Button", (string)tag["component"]!);
         var attributes = tag["attributes"]!.AsArray().ToDictionary(a => (string)a!["name"]!, a => a!);
         Assert.Equal("Outline", (string)attributes["Variant"]["value"]!);
-        Assert.True((bool)attributes["Size"]["expression"]!);
+        Assert.Equal("_size", (string)attributes["Size"]["expression"]!);
+        Assert.Null(attributes["Variant"]["expression"]);
         Assert.True((bool)attributes["Submit"]["value"]!);
         Assert.Equal("a&b", (string)attributes["Href"]["value"]!);
         // From inside its content too.

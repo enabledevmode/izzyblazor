@@ -63,7 +63,9 @@ static partial class TagEdit
                 ["written"] = written,
                 // The value a form holds (true, "Outline", 12, "Save"); null when it's an expression.
                 ["value"] = value,
-                ["expression"] = parameter is not null && value is null,
+                // The C# it's written as, where it isn't a plain value (new Responsive<int>() { Base = 2 }, _size):
+                // what a form shows in place of a control. Null beside a value, and for an attribute that isn't an option.
+                ["expression"] = parameter is not null && value is null ? Code((string)parameter["kind"]!, written) : null,
                 ["start"] = a.Start, ["end"] = a.End,
                 ["valueStart"] = a.HasValue ? a.ValueStart : null, ["valueLength"] = a.HasValue ? a.ValueLength : null,
             });
@@ -77,6 +79,32 @@ static partial class TagEdit
             ["originalHash"] = Inserts.Hash(page),
             ["attributes"] = attributes,
         };
+    }
+
+    // An expression as C#: without the @ Razor asks for, and without the parentheses around the whole of it.
+    // Text with an expression in it (Title="Hello @name") stays as written.
+    static string Code(string kind, string? written)
+    {
+        var text = (written ?? "").Trim();
+        if (text.StartsWith("@(", StringComparison.Ordinal) && Closes(text, 1) == text.Length - 1) return text[2..^1].Trim();
+        return kind != "string" && text.StartsWith('@') ? text[1..].Trim() : text;
+
+        // Where the parenthesis at an index closes; -1 when it doesn't. Text in quotes is passed over.
+        static int Closes(string text, int open)
+        {
+            var depth = 0;
+            for (var i = open; i < text.Length; i++)
+            {
+                if (text[i] is '"' or '\'')
+                {
+                    var quote = text[i];
+                    for (i++; i < text.Length && text[i] != quote; i++) if (text[i] == '\\') i++;
+                }
+                else if (text[i] == '(') depth++;
+                else if (text[i] == ')' && --depth == 0) return i;
+            }
+            return -1;
+        }
     }
 
     // An attribute's value as a form holds it; null when it isn't written plainly.
