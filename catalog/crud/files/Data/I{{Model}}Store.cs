@@ -3,7 +3,7 @@ using IzzyBlazor;
 using {{Alias.Name}} = {{Alias.Type}};
 #endeach
 
-namespace {{RootNamespace}}.Data;
+namespace {{StoreNamespace}};
 
 /// <summary>
 /// Where the {{ModelPluralLower}} pages read and write {{ModelPluralLower}}, from izzy add crud. The pages ask only this,

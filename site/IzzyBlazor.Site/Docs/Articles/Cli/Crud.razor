@@ -1,7 +1,7 @@
 @page "/docs/cli/crud"
 
 @* izzy add crud <Model> (catalog/crud in src/IzzyBlazor.Cli): the grid page it writes, how it reads the model,
-   the store, the options, and Pro's --mode pages (artifacts/izzyblazor-crud-design.md). *@
+   the store, the options, Pro's --store http (the .Client project and {Model}Api), and Pro's --mode pages (artifacts/izzyblazor-crud-design.md). *@
 
 <ArticlePage Section="cli" Slug="crud">
     <Lead>
@@ -83,6 +83,31 @@
             lists its errors at the top. Records with many fields have more room on pages of their own.
         </TextBlock>
 
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Heading Level="2">Pages that run in the browser, with Pro</Heading>
+            <Badge Variant="BadgeVariant.Outline">Planned</Badge>
+        </Row>
+        <TextBlock>
+            The pages read the store on the server, so izzy doesn't add them to an app whose pages run in WebAssembly.
+            With IzzyBlazor Pro, <Code>--store http</Code> does, in any app with a <Code>.Client</Code> project. The
+            pages, <Code>ICustomerStore</Code> and an <Code>HttpCustomerStore</Code> go into the
+            <Code>.Client</Code> project. The server gets <Code>Data/CustomerApi.cs</Code>, an API at
+            <Code>/api/customers</Code> over the DbContext, or over memory when no DbContext has the model.
+        </TextBlock>
+        <Code Block Language="bash">izzy add crud Customer --store http</Code>
+        <TextBlock>
+            In the browser the grid's search, sort, filters and paging travel in the request's address, and the server
+            runs them in the database. While the server draws the page first, it reads the server's store directly.
+            The API checks what it is sent: the model's validation runs, and only the fields the form edits are
+            saved. It asks for the same sign-in and policies as the pages.
+        </TextBlock>
+        <TextBlock>
+            The model class has to be in the <Code>.Client</Code> project, where the pages can see it. The server
+            project sees it there too. In an app whose pages are static by default, the pages get
+            <Code>@@rendermode InteractiveAuto</Code>, or <Code>InteractiveWebAssembly</Code> when the app has no
+            server interactivity.
+        </TextBlock>
+
         <Heading Level="2">After the model changes</Heading>
         <TextBlock>
             Run the command again with <Code>--diff</Code> to see what would change. Then run it with
@@ -105,6 +130,7 @@
         new("--singular <words>", "Sets what one record is called on the page, when it isn't the class name. For example, --singular \"team member\" for a Member class. To set the plural, use --plural."),
         new("--route <path>", "Sets the page's URL. Defaults to the name in kebab case, such as customers."),
         new("--store ef|memory", "Sets where the records are kept. ef needs a DbSet of the model. When two DbContexts have one, choose with --context."),
+        new("--store http", "Pro, planned. For an app with a .Client project: writes the pages there and adds an API on the server for them to call."),
         new("--authorize", "Lets only signed-in people open the page. On by default when the app has accounts."),
         new("--view-policy <name>", "Lets only people the authorization policy allows open the page, such as ViewSales."),
         new("--edit-policy <name>", "Lets only people the policy allows add, edit and delete. Everyone else who can open the page sees the records read-only."),

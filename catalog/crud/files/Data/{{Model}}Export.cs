@@ -1,3 +1,7 @@
+#if (OverHttp)
+using {{StoreNamespace}};
+
+#endif
 namespace {{RootNamespace}}.Data;
 
 /// <summary>

@@ -90,5 +90,45 @@ public sealed class CrudTests : IDisposable
         await ProjectBuild.BuildAsync(app, "Acme with crud grids for Customer and Task");
     }
 
+    [AccountFact]
+    public async Task With_Pro_the_http_store_puts_the_pages_in_the_client_project_over_an_api()
+    {
+        // An app whose pages run in the browser: crud refuses it, but for the Http store.
+        Assert.Equal(0, Izzy(_work, "new", "starter", "blazor", "-n", "Shop", "--interactivity", "WebAssembly", "--all-interactive", "true", "--no-restore").Exit);
+        var app = Path.Combine(_work, "Shop");
+        Directory.CreateDirectory(Path.Combine(app, "Shop.Client", "Models"));
+        File.WriteAllText(Path.Combine(app, "Shop.Client", "Models", "Product.cs"), """
+            using System.ComponentModel.DataAnnotations;
+
+            namespace Shop.Client.Models;
+
+            public enum Stock { InStock, Low, Out }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                [Required, StringLength(60)] public string Name { get; set; } = "";
+                public Stock Stock { get; set; }
+                public decimal Price { get; set; }
+                public DateOnly Added { get; set; }
+            }
+            """);
+        Assert.Contains("--store http (Pro)", Izzy(app, "add", "crud", "Product").Error);
+        Assert.Equal(3, Izzy(app, "add", "crud", "Product", "--store", "http").Exit);
+
+        var (output, error) = (new StringWriter(), new StringWriter());
+        var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), app, output, error, proRoot: ProjectBuild.PrivateCatalog).Run(["add", "crud", "Product", "--store", "http"]);
+        Assert.True(exit == 0, error.ToString());
+
+        Assert.True(File.Exists(Path.Combine(app, "Shop.Client", "Pages", "Products", "Index.razor")));
+        Assert.Contains("AddScoped<Shop.Client.Data.IProductStore, Shop.Client.Data.HttpProductStore>()", File.ReadAllText(Path.Combine(app, "Shop.Client", "Program.cs")));
+        var program = File.ReadAllText(Path.Combine(app, "Shop", "Program.cs"));
+        Assert.Contains("AddSingleton<Shop.Client.Data.IProductStore, Shop.Data.MemoryProductStore>()", program);
+        Assert.Contains("Shop.Data.ProductApi.Map(app);", program);
+
+        ProjectBuild.PointAtRepo(_work);
+        await ProjectBuild.BuildAsync(Path.Combine(app, "Shop"), "Shop, a WebAssembly app with a crud grid over HTTP");
+    }
+
     public void Dispose() => Directory.Delete(_work, recursive: true);
 }

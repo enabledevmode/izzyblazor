@@ -1,4 +1,7 @@
 using IzzyBlazor;
+#if (OverHttp)
+using {{StoreNamespace}};
+#endif
 using Microsoft.EntityFrameworkCore;
 #each (Alias in Aliases)
 using {{Alias.Name}} = {{Alias.Type}};
@@ -53,7 +56,12 @@ public sealed class Ef{{Model}}Store(IServiceScopeFactory scopes) : I{{Model}}St
 #else
         var query = Filter(db.{{Set}}.AsNoTracking(), search);
 #endif
+#if (OverHttp)
+        // A request that came through the API has no grid with it: its keys are read as the model's fields.
+        return await request.ToResultAsync(query, DataFields.Of<{{ModelType}}>(), (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+#else
         return await request.ToResultAsync(query, (q, ct) => q.CountAsync(ct), (q, ct) => q.ToListAsync(ct));
+#endif
     }
 
     public async Task ExportAsync(Stream output, string? query, CancellationToken cancellationToken = default)

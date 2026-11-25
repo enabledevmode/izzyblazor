@@ -6,6 +6,9 @@
 // (C1-C3, Pro): a list, a detail page and one form for new and edit; their files are in the private
 // Pro catalog (izzyblazor-pro-catalog/crud), never here. Both read and write through I{Model}Store,
 // kept in memory or over the app's DbContext. Every page works as static SSR, and interactive too.
+// Store Http (Pro), for an app with a .Client project: the pages, the interface and Http{Model}Store go
+// to the .Client project, where the pages run in the browser, and the server gets {Model}Api, endpoints
+// over the Ef or Memory store (InEf says which). Its two files are in the Pro catalog too.
 {
   "id": "crud",
   "name": "CRUD pages",
@@ -13,7 +16,8 @@
   "category": "Data",
   "summary": "Pages to list, show, add, edit and delete a model's records, from the model class in your app: izzy add crud Customer.",
   "components": ["PageHeader", "FilterForm", "DataGrid", "EmptyState", "FloatingButton", "Breadcrumb", "DescriptionList", "ConfirmButton", "Form", "FormErrors", "FormActions", "Badge"],
-  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "none", "Auto": "none" },
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "partial", "Auto": "partial" },
+  "modesNote": "The pages read the database on the server. With --store Http (Pro) they are written into the .Client project and call an API that crud adds to the server, so they run in the browser.",
   "parameters": {
     "type": "object",
     "properties": {
@@ -27,8 +31,8 @@
         "description": "Grid: one page whose grid adds, edits and deletes in a dialog. Pages: a list with filters, a page for each record and a form page, for records with many fields (Pro)."
       },
       "Store": {
-        "type": "string", "enum": ["Ef", "Memory"], "default": "Memory",
-        "description": "Where the records are kept: Ef, through the DbContext with a DbSet of the model (the default when there's one), or Memory, until the app stops."
+        "type": "string", "enum": ["Ef", "Memory", "Http"], "default": "Memory", "x-tiers": { "Http": "pro" },
+        "description": "Where the records are kept: Ef, through the DbContext with a DbSet of the model (the default when there's one), or Memory, until the app stops. Http is for an app with a .Client project: the pages run in the browser and call an API that crud adds to the server, over the DbContext or memory (Pro)."
       },
       "Context": { "type": "string", "default": "", "description": "The DbContext, when more than one has a DbSet of the model." },
       "Authorize": { "type": "boolean", "default": false, "description": "Only signed-in people can open the pages. On by default when the app signs people in." },
@@ -42,25 +46,31 @@
     "The form's errors are listed at the top after a failed save, and each field names its own.",
     "Delete asks first, in a dialog that names the record, with the delete button's text repeating the verb."
   ],
-  "server": ["Components/**"],
+  "server": ["{{ServerOnly}}"],
   "exclude": [
     { "if": "Mode == \"Grid\"", "paths": ["Components/Pages/{{Name}}/Index.razor", "Components/Pages/{{Name}}/Details.razor", "Components/Pages/{{Name}}/Edit.razor"] },
     { "if": "Mode == \"Pages\"", "paths": ["Components/Pages/{{Name}}/Grid.razor"] },
-    { "if": "Store == \"Ef\"", "paths": ["Data/Memory{{Model}}Store.cs"] },
-    { "if": "Store == \"Memory\"", "paths": ["Data/Ef{{Model}}Store.cs"] }
+    { "if": "InEf", "paths": ["Data/Memory{{Model}}Store.cs"] },
+    { "if": "!InEf", "paths": ["Data/Ef{{Model}}Store.cs"] },
+    { "if": "!OverHttp", "paths": ["Data/Http{{Model}}Store.cs", "Data/{{Model}}Api.cs"] }
   ],
   "rename": [
+    { "if": "OverHttp && Mode == \"Grid\"", "paths": { "Components/Pages/{{Name}}/Grid.razor": "{{Client}}Pages/{{Name}}/Index.razor" } },
+    { "if": "OverHttp", "paths": { "Components/Pages/{{Name}}/": "{{Client}}Pages/{{Name}}/", "Data/I{{Model}}Store.cs": "{{Client}}Data/I{{Model}}Store.cs", "Data/Http{{Model}}Store.cs": "{{Client}}Data/Http{{Model}}Store.cs" } },
     { "if": "Mode == \"Grid\"", "paths": { "Components/Pages/{{Name}}/Grid.razor": "Components/Pages/{{Name}}/Index.razor" } }
   ],
   "inserts": [
-    { "if": "!HasStoreRegistration", "file": "Program.cs", "anchor": "var app = builder.Build();", "position": "before", "text": "builder.Services.{{StoreLifetime}}<{{RootNamespace}}.Data.I{{Model}}Store, {{RootNamespace}}.Data.{{StoreClass}}>();\n\n" },
+    { "if": "!HasStoreRegistration", "file": "Program.cs", "anchor": "var app = builder.Build();", "position": "before", "text": "builder.Services.{{StoreLifetime}}<{{StoreNamespace}}.I{{Model}}Store, {{RootNamespace}}.Data.{{StoreClass}}>();\n\n" },
     {
       "if": "HasStoreRegistration", "file": "Program.cs", "position": "replace",
       "pattern": "builder\\.Services\\.Add\\w+<[\\w.]*\\bI{{Model}}Store,\\s*[\\w.]+>\\(\\);",
-      "text": "builder.Services.{{StoreLifetime}}<{{RootNamespace}}.Data.I{{Model}}Store, {{RootNamespace}}.Data.{{StoreClass}}>();"
+      "text": "builder.Services.{{StoreLifetime}}<{{StoreNamespace}}.I{{Model}}Store, {{RootNamespace}}.Data.{{StoreClass}}>();"
     },
+    { "if": "OverHttp", "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "{{RootNamespace}}.Data.{{Model}}Api.Map(app);\n" },
+    { "if": "OverHttp && !HasHttpClient", "file": "{{Client}}Program.cs", "anchor": "await builder.Build().RunAsync();", "position": "before", "text": "builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });\n" },
+    { "if": "OverHttp", "file": "{{Client}}Program.cs", "anchor": "await builder.Build().RunAsync();", "position": "before", "text": "builder.Services.AddScoped<{{StoreNamespace}}.I{{Model}}Store, {{StoreNamespace}}.Http{{Model}}Store>();\n\n" },
     { "file": "Program.cs", "anchor": "app.Run();", "position": "before", "text": "{{RootNamespace}}.Data.{{Model}}Export.Map(app);\n\n" },
-    { "if": "NavIcons && !HasNavLink", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"[^>]*\\bIcon=", "position": "after", "text": "<NavItem Href=\"{{Route}}\" Icon=\"Lucide.Rows3\">{{Plural}}</NavItem>\n" },
-    { "if": "!NavIcons && !HasNavLink", "file": "Components/Layout/MainLayout.razor", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"", "position": "after", "text": "<NavItem Href=\"{{Route}}\">{{Plural}}</NavItem>\n" }
+    { "if": "NavIcons && !HasNavLink", "file": "{{LayoutFile}}", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"[^>]*\\bIcon=", "position": "after", "text": "<NavItem Href=\"{{Route}}\" Icon=\"Lucide.Rows3\">{{Plural}}</NavItem>\n" },
+    { "if": "!NavIcons && !HasNavLink", "file": "{{LayoutFile}}", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"", "position": "after", "text": "<NavItem Href=\"{{Route}}\">{{Plural}}</NavItem>\n" }
   ]
 }

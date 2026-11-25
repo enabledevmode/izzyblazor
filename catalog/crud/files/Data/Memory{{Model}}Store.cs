@@ -1,4 +1,7 @@
 using IzzyBlazor;
+#if (OverHttp)
+using {{StoreNamespace}};
+#endif
 #each (Alias in Aliases)
 using {{Alias.Name}} = {{Alias.Type}};
 #endeach
@@ -23,7 +26,12 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
 
     public ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search, {{StatusType}}? status)
     {
+#if (OverHttp)
+        // A request that came through the API has no grid with it: its keys are read as the model's fields.
+        lock (_lock) return ValueTask.FromResult(request.ToResult(Filter(search, status).ToList().AsQueryable(), DataFields.Of<{{ModelType}}>()));
+#else
         lock (_lock) return ValueTask.FromResult(request.ToResult(Filter(search, status).ToList().AsQueryable()));
+#endif
     }
 #else
     public Task<int> CountAsync(string? search = null, CancellationToken cancellationToken = default)
@@ -33,7 +41,12 @@ public sealed class Memory{{Model}}Store : I{{Model}}Store
 
     public ValueTask<DataResult<{{ModelType}}>> FindAsync(DataRequest<{{ModelType}}> request, string? search)
     {
+#if (OverHttp)
+        // A request that came through the API has no grid with it: its keys are read as the model's fields.
+        lock (_lock) return ValueTask.FromResult(request.ToResult(Filter(search).ToList().AsQueryable(), DataFields.Of<{{ModelType}}>()));
+#else
         lock (_lock) return ValueTask.FromResult(request.ToResult(Filter(search).ToList().AsQueryable()));
+#endif
     }
 #endif
 

@@ -18,8 +18,14 @@ static partial class Crud
 
     public static ProjectInfo Prepare(ProjectInfo project, string model, Dictionary<string, string> settings, List<string> notes)
     {
-        if (project.LayoutInBrowser)
-            throw new UsageException($"{project.Name}'s pages run in the browser (its Routes are in {project.Client}), and crud's pages read the database on the server. Add them to a Blazor Web App whose pages are in the server project.");
+        string? Given(string name) => settings.FirstOrDefault(s => s.Key.Equals(name, StringComparison.OrdinalIgnoreCase)).Value;
+
+        // Http: the pages in the .Client project, calling an API crud adds to the server.
+        var http = "Http".Equals(Given("Store"), StringComparison.OrdinalIgnoreCase);
+        if (http && project.Client is null)
+            throw new UsageException($"--store http is for an app with a .Client project, whose pages run in the browser. {project.Name}'s pages run on the server and read the store there: use --store ef or --store memory.");
+        if (project.LayoutInBrowser && !http)
+            throw new UsageException($"{project.Name}'s pages run in the browser (its Routes are in {project.Client}), and crud's pages read the database on the server. Use --store http (Pro), which adds an API for them to call, or add them to a Blazor Web App whose pages are in the server project.");
         var root = project.Directory!;
         var files = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Select(f => Path.GetRelativePath(root, f).Replace('\\', '/'))
@@ -32,7 +38,9 @@ static partial class Crud
         var info = ModelReader.Read(files, model, nullable);
         foreach (var skipped in info.Skipped) notes.Add($"{info.Name}.{skipped}: left out.");
 
-        string? Given(string name) => settings.FirstOrDefault(s => s.Key.Equals(name, StringComparison.OrdinalIgnoreCase)).Value;
+        // The pages in the .Client project can't see a class in the server project; the server sees the client's.
+        if (http && !info.File.StartsWith(project.Client!, StringComparison.Ordinal) && (project.Host.Length == 0 || info.File.StartsWith(project.Host, StringComparison.Ordinal)))
+            throw new UsageException($"{info.Name} is in the server project ({info.File}), and the pages --store http writes are in {project.Client!.TrimEnd('/')}, which can't see it. Move {info.Name} and the enums it uses to {project.Client!.TrimEnd('/')}: the server project sees them there too.");
 
         var name = Given("Name") ?? Plural(info.Name);
         // The words people see, when the class's name isn't them ("team member" for Member); the plural follows.
@@ -51,9 +59,18 @@ static partial class Crud
             contexts = [.. contexts.Where(c => c.Name == wanted)];
             if (contexts.Count == 0) throw new UsageException($"{wanted} has no DbSet<{info.Name}>. Add one, or leave out --context.");
         }
-        var store = Given("Store") ?? (contexts.Count > 0 ? "Ef" : "Memory");
+        var store = http ? "Http" : Given("Store") ?? (contexts.Count > 0 ? "Ef" : "Memory");
         ContextInfo? context = null;
-        if (store.Equals("Ef", StringComparison.OrdinalIgnoreCase))
+        // Behind the API, the store the server's pages would have: the DbContext with a DbSet of the model, else memory.
+        if (http && contexts.Count > 1)
+            throw new UsageException($"{string.Join(" and ", contexts.Select(c => c.Name))} each have a DbSet<{info.Name}>: pick one with --context.");
+        if (http && contexts.Count == 1)
+        {
+            context = contexts[0];
+            settings["Context"] = context.Name;
+        }
+        else if (http) notes.Add($"No DbContext has a DbSet<{info.Name}>, so behind the API the {Lower(plural)} are kept in memory until the app stops: Memory{info.Name}Store. When there's one, run again with --overwrite.");
+        else if (store.Equals("Ef", StringComparison.OrdinalIgnoreCase))
         {
             if (contexts.Count == 0)
                 throw new UsageException($"No DbContext in {project.Name} has a DbSet<{info.Name}>. Add one (public DbSet<{info.Name}> {Plural(info.Name)} => Set<{info.Name}>();) and a migration, or use --store memory.");
@@ -72,10 +89,24 @@ static partial class Crud
         if (!registration.IsMatch(program) && Regex.IsMatch(program, $@"\bI{Regex.Escape(info.Name)}Store\b"))
             notes.Add($"Program.cs registers I{info.Name}Store in its own way, so it wasn't changed: check it uses the store you want.");
         // A run with the other store leaves the first one's file in the project, where it breaks the build once the interface changes.
-        var other = $"{project.Host}Data/{(store.Equals("Ef", StringComparison.OrdinalIgnoreCase) ? "Memory" : "Ef")}{info.Name}Store.cs";
+        var other = $"{project.Host}Data/{(context is not null ? "Memory" : "Ef")}{info.Name}Store.cs";
         if (project.ReadFile(other) is not null)
             notes.Add($"{other} is from a run with the other store and isn't used now: delete it.");
+        // The pages' own files, in the project whose pages they are.
+        var layoutFile = project.LayoutInBrowser ? "~/" + project.Client + "Layout/MainLayout.razor" : "Components/Layout/MainLayout.razor";
+        var layout = project.ReadFile(project.LayoutInBrowser ? project.Client + "Layout/MainLayout.razor" : project.Host + "Components/Layout/MainLayout.razor");
+        var clientProgram = http ? project.ReadFile(project.Client + "Program.cs") ?? "" : "";
         var authorize = Given("Authorize") ?? (Regex.IsMatch(program, @"\b(AddIdentityCore|AddDefaultIdentity|AddIdentity|AddAuthentication)\b") ? "true" : "false");
+
+        if (http)
+        {
+            // The pages ask who the person is in the browser too, and the browser's app has its own setup.
+            var policies = new[] { settings.GetValueOrDefault("ViewPolicy"), settings.GetValueOrDefault("EditPolicy") }.Where(p => p is { Length: > 0 }).Distinct().ToList();
+            if (policies.Count > 0)
+                notes.Add($"The pages check {string.Join(" and ", policies)} in the browser as well as on the server: define {(policies.Count == 1 ? "it" : "them")} in {project.Client}Program.cs too (AddAuthorizationCore), or the pages fail there.");
+            else if (authorize == "true" && !Regex.IsMatch(clientProgram, @"\bAddAuthorizationCore\b"))
+                notes.Add($"The pages are behind sign-in, and {project.Client}Program.cs doesn't call AddAuthorizationCore: add it with AddCascadingAuthenticationState and AddAuthenticationStateDeserialization, or the pages fail in the browser.");
+        }
 
         settings["Model"] = info.Name;
         settings["Name"] = name;
@@ -164,12 +195,16 @@ static partial class Crud
             // A key people choose (an invoice number): typed on New, fixed after.
             ["KeyInput"] = keyInput,
             ["HasFactory"] = context is not null && Regex.IsMatch(program, $@"AddDbContextFactory\s*<\s*{Regex.Escape(context.Name)}\b"),
-            ["NavIcons"] = NavHasIcons(project),
+            ["NavIcons"] = layout is not null && Regex.IsMatch(layout, @"<NavItem\b[^>]*\bIcon="),
+            ["OverHttp"] = http,
+            ["InEf"] = context is not null,
+            // In an app whose pages are static unless they say otherwise, a page in the .Client project says so.
+            ["ClientRenderMode"] = http && !project.LayoutInBrowser,
+            ["HasHttpClient"] = Regex.IsMatch(clientProgram, @"\bHttpClient\b"),
             // A run with the other store replaces its registration rather than adding a second.
             ["HasStoreRegistration"] = registration.IsMatch(program),
             // The nav links to the pages already (a second run, or a kit's nav): no second link.
-            ["HasNavLink"] = project.ReadFile($"{project.Host}Components/Layout/MainLayout.razor") is { } layout
-                && Regex.IsMatch(layout, $@"<NavItem\b[^>]*\bHref=""/?{Regex.Escape(route)}""", RegexOptions.IgnoreCase),
+            ["HasNavLink"] = layout is not null && Regex.IsMatch(layout, $@"<NavItem\b[^>]*\bHref=""/?{Regex.Escape(route)}""", RegexOptions.IgnoreCase),
             ["HasViewPolicy"] = settings.GetValueOrDefault("ViewPolicy") is { Length: > 0 },
             ["HasEditPolicy"] = settings.GetValueOrDefault("EditPolicy") is { Length: > 0 },
         };
@@ -177,6 +212,15 @@ static partial class Crud
         var tokens = new Dictionary<string, string>(project.Tokens)
         {
             ["ModelType"] = modelType,
+            // Where the interface is: beside the stores, or with --store http in the .Client project, which the pages are in.
+            ["StoreNamespace"] = http ? project.ClientNamespace + ".Data" : project.RootNamespace + ".Data",
+            // The pages are the server's alone, unless they run in the browser.
+            ["ServerOnly"] = http ? "Components/Pages/{{Name}}/-" : "Components/**",
+            ["LayoutFile"] = layoutFile,
+            // The API is the model's, as the store is, whatever --name and --route the pages have.
+            ["ApiRoute"] = Kebab(Plural(info.Name)),
+            // Auto where the app has circuits too, so the page works before the browser has the app.
+            ["RenderMode"] = Regex.IsMatch(program, @"\bAddInteractiveServerComponents\b") ? "InteractiveAuto" : "InteractiveWebAssembly",
             // A new record's dates start at today, not the type's empty 01/01/0001.
             ["NewItemInit"] = NewItemInit(shown),
             ["Singular"] = singular,
@@ -359,11 +403,6 @@ static partial class Crud
         "Failed" or "Cancelled" or "Canceled" or "Overdue" or "Rejected" or "Blocked" or "Suspended" or "Banned" => "Danger",
         _ => "Neutral",
     };
-
-    // Whether the app's layout gives its nav items icons (the starter's sidebar does, its top nav doesn't).
-    static bool NavHasIcons(ProjectInfo project) =>
-        project.ReadFile(project.Host + "Components/Layout/MainLayout.razor") is { } layout
-        && Regex.IsMatch(layout, @"<NavItem\b[^>]*\bIcon=");
 
     static IEnumerable<string> DirectoryBuildProps(string root)
     {

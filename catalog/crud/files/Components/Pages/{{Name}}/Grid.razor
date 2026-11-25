@@ -1,10 +1,13 @@
 @page "/{{Route}}"
+@*#if (ClientRenderMode) *@
+@rendermode {{RenderMode}}
+@*#endif *@
 @*#if (HasViewPolicy) *@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "{{ViewPolicy}}")]
 @*#elif (Authorize) *@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @*#endif *@
-@using {{RootNamespace}}.Data
+@using {{StoreNamespace}}
 @*#each (Alias in Aliases) *@
 @using {{Alias.Name}} = {{Alias.Type}}
 @*#endeach *@
@@ -88,7 +91,7 @@
     private bool _canEdit;
 
     protected override async Task OnInitializedAsync() =>
-        _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, "{{EditPolicy}}")).Succeeded;
+        _canEdit = (await Authorization.AuthorizeAsync((await AuthState).User, null, "{{EditPolicy}}")).Succeeded;
 
 @*#endif *@
     // The grid's search goes to the store, which looks in more fields than the grid shows.
