@@ -46,9 +46,10 @@ static partial class Audit
     /// Audits each address at each width and scheme; <paramref name="progress"/> hears of each page as it starts.
     /// With a <paramref name="judge"/>, each finding gets its verdict. <paramref name="cookies"/> go with every
     /// request to the addresses' sites. A long run is shared between <paramref name="browsers"/> browsers.
+    /// With a <paramref name="tracer"/>, each finding is traced to its component and, with the app's source, its line.
     /// </summary>
     public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null, Judge? judge = null,
-        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1)
+        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1, Tracer? tracer = null)
     {
         var loads = (from width in widths from scheme in schemes from url in urls select (Width: width, Scheme: scheme, Url: url)).ToList();
         var pages = new JsonObject[loads.Count];
@@ -89,7 +90,7 @@ static partial class Audit
                         set = (load.Width, load.Scheme);
                     }
                     progress?.Invoke($"{(loads.Count > 8 ? $"[{at + 1}/{loads.Count}] " : "")}{load.Url} at {load.Width}, {load.Scheme}");
-                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge);
+                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge, tracer);
                     // A browser that died fails every load it is given at once, and so would take the rest of
                     // the run from the browsers that work: the run ends, as for one browser.
                     if (browser.Closed) throw new GenerationException("The browser closed during the audit.");
@@ -115,10 +116,11 @@ static partial class Audit
             ["pages"] = new JsonArray([.. pages]),
         };
         if (judge is not null) run["verdicts"] = new JsonObject { ["pack"] = judge.PackVersion, ["project"] = judge.ProjectFile };
+        if (tracer is not null) run["trace"] = new JsonObject { ["source"] = tracer.HasSource };
         return run;
     }
 
-    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge)
+    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge, Tracer? tracer)
     {
         var page = new JsonObject { ["url"] = url, ["width"] = width, ["scheme"] = scheme };
         try
@@ -132,7 +134,7 @@ static partial class Audit
                 await browser.Event(e => (string?)e["method"] == "Page.lifecycleEvent" && (string?)e["params"]?["name"] == "networkIdle" && (string?)e["params"]?["loaderId"] == loader, TimeSpan.FromSeconds(20));
             await Task.Delay(400);
 
-            var answer = await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]"));
+            var answer = await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]").Replace("__MARKS__", tracer?.Marks() ?? "{ \"keys\": [], \"all\": [] }"));
             try
             {
                 var found = JsonNode.Parse((string)answer!)!.AsObject();
@@ -155,6 +157,8 @@ static partial class Audit
                     {
                         var element = Stable((string)node!["target"]!);
                         var nth = met[element] = met.GetValueOrDefault(element) + 1;
+                        // Only a tracer writes a trace: a page's own is not printed.
+                        node.AsObject().Remove("trace");
                         node["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{element}{(nth > 1 ? $"|{nth}" : "")}")))[..12];
                     }
                 }
@@ -164,6 +168,8 @@ static partial class Audit
                 // The page's own script stands where axe's does, or changed what it answers.
                 throw new GenerationException("The page answered the audit with something izzy can't read.");
             }
+            if (tracer is not null) tracer.Trace(page);
+            else foreach (var node in page["violations"]!.AsArray().SelectMany(rule => rule!["nodes"]!.AsArray())) node!.AsObject().Remove("at");
             judge?.Decide(page);
         }
         catch (GenerationException e)
@@ -191,6 +197,11 @@ static partial class Audit
     const string Collect = """
         (async () => {
           const claims = __CLAIMS__;
+          // What marks a component's outermost element: its tag ("<ib-dialog>") or a class.
+          // An element with one of the keys is a component's; it answers with all it has of the marks.
+          const marked = __MARKS__;
+          const marks = new Set(marked.all);
+          const keys = new Set(marked.keys);
           // The frames under a document or a shadow root, those inside shadow roots too.
           const framesIn = (root) => {
             const found = [...root.querySelectorAll("iframe, frame")];
@@ -204,7 +215,7 @@ static partial class Audit
             } catch { }
           };
           start(window);
-          const r = await axe.run(document, { resultTypes: ["violations", "incomplete"], elementRef: claims.length > 0 });
+          const r = await axe.run(document, { resultTypes: ["violations", "incomplete"], elementRef: claims.length > 0 || marks.size > 0 });
           const refused = new Set();
           // The element of a node: axe's, or the one its target leads to. Each part of a target but the last is
           // an iframe (a list of parts goes through shadow roots).
@@ -253,6 +264,33 @@ static partial class Audit
             const related = n.any.concat(n.all, n.none).flatMap(c => c.relatedNodes || []).map(elementOf).filter(Boolean);
             return claims.filter(c => (c.rule === "*" || c.rule === rule) && fits(c, element, related)).map(c => c.key);
           };
+          // Where the element is, for the trace: itself, and each element around it that carries a component's
+          // mark, the nearest first, with what it says (its attributes and the start of its text).
+          const up = (e) => {
+            if (e.parentElement) return e.parentElement;
+            try { const root = e.getRootNode(); return root.host || (root.defaultView && root.defaultView.frameElement) || null; } catch { return null; }
+          };
+          const marksOf = (e) => {
+            const found = marks.has("<" + e.localName + ">") ? ["<" + e.localName + ">"] : [];
+            for (const c of e.classList) if (marks.has(c)) found.push(c);
+            return found.some(m => keys.has(m)) ? found : [];
+          };
+          const said = (e) => ({
+            attributes: [...e.attributes].slice(0, 40).map(a => a.value).filter(v => v.length >= 2 && v.length <= 200),
+            text: (e.textContent || "").slice(0, 4000).replace(/\s+/g, " ").trim().slice(0, 600),
+          });
+          const place = (n) => {
+            const element = marks.size ? elementOf(n) : null;
+            if (!element) return undefined;
+            try {
+              const chain = [];
+              for (let e = element; e && chain.length < 6; e = up(e)) {
+                const found = marksOf(e);
+                if (found.length) chain.push({ marks: found, said: said(e), self: e === element });
+              }
+              return { tag: String(element.localName), id: element.getAttribute("id") || undefined, classes: (element.getAttribute("class") || "").split(/\s+/).filter(Boolean).slice(0, 8), said: said(element), chain };
+            } catch { return undefined; }
+          };
           // Text cut in the middle of a character (an emoji at the 300th place) can't be written as JSON.
           const whole = (text) => text.toWellFormed ? text.toWellFormed() : text;
           const where = (target) => target.map(t => Array.isArray(t) ? t.join(" ") : t).join(" >> ");
@@ -269,7 +307,7 @@ static partial class Audit
                 return {
                   target: where(n.target), html: n.html.length > 300 ? n.html.slice(0, 300) + "…" : n.html, summary: n.failureSummary,
                   contrast: data ? { foreground: data.fgColor, background: data.bgColor, ratio: data.contrastRatio, needs: data.expectedContrastRatio, size: data.fontSize } : undefined,
-                  claims,
+                  claims, at: place(n),
                 };
               }),
             })),
@@ -429,6 +467,7 @@ static partial class Audit
         if ((string?)node["summary"] is { } summary) text.Append($"  - axe: {Plain(FixLead().Replace(Spaces().Replace(summary, " "), ""))}\n");
         if (node["contrast"] is { } contrast)
             text.Append($"  - Measured: {(string?)contrast["foreground"]} on {(string?)contrast["background"]}, {contrast["ratio"]}:1 at {(string?)contrast["size"]}; needs {(string?)contrast["needs"]}\n");
+        text.Append(TraceLines(node));
         return text.ToString();
     }
 

@@ -1,7 +1,8 @@
 @page "/docs/cli/audit"
 
 @* izzy audit <url>: one page checked with axe-core in the machine's own browser; --run; the two files; --fail-on (Audit.cs, Cli.cs).
-   Pro: a verdict for each finding from the pack and .izzy/audit.json, tasks.md, --baseline (AuditVerdicts.cs). *@
+   Pro: a verdict for each finding from the pack and .izzy/audit.json, tasks.md, --baseline (AuditVerdicts.cs);
+   the component, the fix, the file and line, results.sarif (AuditTrace.cs). *@
 
 <ArticlePage Section="cli" Slug="audit">
     <Lead>
@@ -131,6 +132,38 @@
             new and how many are fixed, and <Code>tasks.md</Code> checks off the fixed ones.
         </TextBlock>
 
+        <Heading Level="2">Find a finding in your code</Heading>
+        <TextBlock>
+            With IzzyBlazor Pro, each finding names the IzzyBlazor component that drew the element, links its docs
+            page, and gives the fix when izzy knows one, such as the option to set. With <Code>--run</Code> or
+            <Code>--project</Code>, izzy also reads the app's source and gives the file and line where the
+            component is written:
+        </TextBlock>
+        <Code Block Language="text" Title="report.md">@TraceLines</Code>
+        <TextBlock>
+            izzy finds the page's file from its <Code>@@page</Code> route, then looks in that file, its layout and
+            the components of yours they use. One tag is that line. Among several, it picks the one whose written
+            text is in the element, such as its <Code>Label</Code> or <Code>id</Code>, and says how sure it is:
+            high for one tag, medium for one picked from several. When it can't pick, it lists the places.
+            An element a component draws for you, such as a button in a DataGrid's toolbar, is traced to that
+            component's tag. Plain HTML is found by its tag with its <Code>id</Code> or <Code>class</Code>.
+        </TextBlock>
+        <TextBlock>
+            Some components draw the same element, such as Dialog and Drawer, or Stack and Row. Without the
+            source the report names each of them, and the source says which one it is. What a component draws
+            inside itself, such as a date field's calendar button, is traced to that component.
+        </TextBlock>
+
+        <Heading Level="3">Code scanning</Heading>
+        <TextBlock>
+            <Code>--format sarif</Code> writes <Code>results.sarif</Code>, which GitHub code scanning and editors
+            read. It holds the real findings and those a person must look at, each on its line. A finding izzy
+            couldn't place is on line 1 of its page's file, with its selector in the message. A finding on a
+            page that has no file in the app is left out, since code scanning takes no result without a place.
+            It stays in the other reports. Paths are written from the repository's root.
+        </TextBlock>
+        <Code Block Language="bash">izzy audit --run --site --format md,json,sarif</Code>
+
         <Heading Level="2">What it doesn't check</Heading>
         <TextBlock>
             izzy audits the page as it loads. It doesn't open dialogs, menus or popovers, and it doesn't check keyboard
@@ -159,6 +192,12 @@
         new("False positive", "The rule is wrong here, such as low contrast on a part of a disabled control."),
     ];
 
+    private const string TraceLines = """
+        - Component: `Breadcrumb`, inside `PageHeader`
+        - Fix: Two Breadcrumbs on a page need a name each: set Label on this one, such as Label="Order path". [Docs](https://izzyblazor.com/docs/components/breadcrumb)
+        - Source: `Components/Pages/Orders.razor:12`, confidence high
+        """;
+
     private const string ProjectFile = """
         {
           "accepted": [
@@ -179,7 +218,7 @@
 
     private static readonly Row[] Options =
     [
-        new("--run", "Starts the app in this project, or the one --project names, and stops it after the audit."),
+        new("--run", "Starts the app in this project, or the one --project names, and stops it after the audit. With Pro, findings are traced into its source."),
         new("--site", "Audits every page of the site: its sitemap's, else those its links lead to. Pro."),
         new("--urls <file>", "Audits the addresses a file lists, one a line. Pro."),
         new("--max-pages 500", "The most pages --site audits."),
@@ -187,7 +226,8 @@
         new("--sizes 1440,375", "The widths to check, in pixels."),
         new("--schemes light,dark", "The color schemes to check."),
         new("--out <folder>", "Where the files go, in place of a new folder in .izzy/audit/."),
-        new("--format md,json", "Which files to write. With Pro, tasks adds tasks.md."),
+        new("--format md,json", "Which files to write. With Pro, tasks adds tasks.md and sarif adds results.sarif."),
+        new("--project <path>", "The app's project: where --run starts it, and with Pro where a finding's file and line are looked for."),
         new("--json", "Prints the results as JSON and writes no files."),
         new("--fail-on any", "Ends with exit code 5 when there are findings. With Pro, real counts real findings and new counts real findings the baseline lacks."),
         new("--baseline <file>", "A past run's results.json to compare with. Pro."),

@@ -80,7 +80,7 @@ if (!File.Exists(output) || File.ReadAllText(output) != json)
 
 if (cliPath is not null)
 {
-    var cli = CliData.Write(file, Arg("--registry") ?? throw new ArgumentException("--cli-out needs --registry."), Arg("--examples") ?? throw new ArgumentException("--cli-out needs --examples."));
+    var cli = CliData.Write(file, Arg("--registry") ?? throw new ArgumentException("--cli-out needs --registry."), Arg("--examples") ?? throw new ArgumentException("--cli-out needs --examples."), RootClasses.Read(assemblies));
     Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(cliPath))!);
     if (!File.Exists(cliPath) || File.ReadAllText(cliPath) != cli)
     {

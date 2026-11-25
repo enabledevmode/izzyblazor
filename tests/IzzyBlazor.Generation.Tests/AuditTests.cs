@@ -94,6 +94,46 @@ public sealed class AuditTests : IDisposable
     }
 
     [BrowserFact]
+    public void A_finding_is_traced_to_its_component_the_fix_and_the_line_in_the_source()
+    {
+        var pro = Path.Combine(_work, "pro");
+        Directory.CreateDirectory(Path.Combine(pro, ".audit"));
+        File.WriteAllText(Path.Combine(pro, ".audit", "pack.json"), """
+            { "version": "test", "entries": [], "fixes": [
+              { "id": "icon-button-label", "rule": "button-name", "component": "IconButton", "set": "Label", "fix": "Set Label, the button's name", "docs": "#accessibility" } ] }
+            """);
+        // The app: a page with two icon buttons, one of them without its name.
+        var app = Path.Combine(_work, "Shop");
+        Directory.CreateDirectory(Path.Combine(app, "Components", "Pages"));
+        File.WriteAllText(Path.Combine(app, "Shop.csproj"), "<Project Sdk=\"Microsoft.NET.Sdk.Web\"></Project>");
+        File.WriteAllText(Path.Combine(app, "Components", "Pages", "Orders.razor"), """
+            @page "/orders/{id:int}"
+
+            <h1>Order</h1>
+            <IconButton Icon="Lucide.Pencil" Label="Edit" id="edit" />
+            <IconButton Icon="Lucide.Trash" id="remove" />
+            """);
+        const string body = "<button class=\"ib-btn ib-btn-neutral ib-btn-icon-only\" id=\"edit\" aria-label=\"Edit\"></button><button class=\"ib-btn ib-btn-neutral ib-btn-icon-only\" id=\"remove\"></button>";
+        using var site = new Site(() => $"<!doctype html><html lang=\"en\"><head><title>Order</title></head><body><main><h1>Order</h1>{body}</main></body></html>");
+
+        var (output, error) = (new StringWriter(), new StringWriter());
+        var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, output, error, proRoot: pro)
+            .Run(["audit", site.Url + "orders/7", "--project", "Shop", "--sizes", "1440", "--schemes", "light", "--format", "md,json,sarif", "--out", "audit"]);
+
+        Assert.True(exit == 0, error.ToString());
+        var node = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "audit", "results.json")))!["pages"]![0]!["violations"]![0]!["nodes"]![0]!;
+        Assert.Equal("IconButton", (string)node["trace"]!["component"]!);
+        Assert.Equal("Label", (string)node["trace"]!["fix"]!["option"]!);
+        Assert.Equal("https://izzyblazor.com/docs/components/icon-button#accessibility", (string)node["trace"]!["docs"]!);
+        // Two IconButtons are written: the one whose id is the element's.
+        Assert.Equal("Components/Pages/Orders.razor:5", $"{(string)node["trace"]!["source"]!["file"]!}:{(int)node["trace"]!["source"]!["line"]!}");
+        Assert.Contains("- Source: `Components/Pages/Orders.razor:5`", File.ReadAllText(Path.Combine(_work, "audit", "report.md")));
+        var located = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "audit", "results.sarif")))!["runs"]![0]!["results"]![0]!["locations"]![0]!["physicalLocation"]!;
+        Assert.Equal("Components/Pages/Orders.razor", (string)located["artifactLocation"]!["uri"]!);
+        Assert.Equal(5, (int)located["region"]!["startLine"]!);
+    }
+
+    [BrowserFact]
     public void A_site_without_a_sitemap_is_audited_by_following_its_links()
     {
         // Every address answers with this page, so the site is its root and the page it links to.

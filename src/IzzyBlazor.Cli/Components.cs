@@ -54,6 +54,9 @@ sealed class Components
             ? new Components(JsonNode.Parse(File.ReadAllText(path))!.AsObject())
             : throw new UsageException("This izzy has no component data (components.json is missing beside it). Reinstall the tool.");
 
+    /// <summary>Whether the data says what marks each component's outermost element (alpha.30 on), which a trace needs.</summary>
+    public bool HasMarks => All.Any(c => c["root"] is not null);
+
     /// <summary>The library version the data describes.</summary>
     public string Version => (string)_file["version"]!;
 

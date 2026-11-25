@@ -47,13 +47,17 @@ static partial class Audit
 
         public string PackVersion { get; }
 
-        /// <param name="packFile">The pack: <c>{ "version", "entries": [{ id, rule, verdict, why, matches?, closest?, has? }] }</c>.</param>
+        /// <summary>The fixes the pack knows, for the trace.</summary>
+        public IReadOnlyList<Fix> Fixes { get; }
+
+        /// <param name="packFile">The pack: <c>{ "version", "entries": [{ id, rule, verdict, why, matches?, closest?, has? }], "fixes": [{ id, rule, fix, component?, set?, docs?, matches?, closest?, has? }] }</c>.</param>
         /// <param name="projectFile">The app's <c>.izzy/audit.json</c>, when it has one: <c>{ "accepted": [{ rule, selector?, pages?, reason, by?, on? }], "demoPages": ["/docs/**" or { pages, examples }] }</c>.</param>
         public Judge(string packFile, string? projectFile)
         {
             var pack = JsonNode.Parse(File.ReadAllText(packFile), documentOptions: Lenient)!;
             PackVersion = (string?)pack["version"] ?? "1";
             _pack = [.. pack["entries"]!.AsArray().Select(e => new Entry((string)e!["id"]!, (string)e["rule"]!, (string)e["verdict"]!, (string)e["why"]!, (string?)e["matches"], (string?)e["closest"], (string?)e["has"]))];
+            Fixes = [.. (pack["fixes"]?.AsArray() ?? []).Select(f => new Fix((string)f!["id"]!, (string)f["rule"]!, (string?)f["component"], (string?)f["matches"], (string?)f["closest"], (string?)f["has"], (string?)f["set"], (string)f["fix"]!, (string?)f["docs"]))];
             if (projectFile is null) return;
 
             ProjectFile = ".izzy/audit.json";
@@ -91,6 +95,8 @@ static partial class Audit
             var claims = new JsonArray();
             foreach (var entry in _pack.Where(e => e.Matches is not null || e.Closest is not null || e.Has is not null))
                 claims.Add(new JsonObject { ["key"] = $"p:{entry.Id}", ["rule"] = entry.Rule, ["matches"] = entry.Matches, ["closest"] = entry.Closest, ["has"] = entry.Has });
+            foreach (var fix in Fixes.Where(f => f.Matches is not null || f.Closest is not null || f.Has is not null))
+                claims.Add(new JsonObject { ["key"] = $"f:{fix.Id}", ["rule"] = fix.Rule, ["matches"] = fix.Matches, ["closest"] = fix.Closest, ["has"] = fix.Has });
             for (var i = 0; i < _accepted.Count; i++)
                 if (_accepted[i].Selector is { } selector) claims.Add(new JsonObject { ["key"] = $"a:{i}", ["rule"] = _accepted[i].Rule, ["closest"] = selector });
             for (var i = 0; i < _demo.Count; i++)
@@ -252,7 +258,7 @@ static partial class Audit
         var text = new StringBuilder();
         text.Append($"# Accessibility audit: {(urls.Count == 1 ? urls[0] : $"{urls.Count} pages")}\n\n");
         text.Append($"Made by izzy audit {(string)run["version"]!} on {((string)run["at"]!)[..10]}, with axe-core {(string)run["engine"]!["version"]!} in {(string)run["browser"]!}. ");
-        text.Append("Each finding has its rule, the WCAG criterion, a verdict with its reason, the element and where it was found. The same results as data are in `results.json`.\n\n");
+        text.Append($"Each finding has its rule, the WCAG criterion, a verdict with its reason, the element and where it was found{(run["trace"] is null ? "" : (bool?)run["trace"]!["source"] == true ? ", the component that drew it and its place in the source" : ", and the component that drew it")}. The same results as data are in `results.json`.\n\n");
 
         text.Append("## Summary\n\n");
         if (groups.Count == 0) text.Append("No findings.\n");
@@ -290,6 +296,14 @@ static partial class Audit
         return text.ToString();
     }
 
+    // Where a group's findings are written, for a task: the one line they share, or the first of them.
+    static string Written(Group group)
+    {
+        var lines = group.Findings.Select(f => f.Node["trace"]?["source"]).Where(s => s?["file"] is not null).Select(s => $"{(string)s!["file"]!}:{(int)s["line"]!}").Distinct().ToList();
+        var fix = group.Findings.Select(f => (string?)f.Node["trace"]?["fix"]?["text"]).Where(f => f is not null).Distinct().ToList() is [{ } one] ? $". {one.TrimEnd('.')}" : "";
+        return lines.Count == 0 ? fix : $"; in {Code(lines[0])}{(lines.Count > 1 ? $" and {lines.Count - 1} more place{(lines.Count == 2 ? "" : "s")}" : "")}{fix}";
+    }
+
     static string Elements(int count, string noun = "element") => $"{count} {noun}{(count == 1 ? "" : "s")}";
 
     /// <summary>What the terminal shows after a run with verdicts: the count for each verdict and the five worst.</summary>
@@ -310,6 +324,8 @@ static partial class Audit
                 foreach (var group in worst) text.Append($"  {group.Verdict.PadRight(verdict)}  {group.Impact.PadRight(impact)}  {group.RuleId.PadRight(id)}  {group.Findings.Count,4}  {group.Says}\n");
             }
         }
+        if ((bool?)run["trace"]?["source"] == true && AllFindings(run).Where(f => f.Verdict is Real or NeedsPerson).ToList() is { Count: > 0 } open)
+            text.Append($"{open.Count(f => f.Node["trace"]?["source"] is not null)} of {open.Count} to fix or look at were found in the source.\n");
         if (run["baseline"] is { } baseline)
             text.Append($"Against the baseline: {(int)baseline["new"]!} new, {baseline["fixed"]!.AsArray().Count} fixed.\n");
         return text.ToString();
@@ -335,7 +351,7 @@ static partial class Audit
             {
                 var example = group.Findings[0];
                 var criterion = Criterion(group.Rule["tags"]!.AsArray().Select(t => (string)t!).ToList());
-                text.Append($"- [ ] **{Cell(group.Says)}** (`{group.RuleId}`, {criterion}; {Elements(group.Findings.Count)} on {group.Pages} page{(group.Pages == 1 ? "" : "s")}, such as {Code(PathOf((string)example.Page["url"]!))} {Code((string)example.Node["target"]!)})\n");
+                text.Append($"- [ ] **{Cell(group.Says)}** (`{group.RuleId}`, {criterion}; {Elements(group.Findings.Count)} on {group.Pages} page{(group.Pages == 1 ? "" : "s")}, such as {Code(PathOf((string)example.Page["url"]!))} {Code((string)example.Node["target"]!)}{Written(group)})\n");
             }
         }
         if (run["baseline"]?["fixed"] is JsonArray { Count: > 0 } gone)

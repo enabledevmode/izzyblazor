@@ -40,7 +40,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
           izzy update [--to <version>] [--global] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
           izzy upgrade [--apply] [--from <version>] [--to <version>] [--project <path>] [--diff] [--json]
-          izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--cookie <name=value>] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]
+          izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--cookie <name=value>] [--out <folder>] [--format md,json,tasks,sarif] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]
           izzy audit --site <url> [--max-pages 500], or izzy audit --urls <file>
           izzy audit [<path> ...] --run [--site] [--project <path>]
           izzy agent [--project <path>] [--dry-run]
@@ -75,7 +75,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         --fail-on any ends with exit code 5 when there are findings, for CI. With IzzyBlazor Pro each finding
         has a verdict (real, needs a person, accepted, demo page, false positive), your own decisions are read
         from .izzy/audit.json, --format tasks writes tasks.md, and --baseline <results.json> with --fail-on new
-        fails on real findings the past run lacks. --site audits every page of a site: those its sitemap.xml
+        fails on real findings the past run lacks. Each finding also names the IzzyBlazor component that drew
+        the element and the fix; with --run or --project it has the file and line in your source, and
+        --format sarif writes results.sarif for code scanning. --site audits every page of a site: those its sitemap.xml
         lists, else those its links lead to; izzy audit --run --site is the whole app. --urls <file> audits
         a list, one address a line. --cookie sends a cookie with every request, for pages behind a sign-in.
         izzy agent writes what a coding agent reads in your project: the IzzyBlazor skill, and the docs server
@@ -232,7 +234,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // izzy audit https://localhost:5001/orders: the page in a browser on this machine, checked with axe-core.
     int AuditPages(Args args)
     {
-        const string usage = "izzy audit <url> [--site] [--urls <file>] [--max-pages 500] [--cookie <name=value>] [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json], or izzy audit [<path> ...] --run [--site] [--project <path>]";
+        const string usage = "izzy audit <url> [--site] [--urls <file>] [--max-pages 500] [--cookie <name=value>] [--sizes 1440,375] [--schemes light,dark] [--out <folder>] [--format md,json,tasks,sarif] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json], or izzy audit [<path> ...] --run [--site] [--project <path>]";
         var run = args.Switch("run");
         // --site with an address, or alone after one (or with --run, for the app's root).
         var site = args.Has("site");
@@ -256,7 +258,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             .Select(s => s is "light" or "dark" ? s : throw new UsageException($"--schemes takes light, dark or both: \"{s}\" is neither.")).ToList();
         NoSettings(args);
         if (failOn is not ("any" or "real" or "new" or "none")) throw new UsageException("--fail-on takes any, real, new or none.");
-        if (formats.FirstOrDefault(f => f is not ("md" or "json" or "tasks")) is { } format) throw new UsageException($"--format takes md, json and tasks: \"{format}\" is none of them.");
+        if (formats.FirstOrDefault(f => f is not ("md" or "json" or "tasks" or "sarif")) is { } format) throw new UsageException($"--format takes md, json, tasks and sarif: \"{format}\" is none of them.");
         if (failOn == "new" && baselineFile is null) throw new UsageException("--fail-on new counts the findings a past run lacks: say which with --baseline <results.json>.");
         JsonObject? baseline = null;
         if (baselineFile is not null)
@@ -294,10 +296,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             pages.RemoveRange(1, pages.Count - 1);
         }
         // Verdicts come from the pack in a Pro account's catalog and the app's own .izzy/audit.json.
-        var verdicts = failOn is "real" or "new" || baselineFile is not null || formats.Contains("tasks");
+        var verdicts = failOn is "real" or "new" || baselineFile is not null || formats.Contains("tasks") || formats.Contains("sarif");
         if (verdicts && !HasPro)
         {
-            error.WriteLine("A verdict for each finding, tasks.md, --baseline and --fail-on real or new come with IzzyBlazor Pro. Free audits one page: --fail-on any fails on any finding.");
+            error.WriteLine("A verdict for each finding, tasks.md, results.sarif, --baseline and --fail-on real or new come with IzzyBlazor Pro. Free audits one page: --fail-on any fails on any finding.");
             return 3;
         }
         var browser = Chromium.Find(given) ?? throw new UsageException("izzy audit needs Chrome, Edge or Chromium, and found none on this machine. Install one, or say where one is with --browser <path>.");
@@ -314,6 +316,21 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (!json && (pack is not null || pages.Count > 1)) PreviewNote();
         var decisions = Path.Combine(home, ".izzy", "audit.json");
         var judge = pack is null ? null : new Audit.Judge(pack, File.Exists(decisions) ? decisions : null);
+        // The trace goes into the source of the app that is audited: this project's with --run, or the one --project names.
+        var sources = new List<string>();
+        if (judge is not null && csproj is not null && (run || folder is not null))
+        {
+            sources.Add(home);
+            try
+            {
+                var project = ProjectInfo.FromProject(csproj);
+                sources.AddRange(((string?[])[project.Host, project.Client]).Where(part => part is not null).Select(part => Path.GetFullPath(Path.Combine(project.Directory!, part!)).TrimEnd(Path.DirectorySeparatorChar)).Where(full => !sources.Contains(full)));
+            }
+            catch (Exception e) when (e is GenerationException or IOException or System.Xml.XmlException) { }
+        }
+        if (formats.Contains("sarif") && sources.Count == 0) throw new UsageException("--format sarif puts each finding on its line in the app's source: say where that is with --project <path>, or audit this project's app with --run.");
+        _projectFolder = folder;
+        var tracer = judge is null ? null : new Audit.Tracer(Library.HasMarks ? Library : Components.Load(Path.Combine(AppContext.BaseDirectory, "components.json")), judge.Fixes, sources);
 
         var saying = new object();
         void Progress(string line)
@@ -344,7 +361,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         // A long run is shared between up to three browsers.
         var loads = urls.Count * widths.Count * schemes.Count;
         var browsers = loads >= 24 ? Math.Clamp(Environment.ProcessorCount / 2, 1, 3) : 1;
-        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress, judge, cookies, browsers).GetAwaiter().GetResult();
+        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress, judge, cookies, browsers, tracer).GetAwaiter().GetResult();
         if (baseline is not null) Audit.Compare(results, baseline, baselineFile!.Replace('\\', '/'));
         var failing = failOn switch
         {
@@ -375,10 +392,19 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (formats.Contains("json")) File.WriteAllText(Path.Combine(target, "results.json"), results.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
         if (formats.Contains("md")) File.WriteAllText(Path.Combine(target, "report.md"), Audit.Markdown(results));
         if (formats.Contains("tasks")) File.WriteAllText(Path.Combine(target, "tasks.md"), Audit.Tasks(results));
+        if (formats.Contains("sarif"))
+        {
+            // Code scanning reads paths from the repository's root.
+            var repository = home;
+            for (var dir = new DirectoryInfo(home); dir is not null; dir = dir.Parent)
+                if (Directory.Exists(Path.Combine(dir.FullName, ".git")) || File.Exists(Path.Combine(dir.FullName, ".git"))) { repository = dir.FullName; break; }
+            var prefix = Path.GetRelativePath(repository, home).Replace('\\', '/') is var from && from != "." ? from + "/" : "";
+            File.WriteAllText(Path.Combine(target, "results.sarif"), Audit.Sarif(results, prefix).ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
+        }
         output.Write(Audit.Summary(results));
         // Beside the project it is a short path from here; somewhere else it is the whole path.
         var shown = (Path.GetRelativePath(workingDirectory, target) is var near && !near.StartsWith("..", StringComparison.Ordinal) ? near : target).Replace('\\', '/');
-        output.WriteLine(formats.Contains("md") ? $"Report: {shown}/report.md" : formats.Contains("tasks") ? $"Tasks: {shown}/tasks.md" : $"Results: {shown}/results.json");
+        output.WriteLine(formats.Contains("md") ? $"Report: {shown}/report.md" : formats.Contains("tasks") ? $"Tasks: {shown}/tasks.md" : formats.Contains("sarif") ? $"Results: {shown}/results.sarif" : $"Results: {shown}/results.json");
         return exit;
     }
 

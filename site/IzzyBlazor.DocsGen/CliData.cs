@@ -58,6 +58,21 @@ public sealed record CliComponent
     public required List<CliMember> Events { get; init; }
     public List<string>? Parts { get; init; }
     public List<CliExampleRef>? Examples { get; init; }
+
+    /// <summary>
+    /// What marks its outermost element in a page, whatever its options: its tag when it is one of ours
+    /// (<c>&lt;ib-dialog&gt;</c>) and its classes. Null for one that can't be drawn alone.
+    /// </summary>
+    public List<string>? Root { get; init; }
+
+    /// <summary>Those of <see cref="Root"/> no other component draws: an element with one is this component's.</summary>
+    public List<string>? Own { get; init; }
+
+    /// <summary>The marks of other components that it draws inside itself: such an element is a part of it.</summary>
+    public List<string>? Inside { get; init; }
+
+    /// <summary>The components that draw the same element as this one with some of its options set (Row for Stack).</summary>
+    public List<string>? Like { get; init; }
 }
 
 public sealed record CliModes(string Static, string Interactive, string? Notes);
@@ -103,7 +118,7 @@ public static partial class CliData
 
     static readonly string[] NeedsSite = ["IzzyBlazor.Site", "./examples/", "Microsoft.Extensions.AI"];
 
-    public static string Write(ApiFile api, string registryPath, string examplesRoot)
+    public static string Write(ApiFile api, string registryPath, string examplesRoot, Dictionary<string, RootMarks>? roots = null)
     {
         var registry = JsonNode.Parse(File.ReadAllText(registryPath), documentOptions: new() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true })!;
         var documented = registry["components"]!.AsArray().Select(c => c!.AsObject()).ToList();
@@ -157,6 +172,10 @@ public static partial class CliData
                 Events = c.Events.Where(e => e.Obsolete is null).Select(Member).ToList(),
                 Parts = entry?["parts"]?.AsArray().Select(p => (string)p!).ToList(),
                 Examples = refs,
+                Root = roots?.GetValueOrDefault(c.Name)?.Root,
+                Own = roots?.GetValueOrDefault(c.Name)?.Own is { Count: > 0 } own ? own : null,
+                Inside = roots?.GetValueOrDefault(c.Name)?.Inside is { Count: > 0 } inside ? inside : null,
+                Like = roots?.GetValueOrDefault(c.Name)?.Like is { Count: > 0 } like ? like : null,
             });
         }
 
