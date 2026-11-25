@@ -8,9 +8,9 @@ namespace IzzyBlazor.DocsGen;
 /// </summary>
 public static class ReleaseComparer
 {
-    public static (ApiFile File, List<string> Removed) Apply(ApiFile current, ApiFile previous)
+    public static (ApiFile File, List<ApiChange> Removed) Apply(ApiFile current, ApiFile previous)
     {
-        var removed = new List<string>();
+        var removed = new List<ApiChange>();
         var version = current.Version == previous.Version ? null : current.Version;
         var oldComponents = previous.Components.ToDictionary(c => c.Name);
         var oldTypes = previous.Types.ToDictionary(t => t.Name);
@@ -29,7 +29,7 @@ public static class ReleaseComparer
                 };
             }
 
-            removed.AddRange(Gone(c.Name, old.Properties.Concat(old.Events).Concat(old.Methods), c.Properties.Concat(c.Events).Concat(c.Methods)));
+            removed.AddRange(Gone("component", c.Name, old.Properties.Concat(old.Events).Concat(old.Methods), c.Properties.Concat(c.Events).Concat(c.Methods)));
             return c with
             {
                 AddedIn = old.AddedIn,
@@ -39,18 +39,18 @@ public static class ReleaseComparer
             };
         }).ToList();
 
-        removed.AddRange(previous.Components.Where(o => components.All(c => c.Name != o.Name)).Select(o => o.Name));
+        removed.AddRange(previous.Components.Where(o => components.All(c => c.Name != o.Name)).Select(o => new ApiChange("component", o.Name)));
 
         foreach (var old in previous.Bases)
         {
             var now = current.Bases.FirstOrDefault(b => b.Name == old.Name);
-            removed.AddRange(now is null ? [old.Name] : Gone(old.Name, old.Properties, now.Properties));
+            removed.AddRange(now is null ? [new ApiChange("base", old.Name)] : Gone("base", old.Name, old.Properties, now.Properties));
         }
 
         foreach (var old in previous.Types)
         {
             var now = current.Types.FirstOrDefault(t => t.Name == old.Name);
-            removed.AddRange(now is null ? [old.Name] : Gone(old.Name, old.Members, now.Members));
+            removed.AddRange(now is null ? [new ApiChange("type", old.Name)] : Gone("type", old.Name, old.Members, now.Members));
         }
 
         var bases = current.Bases.Select(b => b with
@@ -93,10 +93,10 @@ public static class ReleaseComparer
             before is not null && before.TryGetValue(Key(m), out var was) ? m with { AddedIn = was.AddedIn } : m with { AddedIn = version }).ToList();
     }
 
-    private static IEnumerable<string> Gone(string owner, IEnumerable<ApiMember> before, IEnumerable<ApiMember> now)
+    private static IEnumerable<ApiChange> Gone(string of, string owner, IEnumerable<ApiMember> before, IEnumerable<ApiMember> now)
     {
         var keys = now.Select(Key).ToHashSet();
-        return before.Where(m => !keys.Contains(Key(m))).Select(m => $"{owner}.{(IsMethod(m) ? m.Type[(m.Type.IndexOf(' ') + 1)..] : m.Name)}");
+        return before.Where(m => !keys.Contains(Key(m))).Select(m => new ApiChange(of, owner, IsMethod(m) ? m.Type[(m.Type.IndexOf(' ') + 1)..] : m.Name));
     }
 
     // A property by its name; a method by its signature, so a changed or removed overload counts.
@@ -104,4 +104,13 @@ public static class ReleaseComparer
 
     private static bool IsMethod(ApiMember member) =>
         member.Type.Contains($" {member.Name}(", StringComparison.Ordinal) || member.Type.Contains($" {member.Name}<", StringComparison.Ordinal);
+}
+
+/// <summary>
+/// Something a release took away: a component, a base or a type, or one member of it. A method is its
+/// signature.
+/// </summary>
+public sealed record ApiChange(string Of, string Name, string? Member = null)
+{
+    public override string ToString() => Member is null ? Name : $"{Name}.{Member}";
 }

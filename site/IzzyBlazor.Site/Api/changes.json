@@ -1,0 +1,118 @@
+{
+  "format": 1,
+  "releases": [
+    {
+      "version": "0.1.0-alpha.16",
+      "changes": [
+        {"of": "type", "name": "Color", "member": "SurfaceContainer", "to": "Fill"},
+        {"of": "type", "name": "Color", "member": "SurfaceContainerHigh", "to": "FillStrong"},
+        {"of": "type", "name": "Color", "member": "SurfaceContainerLow", "to": "FillSubtle"},
+        {"of": "type", "name": "Color", "member": "SurfaceRaised", "to": "SurfaceOverlay"},
+        {"of": "component", "name": "SiteNav", "member": "MenuButtonAtEnd", "note": "Use MenuButtonPosition: MenuButtonAtEnd=\"false\" is MenuButtonPosition=\"MenuButtonPosition.InPlace\". The default, End, is unchanged."}
+      ]
+    },
+    {
+      "version": "0.1.0-alpha.18",
+      "changes": [
+        {"of": "component", "name": "DialogClose", "member": "Reset", "note": "A reset button can't close a dialog. Put a Button with Reset beside the DialogClose."}
+      ]
+    },
+    {
+      "version": "0.1.0-alpha.20",
+      "changes": [
+        {"of": "type", "name": "FilterPlacement", "note": "Table filters open from the header. The filter row is the DataGrid's (FilterRow)."},
+        {"of": "component", "name": "PropertyColumn", "member": "FilterMultiple", "note": "An enum or bool column's filter is always a list of checkboxes. FilterList gives any column one."},
+        {"of": "component", "name": "Table", "member": "FilterPlacement", "note": "Table filters open from the header. The filter row is the DataGrid's (FilterRow)."},
+        {"of": "component", "name": "Table", "member": "Filters", "note": "Use Filter (@bind-Filter), a Filter tree rather than a dictionary."},
+        {"of": "component", "name": "Table", "member": "Selectable", "note": "Use SelectionMode."},
+        {"of": "component", "name": "Table", "member": "SelectedKeys", "note": "Use @bind-Selection, a Selection."},
+        {"of": "type", "name": "TableRequest", "to": "DataRequest", "note": "SortKey and Descending are a Sort list of SortField, the Filters dictionary is a Filter tree, and Page and PageSize are Skip and Take."},
+        {"of": "type", "name": "TableResult", "to": "DataResult", "note": "TotalItems is Total, an int? (null when the source doesn't count)."},
+        {"of": "component", "name": "TemplateColumn", "member": "FilterMultiple", "note": "An enum or bool column's filter is always a list of checkboxes. FilterList gives any column one."},
+        {"of": "type", "name": "IzzyText", "member": "All", "note": "The filter select it labeled is gone."}
+      ]
+    },
+    {
+      "version": "0.1.0-alpha.22",
+      "changes": [
+        {"of": "component", "name": "Anchor", "member": "Inherit", "to": "InheritColor"},
+        {"of": "component", "name": "AppFooter", "member": "Position", "note": "Use Sticky, a bool."},
+        {"of": "component", "name": "AppHeader", "member": "Position", "note": "Use Sticky, a bool."},
+        {"of": "component", "name": "Banner", "member": "Position", "note": "Use Sticky, a bool."},
+        {"of": "type", "name": "BarPosition", "note": "Use Sticky, a bool, on Banner, AppHeader and AppFooter."},
+        {"of": "component", "name": "Barcode", "member": "ModuleWidth", "to": "BarWidth"},
+        {"of": "component", "name": "Button", "member": "FloatPosition", "note": "Use FloatingButton, which sets it with Placement."},
+        {"of": "component", "name": "Button", "member": "Floating", "note": "Use FloatingButton."},
+        {"of": "component", "name": "Button", "member": "Pressed", "note": "Use ToggleButton (ToolbarToggleButton in a Toolbar), and ToggleGroup for several."},
+        {"of": "component", "name": "ColorPicker", "member": "PresetText", "to": "SwatchText"},
+        {"of": "component", "name": "ColorPicker", "member": "Presets", "to": "Swatches"},
+        {"of": "component", "name": "ColorPicker", "member": "PresetsLabel", "note": "The swatch opens a ColorPanel in a popover, which needs no label."},
+        {"of": "component", "name": "ConfirmButton", "member": "FloatPosition", "note": "Use FloatingButton, which sets it with Placement."},
+        {"of": "component", "name": "ConfirmButton", "member": "Floating", "note": "Use FloatingButton."},
+        {"of": "component", "name": "ConfirmButton", "member": "Pressed", "note": "Use ToggleButton (ToolbarToggleButton in a Toolbar), and ToggleGroup for several."},
+        {"of": "component", "name": "CopyButton", "member": "FloatPosition", "note": "Use FloatingButton, which sets it with Placement."},
+        {"of": "component", "name": "CopyButton", "member": "Floating", "note": "Use FloatingButton."},
+        {"of": "component", "name": "CopyButton", "member": "Pressed", "note": "Use ToggleButton (ToolbarToggleButton in a Toolbar), and ToggleGroup for several."},
+        {"of": "component", "name": "DataGrid", "member": "ChildContent", "note": "Columns go in <Columns>, not directly in the grid."},
+        {"of": "component", "name": "DataGrid", "member": "DetailsOpen", "to": "ExpandAllDetails"},
+        {"of": "component", "name": "DataGrid", "member": "FilterFromAddress", "to": "FilterFromQuery"},
+        {"of": "component", "name": "DataGrid", "member": "GroupsOpen", "to": "ExpandAllGroups"},
+        {"of": "component", "name": "DataGrid", "member": "OpenDetails", "to": "ExpandedDetails"},
+        {"of": "component", "name": "DataGrid", "member": "OpenGroups", "to": "ExpandedGroups"},
+        {"of": "component", "name": "DataGridAdd", "member": "ShowText", "to": "ShowLabel"},
+        {"of": "component", "name": "DataGridColumnPicker", "member": "ShowText", "to": "ShowLabel"},
+        {"of": "component", "name": "DataGridExport", "member": "ShowText", "to": "ShowLabel"},
+        {"of": "component", "name": "DataGridFilterBuilder", "member": "ShowText", "to": "ShowLabel"},
+        {"of": "type", "name": "DateFieldType", "member": "Month", "note": "Use MonthField."},
+        {"of": "type", "name": "DateFieldType", "member": "Year", "note": "Use YearField."},
+        {"of": "component", "name": "DescriptionList", "member": "Divided", "to": "Dividers"},
+        {"of": "component", "name": "DialogClose", "member": "FloatPosition", "note": "Use FloatingButton, which sets it with Placement."},
+        {"of": "component", "name": "DialogClose", "member": "Floating", "note": "Use FloatingButton."},
+        {"of": "component", "name": "DialogClose", "member": "Pressed", "note": "Use ToggleButton (ToolbarToggleButton in a Toolbar), and ToggleGroup for several."},
+        {"of": "component", "name": "DialogTrigger", "member": "FloatPosition", "note": "Use FloatingButton, which sets it with Placement."},
+        {"of": "component", "name": "DialogTrigger", "member": "Floating", "note": "Use FloatingButton."},
+        {"of": "component", "name": "DialogTrigger", "member": "Pressed", "note": "Use ToggleButton (ToolbarToggleButton in a Toolbar), and ToggleGroup for several."},
+        {"of": "component", "name": "Diff", "member": "Context", "to": "ContextLines"},
+        {"of": "component", "name": "EditFormTemplate", "note": "Use DataGrid's EditDialog and EditDialogForm slots, and its EditColumns, EditLayout, EditDialogSize and EditDialogTitle."},
+        {"of": "component", "name": "EditLayout", "note": "Use DataGrid's EditDialog and EditDialogForm slots, and its EditColumns, EditLayout, EditDialogSize and EditDialogTitle."},
+        {"of": "type", "name": "FloatPosition", "to": "FloatPlacement", "note": "FloatingButton sets it with Placement."},
+        {"of": "component", "name": "Heading", "member": "Outline", "to": "OnThisPage"},
+        {"of": "component", "name": "Icon", "member": "Role", "to": "Purpose"},
+        {"of": "component", "name": "IconButton", "member": "FloatPosition", "note": "Use FloatingButton, which sets it with Placement."},
+        {"of": "component", "name": "IconButton", "member": "Floating", "note": "Use FloatingButton."},
+        {"of": "component", "name": "IconButton", "member": "Pressed", "note": "Use ToggleButton (ToolbarToggleButton in a Toolbar), and ToggleGroup for several."},
+        {"of": "type", "name": "IconRole", "to": "IconPurpose"},
+        {"of": "component", "name": "IzzyTheme", "member": "ChildContent", "note": "IzzyTheme renders only the head tags. To theme part of a page, use ThemeScope."},
+        {"of": "component", "name": "IzzyTheme", "member": "Class", "note": "IzzyTheme renders only the head tags. To theme part of a page, use ThemeScope."},
+        {"of": "component", "name": "IzzyTheme", "member": "Style", "note": "IzzyTheme renders only the head tags. To theme part of a page, use ThemeScope."},
+        {"of": "component", "name": "ListView", "member": "AriaLabel", "to": "Label"},
+        {"of": "component", "name": "PinField", "member": "Masked", "to": "Secret"},
+        {"of": "component", "name": "Popover", "member": "Mode", "note": "Use AutoClose, true by default: Mode=\"PopoverMode.Manual\" is AutoClose=\"false\"."},
+        {"of": "type", "name": "PopoverMode", "note": "Use Popover's AutoClose, a bool."},
+        {"of": "component", "name": "Slider", "member": "ShowValue", "note": "Use ValueTooltip (over the thumb) and ShowEnds (Min and Max at the track's ends)."},
+        {"of": "component", "name": "Step", "member": "Hidden", "note": "Use Visible, which is the opposite: Hidden=\"true\" is Visible=\"false\"."},
+        {"of": "component", "name": "Table", "member": "ChildContent", "note": "Columns go in <Columns>, not directly in the table."},
+        {"of": "component", "name": "Table", "member": "FilterFromAddress", "to": "FilterFromQuery"},
+        {"of": "component", "name": "TextField", "member": "Requirements", "note": "Use PasswordField."},
+        {"of": "component", "name": "TextField", "member": "Reveal", "note": "Use PasswordField."},
+        {"of": "component", "name": "TextField", "member": "ShowPasswordLabel", "note": "Use PasswordField."},
+        {"of": "type", "name": "TextFieldType", "member": "Password", "note": "Use PasswordField."},
+        {"of": "component", "name": "ToolbarButton", "member": "FloatPosition", "note": "Use FloatingButton, which sets it with Placement."},
+        {"of": "component", "name": "ToolbarButton", "member": "Floating", "note": "Use FloatingButton."},
+        {"of": "component", "name": "ToolbarButton", "member": "Pressed", "note": "Use ToggleButton (ToolbarToggleButton in a Toolbar), and ToggleGroup for several."},
+        {"of": "component", "name": "ToolbarIconButton", "member": "FloatPosition", "note": "Use FloatingButton, which sets it with Placement."},
+        {"of": "component", "name": "ToolbarIconButton", "member": "Floating", "note": "Use FloatingButton."},
+        {"of": "component", "name": "ToolbarIconButton", "member": "Pressed", "note": "Use ToggleButton (ToolbarToggleButton in a Toolbar), and ToggleGroup for several."},
+        {"of": "component", "name": "TreeView", "member": "AriaLabel", "to": "Label"},
+        {"of": "component", "name": "TreeView", "member": "Expanded", "to": "ExpandedItems"}
+      ]
+    },
+    {
+      "version": "0.1.0-alpha.24",
+      "changes": [
+        {"of": "component", "name": "ListView", "member": "ChildContent", "note": "An item's content goes in ItemTemplate."},
+        {"of": "type", "name": "IzzyText", "member": "MoveCancelled", "to": "MoveCanceled"}
+      ]
+    }
+  ]
+}

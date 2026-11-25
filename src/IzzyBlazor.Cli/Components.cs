@@ -190,6 +190,10 @@ sealed class Components
         c["parameters"]!.AsArray().Select(p => p!.AsObject())
             .Concat((c["bases"]?.AsArray() ?? []).SelectMany(b => _bases.TryGetValue((string)b!, out var shared) ? shared["parameters"]!.AsArray().Select(p => p!.AsObject()) : []));
 
+    /// <summary>Whether a tag is a component on this base.</summary>
+    public bool HasBase(string tag, string name) =>
+        _byName.TryGetValue(tag, out var c) && (c["bases"]?.AsArray() ?? []).Any(b => (string?)b == name);
+
     /// <summary>The names of a base's options, for the text form of describe.</summary>
     public IEnumerable<string> BaseOptions(string name) =>
         _bases.TryGetValue(name, out var shared) ? shared["parameters"]!.AsArray().Select(p => (string)p!["name"]!) : [];

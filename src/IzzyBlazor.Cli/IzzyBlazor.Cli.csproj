@@ -48,6 +48,8 @@
     <None Include="$(RepoRoot)catalog/**/*" LinkBase="catalog" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" Visible="false" />
     <!-- The components, beside the tool's dll and beside whatever references it (the tests). -->
     <None Condition="'$(IzzyComponents)' != 'false'" Include="$(ComponentsFile)" Link="components.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+    <!-- What each release removed or renamed (izzy update, izzy upgrade), beside the dll like the components. -->
+    <None Include="$(RepoRoot)site/IzzyBlazor.Site/Api/changes.json" Link="changes.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
     <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
     <None Include="$(RepoRoot)docs/nuget-readme-cli.md" Pack="true" PackagePath="\README.md" Visible="false" />
     <None Include="$(RepoRoot)brand/nuget/icon.png" Pack="true" PackagePath="\" Visible="false" />

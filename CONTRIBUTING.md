@@ -179,6 +179,8 @@ parameter tables and defaults are never written by hand.
   aren't separate pages). Keep the description under 160 characters (a site test checks);
   `Indexed="false"` for a page search engines should skip. A new kind of page also goes in
   `Services/Sitemap.cs`, which serves `sitemap.xml` and `robots.txt`.
+- `Api/changes.json` is what each release removed or renamed, for `izzy update` and
+  `izzy upgrade`; it ships beside the CLI (see Releasing).
 - `Api/released.api.json` is the last release's API (names only). The build compares with it to
   mark what each release added ("Added in") and print what it removed; it's refreshed when a
   release is cut (see Releasing).
@@ -470,11 +472,16 @@ new. Build the site with the new version, then write the file from the old one:
 
 ```
 dotnet build site/IzzyBlazor.Site -c Release
-dotnet site/IzzyBlazor.DocsGen/bin/Release/net10.0/IzzyBlazor.DocsGen.dll --source src --out site/IzzyBlazor.Site/obj/Release/izzyblazor.api.json --previous site/IzzyBlazor.Site/Api/released.api.json --baseline site/IzzyBlazor.Site/Api/released.api.json
+dotnet site/IzzyBlazor.DocsGen/bin/Release/net10.0/IzzyBlazor.DocsGen.dll --source src --out site/IzzyBlazor.Site/obj/Release/izzyblazor.api.json --previous site/IzzyBlazor.Site/Api/released.api.json --baseline site/IzzyBlazor.Site/Api/released.api.json --changes site/IzzyBlazor.Site/Api/changes.json
 ```
 
 The build lists what was removed since the last release ("Removed since ..."); put those in the
-release notes too.
+release notes too. It also adds each to `Api/changes.json` under the release, which `izzy update`
+lists and `izzy upgrade` looks for in an app. Give every new entry a `"to"` when the change is a
+plain rename (the new name alone: `"to": "Purpose"`), which `izzy upgrade` then makes, or a `"note"`
+that says what to use instead, in a sentence; both when a renamed type's members changed too. A
+rename whose value changes (a bool that became an enum, an inverted bool) gets a note, not a `"to"`.
+Add by hand what the API file doesn't hold, such as a member of `IzzyText`.
 
 For release notes, add `docs/releases/v<version>.md` in the same commit: it heads the GitHub
 release's notes, above the generated list of commits. List every rename, since Razor takes an old

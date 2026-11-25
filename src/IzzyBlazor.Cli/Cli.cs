@@ -39,6 +39,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
           izzy update [--to <version>] [--global] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
+          izzy upgrade [--from <version>] [--to <version>] [--project <path>] [--dry-run] [--diff] [--json]
           izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--cookie <name=value>] [--out <folder>] [--format md,json,tasks] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]
           izzy audit --site <url> [--max-pages 500], or izzy audit --urls <file>
           izzy audit [<path> ...] --run [--site] [--project <path>]
@@ -60,7 +61,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         gets a Blazor root beside its pages. It builds the app afterwards and says how to fix a name clash.
         izzy update moves the app in this folder to the newest IzzyBlazor: the package its projects reference
         and the izzy in its tool manifest, then it builds the app. Outside an app, or with --global, it updates
-        the izzy on this machine. --to takes a version other than the newest.
+        the izzy on this machine. --to takes a version other than the newest. It ends with what the releases
+        in between removed or renamed. izzy upgrade finds where the app uses those, in its .razor and .cs
+        files, and renames what has a new name; the rest it lists by file and line (IzzyBlazor Pro).
         Settings are the item's, as izzy describe lists them (izzy describe block hero), such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
@@ -119,6 +122,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "new" => New(args),
                 "init" => Init(args),
                 "update" => Update(args),
+                "upgrade" => Upgrade(args),
                 "audit" => AuditPages(args),
                 "agent" => Agent(args),
                 "mcp" => Mcp(args),
@@ -127,7 +131,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account [--json]", "json").Status(output, args.Switch("json")),
                 "feedback" => Feedback(args),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, update, audit, agent, mcp, login, logout, account, feedback."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, update, upgrade, audit, agent, mcp, login, logout, account, feedback."),
             };
         }
         catch (ProRequiredException e)
@@ -1078,12 +1082,15 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
         var changes = new Changeset { Creates = [], Inserts = inserts, Packages = [], Conflicts = [], Warnings = warnings };
         var write = !flags.DryRun && inserts.Count > 0;
+        // What the releases in between removed or renamed. An izzy without the record still updates the app.
+        var between = from is not null && File.Exists(ReleaseChanges.Beside) ? Changes.Between(from, target) : [];
         if (flags.Diff) _data.Write(ChangesetWriter.Diff(changes, project));
         if (flags.Json)
         {
             var json = ChangesetJson(changes, write);
             json["from"] = from;
             json["to"] = target;
+            json["changes"] = new JsonArray(between.Select(c => (JsonNode)c.Json()).ToArray());
             Print(json);
         }
         foreach (var warning in warnings) error.WriteLine($"warning: {warning}");
@@ -1102,19 +1109,144 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             {
                 Summary(changes, "Would create", "Would change", "Would add package");
                 output.WriteLine($"Would update {project.Name} {move}");
+                Changed(between, from, target);
             }
             return 0;
         }
         ChangesetWriter.Apply(changes, root);
+        if (between.Count > 0) RecordFrom(root, from!);
         if (!flags.Json)
         {
             Summary(changes, "Created", "Changed", "Added package");
             output.WriteLine($"Updated {project.Name} {move}");
+            Changed(between, from, target);
         }
         if (inserts.Any(i => ToolManifest.Is(i.Path))) Dotnet(root, flags.Json, "tool", "restore");
         var exit = build ? Build(project, flags.Json) : 0;
         if (!flags.Json) output.WriteLine($"What changed in each release: {Releases.Notes}");
         return exit;
+    }
+
+    ReleaseChanges? _changes;
+
+    ReleaseChanges Changes => _changes ??= ReleaseChanges.Load(ReleaseChanges.Beside);
+
+    // What the releases after one, up to another, removed or renamed: a line each.
+    void Changed(List<ReleaseChange> between, string? from, string to)
+    {
+        if (between.Count == 0) return;
+        output.WriteLine($"The releases after {from}, up to {to}, removed or renamed {between.Count}:");
+        foreach (var release in between.GroupBy(c => c.Release))
+        {
+            output.WriteLine($"  {release.Key}");
+            foreach (var change in release) output.WriteLine($"    {change.Line}");
+        }
+        output.WriteLine("Razor takes an old parameter name without a warning, and the page fails when it's opened.");
+        output.WriteLine("izzy upgrade finds where this app uses these and renames what has a new name (IzzyBlazor Pro).");
+    }
+
+    // .izzy/upgrade.json: the release the app came from, for izzy upgrade. An update before izzy upgrade has
+    // run keeps the older one.
+    static string UpgradeRecord(string root) => Path.Combine(root, ".izzy", "upgrade.json");
+
+    static string? RecordedFrom(string root)
+    {
+        try
+        {
+            return File.Exists(UpgradeRecord(root)) && (string?)JsonNode.Parse(File.ReadAllText(UpgradeRecord(root)))?["from"] is { } from && ToolManifest.Exact(from) ? from : null;
+        }
+        catch (Exception e) when (e is JsonException or InvalidOperationException or IOException)
+        {
+            return null;
+        }
+    }
+
+    static void RecordFrom(string root, string from)
+    {
+        if (RecordedFrom(root) is { } earlier && Releases.Compare(earlier, from) <= 0) return;
+        Directory.CreateDirectory(Path.GetDirectoryName(UpgradeRecord(root))!);
+        File.WriteAllText(UpgradeRecord(root), new JsonObject { ["from"] = from }.ToJsonString(Json) + "\n");
+    }
+
+    // The oldest IzzyBlazor version the app's project files name.
+    static string? AppVersion(string root) =>
+        VersionFiles(root)
+            .SelectMany(path => Regex.Matches(File.ReadAllText(Path.Combine(root, path)), """<(?:PackageReference|PackageVersion)\s[^>]*?(?:Include|Update)="IzzyBlazor(?:\.Core)?"[^>]*?\sVersion="([^"]*)" """.TrimEnd(), RegexOptions.IgnoreCase))
+            .Select(m => m.Groups[1].Value).Where(ToolManifest.Exact)
+            .Order(Comparer<string>.Create(Releases.Compare)).FirstOrDefault();
+
+    // izzy upgrade: where the app uses what the releases it passed removed or renamed. What has a new name is
+    // renamed, as a changeset; the rest is listed by file and line with what to do.
+    int Upgrade(Args args)
+    {
+        const string usage = "izzy upgrade [--from <version>] [--to <version>] [--project <path>] [--dry-run] [--diff] [--json]";
+        Words(args, 1, usage);
+        var from = args.Take("from");
+        var to = args.Take("to");
+        var folder = args.Take("project");
+        var flags = Flags(args);
+        NoSettings(args);
+        foreach (var (name, version) in new[] { ("from", from), ("to", to) })
+        {
+            if (version is not null && !ToolManifest.Exact(version)) throw new UsageException($"--{name} takes a version, such as 0.1.0: \"{version}\" isn't one.");
+        }
+        if (!HasPro)
+        {
+            error.WriteLine("Finding where an app uses what a release changed, and renaming it, comes with IzzyBlazor Pro. izzy update lists what each release removed or renamed.");
+            return 3;
+        }
+        if (!flags.Json) PreviewNote();
+        var project = ProjectInfo.FromProject(FindProject(folder));
+        var root = project.Directory!;
+        from ??= RecordedFrom(root)
+            ?? throw new UsageException($"Say which release the app came from: izzy upgrade --from <version>. izzy update records it when it moves an app. Usage: {usage}");
+        to ??= AppVersion(root) ?? Generator.IzzyBlazorVersion;
+        var warnings = new List<string>();
+        if (Releases.Compare(to, Generator.IzzyBlazorVersion) > 0)
+            warnings.Add($"This izzy is {Generator.IzzyBlazorVersion}, and doesn't know what the releases after it changed. To update it: izzy update --global");
+
+        var between = Changes.Between(from, to);
+        var uses = between.Count == 0 ? [] : ReleaseChanges.Files(root).SelectMany(path => ReleaseChanges.Find(path, File.ReadAllText(Path.Combine(root, path)), between, Library)).ToList();
+        var fixes = uses.Where(u => u.Fix is not null).Select(u => u.Fix!).DistinctBy(f => (f.Path, f.Offset)).ToList();
+        var found = uses.Where(u => !u.Closing).ToList();
+        var byHand = found.Count(u => u.Fix is null);
+        var changeset = new Changeset { Creates = [], Inserts = fixes, Packages = [], Conflicts = [], Warnings = warnings };
+        var write = !flags.DryRun && fixes.Count > 0;
+        if (flags.Diff && !flags.Json) output.Write(ChangesetWriter.Diff(changeset, project));
+        if (flags.Json)
+        {
+            var json = ChangesetJson(changeset, write);
+            json["from"] = from;
+            json["to"] = to;
+            json["uses"] = new JsonArray(found.Select(u =>
+            {
+                var use = u.Change.Json();
+                use["path"] = u.Path;
+                use["line"] = u.Line;
+                use["column"] = u.Column;
+                use["renamed"] = u.Fix is not null;
+                return (JsonNode)use;
+            }).ToArray());
+            Print(json);
+        }
+        foreach (var warning in warnings) error.WriteLine($"warning: {warning}");
+        if (write) ChangesetWriter.Apply(changeset, root);
+        // Nothing is left of this move once every use has its new name.
+        if (byHand == 0 && (write || fixes.Count == 0) && File.Exists(UpgradeRecord(root))) File.Delete(UpgradeRecord(root));
+        if (flags.Json) return 0;
+        if (found.Count == 0)
+        {
+            output.WriteLine($"Nothing to change: {project.Name} uses nothing that the releases after {from}, up to {to}, removed or renamed.");
+            return 0;
+        }
+        if (!flags.Diff)
+        {
+            foreach (var use in found) output.WriteLine($"{use.Path}:{use.Line}:{use.Column}  {use.Change.Line}");
+        }
+        var renamed = found.Count - byHand;
+        if (renamed > 0) output.WriteLine($"{(write ? "Renamed" : "Would rename")} {renamed} in {fixes.Select(f => f.Path).Distinct().Count()} {(fixes.Select(f => f.Path).Distinct().Count() == 1 ? "file" : "files")}.");
+        if (byHand > 0) output.WriteLine($"{byHand} to change by hand: {(byHand == 1 ? "it has" : "they have")} no plain new name.");
+        return 0;
     }
 
     // The project files that may hold IzzyBlazor's version, from the app's folder.

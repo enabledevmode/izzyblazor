@@ -4,7 +4,7 @@ using IzzyBlazor.DocsGen;
 
 // Writes izzyblazor.api.json from the built library and its XML docs.
 //
-//   dotnet run --project site/IzzyBlazor.DocsGen -- --out izzyblazor.api.json [--previous released.api.json] [--source src] [--baseline released.api.json]
+//   dotnet run --project site/IzzyBlazor.DocsGen -- --out izzyblazor.api.json [--previous released.api.json] [--source src] [--baseline released.api.json --changes changes.json]
 //       [--cli-out components.json --registry components.json --examples Examples]
 //
 // With --source (the library's source folder), components written as .razor files take their
@@ -12,12 +12,14 @@ using IzzyBlazor.DocsGen;
 //
 // With --previous (the last release's file), members new since then get this version as
 // "addedIn", and anything removed is listed for the Upgrade page. The site's build passes
-// Api/released.api.json; --baseline writes that file (names only) when a release is cut.
+// Api/released.api.json; --baseline writes that file (names only) when a release is cut, and --changes
+// (Api/changes.json, which izzy update and izzy upgrade read) gets what the release removed.
 
 var output = Arg("--out") ?? "izzyblazor.api.json";
 var previousPath = Arg("--previous");
 var sourceRoot = Arg("--source");
 var baselinePath = Arg("--baseline");
+var changesPath = Arg("--changes");
 // With --cli-out, also writes the components as the izzy CLI reads them (see CliData), from the
 // site's registry (--registry components.json) and its examples (--examples Examples).
 var cliPath = Arg("--cli-out");
@@ -48,6 +50,12 @@ if (previousPath is not null)
     foreach (var name in removed)
     {
         Console.WriteLine($"Removed since {previous.Version}: {name}");
+    }
+
+    if (changesPath is not null && previous.Version != version)
+    {
+        var added = ReleaseChanges.Add(changesPath, version, removed);
+        Console.WriteLine($"DocsGen: {added} added to {changesPath} for {version}. Give each a \"to\" (a plain rename) or a \"note\" (what to do instead).");
     }
 
     if (previous.Version == version)
