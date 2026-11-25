@@ -101,11 +101,11 @@ static partial class Audit
             if (_taken.IsEmpty) return;
             Directory.CreateDirectory(Path.Combine(folder, "pictures"));
             foreach (var ((id, scheme), picture) in _taken)
-                File.WriteAllBytes(Path.Combine(folder, "pictures", $"{id}-{scheme}.webp"), Convert.FromBase64String(picture.Data));
+                File.WriteAllBytes(Path.Combine(folder, "pictures", $"{id}-{scheme.Replace(' ', '-')}.webp"), Convert.FromBase64String(picture.Data));
             foreach (var page in run["pages"]!.AsArray())
                 foreach (var node in page!["violations"]!.AsArray().SelectMany(rule => rule!["nodes"]!.AsArray()))
                     if (_taken.TryGetValue(((string)node!["id"]!, (string)page["scheme"]!), out var picture))
-                        node["picture"] = new JsonObject { ["file"] = $"pictures/{(string)node["id"]!}-{(string)page["scheme"]!}.webp", ["width"] = picture.Width, ["height"] = picture.Height, ["pageWidth"] = picture.PageWidth };
+                        node["picture"] = new JsonObject { ["file"] = $"pictures/{(string)node["id"]!}-{((string)page["scheme"]!).Replace(' ', '-')}.webp", ["width"] = picture.Width, ["height"] = picture.Height, ["pageWidth"] = picture.PageWidth };
         }
 
         /// <summary>Whether the finding's element is drawn and still has no picture.</summary>
@@ -113,7 +113,7 @@ static partial class Audit
 
         /// <summary>The pictures of a finding, light first.</summary>
         public List<(string Scheme, Picture Picture)> Of(string id) =>
-            [.. ((string[])["light", "dark"]).Where(scheme => _taken.ContainsKey((id, scheme))).Select(scheme => (scheme, _taken[(id, scheme)]))];
+            [.. ((string[])["light", "dark", Forced]).Where(scheme => _taken.ContainsKey((id, scheme))).Select(scheme => (scheme, _taken[(id, scheme)]))];
 
         // Scrolls the element into the window, outlines it with an element of izzy's own over the page (the
         // page's element is not touched), and answers with the part of the document to take: the element
@@ -178,7 +178,7 @@ static partial class Audit
               const left = Math.max(r.x, edge), top = Math.max(r.y, edge), right = Math.max(Math.min(r.x + r.width, vw - edge), left), bottom = Math.max(Math.min(r.y + r.height, vh - edge), top);
               const mark = document.createElement("div");
               mark.id = "__izzy-outline";
-              mark.style.cssText = "all: initial; position: fixed; z-index: 2147483647; pointer-events: none; box-sizing: border-box; border-radius: 2px;"
+              mark.style.cssText = "all: initial; position: fixed; z-index: 2147483647; pointer-events: none; box-sizing: border-box; border-radius: 2px; forced-color-adjust: none;"
                 + "outline: 3px solid #d6006f; outline-offset: 2px; box-shadow: 0 0 0 7px #fff;"
                 + `left: ${left}px; top: ${top}px; width: ${Math.max(right - left, 1)}px; height: ${Math.max(bottom - top, 1)}px;`;
               document.documentElement.appendChild(mark);
@@ -218,7 +218,7 @@ static partial class Audit
         text.Append("<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'\">\n<meta name=\"color-scheme\" content=\"light dark\">\n");
         text.Append($"<title>Accessibility audit: {H(subject)}</title>\n<style>\n{Style}</style>\n</head>\n<body>\n");
         text.Append($"<header>\n<p class=\"kicker\">Accessibility audit</p>\n<h1>{H(subject)}</h1>\n");
-        text.Append($"<p class=\"made\">{H(day)}. Checked with axe-core {H((string)run["engine"]!["version"]!)} in {H((string?)run["browser"] ?? "a browser")}, at {H(Listed(run["widths"]!.AsArray().Select(w => $"{w}px")))}, in {H(Listed(run["schemes"]!.AsArray().Select(s => (string)s!)))}.</p>\n</header>\n<main>\n");
+        text.Append($"<p class=\"made\">{H(day)}. Checked with axe-core {H((string)run["engine"]!["version"]!)}{H(Swept(run))} in {H((string?)run["browser"] ?? "a browser")}, at {H(Listed(run["widths"]!.AsArray().Select(w => $"{w}px")))}, in {H(Listed(run["schemes"]!.AsArray().Select(s => (string)s!)))}.</p>\n</header>\n<main>\n");
 
         text.Append("<section aria-labelledby=\"summary\">\n<h2 id=\"summary\">Summary</h2>\n");
         if (groups.Count == 0) text.Append("<p>No findings.</p>\n");
@@ -244,7 +244,7 @@ static partial class Audit
                 text.Append($"<section aria-labelledby=\"{Class(section)}\">\n<h2 id=\"{Class(section)}\">{H(Title(section))}</h2>\n<p class=\"note\">{Inline(Verdicts.First(v => v.Verdict == section).Meaning)}.</p>\n");
             }
             text.Append($"<article>\n<h3>{H(group.Help)} <code>{H(group.RuleId)}</code></h3>\n<dl class=\"facts\">\n");
-            text.Append($"<div><dt>Criterion</dt><dd>{H(Criterion(group.Rule["tags"]!.AsArray().Select(t => (string)t!).ToList()))}; axe severity {H(group.Impact)}.{Link((string?)group.Rule["helpUrl"], "About this rule")}</dd></div>\n");
+            text.Append($"<div><dt>Criterion</dt><dd>{H(Criterion(group.Rule["tags"]!.AsArray().Select(t => (string)t!).ToList()))}; {Severity(group.RuleId)} {H(group.Impact)}.{Link((string?)group.Rule["helpUrl"], "About this rule")}</dd></div>\n");
             var first = group.Findings[0].Node["verdict"];
             var who = group.Verdict == Accepted && ((string?)first?["by"], (string?)first?["on"]) is var (by, on) && (by ?? on) is not null ? $" ({string.Join(", ", ((string?[])[by, on]).Where(p => p is not null))})" : "";
             text.Append($"<div><dt>Verdict</dt><dd><span class=\"verdict {Class(group.Verdict)}\">{H(group.Verdict)}</span> {(group.Why is null ? "Nothing known explains it, so it counts as a failure" : Inline(group.Why.TrimEnd('.')))}{H(who)}. Confidence: {H((string?)first?["confidence"] ?? "medium")}.</dd></div>\n");
@@ -297,9 +297,7 @@ static partial class Audit
         }
 
         text.Append("<section aria-labelledby=\"not-checked\">\n<h2 id=\"not-checked\">Not checked</h2>\n<ul>\n");
-        text.Append("<li>The page is checked as it loads: closed dialogs, menus and popovers are not opened.</li>\n");
-        text.Append("<li>Keyboard order, focus traps and what a screen reader says.</li>\n");
-        text.Append("<li>Automated checks find part of what WCAG asks, so a report with no findings is not a statement of conformance.</li>\n");
+        foreach (var line in NotChecked(run)) text.Append($"<li>{H(line)}</li>\n");
         text.Append("</ul>\n</section>\n</main>\n");
         text.Append($"<footer><p>Made by izzy audit {H((string)run["version"]!)}{(run["verdicts"] is { } judged ? $", verdicts from pack {H((string?)judged["pack"] ?? "")}{((string?)judged["project"] is { } project ? $" and {H(project)}" : "")}" : "")}.</p></footer>\n</body>\n</html>\n");
         return text.ToString();
@@ -333,7 +331,7 @@ static partial class Audit
         {
             var lines = summary.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var ways = lines.Where(line => !FixLead().IsMatch(line + " ")).ToList();
-            Row("axe", ways.Count <= 1 ? H(FixLead().Replace(Spaces().Replace(summary, " "), "")) : string.Concat(lines.Select(line => FixLead().IsMatch(line + " ") ? $"{H(line)}" : $"<span class=\"way\">{H(line)}</span>")));
+            Row(Swept((string)finding.Rule["id"]!) ? "izzy" : "axe", ways.Count <= 1 ? H(FixLead().Replace(Spaces().Replace(summary, " "), "")) : string.Concat(lines.Select(line => FixLead().IsMatch(line + " ") ? $"{H(line)}" : $"<span class=\"way\">{H(line)}</span>")));
         }
         // One row when the schemes measure alike, else one for each.
         static string Colors(JsonNode contrast) => $"{Swatch((string?)contrast["foreground"])}{H((string?)contrast["foreground"] ?? "")} on {Swatch((string?)contrast["background"])}{H((string?)contrast["background"] ?? "")}, {H(contrast["ratio"]?.ToString() ?? "")}:1 at {H((string?)contrast["size"] ?? "")}; needs {H((string?)contrast["needs"] ?? "")}";

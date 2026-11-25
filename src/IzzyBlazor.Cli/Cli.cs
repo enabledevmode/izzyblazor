@@ -77,7 +77,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         from .izzy/audit.json, --format tasks writes tasks.md, and --baseline <results.json> with --fail-on new
         fails on real findings the past run lacks. Each finding also names the IzzyBlazor component that drew
         the element and the fix; with --run or --project it has the file and line in your source, and
-        --format sarif writes results.sarif for code scanning. --format html writes report.html, the report
+        --format sarif writes results.sarif for code scanning. Pro also runs izzy's own checks: target
+        size, focus hidden under a header that stays in place, and focus and indicators in forced colors,
+        for which each page is opened once more. --format html writes report.html, the report
         as one file with a picture of each element, to hand to a client. --site audits every page of a
         site: those its sitemap.xml lists, else those its links lead to; izzy audit --run --site is the
         whole app. --urls <file> audits a list, one address a line. --cookie sends a cookie with every
@@ -361,11 +363,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
 
         // A long run is shared between up to three browsers.
-        var loads = urls.Count * widths.Count * schemes.Count;
+        var loads = urls.Count * (widths.Count * schemes.Count + (judge is null ? 0 : 1));
         var browsers = loads >= 24 ? Math.Clamp(Environment.ProcessorCount / 2, 1, 3) : 1;
         // report.html has a picture of each element it shows: taken now, while its page is open.
         var pictures = formats.Contains("html") && !json ? new Audit.Pictures() : null;
-        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress, judge, cookies, browsers, tracer, pictures).GetAwaiter().GetResult();
+        var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress, judge, cookies, browsers, tracer, pictures, sweeps: judge is not null).GetAwaiter().GetResult();
         if (baseline is not null) Audit.Compare(results, baseline, baselineFile!.Replace('\\', '/'));
         var failing = failOn switch
         {

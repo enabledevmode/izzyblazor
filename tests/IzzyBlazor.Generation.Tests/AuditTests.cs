@@ -165,8 +165,74 @@ public sealed class AuditTests : IDisposable
 
         Assert.True(exit == 0, error.ToString());
         Assert.Contains("2 pages found by following links", error.ToString());
-        var pages = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "site", "results.json")))!["pages"]!.AsArray().Select(p => new Uri((string)p!["url"]!).AbsolutePath).ToList();
+        var pages = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "site", "results.json")))!["pages"]!.AsArray().Select(p => new Uri((string)p!["url"]!).AbsolutePath).Distinct().ToList();
         Assert.Equal(["/", "/orders"], pages);
+    }
+
+    [BrowserFact]
+    public void The_sweeps_find_what_axe_does_not_and_pass_what_is_right()
+    {
+        var pro = Path.Combine(_work, "pro");
+        Directory.CreateDirectory(Path.Combine(pro, ".audit"));
+        File.WriteAllText(Path.Combine(pro, ".audit", "pack.json"), """{ "version": "test", "entries": [] }""");
+        // Each fault beside the same thing done right: a header that covers what takes focus; a button whose
+        // focus is a shadow, which forced colors erase, and one with a ring; a field whose border only changes
+        // color; a meter's value drawn by a fill, and one with a border; two small buttons side by side.
+        const string style = """
+            body { margin: 0; background: #fff; font: 16px sans-serif; }
+            header { position: sticky; top: 0; height: 80px; background: #eee; }
+            main { padding: 24px; }
+            button, input { font: inherit; }
+            .big { min-width: 120px; min-height: 40px; border: 1px solid #333; background: #fff; }
+            #shadow { outline: none; }
+            #shadow:focus-visible { box-shadow: 0 0 0 3px #06c; }
+            #ring:focus-visible { outline: 2px solid #06c; outline-offset: 2px; }
+            #shade { width: 240px; height: 40px; border: 1px solid #555; outline: none; }
+            #shade:focus-visible { border-color: #06c; }
+            .meter { width: 240px; height: 12px; border: 1px solid #333; margin: 16px 0; }
+            .meter > div { width: 40%; height: 100%; background: #06c; }
+            #edged > div { box-sizing: border-box; border: 1px solid transparent; }
+            .tiny { width: 16px; height: 16px; padding: 0; border: 1px solid #333; background: #fff; }
+            p { margin: 0 0 400px; }
+            """;
+        const string body = """
+            <header><strong>Shop</strong></header>
+            <main><h1>Orders</h1>
+            <button class="big" id="shadow">Save</button> <button class="big" id="ring">Cancel</button>
+            <label>Name <input id="shade"></label>
+            <div class="meter" id="filled" role="progressbar" aria-label="Packed" aria-valuenow="40"><div></div></div>
+            <div class="meter" id="edged" role="progressbar" aria-label="Sent" aria-valuenow="40"><div></div></div>
+            <button class="tiny" aria-label="Up"></button><button class="tiny" aria-label="Down"></button>
+            <p>First</p><p><a href="/one" id="one">One</a></p><p><a href="/two" id="two">Two</a></p><p><a href="/three" id="three">Three</a></p><p>Last</p>
+            </main>
+            """;
+        var padded = false;
+        using var site = new Site(() => $"<!doctype html><html lang=\"en\"{(padded ? " style=\"scroll-padding-top: 96px\"" : "")}><head><title>Orders</title><style>{style}</style></head><body>{body}</body></html>");
+
+        List<string> Audit(string folder)
+        {
+            var (output, error) = (new StringWriter(), new StringWriter());
+            var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, output, error, proRoot: pro)
+                .Run(["audit", site.Url, "--sizes", "1440", "--schemes", "light", "--out", folder]);
+            Assert.True(exit == 0, error.ToString());
+            return [.. JsonNode.Parse(File.ReadAllText(Path.Combine(_work, folder, "results.json")))!["pages"]!.AsArray().SelectMany(page => page!["violations"]!.AsArray()
+                .SelectMany(rule => rule!["nodes"]!.AsArray().Select(node => $"{(string)page["scheme"]!}: {(string)rule["id"]!} {(string)node!["target"]!}: {(string)node["verdict"]!["is"]!}"))).Order()];
+        }
+
+        Assert.Equal(
+        [
+            "forced colors: focus-visible-forced-colors #shade: needs a person",
+            "forced colors: focus-visible-forced-colors #shadow: real",
+            "forced colors: forced-colors-indicator #filled > div: needs a person",
+            "light: focus-not-obscured header: real",
+            "light: target-size button[aria-label=\"Down\"]: real",
+            "light: target-size button[aria-label=\"Up\"]: real",
+        ], Audit("first"));
+        Assert.Contains("stays hidden under this bar when it takes focus", File.ReadAllText(Path.Combine(_work, "first", "report.md")));
+
+        // The page reserves the header's room: what takes focus is scrolled out from under it.
+        padded = true;
+        Assert.DoesNotContain(Audit("second"), finding => finding.Contains("focus-not-obscured"));
     }
 
     /// <summary>A page served on this machine: whatever <paramref name="html"/> gives at the time it is asked for.</summary>

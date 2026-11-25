@@ -48,11 +48,15 @@ static partial class Audit
     /// request to the addresses' sites. A long run is shared between <paramref name="browsers"/> browsers.
     /// With a <paramref name="tracer"/>, each finding is traced to its component and, with the app's source, its line.
     /// With <paramref name="pictures"/>, a picture is taken of each element a report shows.
+    /// With <paramref name="sweeps"/>, izzy's own checks run too (AuditSweeps.cs), and each address is loaded
+    /// once more, in forced colors.
     /// </summary>
     public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null, Judge? judge = null,
-        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1, Tracer? tracer = null, Pictures? pictures = null)
+        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1, Tracer? tracer = null, Pictures? pictures = null, bool sweeps = false)
     {
         var loads = (from width in widths from scheme in schemes from url in urls select (Width: width, Scheme: scheme, Url: url)).ToList();
+        // Forced colors once for each address, at the widest width: what it erases is erased at every width.
+        if (sweeps) loads.AddRange(urls.Select(url => (Width: widths.Max(), Scheme: Forced, Url: url)));
         var pages = new JsonObject[loads.Count];
         var sites = urls.Select(u => Uri.TryCreate(u, UriKind.Absolute, out var parsed) ? parsed.GetLeftPart(UriPartial.Authority) : null).Where(s => s is not null).Distinct().ToList();
         var next = -1;
@@ -69,6 +73,8 @@ static partial class Audit
                 await browser.Send("Page.enable");
                 await browser.Send("Runtime.enable");
                 await browser.Send("Page.setLifecycleEventsEnabled", new JsonObject { ["enabled"] = true });
+                // The page counts as the one in front, so what takes focus is drawn with it.
+                if (sweeps) await browser.Send("Emulation.setFocusEmulationEnabled", new JsonObject { ["enabled"] = true });
                 // axe for every document, frames too, so it checks inside iframes.
                 await browser.Send("Page.addScriptToEvaluateOnNewDocument", new JsonObject { ["source"] = Loader });
                 // The app's selectors are read once, before any page: a wrong one stops the run, where it would
@@ -87,11 +93,13 @@ static partial class Audit
                     if (set != (load.Width, load.Scheme))
                     {
                         await browser.Send("Emulation.setDeviceMetricsOverride", new JsonObject { ["width"] = load.Width, ["height"] = load.Width < 600 ? 800 : 900, ["deviceScaleFactor"] = 1, ["mobile"] = load.Width < 600 });
-                        await browser.Send("Emulation.setEmulatedMedia", new JsonObject { ["features"] = new JsonArray(new JsonObject { ["name"] = "prefers-color-scheme", ["value"] = load.Scheme }) });
+                        await Media(browser, load.Scheme == Forced ? schemes[0] : load.Scheme, forced: false);
                         set = (load.Width, load.Scheme);
                     }
                     progress?.Invoke($"{(loads.Count > 8 ? $"[{at + 1}/{loads.Count}] " : "")}{load.Url} at {load.Width}, {load.Scheme}");
-                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge, tracer, pictures);
+                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge, tracer, pictures, sweeps, schemes[0]);
+                    // A page in forced colors leaves them on: the next load sets its own.
+                    if (load.Scheme == Forced) set = null;
                     // A browser that died fails every load it is given at once, and so would take the rest of
                     // the run from the browsers that work: the run ends, as for one browser.
                     if (browser.Closed) throw new GenerationException("The browser closed during the audit.");
@@ -118,11 +126,13 @@ static partial class Audit
         };
         if (judge is not null) run["verdicts"] = new JsonObject { ["pack"] = judge.PackVersion, ["project"] = judge.ProjectFile };
         if (tracer is not null) run["trace"] = new JsonObject { ["source"] = tracer.HasSource };
+        if (sweeps) run["sweeps"] = new JsonArray([.. Sweeps.Select(s => (JsonNode)s.Id)]);
         return run;
     }
 
-    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge, Tracer? tracer, Pictures? pictures)
+    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge, Tracer? tracer, Pictures? pictures, bool sweeps = false, string colors = "light")
     {
+        var forced = scheme == Forced;
         var page = new JsonObject { ["url"] = url, ["width"] = width, ["scheme"] = scheme };
         try
         {
@@ -135,7 +145,9 @@ static partial class Audit
                 await browser.Event(e => (string?)e["method"] == "Page.lifecycleEvent" && (string?)e["params"]?["name"] == "networkIdle" && (string?)e["params"]?["loaderId"] == loader, TimeSpan.FromSeconds(20));
             await Task.Delay(400);
 
-            var answer = await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]").Replace("__MARKS__", tracer?.Marks() ?? "{ \"keys\": [], \"all\": [] }").Replace("__KEEP__", pictures is null ? "false" : "true"));
+            // In forced colors axe doesn't run: it ran on this page in each scheme, and the sweeps are what this load is for.
+            var answer = await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]").Replace("__MARKS__", tracer?.Marks() ?? "{ \"keys\": [], \"all\": [] }").Replace("__KEEP__", pictures is null && !sweeps ? "false" : "true")
+                .Replace("__SKIP__", forced ? "true" : "false").Replace("__RULES__", sweeps ? "{ \"target-size\": { \"enabled\": true } }" : "{}"));
             try
             {
                 var found = JsonNode.Parse((string)answer!)!.AsObject();
@@ -148,6 +160,19 @@ static partial class Audit
                 if ((string?)page["landed"] is { } landed && Uri.TryCreate(landed, UriKind.Absolute, out var there) && Uri.TryCreate(url, UriKind.Absolute, out var asked)
                     && string.Equals(there.AbsolutePath.TrimEnd('/'), asked.AbsolutePath.TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
                     page.Remove("landed");
+                // izzy's own checks, after axe's: each answers with a rule as axe does, or with nothing.
+                // A sweep that fails (the page went elsewhere meanwhile, the browser refused a picture) leaves
+                // axe's findings as they are, and the page says its sweeps didn't finish.
+                if (sweeps)
+                    try
+                    {
+                        foreach (var rule in forced ? await InForcedColors(browser, colors) : await InPage(browser, page))
+                            page["violations"]!.AsArray().Add(rule);
+                    }
+                    catch (Exception e) when (e is GenerationException or InvalidOperationException or NullReferenceException or System.Text.Json.JsonException or InvalidCastException or FormatException && !browser.Closed)
+                    {
+                        page["sweepError"] = e is GenerationException ? e.Message.Split('\n')[0] : "The page answered a sweep with something izzy can't read.";
+                    }
                 // A finding's id stays the same from run to run: its rule, the page's path and the element. Two of
                 // one component have one selector once their made ids are out of it, so the second is the second.
                 var path = Uri.TryCreate(url, UriKind.Absolute, out var parsed) ? PathOf(url) + parsed.Query : url;
@@ -160,6 +185,7 @@ static partial class Audit
                         var nth = met[element] = met.GetValueOrDefault(element) + 1;
                         // Only a tracer writes a trace: a page's own is not printed.
                         node.AsObject().Remove("trace");
+                        if (judge is null) node.AsObject().Remove("judged");
                         node["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{element}{(nth > 1 ? $"|{nth}" : "")}")))[..12];
                     }
                 }
@@ -204,7 +230,7 @@ static partial class Audit
           const marked = __MARKS__;
           const marks = new Set(marked.all);
           const keys = new Set(marked.keys);
-          // For the pictures: the elements found stay in the page, in the order of the answer.
+          // For the pictures and the sweeps: the elements found stay in the page, in the order of the answer.
           const keep = __KEEP__;
           // The frames under a document or a shadow root, those inside shadow roots too.
           const framesIn = (root) => {
@@ -219,7 +245,8 @@ static partial class Audit
             } catch { }
           };
           start(window);
-          const r = await axe.run(document, { resultTypes: ["violations", "incomplete"], elementRef: claims.length > 0 || marks.size > 0 || keep });
+          const r = __SKIP__ ? { violations: [], incomplete: [] }
+            : await axe.run(document, { resultTypes: ["violations", "incomplete"], elementRef: claims.length > 0 || marks.size > 0 || keep, rules: __RULES__ });
           const refused = new Set();
           // The element of a node: axe's, or the one its target leads to. Each part of a target but the last is
           // an iframe (a list of parts goes through shadow roots).
@@ -264,12 +291,14 @@ static partial class Audit
           };
           // An element in a frame from another site can't be reached: its picture is of the frame.
           const frameOf = (n) => { try { return n.target.length > 1 ? find(document, n.target[0]) : null; } catch { return null; } };
-          if (keep) window.__izzyFound = r.violations.map(v => v.nodes.map(n => elementOf(n) || frameOf(n)));
+          window.__izzyFound = keep ? r.violations.map(v => v.nodes.map(n => elementOf(n) || frameOf(n))) : r.violations.map(() => []);
+          window.__izzyRules = r.violations.map(v => v.id);
+          const claimed = (rule, element, related) => claims.filter(c => (c.rule === "*" || c.rule === rule) && fits(c, element, related)).map(c => c.key);
           const answer = (rule, n) => {
             const element = claims.length ? elementOf(n) : null;
             if (!element) return undefined;
             const related = n.any.concat(n.all, n.none).flatMap(c => c.relatedNodes || []).map(elementOf).filter(Boolean);
-            return claims.filter(c => (c.rule === "*" || c.rule === rule) && fits(c, element, related)).map(c => c.key);
+            return claimed(rule, element, related);
           };
           // Where the element is, for the trace: itself, and each element around it that carries a component's
           // mark, the nearest first, with what it says (its attributes and the start of its text).
@@ -286,8 +315,8 @@ static partial class Audit
             attributes: [...e.attributes].slice(0, 40).map(a => a.value).filter(v => v.length >= 2 && v.length <= 200),
             text: (e.textContent || "").slice(0, 4000).replace(/\s+/g, " ").trim().slice(0, 600),
           });
-          const place = (n) => {
-            const element = marks.size ? elementOf(n) : null;
+          const place = (n) => placed(marks.size ? elementOf(n) : null);
+          const placed = (element) => {
             if (!element) return undefined;
             try {
               const chain = [];
@@ -301,6 +330,30 @@ static partial class Audit
           // Text cut in the middle of a character (an emoji at the 300th place) can't be written as JSON.
           const whole = (text) => text.toWellFormed ? text.toWellFormed() : text;
           const where = (target) => target.map(t => Array.isArray(t) ? t.join(" ") : t).join(" >> ");
+          // A rule of izzy's own (AuditSweeps.cs), as axe's are answered: its elements stay in the page for
+          // the pictures, after axe's, and each gets the judge's tests and its place as axe's do.
+          // The shortest path that finds the element alone: from an id, or by tags and their places.
+          const selectorOf = (element) => {
+            const root = element.getRootNode(), parts = [];
+            for (let e = element; e && e.nodeType === 1; e = e.parentElement) {
+              if (e.id && root.querySelectorAll("#" + CSS.escape(e.id)).length === 1) { parts.unshift("#" + CSS.escape(e.id)); break; }
+              const alike = e.parentElement ? [...e.parentElement.children].filter(c => c.localName === e.localName) : [e];
+              parts.unshift(e.localName + (alike.length > 1 ? `:nth-of-type(${alike.indexOf(e) + 1})` : ""));
+              if (root.querySelectorAll(parts.join(" > ")).length === 1) break;
+            }
+            return parts.join(" > ");
+          };
+          window.__izzyRule = (rule, items) => {
+            if (!items.length) return null;
+            window.__izzyFound.push(items.map(i => i.element));
+            return JSON.stringify({ ...rule, nodes: items.map(({ element, summary, judged }) => {
+              const html = element.outerHTML;
+              return {
+                target: selectorOf(element), html: html.length > 300 ? html.slice(0, 300) + "…" : html, summary, judged,
+                claims: claims.length ? claimed(rule.id, element, []) : undefined, at: marks.size ? placed(element) : undefined,
+              };
+            }) }, (key, value) => typeof value === "string" ? whole(value) : value);
+          };
           const navigation = performance.getEntriesByType("navigation")[0];
           return JSON.stringify({
             title: document.title,
@@ -399,7 +452,7 @@ static partial class Audit
         var rules = Rules(run);
         var text = new StringBuilder();
         text.Append($"# Accessibility audit: {(urls.Count == 1 ? urls[0] : $"{urls.Count} pages")}\n\n");
-        text.Append($"Made by izzy audit {(string)run["version"]!} on {((string)run["at"]!)[..10]}, with axe-core {(string)run["engine"]!["version"]!} in {(string)run["browser"]!}. ");
+        text.Append($"Made by izzy audit {(string)run["version"]!} on {((string)run["at"]!)[..10]}, with axe-core {(string)run["engine"]!["version"]!}{Swept(run)} in {(string)run["browser"]!}. ");
         text.Append("Each finding has its rule, the WCAG criterion, the element and where it was found. The same results as data are in `results.json`.\n\n");
 
         text.Append("## Summary\n\n");
@@ -417,13 +470,13 @@ static partial class Audit
         foreach (var rule in rules)
         {
             text.Append($"\n### {rule.Help} (`{rule.Id}`)\n\n");
-            text.Append($"- **Criterion:** {rule.Criterion}; axe severity {rule.Impact}. [About this rule]({rule.HelpUrl})\n");
+            text.Append($"- **Criterion:** {rule.Criterion}; {Severity(rule.Id)} {rule.Impact}. [About this rule]({rule.HelpUrl})\n");
             text.Append($"- **Found:** {rule.Elements} element{(rule.Elements == 1 ? "" : "s")}\n");
             // One element found at several widths and schemes is shown once, with where.
             var elements = rule.Pages.SelectMany(page => page["violations"]!.AsArray().Where(v => (string)v!["id"]! == rule.Id).SelectMany(v => v!["nodes"]!.AsArray()).Select(node => (Page: page, Node: node!)))
                 .GroupBy(e => Element(e.Page, e.Node)).ToList();
             foreach (var element in elements.Take(10))
-                text.Append(ElementBlock(element.First().Page, element.First().Node.AsObject(), element.Select(e => $"{(int)e.Page["width"]!}px {(string)e.Page["scheme"]!}").Distinct()));
+                text.Append(ElementBlock(rule.Id, element.First().Page, element.First().Node.AsObject(), element.Select(e => $"{(int)e.Page["width"]!}px {(string)e.Page["scheme"]!}").Distinct()));
             if (elements.Count > 10) text.Append($"\n  …and {elements.Count - 10} more elements, in `results.json`.\n");
         }
 
@@ -461,17 +514,18 @@ static partial class Audit
         var count = page["violations"]!.AsArray().Sum(v => v!["nodes"]!.AsArray().Count);
         var note = (string?)page["error"] is { } error ? $"Not checked: {Cell(error)}" : (int?)page["status"] is >= 400 and var status ? $"{count} (the page answered {status})" : $"{count}";
         if ((string?)page["landed"] is { } landed) note += $" (it led to {Cell(landed)}, which is what was checked)";
+        if (page["sweepError"] is not null) note += " (izzy's sweeps didn't finish here)";
         return $"| {Cell((string)page["url"]!)} | {(int)page["width"]!} | {(string)page["scheme"]!} | {note} |\n";
     }
 
     // One element: its HTML, selector, what axe says and a measured contrast.
-    static string ElementBlock(JsonObject page, JsonObject node, IEnumerable<string> where)
+    static string ElementBlock(string rule, JsonObject page, JsonObject node, IEnumerable<string> where)
     {
         var text = new StringBuilder();
         text.Append($"\n  On {Code((string)page["url"]!)} at {string.Join("; ", where)}:\n\n");
         text.Append($"  ```html\n  {Spaces().Replace((string)node["html"]!, " ")}\n  ```\n");
         text.Append($"  - Selector: {Code((string)node["target"]!)}\n");
-        if ((string?)node["summary"] is { } summary) text.Append($"  - axe: {Plain(FixLead().Replace(Spaces().Replace(summary, " "), ""))}\n");
+        if ((string?)node["summary"] is { } summary) text.Append($"  - {(Swept(rule) ? "izzy" : "axe")}: {Plain(FixLead().Replace(Spaces().Replace(summary, " "), ""))}\n");
         if (node["contrast"] is { } contrast)
             text.Append($"  - Measured: {(string?)contrast["foreground"]} on {(string?)contrast["background"]}, {contrast["ratio"]}:1 at {(string?)contrast["size"]}; needs {(string?)contrast["needs"]}\n");
         text.Append(TraceLines(node));
@@ -490,10 +544,27 @@ static partial class Audit
         }
 
         text.Append("\n## Not checked\n\n");
-        text.Append("- The page is checked as it loads: closed dialogs, menus and popovers are not opened.\n");
-        text.Append("- Keyboard order, focus traps and what a screen reader says.\n");
-        text.Append("- Automated checks find part of what WCAG asks, so a report with no findings is not a statement of conformance.\n");
+        foreach (var line in NotChecked(run)) text.Append($"- {line}\n");
         return text.ToString();
+    }
+
+    /// <summary>What no run checks, and where the sweeps of this one stop: every report ends with it.</summary>
+    public static List<string> NotChecked(JsonObject run)
+    {
+        List<string> lines =
+        [
+            "The page is checked as it loads: closed dialogs, menus and popovers are not opened.",
+            "Keyboard order, focus traps and what a screen reader says.",
+        ];
+        if (run["sweeps"] is not null)
+        {
+            lines.Add("Focus is measured in forced colors only, on one of each kind of control (at most 40 kinds a page; all of a kind that fails, up to ten) in the page itself, not in its iframes or shadow roots. Anything that changes around a control counts, a tooltip that opens too. Whether focus is easy to see in the light and dark schemes is for a person to judge.");
+            lines.Add("Forced colors are the browser's emulation, not a Windows contrast theme: it shows what disappears, not the colors a person's theme has.");
+            lines.Add("A part drawn only by a fill is looked for inside controls and meters. An indicator elsewhere, such as a status dot or a chart's bars, is not, and neither is a state a control shows by its own fill, such as a selected tab.");
+            lines.Add("Focus under a bar that stays in place is tried with links and buttons, not fields, for a bar across at least half the top or bottom of the page or of a scrolling area.");
+        }
+        lines.Add("Automated checks find part of what WCAG asks, so a report with no findings is not a statement of conformance.");
+        return lines;
     }
 
     static string Cell(string text) => Spaces().Replace(text, " ").Replace("|", "/");
@@ -516,7 +587,7 @@ static partial class Audit
         var pages = run["pages"]!.AsArray().Select(p => p!.AsObject()).ToList();
         var urls = pages.Select(p => (string)p["url"]!).Distinct().ToList();
         var text = new StringBuilder();
-        text.Append($"Audited {(urls.Count == 1 ? urls[0] : $"{urls.Count} pages")} at {string.Join(" and ", run["widths"]!.AsArray().Select(w => $"{w}px"))}, {string.Join(" and ", run["schemes"]!.AsArray().Select(s => (string)s!))}, with axe-core {(string)run["engine"]!["version"]!}.\n");
+        text.Append($"Audited {(urls.Count == 1 ? urls[0] : $"{urls.Count} pages")} at {string.Join(" and ", run["widths"]!.AsArray().Select(w => $"{w}px"))}, {string.Join(" and ", run["schemes"]!.AsArray().Select(s => (string)s!))}, with axe-core {(string)run["engine"]!["version"]!}{(run["sweeps"] is null ? "" : " and izzy's sweeps, which add a load in forced colors")}.\n");
         var failed = pages.Where(p => p["error"] is not null).ToList();
         foreach (var page in failed.Take(5))
             text.Append($"Not checked: {(string)page["url"]!} at {(int)page["width"]!}px, {(string)page["scheme"]!}: {(string)page["error"]!}\n");
@@ -525,6 +596,8 @@ static partial class Audit
             text.Append($"{(string)page["url"]!} answered {(int)page["status"]!}: what was checked is its error page.\n");
         foreach (var page in pages.Where(p => p["landed"] is not null).DistinctBy(p => (string)p["url"]!))
             text.Append($"{(string)page["url"]!} led to {(string)page["landed"]!}: that is the page that was checked.\n");
+        if (pages.Count(p => p["sweepError"] is not null) is > 0 and var unswept)
+            text.Append($"izzy's sweeps didn't finish on {unswept} of {pages.Count} page loads ({(string)pages.First(p => p["sweepError"] is not null)["sweepError"]!}): axe's findings there are complete.\n");
         var rules = Rules(run);
         if (run["verdicts"] is not null) text.Append(JudgedSummary(run));
         else if (rules.Count == 0) text.Append("No findings.\n");

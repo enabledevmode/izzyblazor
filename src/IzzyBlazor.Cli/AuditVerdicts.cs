@@ -131,11 +131,15 @@ static partial class Audit
                 {
                     var claims = node["claims"] is JsonArray answered ? answered.Select(c => (string)c!).ToHashSet(StringComparer.Ordinal) : [];
                     node.Remove("claims");
-                    node["verdict"] = Verdict((string)rule["id"]!, path, claims);
+                    // A sweep says what its own finding is (measured, or for a person to look at); the app's
+                    // decisions and the pack come first, as for axe's.
+                    var judged = node["judged"];
+                    node.Remove("judged");
+                    node["verdict"] = Verdict((string)rule["id"]!, path, claims, judged);
                 }
         }
 
-        JsonObject Verdict(string rule, string path, HashSet<string> claims)
+        JsonObject Verdict(string rule, string path, HashSet<string> claims, JsonNode? judged)
         {
             for (var i = 0; i < _accepted.Count; i++)
             {
@@ -146,6 +150,8 @@ static partial class Audit
                 if (a.On is not null) verdict["on"] = a.On;
                 return verdict;
             }
+            // What a sweep measured to be no fault (a hit area larger than the box) is not the pack's to overrule.
+            if ((string?)judged?["is"] == FalsePositive) return new JsonObject { ["is"] = FalsePositive, ["why"] = (string?)judged["why"], ["confidence"] = (string?)judged["confidence"] ?? "medium" };
             var demo = _demo.Select((d, i) => (d, i)).Any(x => Glob(x.d.Pages, path) && (x.d.Examples is null || claims.Contains($"d:{x.i}")));
             foreach (var kind in (string[])[FalsePositive, DemoPage, NeedsPerson, Real])
                 foreach (var entry in _pack)
@@ -155,6 +161,7 @@ static partial class Audit
                     if (tested && !claims.Contains($"p:{entry.Id}")) continue;
                     return new JsonObject { ["is"] = kind, ["why"] = entry.Why, ["confidence"] = "high", ["entry"] = entry.Id };
                 }
+            if ((string?)judged?["is"] is { } own) return new JsonObject { ["is"] = own, ["why"] = (string?)judged["why"], ["confidence"] = (string?)judged["confidence"] ?? "medium" };
             // An axe violation nothing above claims.
             return new JsonObject { ["is"] = Real, ["confidence"] = "medium" };
         }
@@ -257,7 +264,7 @@ static partial class Audit
         var groups = Groups(run);
         var text = new StringBuilder();
         text.Append($"# Accessibility audit: {(urls.Count == 1 ? urls[0] : $"{urls.Count} pages")}\n\n");
-        text.Append($"Made by izzy audit {(string)run["version"]!} on {((string)run["at"]!)[..10]}, with axe-core {(string)run["engine"]!["version"]!} in {(string)run["browser"]!}. ");
+        text.Append($"Made by izzy audit {(string)run["version"]!} on {((string)run["at"]!)[..10]}, with axe-core {(string)run["engine"]!["version"]!}{Swept(run)} in {(string)run["browser"]!}. ");
         text.Append($"Each finding has its rule, the WCAG criterion, a verdict with its reason, the element and where it was found{(run["trace"] is null ? "" : (bool?)run["trace"]!["source"] == true ? ", the component that drew it and its place in the source" : ", and the component that drew it")}. The same results as data are in `results.json`.\n\n");
 
         text.Append("## Summary\n\n");
@@ -282,13 +289,13 @@ static partial class Audit
                 text.Append($"\n## {char.ToUpperInvariant(section[0])}{section[1..]}\n");
             }
             text.Append($"\n### {group.Help} (`{group.RuleId}`)\n\n");
-            text.Append($"- **Criterion:** {Criterion(group.Rule["tags"]!.AsArray().Select(t => (string)t!).ToList())}; axe severity {group.Impact}. [About this rule]({(string)group.Rule["helpUrl"]!})\n");
+            text.Append($"- **Criterion:** {Criterion(group.Rule["tags"]!.AsArray().Select(t => (string)t!).ToList())}; {Severity(group.RuleId)} {group.Impact}. [About this rule]({(string)group.Rule["helpUrl"]!})\n");
             var first = group.Findings[0].Node["verdict"];
             var who = group.Verdict == Accepted && ((string?)first?["by"], (string?)first?["on"]) is var (by, on) && (by ?? on) is not null ? $" ({string.Join(", ", ((string?[])[by, on]).Where(p => p is not null))})" : "";
             text.Append($"- **Verdict:** {group.Verdict}{(group.Why is null ? ". Nothing known explains it, so it counts as a failure" : $". {group.Why.TrimEnd('.')}")}{who}. Confidence: {(string?)first?["confidence"] ?? "medium"}.\n");
             var fresh = group.Findings.Count(f => f.New);
             text.Append($"- **Found:** {Elements(group.Findings.Count)} on {group.Pages} page{(group.Pages == 1 ? "" : "s")}{(fresh > 0 ? $", {fresh} new" : "")}\n");
-            foreach (var finding in group.Findings.Take(10)) text.Append(ElementBlock(finding.Page, finding.Node, finding.Where.Distinct()));
+            foreach (var finding in group.Findings.Take(10)) text.Append(ElementBlock(group.RuleId, finding.Page, finding.Node, finding.Where.Distinct()));
             if (group.Findings.Count > 10) text.Append($"\n  …and {Elements(group.Findings.Count - 10, "more element")}, in `results.json`.\n");
         }
 

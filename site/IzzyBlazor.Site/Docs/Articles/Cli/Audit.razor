@@ -2,7 +2,8 @@
 
 @* izzy audit <url>: one page checked with axe-core in the machine's own browser; --run; the two files; --fail-on (Audit.cs, Cli.cs).
    Pro: a verdict for each finding from the pack and .izzy/audit.json, tasks.md, --baseline (AuditVerdicts.cs);
-   the component, the fix, the file and line, results.sarif (AuditTrace.cs); report.html with pictures (AuditHtml.cs). *@
+   the component, the fix, the file and line, results.sarif (AuditTrace.cs); report.html with pictures (AuditHtml.cs);
+   the sweeps: target size, focus under a bar, focus and indicators in forced colors (AuditSweeps.cs). *@
 
 <ArticlePage Section="cli" Slug="audit">
     <Lead>
@@ -178,11 +179,55 @@
         </TextBlock>
         <Code Block Language="bash">izzy audit --run --site --format md,json,sarif</Code>
 
+        <Heading Level="2">Checks beyond axe</Heading>
+        <TextBlock>
+            With IzzyBlazor Pro, izzy runs four checks of its own for what axe doesn't measure. Their findings
+            are in the same reports, with a verdict, a picture and a place in your code like any other. For the
+            two in forced colors izzy opens each page once more, at the widest width, with the browser's
+            forced colors on. The reports list that load as <Code>forced colors</Code>.
+        </TextBlock>
+        <Table Items="Sweeps" Caption="The checks izzy adds" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Rule" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What izzy does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            A measurement settles some of these and not others, and the verdict says which. Real means izzy
+            measured the failure: a control left hidden under a header, or one that doesn't change at all when it
+            takes focus. Needs a person means izzy measured something a person has to judge: a slight change on
+            focus, or a part that disappears and may be decoration. Look at each of those, then fix it or accept
+            it in <Code>.izzy/audit.json</Code>.
+        </TextBlock>
+
         <Heading Level="2">What it doesn't check</Heading>
         <TextBlock>
-            izzy audits the page as it loads. It doesn't open dialogs, menus or popovers, and it doesn't check keyboard
-            order or what a screen reader says. Automated checks find part of what WCAG asks, so a report with no
-            findings is not a statement of conformance.
+            An audit with no findings is not a statement of conformance. Automated checks find part of what WCAG
+            asks. The rest needs a person with a keyboard and a screen reader. Every report ends with this list:
+        </TextBlock>
+        <List>
+            <ListItem>izzy audits the page as it loads. It doesn't open dialogs, menus or popovers.</ListItem>
+            <ListItem>It doesn't check keyboard order, focus traps or what a screen reader says.</ListItem>
+            <ListItem>
+                It measures focus in forced colors only, on one of each kind of control, up to 40 kinds a page,
+                and not inside iframes or shadow roots. Anything that changes around a control counts, a tooltip
+                that opens too. Whether focus is easy to see in light and dark is yours to judge.
+            </ListItem>
+            <ListItem>
+                Forced colors are the browser's emulation, not a Windows contrast theme. It shows what disappears,
+                not the colors a person's theme has.
+            </ListItem>
+            <ListItem>
+                It looks for parts drawn only by a fill inside controls and meters. It doesn't look at an
+                indicator elsewhere, such as a status dot or a chart's bars, or at a state a control shows by
+                its own fill, such as a selected tab.
+            </ListItem>
+            <ListItem>
+                It tries focus under a header or footer that stays in place with links and buttons, not fields,
+                and only for a bar across at least half the page or scrolling area.
+            </ListItem>
+        </List>
+        <TextBlock>
             <Anchor Href="docs/accessibility/testing">Testing your pages</Anchor> lists the checks to do by hand.
         </TextBlock>
     </ChildContent>
@@ -195,6 +240,14 @@
     [
         new("report.md", "For a person or a coding agent: what was checked, then each finding with its rule, the WCAG criterion, the element, its selector and where it was found."),
         new("results.json", "The same results as data, for a script or a later comparison. Each finding has an id that stays the same from run to run."),
+    ];
+
+    private static readonly Row[] Sweeps =
+    [
+        new("target-size", "Turns on axe's rule for WCAG 2.5.8: a control is 24 by 24 pixels or has that much room. axe measures the control's box, so izzy then tests where each one takes a click. A control with a larger hit area than its box is a false positive."),
+        new("focus-not-obscured", "Scrolls a link or button under a header or footer that stays in place and gives it focus, as Shift+Tab does. If the page leaves it hidden, the bar is the finding, with the scroll-padding to set. WCAG 2.4.11."),
+        new("focus-visible-forced-colors", "Takes a picture of each kind of control before and after it takes focus, in forced colors, and counts the pixels that change. An outline passes when most of it is in sight. A focus look made of a fill or a shadow is erased there. When one control fails, izzy measures the others of its kind. WCAG 2.4.7."),
+        new("forced-colors-indicator", "Finds the parts of controls and meters that only a fill draws, such as a progress bar's value, and reports those that nothing draws in forced colors. WCAG 1.4.11."),
     ];
 
     private static readonly Row[] Verdicts =
@@ -238,7 +291,7 @@
         new("--max-pages 500", "The most pages --site audits."),
         new("--cookie name=value", "Sends a cookie with every request, for pages behind a sign-in. Repeat it for more cookies."),
         new("--sizes 1440,375", "The widths to check, in pixels."),
-        new("--schemes light,dark", "The color schemes to check."),
+        new("--schemes light,dark", "The color schemes to check. With Pro, each page is also opened once in forced colors."),
         new("--out <folder>", "Where the files go, in place of a new folder in .izzy/audit/."),
         new("--format md,json", "Which files to write. With Pro, tasks adds tasks.md, html adds report.html and sarif adds results.sarif."),
         new("--project <path>", "The app's project: where --run starts it, and with Pro where a finding's file and line are looked for."),
