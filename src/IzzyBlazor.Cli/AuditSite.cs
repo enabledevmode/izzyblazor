@@ -22,10 +22,22 @@ static partial class Audit
     /// </summary>
     public static async Task<SitePages> Discover(Uri start, int max, IReadOnlyList<KeyValuePair<string, string>> cookies)
     {
-        using var http = new HttpClient(new HttpClientHandler { UseCookies = false, AutomaticDecompression = DecompressionMethods.All }) { Timeout = TimeSpan.FromSeconds(30) };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("izzy-audit");
-        if (cookies.Count > 0) http.DefaultRequestHeaders.Add("Cookie", string.Join("; ", cookies.Select(c => $"{c.Key}={c.Value}")));
+        using var client = new HttpClient(new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false, AutomaticDecompression = DecompressionMethods.All }) { Timeout = TimeSpan.FromSeconds(30) };
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("izzy-audit");
         var origin = new Uri(start.GetLeftPart(UriPartial.Authority));
+        // Redirects are followed here, so the cookies go to the site being audited and nowhere it leads.
+        async Task<HttpResponseMessage> http(Uri address)
+        {
+            for (var hops = 0; ; hops++)
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, address);
+                if (cookies.Count > 0 && SameSite(address, origin)) request.Headers.Add("Cookie", string.Join("; ", cookies.Select(c => $"{c.Key}={c.Value}")));
+                var response = await client.SendAsync(request);
+                if ((int)response.StatusCode is not (301 or 302 or 303 or 307 or 308) || response.Headers.Location is not { } to || hops == 10) return response;
+                response.Dispose();
+                address = new Uri(address, to);
+            }
+        }
         var scope = start.AbsolutePath.TrimEnd('/');
         bool Inside(Uri page) => SameSite(page, origin) && (scope.Length == 0 || page.AbsolutePath.Equals(scope, StringComparison.OrdinalIgnoreCase)
             || page.AbsolutePath.StartsWith(scope + "/", StringComparison.OrdinalIgnoreCase));
@@ -51,7 +63,7 @@ static partial class Audit
             Uri landed;
             try
             {
-                using var response = await http.GetAsync(page);
+                using var response = await http(page);
                 landed = response.RequestMessage?.RequestUri ?? page;
                 // A page that leads off the site, or to a file, isn't one of its pages.
                 if (!response.IsSuccessStatusCode || response.Content.Headers.ContentType?.MediaType != "text/html" || !Inside(landed)) continue;
@@ -81,7 +93,8 @@ static partial class Audit
             }
         }
         if (pages.Count == 0) throw new GenerationException($"{start} didn't answer with a page, so the site's pages couldn't be found.");
-        return new SitePages(pages, seen.Count, FromSitemap: false);
+        // More than these only when the search stopped with addresses still to open.
+        return new SitePages(pages, pages.Count + queue.Count, FromSitemap: false);
     }
 
     // localhost and 127.0.0.1 with one port are one site; so are a name and the same name in another case.
@@ -91,12 +104,12 @@ static partial class Audit
     static string Address(Uri page) => page.GetLeftPart(UriPartial.Authority) + (page.AbsolutePath.TrimEnd('/') is { Length: > 0 } path ? path : "/");
 
     // The addresses a sitemap lists; a sitemap of sitemaps is followed one level down.
-    static async Task<List<string>> Sitemap(HttpClient http, Uri address, int depth)
+    static async Task<List<string>> Sitemap(Func<Uri, Task<HttpResponseMessage>> http, Uri address, int depth)
     {
         var found = new List<string>();
         try
         {
-            using var response = await http.GetAsync(address);
+            using var response = await http(address);
             if (!response.IsSuccessStatusCode) return found;
             var root = XDocument.Parse(await response.Content.ReadAsStringAsync()).Root;
             var locations = root?.Descendants().Where(e => e.Name.LocalName == "loc").Select(e => e.Value.Trim()).Where(l => l.Length > 0).ToList() ?? [];

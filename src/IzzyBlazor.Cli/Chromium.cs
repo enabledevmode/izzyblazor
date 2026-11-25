@@ -21,6 +21,9 @@ sealed class Chromium : IAsyncDisposable
     readonly ConcurrentDictionary<int, TaskCompletionSource<JsonNode>> _pending = new();
     readonly Channel<JsonNode> _events = Channel.CreateUnbounded<JsonNode>();
     readonly CancellationTokenSource _closed = new();
+
+    /// <summary>Whether the browser is gone: closed here, or dead on its own.</summary>
+    public bool Closed => _closed.IsCancellationRequested || _socket.State != System.Net.WebSockets.WebSocketState.Open;
     IDisposable? _interrupt;
     int _id;
 

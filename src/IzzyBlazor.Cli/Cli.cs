@@ -256,6 +256,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (widths.Count == 0 || schemes.Count == 0 || formats.Length == 0) throw new UsageException($"Usage: {usage}");
 
         var pages = args.Words.Skip(1).ToList();
+        // The site's start: the address given with --site, else the first page named (not one of a list's), else the app's root.
+        if (site && siteStart is null && pages.Count > 0) (siteStart, pages) = (pages[0], pages[1..]);
         if (listFile is not null)
         {
             var file = Path.GetFullPath(listFile, workingDirectory);
@@ -265,8 +267,6 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         if (site)
         {
-            // The site's start: the address given with --site, else the first page, else the app's root.
-            if (siteStart is null && pages.Count > 0) (siteStart, pages) = (pages[0], pages[1..]);
             siteStart ??= run ? "/" : throw new UsageException("--site needs the site's address: izzy audit --site https://localhost:5001/, or izzy audit --run --site for this project's app.");
             if (!HasPro)
             {

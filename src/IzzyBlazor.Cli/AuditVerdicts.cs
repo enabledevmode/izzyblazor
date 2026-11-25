@@ -156,7 +156,8 @@ static partial class Audit
 
     static readonly JsonDocumentOptions Lenient = new() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
 
-    static string PathOf(string url) => Uri.TryCreate(url, UriKind.Absolute, out var parsed) ? parsed.AbsolutePath : url;
+    // A page's path, without a slash at its end: /docs/ and /docs are one page, as a site's pages are found.
+    static string PathOf(string url) => !Uri.TryCreate(url, UriKind.Absolute, out var parsed) ? url : parsed.AbsolutePath.TrimEnd('/') is { Length: > 0 } path ? path : "/";
 
     /// <summary>Whether a path fits a pattern: <c>*</c> is anything but a slash, <c>**</c> anything. A pattern with neither fits that path alone.</summary>
     public static bool Glob(string pattern, string path)

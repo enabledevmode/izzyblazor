@@ -22,7 +22,7 @@ static partial class Audit
     // document it starts in, and the browser can make an iframe's window on its first, empty document and keep it
     // for the page that loads there: axe started then checks the empty one. The page that is audited starts axe
     // in itself and in the frames it can reach (Collect); a frame from another site starts its own once loaded.
-    static string Loader => field ??= "window.__izzyAxe = function () { if (!window.axe) (function () {\n" + Engine + """
+    static string Loader => field ??= "window.__izzyAxe = function () { if (window.__izzyAxeOn) return; window.__izzyAxeOn = true; (function () {\n" + Engine + """
 
         }).call(window); };
         if (window !== window.top) window.addEventListener("load", function () {
@@ -72,7 +72,8 @@ static partial class Audit
                     judge.Refuse(JsonNode.Parse((string)(await browser.Evaluate(Selectors.Replace("__CLAIMS__", judge.Claims())))!)!.AsArray().Select(k => (string)k!));
                 foreach (var cookie in cookies ?? [])
                     foreach (var site in sites)
-                        await browser.Send("Network.setCookie", new JsonObject { ["name"] = cookie.Key, ["value"] = cookie.Value, ["url"] = site });
+                        if ((bool?)(await browser.Send("Network.setCookie", new JsonObject { ["name"] = cookie.Key, ["value"] = cookie.Value, ["url"] = site, ["secure"] = site?.StartsWith("https:", StringComparison.OrdinalIgnoreCase) == true }))["success"] == false)
+                            throw new UsageException($"The browser refused the cookie {cookie.Key} for {site}.");
 
                 (int, string)? set = null;
                 while (!stop.IsCancellationRequested && Interlocked.Increment(ref next) is var at && at < loads.Count)
@@ -86,6 +87,9 @@ static partial class Audit
                     }
                     progress?.Invoke($"{(loads.Count > 8 ? $"[{at + 1}/{loads.Count}] " : "")}{load.Url} at {load.Width}, {load.Scheme}");
                     pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge);
+                    // A browser that died fails every load it is given at once, and so would take the rest of
+                    // the run from the browsers that work: the run ends, as for one browser.
+                    if (browser.Closed) throw new GenerationException("The browser closed during the audit.");
                 }
             }
             catch
@@ -140,7 +144,7 @@ static partial class Audit
                     page.Remove("landed");
                 // A finding's id stays the same from run to run: its rule, the page's path and the element. Two of
                 // one component have one selector once their made ids are out of it, so the second is the second.
-                var path = Uri.TryCreate(url, UriKind.Absolute, out var parsed) ? parsed.PathAndQuery : url;
+                var path = Uri.TryCreate(url, UriKind.Absolute, out var parsed) ? PathOf(url) + parsed.Query : url;
                 foreach (var rule in page["violations"]!.AsArray())
                 {
                     var met = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -184,10 +188,16 @@ static partial class Audit
     const string Collect = """
         (async () => {
           const claims = __CLAIMS__;
+          // The frames under a document or a shadow root, those inside shadow roots too.
+          const framesIn = (root) => {
+            const found = [...root.querySelectorAll("iframe, frame")];
+            for (const e of root.querySelectorAll("*")) if (e.shadowRoot) found.push(...framesIn(e.shadowRoot));
+            return found;
+          };
           const start = (w) => {
             try {
               w.__izzyAxe();
-              for (const frame of w.document.querySelectorAll("iframe, frame")) start(frame.contentWindow);
+              for (const frame of framesIn(w.document)) start(frame.contentWindow);
             } catch { }
           };
           start(window);
@@ -210,11 +220,13 @@ static partial class Audit
             } catch { }
             return null;
           };
-          // The element or an ancestor, in its own document or one that frames it.
+          // The element or an ancestor: in its own tree, around the shadow root it is in, or around its frame.
           const closest = (element, selector) => {
-            for (let e = element; e; e = e.ownerDocument.defaultView && e.ownerDocument.defaultView.frameElement) {
+            for (let e = element; e;) {
               const found = e.closest(selector);
               if (found) return found;
+              const root = e.getRootNode();
+              e = root.host || (root.defaultView && root.defaultView.frameElement);
             }
             return null;
           };
