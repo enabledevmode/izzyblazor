@@ -79,6 +79,8 @@ public static class Articles
         ]),
         new("architecture", "Architecture", "Network",
         [
+            new("what-each-render-mode-adds", "What each render mode adds", "Scale",
+                "One page counted in each render mode: what you write, how many projects, and what runs while it's open."),
             new("interactive-parts", "Interactive parts on static pages", "Puzzle",
                 "Keep a page static and give a render mode to the one component that needs C# between requests."),
             new("data-access", "Data access by render mode", "Database",

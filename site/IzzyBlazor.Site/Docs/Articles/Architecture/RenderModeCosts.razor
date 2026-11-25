@@ -1,0 +1,116 @@
+@page "/docs/architecture/what-each-render-mode-adds"
+
+@* What each render mode adds: the customers page of DataAccess.razor counted in each render mode (what you
+   write, how many projects, what runs while the page is open), and the order to add them in. The pieces
+   themselves are in DataAccessServer.razor, DataAccessBrowser.razor and SignIn.razor; this article counts
+   them and links there. *@
+
+<ArticlePage Section="architecture" Slug="what-each-render-mode-adds">
+    <Lead>
+        You choose a render mode for each page, and each one costs something to build and to run. A static page is
+        four pieces in one project. The same page in the browser is seven pieces in two. Count them before you make
+        a page interactive.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">One page, four render modes</Heading>
+        <TextBlock>
+            The page is the customer list from
+            <Anchor Href="docs/architecture/data-access">Data access by render mode</Anchor>. It asks an interface,
+            <Code>ICustomerStore</Code>, for its rows and shows them in a <Code>Table</Code>. The page's markup is the
+            same in every render mode. What changes is what you write around it:
+        </TextBlock>
+        <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
+            <table>
+                <thead><tr><th>Render mode</th><th>What you write</th><th>Projects</th><th>While the page is open</th></tr></thead>
+                <tbody>
+                    <tr><td>Static</td><td>4 pieces: the page, the interface, a store, one registration</td><td>1</td><td>Nothing runs. Each click is a request.</td></tr>
+                    <tr><td>Interactive Server</td><td>The same 4, and one line on the page</td><td>1</td><td>A circuit on the server</td></tr>
+                    <tr><td>WebAssembly</td><td>7 pieces: those 4, a client store, endpoints, a second registration</td><td>2</td><td>The .NET runtime in the browser, calling your API</td></tr>
+                    <tr><td>Auto</td><td>The same 7</td><td>2</td><td>A circuit on the first visit, the browser's runtime after that</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+
+        <Heading Level="2">Static: four pieces</Heading>
+        <List Gap="2">
+            <ListItem><Code>Customers.razor</Code>, the page.</ListItem>
+            <ListItem><Code>ICustomerStore</Code> and its row type, <Code>CustomerRow</Code>.</ListItem>
+            <ListItem><Code>EfCustomerStore</Code>, which reads your <Code>DbContext</Code>.</ListItem>
+            <ListItem>One line in <Code>Program.cs</Code> that registers the store.</ListItem>
+        </List>
+        <TextBlock>
+            The table still sorts, filters and pages, through the URL, and a form on the page still validates and
+            saves, through a form post. See
+            <Anchor Href="docs/architecture/data-access-server">Data access on the server</Anchor> for the store.
+            <Anchor Href="docs/cli/crud"><Code>izzy add crud</Code></Anchor> writes these pieces for a model you name.
+        </TextBlock>
+
+        <Heading Level="2">Interactive Server: one line more</Heading>
+        <Code Block Language="razor" Title="Customers.razor">@Server</Code>
+        <TextBlock>
+            The four pieces stay as they are. The store already opens a context for each call, which a circuit needs.
+            The cost is at run time: the server holds each open page in memory and stays connected to it. An app on
+            several servers must send each user back to the same one, and a dropped connection needs
+            <Anchor Href="docs/common/session-recovery">session recovery</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">WebAssembly and Auto: seven pieces in two projects</Heading>
+        <TextBlock>
+            The browser can't reach your database, so the page's data crosses an API. The page and the interface move to
+            the <Code>.Client</Code> project, and three pieces are new:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem><Code>Customers.razor</Code>, moved to <Code>.Client</Code>, with its render mode.</ListItem>
+            <ListItem><Code>ICustomerStore</Code> and <Code>CustomerRow</Code>, moved to <Code>.Client</Code> so both projects see them.</ListItem>
+            <ListItem><Code>EfCustomerStore</Code>, unchanged, on the server. The page prerenders there, and an Auto page runs there on the first visit.</ListItem>
+            <ListItem>The server's registration, unchanged.</ListItem>
+            <ListItem><strong>New:</strong> <Code>HttpCustomerStore</Code>, in <Code>.Client</Code>, which calls your API.</ListItem>
+            <ListItem><strong>New:</strong> the endpoints it calls, which repeat the page's authorization. A user can call them without your page.</ListItem>
+            <ListItem><strong>New:</strong> the client's registration, with its <Code>HttpClient</Code>.</ListItem>
+        </List>
+        <TextBlock>
+            Auto adds nothing to this list and removes nothing: the page runs in both places, so it needs both
+            stores. An app with sign-in also registers the user's state in both projects. See
+            <Anchor Href="docs/architecture/data-access-browser">Data access in the browser</Anchor> and
+            <Anchor Href="docs/architecture/sign-in">Sign-in across render modes</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Add them in this order</Heading>
+        <List Gap="2">
+            <ListItem>
+                <strong>Start static.</strong> IzzyBlazor's components respond in the browser on a static page: dialogs
+                and menus open, tabs switch, tables sort and filter, forms validate and save. Most pages need no more.
+            </ListItem>
+            <ListItem>
+                <strong>Give one component a render mode</strong> when one part of a page needs C# between requests,
+                such as a feed that updates by itself. The rest of the page stays static. See
+                <Anchor Href="docs/architecture/interactive-parts">Interactive parts on static pages</Anchor>.
+            </ListItem>
+            <ListItem>
+                <strong>Make the page Interactive Server</strong> when most of it does. It costs one line.
+            </ListItem>
+            <ListItem>
+                <strong>Move the page to the browser</strong> when it should run without a circuit, or answer each
+                click without a trip to the server. Add the three new pieces for the data that page uses, not for the
+                whole app.
+            </ListItem>
+        </List>
+        <TextBlock>
+            Each step leaves the page's markup alone, because the page asks the interface and never the database.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what each render mode is, and what components do in each.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/create-app#choose-the-render-modes">Create an app</Anchor>: the starter's option for each render mode.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Server = """
+        @page "/customers"
+        @rendermode InteractiveServer
+        @inject ICustomerStore Customers
+        """;
+}
