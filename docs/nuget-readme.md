@@ -14,7 +14,7 @@ The components cover layout and app shell, inputs, date and time fields, selecti
 
 [Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started/create-app)
 
-![A store's dashboard built with IzzyBlazor: app shell with sidebar navigation, a stock alert, stat cards with sparklines, a stacked bar chart of revenue by channel, and top products with ratings.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
+![A store's dashboard built with IzzyBlazor: app shell with sidebar navigation, a stock alert, stat cards with sparklines, a stacked bar chart of revenue by channel, and top products with ratings.](https://raw.githubusercontent.com/IzzyBlazor/izzyblazor/main/docs/images/showcase-light.png)
 
 > **Preview:** `0.1.0-alpha.29`. APIs may change during preview.
 
@@ -72,7 +72,7 @@ Visit **[izzyblazor.com](https://izzyblazor.com)** for live component examples, 
 - [Style props](https://izzyblazor.com/docs/common/style-props): typed, responsive styling
 - [Theming](https://izzyblazor.com/docs/theming): colors, fonts, and theme configuration
 - [Accessibility](https://izzyblazor.com/docs/accessibility/overview): standards, keyboard support, and known gaps
-- [Source and issues](https://github.com/enabledevmode/izzyblazor): browse the code and report bugs
+- [Source and issues](https://github.com/IzzyBlazor/izzyblazor): browse the code and report bugs
 
 ## Browser support
 
@@ -80,8 +80,8 @@ Requires a modern browser with support for CSS `:has()`, `light-dark()`, and the
 
 ## License
 
-IzzyBlazor is [MIT licensed](https://github.com/enabledevmode/izzyblazor/blob/main/LICENSE).
+IzzyBlazor is [MIT licensed](https://github.com/IzzyBlazor/izzyblazor/blob/main/LICENSE).
 
-Bundled Lucide icons use the ISC license. Brand logos from Tabler Icons and those drawn for IzzyBlazor use the MIT license. The bundled Inter font uses the SIL Open Font License. See [third-party notices](https://github.com/enabledevmode/izzyblazor/blob/main/THIRD-PARTY-NOTICES.md) for details.
+Bundled Lucide icons use the ISC license. Brand logos from Tabler Icons and those drawn for IzzyBlazor use the MIT license. The bundled Inter font uses the SIL Open Font License. See [third-party notices](https://github.com/IzzyBlazor/izzyblazor/blob/main/THIRD-PARTY-NOTICES.md) for details.
 
 IzzyBlazor is an independent project and is not affiliated with Microsoft.

@@ -78,7 +78,7 @@ public sealed class AgentReportOptions
     /// </summary>
     public string? Token { get; set; }
 
-    public string Owner { get; set; } = "enabledevmode";
+    public string Owner { get; set; } = "IzzyBlazor";
 
     public string Repository { get; set; } = "izzyblazor";
 
@@ -101,7 +101,7 @@ public sealed class DisabledReportSink : IAgentReportSink
         Task.FromResult<IReadOnlyList<KnownReport>>([]);
 
     public Task<ReportReceipt> SubmitAsync(string title, string body, CancellationToken cancellationToken) =>
-        throw new AgentReportException("Reports aren't switched on for this server yet. Tell the user what you worked around; they can open an issue at https://github.com/enabledevmode/izzyblazor/issues.");
+        throw new AgentReportException("Reports aren't switched on for this server yet. Tell the user what you worked around; they can open an issue at https://github.com/IzzyBlazor/izzyblazor/issues.");
 }
 
 /// <summary>

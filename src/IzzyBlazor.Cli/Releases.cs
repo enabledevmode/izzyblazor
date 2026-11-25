@@ -19,7 +19,7 @@ sealed class Releases(string home, string version, HttpMessageHandler? handler =
     public static readonly Uri Index = new("https://api.nuget.org/v3-flatcontainer/izzyblazor.cli/index.json");
 
     /// <summary>Where a release's changes are listed.</summary>
-    public const string Notes = "https://github.com/enabledevmode/izzyblazor/releases";
+    public const string Notes = "https://github.com/IzzyBlazor/izzyblazor/releases";
 
     static readonly TimeSpan Every = TimeSpan.FromDays(1);
 

@@ -3,7 +3,7 @@ name: Release
 # Publishes the packages (IzzyBlazor, IzzyBlazor.Core, IzzyBlazor.Templates, IzzyBlazor.Cli) to nuget.org when a version tag (v0.1.0-alpha.1) is pushed.
 # Trusted publishing: NuGet/login trades GitHub's OIDC token for a one-hour API key,
 # so no NuGet key is stored anywhere. The nuget.org policy names this file (release.yml),
-# the enabledevmode/izzyblazor repository and the "release" environment.
+# the IzzyBlazor/izzyblazor repository and the "release" environment.
 #
 # "build" checks, builds, tests (unless CI already passed on the tagged commit) and packs with read-only access, so the npm and build tools never
 # run where a publishing token can be had (the private catalog is cloned before npm installs
@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::warning::No PRO_CATALOG_TOKEN: tests of account items are skipped."; exit 0; fi
-          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/enabledevmode/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
+          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/IzzyBlazor/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
           # The clone's config holds the token: gone before any build tool runs.
           rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
           echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
@@ -154,7 +154,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::warning::No PRO_CATALOG_TOKEN: the account catalog for $VERSION was not published."; exit 0; fi
-          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/enabledevmode/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
+          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/IzzyBlazor/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
           rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
           echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
 

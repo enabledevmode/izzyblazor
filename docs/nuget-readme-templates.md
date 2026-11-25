@@ -45,7 +45,7 @@ Run `dotnet new starter-blazor --help` for every option.
 
 - [Create an app](https://izzyblazor.com/docs/get-started/create-app)
 - [Components](https://izzyblazor.com/docs/components)
-- [Source and issues](https://github.com/enabledevmode/izzyblazor)
+- [Source and issues](https://github.com/IzzyBlazor/izzyblazor)
 
 ## License
 

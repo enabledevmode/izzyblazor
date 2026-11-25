@@ -282,7 +282,7 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
         return Upgrade(TextWriter.Null) ? null : (3, NotProFeedback);
     }
 
-    const string NotProFeedback = "izzy feedback comes with IzzyBlazor Pro and its preview. Anyone can write at https://github.com/enabledevmode/izzyblazor/discussions.";
+    const string NotProFeedback = "izzy feedback comes with IzzyBlazor Pro and its preview. Anyone can write at https://github.com/IzzyBlazor/izzyblazor/discussions.";
 
     /// <summary>
     /// izzy feedback: posts what the person wrote. Exit code 0 with the post's address, or the code and what

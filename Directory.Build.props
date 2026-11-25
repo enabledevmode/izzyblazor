@@ -11,7 +11,7 @@
     <Copyright>Copyright (c) Israel Dryer</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://izzyblazor.com</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/enabledevmode/izzyblazor</RepositoryUrl>
+    <RepositoryUrl>https://github.com/IzzyBlazor/izzyblazor</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReleaseNotes>First preview. The API will change before 0.1.</PackageReleaseNotes>
 

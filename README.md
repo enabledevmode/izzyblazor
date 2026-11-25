@@ -156,7 +156,7 @@ API. Older browsers without these features are not supported.
 
 ## Issues and pull requests
 
-Bug reports and feature requests are welcome as [issues](https://github.com/enabledevmode/izzyblazor/issues).
+Bug reports and feature requests are welcome as [issues](https://github.com/IzzyBlazor/izzyblazor/issues).
 The project doesn't take pull requests for now.
 
 ## License

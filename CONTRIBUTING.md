@@ -1,7 +1,7 @@
 # Contributing
 
 IzzyBlazor doesn't take pull requests for now; please open an
-[issue](https://github.com/enabledevmode/izzyblazor/issues) for a bug or an idea. This guide is how
+[issue](https://github.com/IzzyBlazor/izzyblazor/issues) for a bug or an idea. This guide is how
 the library is built: the layout, the dev host, the naming rules and what "done" means.
 
 ## Repository layout

@@ -79,7 +79,7 @@ public sealed class McpFeedbackTools(McpDocs docs, ApiMetadata api, IAgentReport
 
         if (!sink.Enabled)
         {
-            throw new McpException("Reports aren't switched on for this server yet. Tell the user what you worked around; they can open an issue at https://github.com/enabledevmode/izzyblazor/issues.");
+            throw new McpException("Reports aren't switched on for this server yet. Tell the user what you worked around; they can open an issue at https://github.com/IzzyBlazor/izzyblazor/issues.");
         }
 
         if (!limiter.TryTake(http.HttpContext is { } context ? SiteApp.ClientKey(context) : ""))

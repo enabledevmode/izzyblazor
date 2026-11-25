@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::warning::No PRO_CATALOG_TOKEN: tests of account items are skipped."; exit 0; fi
-          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/enabledevmode/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
+          git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/IzzyBlazor/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
           # The clone's config holds the token: gone before any build tool runs.
           rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
           echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
