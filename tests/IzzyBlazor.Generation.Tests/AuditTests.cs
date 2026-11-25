@@ -87,6 +87,9 @@ public sealed class AuditTests : IDisposable
         var html = File.ReadAllText(Path.Combine(_work, "first", "report.html"));
         Assert.Equal(4, html.Split("<img src=\"data:image/webp;base64,").Length - 1);
         Assert.Contains("&lt;span style=&quot;color:#bbb&quot;&gt;Unavailable&lt;/span&gt;", html);
+        // The data names each picture's file, which is beside it.
+        var pictured = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "first", "results.json")))!["pages"]![0]!["violations"]![0]!["nodes"]![0]!["picture"]!;
+        Assert.True(File.Exists(Path.Combine(_work, "first", (string)pictured["file"]!)));
 
         // The picture gets its text and a button arrives with no name: one fixed, one new.
         body = body.Replace(picture, "<img alt=\"Orders by month\" src=\"data:image/gif;base64,R0lGODlhAQABAAAAACw=\"><button></button>");

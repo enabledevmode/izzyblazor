@@ -393,6 +393,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         var target = outFolder is not null ? Path.GetFullPath(outFolder, workingDirectory) : Path.Combine(home, ".izzy", "audit", DateTime.Now.ToString("yyyy-MM-dd-HHmmss", System.Globalization.CultureInfo.InvariantCulture));
         Directory.CreateDirectory(target);
+        // The pictures as files too, named in the data: report.html holds its own copies, so it stays one file.
+        pictures?.Save(target, results);
         if (formats.Contains("json")) File.WriteAllText(Path.Combine(target, "results.json"), results.ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
         if (formats.Contains("md")) File.WriteAllText(Path.Combine(target, "report.md"), Audit.Markdown(results));
         if (formats.Contains("tasks")) File.WriteAllText(Path.Combine(target, "tasks.md"), Audit.Tasks(results));

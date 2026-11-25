@@ -91,6 +91,23 @@ static partial class Audit
             }
         }
 
+        /// <summary>
+        /// Writes each picture into <c>pictures/</c> of the run's folder and names it in the run's data: a
+        /// finding's node at the scheme the picture was taken in gets <c>picture</c> (its file from the
+        /// folder, its size, and the page's width), so results.json leads to the pictures without holding them.
+        /// </summary>
+        public void Save(string folder, JsonObject run)
+        {
+            if (_taken.IsEmpty) return;
+            Directory.CreateDirectory(Path.Combine(folder, "pictures"));
+            foreach (var ((id, scheme), picture) in _taken)
+                File.WriteAllBytes(Path.Combine(folder, "pictures", $"{id}-{scheme}.webp"), Convert.FromBase64String(picture.Data));
+            foreach (var page in run["pages"]!.AsArray())
+                foreach (var node in page!["violations"]!.AsArray().SelectMany(rule => rule!["nodes"]!.AsArray()))
+                    if (_taken.TryGetValue(((string)node!["id"]!, (string)page["scheme"]!), out var picture))
+                        node["picture"] = new JsonObject { ["file"] = $"pictures/{(string)node["id"]!}-{(string)page["scheme"]!}.webp", ["width"] = picture.Width, ["height"] = picture.Height, ["pageWidth"] = picture.PageWidth };
+        }
+
         /// <summary>Whether the finding's element is drawn and still has no picture.</summary>
         public bool Failed(string id) => _failed.ContainsKey(id);
 
