@@ -85,9 +85,11 @@ static partial class Audit
             // The components around the element, the nearest first: each a name, or the names it may be.
             var levels = (at?["chain"]?.AsArray() ?? []).Select(level => (Marks: level!["marks"]!.AsArray().Select(m => (string)m!).ToHashSet(StringComparer.Ordinal), Said: level["said"], Self: (bool?)level["self"] == true))
                 .Select(level => (Names: Resolve(level.Marks), level.Marks, Evidence: Said.From(level.Said), level.Self)).Where(level => level.Names.Count > 0).ToList();
-            // What a component draws inside itself (a date field's popover, a grid's pager buttons) is a part
-            // of it and no tag of the app's: the trace starts at the component.
-            while (levels.Count > 1 && levels[1].Names.Any(name => _marked.First(m => m.Name == name).Inside.Any(levels[0].Marks.Contains)))
+            // What a component draws inside itself (a date field's popover, a grid's pager) is a part of it
+            // and no tag of the app's: the trace starts at the component. Unless the app wrote one there (a
+            // Button as a Menu's Trigger) that says what the element says: then it is the app's.
+            while (levels.Count > 1 && levels[1].Names.Any(name => _marked.First(m => m.Name == name).Inside.Any(levels[0].Marks.Contains))
+                && !(files is not null && WrittenInside(files, levels[0].Names, levels[0].Evidence, levels[1].Names)))
             {
                 levels.RemoveAt(0);
                 levels[0] = (levels[0].Names, levels[0].Marks, levels[0].Evidence, Self: false);
@@ -109,9 +111,12 @@ static partial class Audit
             }
             if (levels.Count > 0)
             {
-                // The source says which of the look-alikes it is.
-                // Else it may be any of them, those that draw the same element with options set too (a Row for a Stack).
+                // The source says which of the look-alikes it is: the tag found, or the only one of them the
+                // page's files have at all (two DataGrids and no TreeList). Else it may be any of them, those
+                // that draw the same element with options set too (a Row for a Stack).
                 if (!written && (string?)source?["tag"] is { } tag && Written(levels[0].Names).Contains(tag) && (bool?)source!["around"] != true) levels[0] = ([tag], levels[0].Marks, levels[0].Evidence, levels[0].Self);
+                else if (!written && files is not null && Written(levels[0].Names) is { Count: > 1 } alike
+                    && _sources!.Tags(files, _library).Select(t => t.Tag).Where(alike.Contains).Distinct().ToList() is [var only]) levels[0] = ([only], levels[0].Marks, levels[0].Evidence, levels[0].Self);
                 else if (!written) levels[0] = (Written(levels[0].Names), levels[0].Marks, levels[0].Evidence, levels[0].Self);
                 var around = levels.Skip(written ? 0 : 1).Where(l => l.Names.Count == 1).Select(l => l.Names[0]).Distinct().ToList();
                 if (!written && levels[0].Names.Count == 1) trace["component"] = levels[0].Names[0];
@@ -142,6 +147,14 @@ static partial class Audit
         // The tags that may be written for these components: their own, and those of the components that
         // draw the same element with options set (a Row for a Stack).
         List<string> Written(List<string> names) => [.. names.Concat(names.SelectMany(name => _marked.First(m => m.Name == name).Like)).Distinct(StringComparer.Ordinal)];
+
+        // Whether the app wrote one of these components inside a tag of one of those, saying something the
+        // element says (its text, a Label that is its name).
+        bool WrittenInside(List<string> files, List<string> names, Said evidence, List<string> around)
+        {
+            var (inner, outer) = (Written(names), Written(around));
+            return _sources!.Tags(files, _library).Any(tag => inner.Contains(tag.Tag) && tag.Within.Any(outer.Contains) && evidence.Score(tag) != (0, 0));
+        }
 
         // The components an element with these marks is the outermost element of. A mark that only one
         // component draws settles it. Without one, it is the component with all its marks there that has the
@@ -246,7 +259,8 @@ static partial class Audit
         /// <param name="Literals">The attributes written as text (no <c>@</c>), by name: for a component, its text options and plain HTML attributes.</param>
         /// <param name="Tag">The tag's name.</param>
         /// <param name="Text">The text right inside the tag, when it is plain.</param>
-        public sealed record Written(string File, int Line, string Tag, Dictionary<string, string> Literals, string? Text);
+        /// <param name="Within">The names of the tags it is written inside, in its file.</param>
+        public sealed record Written(string File, int Line, string Tag, Dictionary<string, string> Literals, string? Text, HashSet<string> Within);
 
         readonly string _home;
         readonly Dictionary<string, string> _text = new(StringComparer.Ordinal);
@@ -350,8 +364,14 @@ static partial class Audit
         IEnumerable<Written> Read(string file, Components library)
         {
             var text = _text[file];
-            foreach (var tag in RazorPage.Tags(text))
+            var tags = RazorPage.Tags(text);
+            // Where each component's element ends: what is written before that is inside it.
+            var open = new List<(string Name, int End)>();
+            foreach (var tag in tags)
             {
+                open.RemoveAll(around => around.End < tag.Start);
+                var within = open.Select(around => around.Name).ToHashSet(StringComparer.Ordinal);
+                if (!tag.SelfClosing && char.IsUpper(tag.Name[0]) && RazorPage.ElementEnd(text, tag.Start) is var end and > 0) open.Add((tag.Name, end));
                 // A component's options that take text; any attribute of an HTML element, and one a component passes on.
                 var options = library.Options(tag.Name);
                 var literals = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -363,7 +383,7 @@ static partial class Audit
                 }
                 string? inside = null;
                 if (!tag.SelfClosing && text.IndexOf('<', tag.End) is var next and >= 0 && text[tag.End..next].Trim() is { Length: > 0 } content && !content.Contains('@')) inside = content;
-                yield return new Written(file, 1 + text.AsSpan(0, tag.Start).Count('\n'), tag.Name, literals, inside);
+                yield return new Written(file, 1 + text.AsSpan(0, tag.Start).Count('\n'), tag.Name, literals, inside, within);
             }
         }
 

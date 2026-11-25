@@ -151,7 +151,9 @@
         <TextBlock>
             Some components draw the same element, such as Dialog and Drawer, or Stack and Row. Without the
             source the report names each of them, and the source says which one it is. What a component draws
-            inside itself, such as a date field's calendar button, is traced to that component.
+            inside itself, such as a date field's calendar button or a DataGrid's pager, is traced to that
+            component. What you wrote inside a component, such as a Button as a Menu's
+            <Code>Trigger</Code>, is traced to your own tag.
         </TextBlock>
 
         <Heading Level="3">Code scanning</Heading>

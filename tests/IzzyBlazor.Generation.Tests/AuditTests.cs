@@ -102,7 +102,7 @@ public sealed class AuditTests : IDisposable
             { "version": "test", "entries": [], "fixes": [
               { "id": "icon-button-label", "rule": "button-name", "component": "IconButton", "set": "Label", "fix": "Set Label, the button's name", "docs": "#accessibility" } ] }
             """);
-        // The app: a page with two icon buttons, one of them without its name.
+        // The app: a page with two icon buttons, one of them without its name, and a grid whose two pagers share a name.
         var app = Path.Combine(_work, "Shop");
         Directory.CreateDirectory(Path.Combine(app, "Components", "Pages"));
         File.WriteAllText(Path.Combine(app, "Shop.csproj"), "<Project Sdk=\"Microsoft.NET.Sdk.Web\"></Project>");
@@ -112,8 +112,11 @@ public sealed class AuditTests : IDisposable
             <h1>Order</h1>
             <IconButton Icon="Lucide.Pencil" Label="Edit" id="edit" />
             <IconButton Icon="Lucide.Trash" id="remove" />
+            <DataGrid Items="_lines" Caption="Lines" />
+            <Pagination TotalItems="40" Label="Orders" />
             """);
-        const string body = "<button class=\"ib-btn ib-btn-neutral ib-btn-icon-only\" id=\"edit\" aria-label=\"Edit\"></button><button class=\"ib-btn ib-btn-neutral ib-btn-icon-only\" id=\"remove\"></button>";
+        const string body = "<button class=\"ib-btn ib-btn-neutral ib-btn-icon-only\" id=\"edit\" aria-label=\"Edit\"></button><button class=\"ib-btn ib-btn-neutral ib-btn-icon-only\" id=\"remove\"></button>"
+            + "<ib-table class=\"ib-table ib-datagrid\"><nav class=\"ib-pagination\" aria-label=\"Lines pages\"></nav><nav class=\"ib-pagination\" aria-label=\"Lines pages\"></nav></ib-table>";
         using var site = new Site(() => $"<!doctype html><html lang=\"en\"><head><title>Order</title></head><body><main><h1>Order</h1>{body}</main></body></html>");
 
         var (output, error) = (new StringWriter(), new StringWriter());
@@ -121,13 +124,18 @@ public sealed class AuditTests : IDisposable
             .Run(["audit", site.Url + "orders/7", "--project", "Shop", "--sizes", "1440", "--schemes", "light", "--format", "md,json,sarif", "--out", "audit"]);
 
         Assert.True(exit == 0, error.ToString());
-        var node = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "audit", "results.json")))!["pages"]![0]!["violations"]![0]!["nodes"]![0]!;
+        var violations = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "audit", "results.json")))!["pages"]![0]!["violations"]!.AsArray();
+        var node = violations.First(v => (string)v!["id"]! == "button-name")!["nodes"]![0]!;
         Assert.Equal("IconButton", (string)node["trace"]!["component"]!);
         Assert.Equal("Label", (string)node["trace"]!["fix"]!["option"]!);
         Assert.Equal("https://izzyblazor.com/docs/components/icon-button#accessibility", (string)node["trace"]!["docs"]!);
         // Two IconButtons are written: the one whose id is the element's.
         Assert.Equal("Components/Pages/Orders.razor:5", $"{(string)node["trace"]!["source"]!["file"]!}:{(int)node["trace"]!["source"]!["line"]!}");
         Assert.Contains("- Source: `Components/Pages/Orders.razor:5`", File.ReadAllText(Path.Combine(_work, "audit", "report.md")));
+        // A pager the grid drew is the grid's, whatever Pagination the page has of its own.
+        var pager = violations.First(v => (string)v!["id"]! == "landmark-unique")!["nodes"]![0]!["trace"]!;
+        Assert.Equal("DataGrid", (string)pager["component"]!);
+        Assert.Equal(6, (int)pager["source"]!["line"]!);
         var located = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "audit", "results.sarif")))!["runs"]![0]!["results"]![0]!["locations"]![0]!["physicalLocation"]!;
         Assert.Equal("Components/Pages/Orders.razor", (string)located["artifactLocation"]!["uri"]!);
         Assert.Equal(5, (int)located["region"]!["startLine"]!);

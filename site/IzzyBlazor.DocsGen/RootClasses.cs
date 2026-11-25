@@ -25,9 +25,11 @@ public sealed record RootMarks(List<string> Root, List<string> Own, List<string>
 /// Finds each component's <see cref="RootMarks"/> by drawing it: once as it is, then once for each value of
 /// each option that is a bool, an enum or one of the library's named values (<c>Color.Primary</c>). A class
 /// that is there every time is the component's; one that comes and goes is an option's. Nothing is read from
-/// the source, where a class may come from a base or be put together from parts. A component that can't be
-/// drawn alone (a part that needs its parent, a toolbar button that needs its grid) has no marks: an element
-/// inside it is traced to the component around it.
+/// the source, where a class may come from a base or be put together from parts. One that takes items is
+/// drawn with rows too, since what it draws for them (a grid's pager) is a part of it. One that says it needs
+/// another inside it (a RadarChart its RadarSeries) is drawn with that one. A component that can't be drawn
+/// alone (a part that needs its parent, a toolbar button that needs its grid) has no marks: an element inside
+/// it is traced to the component around it.
 /// </summary>
 public static partial class RootClasses
 {
@@ -45,31 +47,45 @@ public static partial class RootClasses
         using var provider = services.BuildServiceProvider();
 
         var drawn = new SortedDictionary<string, (List<string> Always, HashSet<string> Ever, HashSet<string> Inside)>(StringComparer.Ordinal);
-        foreach (var definition in library.SelectMany(a => a.GetExportedTypes()).Where(t => typeof(IComponent).IsAssignableFrom(t) && !t.IsAbstract).OrderBy(t => t.Name, StringComparer.Ordinal))
+        var definitions = library.SelectMany(a => a.GetExportedTypes()).Where(t => typeof(IComponent).IsAssignableFrom(t) && !t.IsAbstract)
+            .OrderBy(t => t.Name, StringComparer.Ordinal).DistinctBy(t => t.Name.Split('`')[0]).ToList();
+        var alone = new List<Type>();
+        var said = new Dictionary<Type, HashSet<string>>();
+        foreach (var definition in definitions)
         {
-            var name = definition.Name.Split('`')[0];
-            if (drawn.ContainsKey(name)) continue;
             // The first way it draws: a type for a generic one, and as few made-up options as it takes.
             var basis = (from type in Closed(definition)
-                         let parameters = type.GetProperties().Where(p => p.GetCustomAttribute<ParameterAttribute>() is not null && p.CanWrite).ToList()
+                         let parameters = Parameters(type)
                          from given in Fills(parameters, library)
-                         let marks = Draw(provider, type, given)
+                         let marks = Draw(provider, type, given, said)
                          where marks is not null
                          select (type, parameters, given, marks: marks.Value)).FirstOrDefault();
-            if (basis.type is null) continue;
+            if (basis.type is null) alone.Add(definition);
+            else drawn[definition.Name.Split('`')[0]] = Vary(provider, library, basis.type, basis.parameters, basis.given, basis.marks);
+        }
 
-            var always = new List<string>(basis.marks.Outermost);
-            var ever = new HashSet<string>(basis.marks.Outermost, StringComparer.Ordinal);
-            var inside = new HashSet<string>(basis.marks.Inside, StringComparer.Ordinal);
-            foreach (var parameter in basis.parameters)
-                foreach (var value in Values(parameter.PropertyType, library))
-                {
-                    if (Draw(provider, basis.type, new Dictionary<string, object?>(basis.given) { [parameter.Name] = value }) is not var (outermost, within)) continue;
-                    always.RemoveAll(mark => !outermost.Contains(mark));
-                    ever.UnionWith(outermost);
-                    inside.UnionWith(within);
-                }
-            drawn[name] = (always, ever, inside);
+        // One that didn't draw and named another that didn't (a RadarChart needs a RadarSeries): with that one
+        // inside it, of the same type and filled in the same ways.
+        foreach (var definition in alone.Where(d => d.GetProperty("ChildContent")?.PropertyType == typeof(RenderFragment)))
+        {
+            var basis = (from part in alone
+                         where part != definition && said.GetValueOrDefault(definition) is { } needs && needs.Any(need => Regex.IsMatch(need, $@"\b{Regex.Escape(part.Name.Split('`')[0])}\b"))
+                         from type in Closed(definition)
+                         let inner = Close(part, type)
+                         where inner is not null
+                         let parameters = Parameters(type)
+                         from given in Fills(parameters, library)
+                         from within in Fills(Parameters(inner), library)
+                         let whole = new Dictionary<string, object?>(given) { ["ChildContent"] = (RenderFragment)(builder =>
+                         {
+                             builder.OpenComponent(0, inner);
+                             builder.AddMultipleAttributes(1, within!);
+                             builder.CloseComponent();
+                         }) }
+                         let marks = Draw(provider, type, whole, null)
+                         where marks is not null
+                         select (type, parameters, given: whole, marks: marks.Value)).FirstOrDefault();
+            if (basis.type is not null) drawn[definition.Name.Split('`')[0]] = Vary(provider, library, basis.type, basis.parameters, basis.given, basis.marks);
         }
 
         // One with two shapes (Code inline and as a block) has no class in every drawing: its marks are those
@@ -99,6 +115,57 @@ public static partial class RootClasses
             StringComparer.Ordinal);
     }
 
+    static List<PropertyInfo> Parameters(Type type) => [.. type.GetProperties().Where(p => p.GetCustomAttribute<ParameterAttribute>() is not null && p.CanWrite)];
+
+    // A part for a component of this type: RadarSeries<string> for RadarChart<string>.
+    static Type? Close(Type part, Type around)
+    {
+        if (!part.IsGenericTypeDefinition) return part;
+        if (!around.IsGenericType || around.GetGenericArguments().Length != part.GetGenericArguments().Length) return null;
+        try { return part.MakeGenericType(around.GetGenericArguments()); }
+        catch (ArgumentException) { return null; }
+    }
+
+    // What a component's drawings have: from the first one, then one for each value of each option, and the
+    // same again with rows when it takes items and drew with none.
+    static (List<string> Always, HashSet<string> Ever, HashSet<string> Inside) Vary(IServiceProvider services, List<Assembly> library, Type type, List<PropertyInfo> parameters,
+        Dictionary<string, object?> given, (List<string> Outermost, List<string> Inside) first)
+    {
+        var always = new List<string>(first.Outermost);
+        var ever = new HashSet<string>(first.Outermost, StringComparer.Ordinal);
+        var inside = new HashSet<string>(first.Inside, StringComparer.Ordinal);
+        var ways = new List<Dictionary<string, object?>> { given };
+        if (parameters.FirstOrDefault(p => p.Name == "Items") is { } items && Rows(items.PropertyType) is { } rows && (!given.TryGetValue("Items", out var has) || has is System.Collections.ICollection { Count: 0 }))
+            ways.Add(new Dictionary<string, object?>(given) { ["Items"] = rows });
+        foreach (var way in ways)
+        {
+            var tries = parameters.SelectMany(p => Values(p.PropertyType, library).Select(value => new Dictionary<string, object?>(way) { [p.Name] = value }));
+            foreach (var tried in way == given ? tries : tries.Prepend(way))
+            {
+                if (Draw(services, type, tried, null) is not var (outermost, within)) continue;
+                always.RemoveAll(mark => !outermost.Contains(mark));
+                ever.UnionWith(outermost);
+                inside.UnionWith(within);
+            }
+        }
+        return (always, ever, inside);
+    }
+
+    // Thirty rows for an Items option: more than a page of them, each its own value where the type has them.
+    static object? Rows(Type type)
+    {
+        if (!type.IsGenericType || type.GetGenericArguments() is not [var item] || !type.IsAssignableFrom(typeof(List<>).MakeGenericType(item))) return null;
+        var rows = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(item))!;
+        for (var i = 1; i <= 30; i++)
+        {
+            object? row = item == typeof(string) ? $"Item {i}" : item == typeof(int) ? i : item == typeof(DateOnly) ? new DateOnly(2026, 1, 1).AddDays(i)
+                : item == typeof(TimeOnly) ? new TimeOnly(0, 0).AddMinutes(i) : item == typeof(TimeSpan) ? TimeSpan.FromMinutes(i) : item.IsValueType ? Activator.CreateInstance(item) : null;
+            if (row is null && !item.IsValueType) return null;
+            rows.Add(row);
+        }
+        return rows;
+    }
+
     // Classes any element may carry: they mark no component.
     static readonly string[] Utilities = ["ib-visually-hidden", "ib-visually-hidden-focusable"];
 
@@ -108,7 +175,7 @@ public static partial class RootClasses
     // The marks of the outermost elements of what the component draws (a sidebar is its backdrop and its nav),
     // and the marks of the elements inside them; null when it draws no element, or can't be drawn. A drawing
     // that doesn't end (a loop on a value it was given) is left behind after five seconds.
-    static (List<string> Outermost, List<string> Inside)? Draw(IServiceProvider services, Type type, Dictionary<string, object?> given)
+    static (List<string> Outermost, List<string> Inside)? Draw(IServiceProvider services, Type type, Dictionary<string, object?> given, Dictionary<Type, HashSet<string>>? said)
     {
         string? html = null;
         var drawing = Task.Run(async () =>
@@ -122,11 +189,20 @@ public static partial class RootClasses
         {
             if (!drawing.Wait(TimeSpan.FromSeconds(5)) && html is null) return null;
         }
-        catch (AggregateException)
+        catch (AggregateException failed)
         {
             // It said what it needs (a parent, a Label): the next way of drawing it may give that. One that
             // drew and then failed to close is still a drawing.
-            if (html is null) return null;
+            if (html is null)
+            {
+                if (said is not null)
+                {
+                    var definition = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
+                    if (!said.TryGetValue(definition, out var needs)) said[definition] = needs = new HashSet<string>(StringComparer.Ordinal);
+                    needs.Add(failed.GetBaseException().Message);
+                }
+                return null;
+            }
         }
         if (html is null) return null;
 
@@ -180,6 +256,10 @@ public static partial class RootClasses
         var required = Fill(parameters, 4, library);
         foreach (var (name, value) in all.Where(option => !required.ContainsKey(option.Key)))
             yield return new Dictionary<string, object?>(required) { [name] = value };
+        // And with rows, for one that draws nothing of none (a chart with no spokes).
+        if (parameters.FirstOrDefault(p => p.Name == "Items") is { } items && Rows(items.PropertyType) is { } rows)
+            foreach (var filled in new[] { required, all }.Where(filled => filled.ContainsKey("Items")))
+                yield return new Dictionary<string, object?>(filled) { ["Items"] = rows };
     }
 
     static Dictionary<string, object?> Fill(List<PropertyInfo> parameters, int way, List<Assembly> library)
@@ -212,13 +292,16 @@ public static partial class RootClasses
         return given;
     }
 
-    // x => default
+    // x => x where what it gives may be what it takes (a row's key, its spoke: each row its own), else x => default.
     static LambdaExpression? Lambda(Type function)
     {
         try
         {
             var invoke = function.GetMethod("Invoke")!;
-            return Expression.Lambda(function, Expression.Default(invoke.ReturnType), invoke.GetParameters().Select(a => Expression.Parameter(a.ParameterType)));
+            var takes = invoke.GetParameters().Select(a => Expression.Parameter(a.ParameterType)).ToList();
+            Expression gives = takes is [var one] && invoke.ReturnType != typeof(void) && invoke.ReturnType.IsAssignableFrom(one.Type) && !typeof(Delegate).IsAssignableFrom(one.Type)
+                ? Expression.Convert(one, invoke.ReturnType) : Expression.Default(invoke.ReturnType);
+            return Expression.Lambda(function, gives, takes);
         }
         catch (ArgumentException) { return null; }
     }
