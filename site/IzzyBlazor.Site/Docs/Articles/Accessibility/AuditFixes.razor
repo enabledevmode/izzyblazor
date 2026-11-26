@@ -13,7 +13,7 @@
     <ChildContent>
         <Heading Level="2">Find a finding in your code</Heading>
         <TextBlock>
-            Each finding names the IzzyBlazor component that drew the element, links its docs
+            A finding on an element an IzzyBlazor component drew names the component, links its docs
             page, and gives the fix when izzy knows one, such as the option to set. With <Code>--run</Code> or
             <Code>--project</Code>, izzy also reads the app's source and gives the file and line where the
             component is written:
@@ -37,8 +37,8 @@
 
         <Heading Level="2">What the fix is, and isn't</Heading>
         <TextBlock>
-            A fix is a sentence about the rule that failed: the option to set, or the markup to change. It makes
-            that finding go away for the right reason. It doesn't tell you the words to use. A name such as
+            A fix is a sentence about the rule that failed: the option to set, or the markup to change.
+            It fixes what the rule measured. It doesn't tell you the words to use. A name such as
             <Code>Label="Order path"</Code> has to say what the thing is to someone who can't see it, and only a
             person who knows the page can write it.
         </TextBlock>
@@ -64,8 +64,9 @@
             and names one.
         </TextBlock>
         <TextBlock>
-            Fixed means the rule no longer fails on that element. For a name, a label or an announcement, listen
-            to it with a screen reader as well.
+            Fixed means the finding is no longer open: the rule doesn't fail on that element, or it does and the
+            finding is now accepted, a false positive or a demo page's, and the answer says which. For a name, a label or an
+            announcement, listen to it with a screen reader as well.
         </TextBlock>
 
         <Heading Level="2">With a coding agent</Heading>
@@ -88,9 +89,9 @@
 
     private static readonly Row[] Answers =
     [
-        new("Fixed", "0", "The page was audited again and the finding is gone, or it is there with a verdict of false positive or accepted."),
+        new("Fixed", "0", "The page was audited again and the finding is gone, or it is there with a verdict of false positive, demo page or accepted."),
         new("Still there", "5", "The finding is on the page again."),
-        new("Not checked", "1", "The page didn't load, answered with an error or led to another page, or you asked for other widths than the earlier run's."),
+        new("Not checked", "1", "The page didn't load, answered with an error or led to another page, or you asked for other widths or schemes than the earlier run's."),
     ];
 
     private const string TraceLines = """

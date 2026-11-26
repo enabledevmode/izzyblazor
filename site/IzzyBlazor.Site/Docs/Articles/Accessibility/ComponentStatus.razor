@@ -4,14 +4,15 @@
 
 @* Every component with what has been checked on it, in three columns that mean different things: its keys (the API
    metadata's Keyboard table), the automated audit of its docs pages (site/IzzyBlazor.Site/.izzy/audit-baseline.json: remake
-   the numbers in Run when the baseline is remade), and screen readers (artifacts/a11y-audit/SCREEN-READER-PASS.md: add a
-   component to ScreenReaders as the pass reaches it). A cell says what was done, never "conforms". After Syncfusion's
+   the numbers in Run and the Accepted list when the baseline is remade), and screen readers
+   (artifacts/a11y-audit/SCREEN-READER-PASS.md: add a component to ScreenReaders as the pass reaches it, and say whether a
+   script's transcript was read or a person listened). A cell says what was done, never "conforms". After Syncfusion's
    per-component table (Nov 25, 2026), which has no column for what wasn't tested. *@
 
 <ArticlePage Section="accessibility" Slug="component-status">
     <Lead>
-        This page lists every component with what has been checked on it and how. A check by a tool and a test
-        by a person are separate columns, since
+        Every component, with what has been checked on it and how. A check by a tool and a test with a screen
+        reader are separate columns, since
         <Anchor Href="docs/accessibility/automated-and-manual">they answer different questions</Anchor>. Where a
         test hasn't been done, the cell says so.
     </Lead>
@@ -29,24 +30,29 @@
             <Anchor Href="docs/accessibility/audit">izzy audit</Anchor> ran over this site on @Run.On:
             @Run.Pages pages, each at 1440 and 375 pixels wide, in light and dark, and once in forced colors.
             It runs axe-core and <Anchor Href="docs/accessibility/audit-checks">four checks of its own</Anchor>
-            on every example of every component. The run had @Run.Findings findings. None was real and none
-            needed a person: @Run.FalsePositives were false positives of a rule, @Run.DemoPages came from a docs
-            page showing a component several times, and @Run.Accepted are accepted with a reason, on docs
-            examples that show a color on purpose.
+            on the docs pages of every component, as they load. The run had @Run.Findings findings, and each was judged. None is
+            open: @Run.FalsePositives were false positives of a rule, @Run.DemoPages came from a docs
+            page showing a component several times, and @Run.Accepted are low-contrast text in docs examples
+            that show a color on purpose. Those @Run.Accepted are real and accepted, with the reason in the report.
+            axe could not measure the contrast of some text, such as text over a picture or a gradient. Those
+            elements are counted apart and are not passes.
         </TextBlock>
         <TextBlock>
-            So the Audit column is the same for every component today. It says that the rules found nothing on
-            the component's examples as they load. It doesn't cover a closed dialog or menu, the order of the
-            keyboard or what a screen reader says.
+            "No open findings" in the Audit column says that every finding on the component's examples was
+            judged, and none was real or left for a person. It covers the examples as they load. It doesn't
+            cover a closed dialog or menu, the order of the keyboard or what a screen reader says. The audit
+            measures the contrast of text, not of borders and icons.
         </TextBlock>
 
         <Heading Level="2">Screen readers</Heading>
         <TextBlock>
             A pass with screen readers has started and isn't done. Names, roles and states are checked in the
             browser's accessibility tree, which is what a screen reader reads, but that is not the same as
-            listening to one. The pass covers VoiceOver with Safari, then NVDA with Chrome and Firefox, JAWS and
-            Narrator on Windows, and VoiceOver and TalkBack on phones. A component's cell names the screen
-            readers it has been through. If one gets something wrong,
+            listening to one. The pass covers VoiceOver with Safari on a Mac, then NVDA with Chrome and Firefox,
+            JAWS with Chrome and Narrator with Edge on Windows, VoiceOver with Safari on an iPhone and TalkBack
+            with Chrome on Android. A component's cell names the screen readers it has been through and how: by
+            a script, whose transcript of what was spoken a person then read, or by a person listening. If a
+            screen reader gets something wrong,
             <Anchor Href="https://github.com/IzzyBlazor/izzyblazor/issues" External>report it as an issue</Anchor>.
         </TextBlock>
 
@@ -54,8 +60,9 @@
         <TextBlock>
             A component with a known gap is marked in the table. The
             <Anchor Href="docs/accessibility/overview#known-gaps">overview</Anchor> describes each gap and its
-            workaround. One gap is shared by every field and switch: their borders have about 2:1 contrast
-            against the page.
+            workaround. One gap is shared by every field and switch and isn't marked on each: their borders
+            have about 2:1 contrast against the page. The audit doesn't measure border contrast, so it doesn't
+            report this gap.
         </TextBlock>
 
         @foreach (var category in Registry.Categories)
@@ -64,17 +71,17 @@
             <Table Items="@Rows(category)" Caption="@($"{category}: accessibility status")" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-status" Bordered="false">
                 <Columns>
                     <TemplateColumn Title="Component"><Anchor Href="@context!.Href">@context.Name</Anchor></TemplateColumn>
-                    <TemplateColumn Title="Keys">
+                    <TemplateColumn Title="Keyboard">
                         @if (context!.Keys)
                         {
-                            <Anchor Href="@($"{context.Href}#keyboard-navigation")">Listed</Anchor>
+                            <Anchor Href="@($"{context.Href}#keyboard-navigation")">Keys documented</Anchor>
                         }
                         else
                         {
-                            <text>The browser's own</text>
+                            <text>No keys of its own</text>
                         }
                     </TemplateColumn>
-                    <TemplateColumn Title="Audit">@(context!.Gap ? "No findings; one known gap" : "No findings")</TemplateColumn>
+                    <TemplateColumn Title="Audit">@context!.Audit</TemplateColumn>
                     <TemplateColumn Title="Screen readers">@context!.ScreenReaders</TemplateColumn>
                 </Columns>
             </Table>
@@ -85,31 +92,39 @@
 @code {
     private sealed record Row(string Name, string Text);
 
-    private sealed record Status(string Name, string Href, bool Keys, bool Gap, string ScreenReaders);
+    private sealed record Status(string Name, string Href, bool Keys, string Audit, string ScreenReaders);
 
     // The run the Audit column reports: .izzy/audit-baseline.json, remade Nov 25, 2026 after the triage.
     private static readonly (string On, string Pages, int Findings, int FalsePositives, int DemoPages, int Accepted) Run =
         ("November 25, 2026", "543", 88, 27, 58, 3);
 
-    // Components the screen reader pass has reached, with what was run. Everything else is "Not yet".
+    // Components the screen reader pass has reached, with what was run and how. Everything else is "Not yet".
     private static readonly Dictionary<string, string> ScreenReaders = new()
     {
-        ["Switch"] = "VoiceOver with Safari: read through",
-        ["LiveRegion"] = "VoiceOver with Safari: started",
+        ["Switch"] = "VoiceOver with Safari, by script: transcript read, one open question",
+        ["LiveRegion"] = "VoiceOver with Safari, by script: one bug found, not fixed yet",
     };
+
+    // Components whose docs examples have accepted findings in the baseline.
+    private static readonly Dictionary<string, int> Accepted = new() { ["RichTextEditor"] = 2, ["TextBlock"] = 1 };
 
     // Components with a gap in the overview's Known gaps.
     private static readonly HashSet<string> Gaps = ["NumberField"];
 
     private static readonly Row[] Meanings =
     [
-        new("Keys", "\"Listed\" links the component's Keyboard navigation table, for keys that IzzyBlazor's script adds. \"The browser's own\" means the component is a native element or takes no keys, and has no keys of its own to list."),
-        new("Audit", "What izzy audit found on the component's docs pages, in every example, as they load."),
-        new("Screen readers", "The screen readers a person has run the component's examples through, or \"Not yet\"."),
+        new("Keyboard", "\"Keys documented\" links the component's Keyboard navigation table, for keys that IzzyBlazor's script adds. \"No keys of its own\" means the component uses a native element's keys or isn't interactive. The column says where the keys are documented, not that they were tested: the overview describes the keyboard tests."),
+        new("Audit", "What izzy audit left open on the component's docs pages, in every example, as they load."),
+        new("Screen readers", "The screen readers the component's examples have been run through, and how, or \"Not yet\"."),
     ];
 
     private List<Status> Rows(string category) =>
         [.. Registry.InCategory(category).Select(c => new Status(
-            c.DisplayName, Registry.OverviewHref(c), Api.Component(c.Name)?.Keyboard is { Count: > 0 }, Gaps.Contains(c.Name),
+            c.DisplayName, Registry.OverviewHref(c), Api.Component(c.Name)?.Keyboard is { Count: > 0 }, AuditOf(c.Name),
             ScreenReaders.GetValueOrDefault(c.Name, "Not yet")))];
+
+    private static string AuditOf(string name) =>
+        "No open findings"
+        + (Accepted.TryGetValue(name, out var count) ? $"; {count} accepted in a docs example" : "")
+        + (Gaps.Contains(name) ? "; one known gap" : "");
 }

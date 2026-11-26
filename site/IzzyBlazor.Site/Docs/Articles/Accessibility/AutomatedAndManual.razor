@@ -7,9 +7,9 @@
 
 <ArticlePage Section="accessibility" Slug="automated-and-manual">
     <Lead>
-        A tool can measure a page, and it can't use one. Some of what WCAG asks is a measurement, and a tool
-        settles it. Some is a judgment a tool can only point at. The rest shows up only when a person uses the
-        page with a keyboard and a screen reader. This page draws the line for
+        A tool measures a page. It doesn't use one. Some of what WCAG asks is a measurement, and a tool
+        settles it. Some is a judgment, where a tool finds the place and a person decides. The rest shows up
+        only when a person uses the page with a keyboard and a screen reader. The line is the same for
         <Anchor Href="docs/accessibility/audit">izzy audit</Anchor> and for any tool like it.
     </Lead>
     <ChildContent>
@@ -24,37 +24,40 @@
 
         <Heading Level="2">What a tool settles</Heading>
         <TextBlock>
-            These are measurements. When a tool reports one, it is almost always right, and a fix can be checked
-            by running the tool again.
+            These are measurements. A tool's report of one is usually right, and
+            <Code>izzy audit</Code>'s verdict says when a rule is wrong about a pattern. A fix can be checked by
+            running the tool again. No finding means the measurement passed on what the tool could measure, as
+            the page loaded.
         </TextBlock>
         <List Gap="2">
             <ListItem>A control, picture or frame has no name at all.</ListItem>
             <ListItem>Text on a plain background has less contrast than 4.5:1, or 3:1 for large text.</ListItem>
-            <ListItem>ARIA is wrong: a role that doesn't exist, an attribute its role doesn't allow, a required child that is missing, an id that <Code>aria-labelledby</Code> points to and nothing has.</ListItem>
-            <ListItem>Two elements share an id, the page has no <Code>lang</Code> or no title, or a heading skips a level.</ListItem>
-            <ListItem>A control is smaller than 24 by 24 pixels and takes clicks in a smaller area than that.</ListItem>
-            <ListItem>A link or button that takes focus stays hidden under a header or footer that stays in place.</ListItem>
-            <ListItem>In forced colors, a control doesn't change at all when it takes focus, or a meter's value isn't drawn.</ListItem>
+            <ListItem>ARIA is wrong: a role that doesn't exist, an attribute its role doesn't allow, a required child that is missing.</ListItem>
+            <ListItem>The page has no <Code>lang</Code> or no title.</ListItem>
+            <ListItem>A heading skips a level. This is a best practice, not a WCAG criterion.</ListItem>
+            <ListItem>A control is smaller than 24 by 24 pixels, takes clicks in a smaller area and has no room around it. Whether an exception applies, such as a link in a sentence, is for a person.</ListItem>
+            <ListItem>A link or button that takes focus stays hidden under a header or footer that stays in place. A pass covers only that case.</ListItem>
+            <ListItem>In forced colors, a control doesn't change at all when it takes focus. WCAG doesn't name forced colors: this check finds what people who use a contrast theme lose.</ListItem>
         </List>
 
         <Heading Level="2">What a tool points at, and a person decides</Heading>
         <TextBlock>
-            Here a tool finds the place, and the answer needs eyes. <Code>izzy audit</Code> gives these the
+            A tool finds the place. A person decides. <Code>izzy audit</Code> gives these the
             verdict <Anchor Href="docs/accessibility/audit-verdicts">needs a person</Anchor>, or counts them
             apart as not measured. It never counts them as passed.
         </TextBlock>
         <List Gap="2">
             <ListItem>Text over a picture, a gradient or another element, where the background can't be measured.</ListItem>
-            <ListItem>Text in a color set on the element itself, which may be there for a reason.</ListItem>
+            <ListItem>Text in a color set on the element itself. The measurement is right, and a person says whether an exception applies: a disabled control, a logo or decoration.</ListItem>
             <ListItem>A control that changes only slightly when it takes focus: is the change enough to see?</ListItem>
             <ListItem>A part that disappears in forced colors: does it carry meaning, or is it decoration?</ListItem>
-            <ListItem>Two landmarks with one name: a mistake on a page of an app, expected on a page that shows a component twice.</ListItem>
+            <ListItem>An id that two elements share, or an <Code>aria-labelledby</Code> that points to an id nothing has. axe counts these as not measured.</ListItem>
         </List>
 
         <Heading Level="2">What only a person can check</Heading>
         <TextBlock>
-            No run of <Code>izzy audit</Code>, axe or Lighthouse checks these. A report with no findings says
-            nothing about them.
+            No tool settles these. Where a tool checks a small part, such as whether a video has a captions
+            track, a clean result says little. A report with no findings says nothing about them.
         </TextBlock>
         <Table Items="Manual" Caption="Checks that need a person" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
             <Columns>
@@ -69,10 +72,10 @@
 
         <Heading Level="2">What a report can claim</Heading>
         <List Gap="2">
-            <ListItem>A finding with the verdict real is a failure of the criterion its rule names. Fix it.</ListItem>
+            <ListItem>A finding with the verdict real is one izzy has no reason to excuse. Treat it as a failure of the criterion its rule names, and fix it. A few rules are best practices with no criterion, and the report says so.</ListItem>
             <ListItem>No findings means the rules that ran found nothing, on the pages that were audited, in the state they loaded in. It doesn't mean the page meets WCAG.</ListItem>
-            <ListItem>Conformance is a statement a person makes after testing every criterion, by tool and by hand. A VPAT or an accessibility statement needs that work, and an audit report is one of its inputs.</ListItem>
-            <ListItem>An accepted finding is your decision, with your reason. It is not a pass, and the report keeps showing it.</ListItem>
+            <ListItem>Conformance is a claim a person makes for whole pages and whole tasks, after testing every criterion by tool and by hand. An Accessibility Conformance Report (a filled-in VPAT) or an accessibility statement needs that work. An audit report is one input.</ListItem>
+            <ListItem>An accepted finding is your decision, with your reason. It is not a pass, accepting it doesn't make a failure conform, and the report keeps showing it.</ListItem>
         </List>
 
         <Heading Level="2">What IzzyBlazor claims for itself</Heading>
@@ -80,7 +83,7 @@
             The same line holds for the library. Its components are built to WCAG 2.2 level AA, and the
             <Anchor Href="docs/accessibility/overview">overview</Anchor> says how that is checked and which gaps
             are known. <Anchor Href="docs/accessibility/component-status">Component status</Anchor> lists, for each
-            component, what a tool checked and what a person tested with a screen reader. Where a check hasn't
+            component, what a tool checked and which screen readers it has been run through. Where a check hasn't
             been done, it says so.
         </TextBlock>
         <TextBlock>
@@ -95,9 +98,9 @@
 
     private static readonly Row[] Kinds =
     [
-        new("A measurement", "The tool. The answer is a number or a fact about the markup.", "A finding with the verdict real, or no finding."),
+        new("A measurement", "The tool. The answer is a number or a fact about the markup.", "A finding with a verdict, or no finding."),
         new("A judgment a tool can point at", "A person, looking at the place the tool found.", "A finding with the verdict needs a person, or an element counted as not measured."),
-        new("Use of the page", "A person with a keyboard, a screen reader, zoom and a contrast theme.", "Not checked. Every report lists it under what the run did not check."),
+        new("Use of the page", "A person with a keyboard, a screen reader, zoom and a contrast theme.", "Not checked. report.md and report.html list it under what the run did not check."),
     ];
 
     private static readonly Row[] Manual =
@@ -107,11 +110,17 @@
         new("Keyboard order and traps", "The order is right or wrong against the page's meaning.", "Tab through every page, and open and close each dialog and menu."),
         new("Every feature by keyboard", "A tool doesn't know what your page is for.", "Do each task with the mouse put away."),
         new("What a screen reader says", "Browsers and screen readers differ, and timing matters.", "Do each task with NVDA, VoiceOver or TalkBack."),
-        new("Announcements", "A change with no reload is silent unless the page announces it.", "Save, filter and delete with a screen reader on, and listen."),
-        new("Dialogs, menus and other states", "An audit sees the page as it loads.", "Open each one and check it by hand, or audit an address that opens it."),
+        new("Announcements", "A tool sees a live region, not whether it speaks at the right moment.", "Save, filter and delete with a screen reader on, and listen."),
+        new("Dialogs, menus and other states", "An audit sees the page as it loads. A tool can check an open dialog only if you open it first.", "Open each one and check it by hand, or audit an address that opens it."),
+        new("Focus you can see", "A tool can count the pixels that change, not whether you notice them.", "Tab through the page in light and in dark, and watch where focus is."),
+        new("Contrast of icons and borders", "Tools measure the contrast of text.", "Check icons, control edges and chart marks against 3:1 with a contrast picker."),
+        new("Meaning by color alone", "A tool doesn't know what a color means.", "Look at each status, error and chart in grayscale."),
+        new("Structure and reading order", "A tool sees headings, lists and tables, not whether they match the page.", "List the headings with a screen reader, and read the page in its order."),
+        new("Content on hover", "A tooltip or popover isn't there as the page loads.", "Hover and focus each one: it stays, can be pointed at, and Escape closes it."),
+        new("Drags and gestures", "A tool can't tell that a drag has another way.", "Do each drag, swipe and pinch with single clicks."),
         new("Zoom and reflow", "Content that is cut off at 200% still measures as present.", "Zoom to 200%, and narrow the window to 320 pixels."),
         new("A real contrast theme", "A browser's forced colors show what disappears, not a person's own colors.", "Turn on a Windows contrast theme."),
         new("Errors and instructions", "Whether a message tells the user what to do is a matter of words.", "Submit each form with a mistake in it and read what it says."),
-        new("Time limits, motion and media", "A tool doesn't wait for a session to end or watch a video.", "Check what moves or times out, and that video has captions."),
+        new("Time limits, motion and media", "A tool doesn't wait for a session to end or watch a video.", "Check what moves, flashes or times out, and that captions are there and accurate."),
     ];
 }

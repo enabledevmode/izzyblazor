@@ -11,8 +11,8 @@
     <ChildContent>
         <Heading Level="2">Fail a build on findings</Heading>
         <TextBlock>
-            With <Code>--fail-on any</Code>, izzy ends with exit code 5 when the page has a finding, and with
-            exit code 1 when the page didn't open or answered with an error. On a build server, start the app with
+            With <Code>--fail-on any</Code>, izzy ends with exit code 5 when the page has a finding. When the
+            page has none and a load didn't open or answered with an error, it ends with exit code 1. On a build server, start the app with
             <Code>--run</Code>:
         </TextBlock>
         <Code Block Language="bash">izzy audit / --run --fail-on any</Code>
@@ -30,12 +30,13 @@
         </TextBlock>
         <TextBlock>
             A build server signs in with a key in the <Code>IZZY_KEY</Code> variable: see
-            <Anchor Href="docs/tools/account">Your account</Anchor>.
+            <Anchor Href="docs/tools/account">Your account</Anchor>. A key gives a build what a free account
+            has: one page a run. <Code>--site</Code> and <Code>--urls</Code> need a sign-in with Pro.
         </TextBlock>
 
         <Heading Level="2">Fail only on new findings</Heading>
         <TextBlock>
-            To hold the line on a site that already has findings, keep a past run's <Code>results.json</Code> in
+            To stop new findings on a site that already has some, keep a past run's <Code>results.json</Code> in
             the repository and compare with it:
         </TextBlock>
         <Code Block Language="bash">izzy audit / --run --baseline audit-baseline.json --fail-on new</Code>
@@ -49,9 +50,11 @@
         <TextBlock>
             <Code>--format sarif</Code> writes <Code>results.sarif</Code>, which GitHub code scanning and editors
             read. It holds the real findings and those a person must look at, each on its line. A finding izzy
-            couldn't place is on line 1 of its page's file, with its selector in the message. A finding on a
+            couldn't place is on the first place it may be, or on line 1 of its page's file, with its selector in
+            the message. A finding on a
             page that has no file in the app is left out, since code scanning takes no result without a place.
-            It stays in the other reports. Paths are written from the repository's root.
+            It stays in the other reports. Paths are written from the repository's root. The format needs the
+            app's source: add <Code>--run</Code> or <Code>--project</Code>.
         </TextBlock>
         <Code Block Language="bash">izzy audit /orders --run --format md,json,sarif</Code>
 
@@ -66,7 +69,9 @@
         <Heading Level="2">What a green build means</Heading>
         <TextBlock>
             A build that passes had no finding of the kind you chose, on the pages it audited, as they load. It
-            doesn't check a dialog nobody opened, the order of the Tab key or what a screen reader says.
+            doesn't check a dialog nobody opened, the order of the Tab key or what a screen reader says. With
+            <Code>--fail-on real</Code> or <Code>new</Code>, a green build can still have findings that need a
+            person and elements axe couldn't measure. They are in the report.
             Keep the checks <Anchor Href="docs/accessibility/testing">a person does</Anchor> in your release steps.
         </TextBlock>
     </ChildContent>
@@ -78,7 +83,7 @@
     private static readonly Row[] Codes =
     [
         new("0", "The audit ran, and nothing --fail-on counts was found."),
-        new("1", "A page didn't open or answered with an error, or a recheck couldn't be made."),
+        new("1", "No load of the page opened. With --fail-on, also when a load didn't open or answered with an error and nothing else failed the run. A recheck couldn't be made, or the command was wrong."),
         new("3", "The option needs IzzyBlazor Pro: --site."),
         new("4", "The option needs a free account, and izzy isn't signed in."),
         new("5", "Findings that --fail-on counts, or a rechecked finding that is still there."),

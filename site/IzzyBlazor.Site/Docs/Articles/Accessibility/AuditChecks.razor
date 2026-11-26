@@ -5,16 +5,17 @@
 
 <ArticlePage Section="accessibility" Slug="audit-checks">
     <Lead>
-        <Code>izzy audit</Code> runs axe-core's rules and four checks of its own on each page as it loads. This
-        page says what each check measures, where a measurement settles the question, and what no run checks.
+        <Code>izzy audit</Code> runs axe-core's rules and four checks of its own on each page as it loads. Each
+        check measures one thing. Some measurements settle the question, some don't, and some things no run
+        checks.
     </Lead>
     <ChildContent>
         <Heading Level="2">axe-core</Heading>
         <TextBlock>
             <Anchor Href="https://github.com/dequelabs/axe-core" External>axe-core</Anchor> is the open source rule
-            engine most accessibility tools run. izzy carries a copy and runs its rules in every load of the page:
-            missing names on controls and pictures, text contrast, ARIA that is wrong or misused, duplicate ids,
-            the page's language and title, landmarks and heading order. Each rule names the WCAG criterion it
+            engine most accessibility tools run. izzy carries a copy and runs its rules at each width and color scheme. The load in forced colors runs
+            izzy's own checks only. axe's rules cover
+            missing names on controls and pictures, text contrast, ARIA that is wrong or misused, the page's language and title, landmarks and heading order. Each rule names the WCAG criterion it
             tests, and the report prints it. Some rules are best practices with no criterion.
         </TextBlock>
         <TextBlock>
@@ -28,7 +29,8 @@
             izzy runs four checks of its own for what axe doesn't measure. Their findings are in the same
             reports, with a verdict, a picture and a place in your code like any other. For the
             two in forced colors izzy opens each page once more, at the widest width, with the browser's
-            forced colors on. The reports list that load as <Code>forced colors</Code>.
+            forced colors on. The reports list that load as <Code>forced colors</Code>. WCAG doesn't name
+            forced colors: these two checks find what people who use a contrast theme lose.
         </TextBlock>
         <Table Items="Sweeps" Caption="The checks izzy adds" Size="ControlSize.Sm" Class="site-params" Bordered="false">
             <Columns>
@@ -51,7 +53,8 @@
         <Heading Level="2">What it doesn't check</Heading>
         <TextBlock>
             An audit with no findings is not a statement of conformance. Automated checks find part of what WCAG
-            asks. The rest needs a person with a keyboard and a screen reader. Every report ends with this list:
+            asks. The rest needs a person with a keyboard and a screen reader. <Code>report.md</Code> and
+            <Code>report.html</Code> end with a list like this one:
         </TextBlock>
         <List Gap="2">
             <ListItem>izzy audits the page as it loads. It doesn't open dialogs, menus or popovers.</ListItem>
@@ -91,7 +94,7 @@
     [
         new("target-size", "Turns on axe's rule for WCAG 2.5.8: a control is 24 by 24 pixels or has that much room. axe measures the control's box, so izzy then tests where each one takes a click. A control with a larger hit area than its box is a false positive."),
         new("focus-not-obscured", "Scrolls a link or button under a header or footer that stays in place and gives it focus, as Shift+Tab does. If the page leaves it hidden, the bar is the finding, with the scroll-padding to set. WCAG 2.4.11."),
-        new("focus-visible-forced-colors", "Takes a picture of each kind of control before and after it takes focus, in forced colors, and counts the pixels that change. An outline passes when most of it is in sight. A focus look made of a fill or a shadow is erased there. When one control fails, izzy measures the others of its kind. WCAG 2.4.7."),
-        new("forced-colors-indicator", "Finds the parts of controls and meters that only a fill draws, such as a progress bar's value, and reports those that nothing draws in forced colors. WCAG 1.4.11."),
+        new("focus-visible-forced-colors", "Takes a picture of each kind of control before and after it takes focus, in forced colors, and counts the pixels that change. An outline passes when most of it is in sight. A focus look made of a fill or a shadow is erased there. When one control fails, izzy measures the others of its kind. Related to WCAG 2.4.7."),
+        new("forced-colors-indicator", "Finds the parts of controls and meters that only a fill draws, such as a progress bar's value, and reports those that nothing draws in forced colors. Related to WCAG 1.4.11."),
     ];
 }

@@ -39,10 +39,10 @@
         <List Gap="2">
             <ListItem>The test suite runs keyboard flows in Chromium, on static and interactive pages. Each flow opens, moves, chooses and closes, and checks where focus lands after each step.</ListItem>
             <ListItem>When a component is built or changed, its examples are checked in Chromium with axe and the accessibility tree.</ListItem>
-            <ListItem>A sweep of every example checks that focus shows in Windows high-contrast mode and that targets are at least 24 by 24 pixels.</ListItem>
+            <ListItem>A sweep of every example checks that focus shows in the browser's forced colors, which emulates a Windows contrast theme, and that targets are at least 24 by 24 pixels.</ListItem>
             <ListItem>When the page renders, IzzyBlazor calculates the shades of a brand or gray color you set to meet contrast ratios. The built-in themes are tuned to the same ratios.</ListItem>
-            <ListItem><Anchor Href="docs/accessibility/audit">izzy audit</Anchor> runs over every page of this site, at two widths, in light, dark and forced colors. Each finding is judged, and the last run had none that was real.</ListItem>
-            <ListItem>A full pass with screen readers (NVDA, JAWS, VoiceOver and TalkBack) hasn't been done yet. Names, roles and states are checked in the accessibility tree, which is what screen readers read.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit">izzy audit</Anchor> runs over every page of this site, at two widths, in light, dark and forced colors. Each finding is judged, and the last run left none open: 3 contrast findings on docs examples are accepted with a reason.</ListItem>
+            <ListItem>A full pass with screen readers (NVDA, JAWS, Narrator, VoiceOver and TalkBack) has started and isn't done. Names, roles and states are checked in the accessibility tree, which is what screen readers read, but that is not the same as listening to one.</ListItem>
         </List>
         <TextBlock>
             A tool checks part of this, and a person the rest:

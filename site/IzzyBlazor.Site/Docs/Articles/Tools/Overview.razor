@@ -55,8 +55,8 @@
         <Heading Level="2">What every tool keeps to</Heading>
         <List Gap="2">
             <ListItem>The code is yours. A tool adds plain Razor and C# files to your project, and nothing checks a license when the app builds or runs. See the <Anchor Href="docs/tools/license">License</Anchor>.</ListItem>
-            <ListItem>You see a change first. Every command that writes takes <Code>--dry-run</Code> and <Code>--diff</Code>, and none replaces a file you've changed unless you say so. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.</ListItem>
-            <ListItem>Your code stays on your machine. izzy creates code locally, online or offline, and never sends your code or your app's name.</ListItem>
+            <ListItem>You see a change first. Every command that changes your app's code takes <Code>--dry-run</Code> and <Code>--diff</Code>, and none replaces a file you've changed unless you pass <Code>--overwrite</Code>. <Code>izzy agent</Code> takes <Code>--dry-run</Code> and replaces its own skill file with the current one. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.</ListItem>
+            <ListItem>Your code stays on your machine. izzy creates code locally, online or offline, and never sends your code or your app's name. A sign-in sends the machine's name, its operating system and izzy's version.</ListItem>
             <ListItem>A person and an agent get the same result. <Code>izzy mcp</Code> runs the commands you run in a terminal.</ListItem>
             <ListItem>The audit reports and changes no code, and a report with no findings is not a statement of conformance. See <Anchor Href="docs/accessibility/automated-and-manual">Automated and manual checks</Anchor>.</ListItem>
         </List>

@@ -26,9 +26,10 @@
         <Heading Level="2">Where a verdict comes from</Heading>
         <TextBlock>
             izzy keeps a list of patterns it has looked at: a rule, the markup it fires on, and what was found by
-            hand. A finding that matches a pattern gets that pattern's verdict and reason. A finding of
-            <Anchor Href="docs/accessibility/audit-checks">izzy's own checks</Anchor> gets its verdict from what the
-            check measured. A finding nothing matches is real: izzy doesn't excuse what it hasn't looked at.
+            hand. Your own accepted findings come first. Then a finding that matches a pattern gets that
+            pattern's verdict and reason. A finding of
+            <Anchor Href="docs/accessibility/audit-checks">izzy's own checks</Anchor> that neither covers gets its
+            verdict from what the check measured. A finding that matches no pattern counts as real, with medium confidence.
         </TextBlock>
         <TextBlock>
             A verdict is about one finding. It doesn't say the element is accessible, only that this rule's
@@ -38,9 +39,10 @@
         <Heading Level="2">Needs a person</Heading>
         <TextBlock>
             This verdict is the line between what a tool can settle and what it can't. izzy measured something
-            and a person has to judge it: text in a color set on the element itself, a control that changes only
-            slightly when it takes focus, a part that disappears in forced colors and may be decoration. Look at
-            the element on the page. Then fix it, or accept it with your reason.
+            and a person has to judge it: text in a color set on the element itself, where an exception may
+            apply, a control that changes only slightly when it takes focus, a part that disappears in forced
+            colors and may be decoration. Look at the element on the page. Then fix it, or accept it with your
+            reason.
         </TextBlock>
 
         <Heading Level="2">Accept a finding</Heading>
@@ -55,8 +57,10 @@
         </TextBlock>
         <Code Block Language="json" Title=".izzy/audit.json">@ProjectFile</Code>
         <TextBlock>
-            Accepting is a person's decision, written down with a name and a date. A coding agent that runs the
-            audit is told never to accept a finding by itself.
+            Accepting is a person's decision, written down with a reason. Add <Code>by</Code> and
+            <Code>on</Code> to say who and when. It doesn't make a failure
+            conform: it records that you know. A coding agent that runs the audit is told never to accept a
+            finding by itself.
         </TextBlock>
 
         <Heading Level="2">Demo pages</Heading>
@@ -73,11 +77,11 @@
 
     private static readonly Row[] Verdicts =
     [
-        new("Real", "A problem for users.", "Fix it."),
+        new("Real", "A failure, or a finding izzy has no reason to excuse.", "Fix it."),
         new("Needs a person", "A tool can't settle it, such as text in a color set on the element itself.", "Look at it, then fix or accept it."),
         new("Accepted", "You accepted it in .izzy/audit.json. The report prints your reason.", "Nothing, while your reason holds."),
         new("Demo page", "Caused by a page that shows a component several times. A page of an app doesn't have it.", "Nothing."),
-        new("False positive", "The rule is wrong here, such as low contrast on a part of a disabled control.", "Nothing."),
+        new("False positive", "The rule is wrong here, such as low contrast on a part of a disabled control.", "Read the reason once. If it doesn't fit your markup, treat the finding as real."),
     ];
 
     private const string ProjectFile = """
@@ -85,9 +89,9 @@
           "accepted": [
             {
               "rule": "color-contrast",
-              "selector": ".order-footnote",
-              "pages": "/orders/**",
-              "reason": "The footnote repeats what the table says",
+              "selector": ".brand-wordmark",
+              "pages": "/**",
+              "reason": "A logotype: WCAG 1.4.3 exempts it",
               "by": "Dana",
               "on": "2026-11-24"
             }
