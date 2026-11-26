@@ -52,7 +52,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy audit --recheck <finding id> [--run] [--project <path>]
           izzy agent [--project <path>] [--dry-run]
           izzy mcp
-          izzy doctor [--build] [--project <path>] [--json]
+          izzy doctor [--build] [--browser <path>] [--project <path>] [--json]
           izzy login [--no-browser]
           izzy logout
           izzy account [--json]
@@ -1036,7 +1036,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (!flags.Json) PreviewNote();
         var (page, path, start, end, project) = RangeAt(args.Words[1], folder, stdin, usage);
         if (end is not null) throw new UsageException($"izzy unwrap takes one position. Usage: {usage}");
-        var element = Restructure.At(Restructure.Elements(page), start) ?? throw new UsageException($"No element at that place in {path}: put the position on a tag.");
+        var element = Restructure.At(page, Restructure.Elements(page), start) ?? throw new UsageException($"No element at that place in {path}: put the position on a tag.");
         var edits = Restructure.Unwrap(page, path, element, Library);
         return Edited(new Changeset { Creates = [], Inserts = edits, Packages = [], Conflicts = [], Warnings = [] }, project, flags, stdin);
     }
@@ -1066,21 +1066,25 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var (page, path, start, end, project) = RangeAt(args.Words[1], folder, stdin, usage);
         var (from, to, _, _) = Restructure.Range(page, path, start, end);
         var own = Path.GetDirectoryName(path)!.Replace('\\', '/');
-        var target = (into ?? own).Replace('\\', '/').Trim('/');
-        if (target.Split('/').Any(part => part is "." or "..") || Path.IsPathRooted(target))
-            throw new UsageException($"--folder is a folder in the project, such as Components/Shared, not \"{into}\".");
+        var target = own;
+        if (into is not null)
+        {
+            target = into.Replace('\\', '/').Trim('/');
+            if (target.Split('/').Any(part => part is "" or "." or "..") || Path.IsPathRooted(target))
+                throw new UsageException($"--folder is a folder in the project, such as Components/Shared, not \"{into}\".");
+            // From the project's folder, as izzy add razor takes it; and in the project the page is in, which is the one that can see it.
+            bool InClient(string f) => project.Client is { } client && f.StartsWith(client, StringComparison.Ordinal);
+            if (InClient(path) && !InClient(target) && !(project.Host.Length > 0 && target.StartsWith(project.Host, StringComparison.Ordinal))) target = project.Client + target;
+            else target = Pages.InApp(project, target + "/").TrimEnd('/');
+            if (InClient(path) != InClient(target))
+                throw new UsageException($"--folder is a folder of the project the page is in, under {(InClient(path) ? project.Client! : project.Host).TrimEnd('/')}.");
+        }
         var file = (target.Length > 0 ? target + "/" : "") + name + ".razor";
         if (project.ReadFile(file) is not null) throw new UsageException($"{file} is already there. Pick another --name or --folder.");
-        var (edits, create, warnings) = Restructure.Extract(page, path, from, to, name, file, Library);
+        var elsewhere = !target.Equals(own, StringComparison.OrdinalIgnoreCase);
+        var (edits, create, warnings) = Restructure.Extract(page, path, from, to, name, file, Library, project.ReadFile(path + ".cs"), elsewhere ? Pages.NamespaceOf(project, path) : null);
         // A component in another folder is in another namespace: the page names it, unless an _Imports.razor does.
-        if (!target.Equals(own, StringComparison.OrdinalIgnoreCase))
-        {
-            var inClient = project.Client is { } client && file.StartsWith(client, StringComparison.Ordinal);
-            var root = inClient ? project.Client! : project.Host;
-            if (!file.StartsWith(root, StringComparison.Ordinal)) throw new UsageException($"--folder is a folder of the project the page is in, under {root.TrimEnd('/')}.");
-            var ns = Pages.NamespaceOf(project, file);
-            if (Restructure.Using(page, path, Imports(project, path), ns, Inserts.Hash(page)) is { } added) edits.Insert(0, added);
-        }
+        if (elsewhere && Restructure.Using(page, path, Imports(project, path), Pages.NamespaceOf(project, file), Inserts.Hash(page)) is { } added) edits.Insert(0, added);
         return Edited(new Changeset { Creates = [create], Inserts = edits, Packages = [], Conflicts = [], Warnings = warnings }, project, flags, stdin);
     }
 
@@ -1088,7 +1092,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // found and how to put it right. It changes nothing; --build also builds the app.
     int Doctor(Args args)
     {
-        const string usage = "izzy doctor [--build] [--project <path>] [--json]";
+        const string usage = "izzy doctor [--build] [--browser <path>] [--project <path>] [--json]";
         Words(args, 1, usage);
         var folder = _projectFolder = args.Take("project");
         var json = args.Switch("json");
@@ -1107,7 +1111,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         ProjectInfo? project = null;
         string? none = null;
         try { project = ProjectInfo.FromProject(FindProject(folder)); }
-        catch (Exception e) when (e is UsageException or GenerationException) { none = e.Message; }
+        catch (Exception e) when (e is UsageException or GenerationException or System.Xml.XmlException) { none = e.Message; }
         var directory = project?.Directory ?? (folder is not null && Directory.Exists(Path.GetFullPath(folder, workingDirectory)) ? Path.GetFullPath(folder, workingDirectory) : workingDirectory);
 
         // The SDK dotnet picks in that folder: a global.json there can name another.
@@ -1128,7 +1132,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
         Check("izzy", "izzy", "ok", izzy);
 
-        if (project is null)
+        if (project is null && folder is not null && !Directory.Exists(Path.GetFullPath(folder, workingDirectory)) && !File.Exists(Path.GetFullPath(folder, workingDirectory)))
+            Check("app", "IzzyBlazor app", "fail", "Nothing at " + folder, none, "Give --project the app's folder or its project file.");
+        else if (project is null)
             Check("app", "IzzyBlazor app", "info", "None in this folder", none, "Create an app with izzy new starter blazor -n <name>, or open a Blazor app's folder and run izzy init.");
         else
         {

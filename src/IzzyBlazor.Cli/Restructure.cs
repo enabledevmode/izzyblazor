@@ -33,6 +33,18 @@ static partial class Restructure
     public static RazorElement? At(List<RazorElement> elements, int offset) =>
         elements.Where(e => offset >= e.Start && offset < e.End).OrderBy(e => e.End - e.Start).FirstOrDefault();
 
+    /// <summary>
+    /// The element a position names: the one whose tag starts after it on its line when only the line's indent is
+    /// between them (column 1 of a tag's line is that tag, not what holds it), else the innermost one it is in.
+    /// </summary>
+    public static RazorElement? At(string page, List<RazorElement> elements, int offset)
+    {
+        var next = offset;
+        while (next < page.Length && page[next] is ' ' or '\t') next++;
+        if (next > offset && elements.FirstOrDefault(e => e.Start == next) is { } indented) return indented;
+        return At(elements, offset);
+    }
+
     /// <summary>The element an element sits in; null at the top of the page.</summary>
     public static RazorElement? Parent(List<RazorElement> elements, RazorElement element) =>
         elements.Where(e => e != element && e.Start <= element.Start && e.End >= element.End).OrderBy(e => e.End - e.Start).FirstOrDefault();
@@ -44,15 +56,35 @@ static partial class Restructure
     public static (int Start, int End, List<RazorElement> Run, RazorElement? Parent) Range(string page, string path, int from, int? to)
     {
         var elements = Elements(page);
-        var first = At(elements, from) ?? throw new UsageException($"No element at that place in {path}: put the position on a tag.");
+        var first = At(page, elements, from) ?? throw new UsageException($"No element at that place in {path}: put the position on a tag.");
         var parent = Parent(elements, first);
         if (to is not { } other) return (first.Start, first.End, [first], parent);
-        var last = At(elements, other) ?? throw new UsageException($"No element at the range's end in {path}: put the position on a tag.");
+        var last = At(page, elements, other) ?? throw new UsageException($"No element at the range's end in {path}: put the position on a tag.");
+        // An editor's selection ends just past its last element: that element, not what holds it.
+        if (Parent(elements, last) != parent || (last != first && last.Start <= first.Start && last.End >= first.End))
+        {
+            var before = other;
+            while (before > 0 && char.IsWhiteSpace(page[before - 1])) before--;
+            if (elements.FirstOrDefault(e => e.End == before && Parent(elements, e) == parent) is { } ended) last = ended;
+        }
         if (last == first) return (first.Start, first.End, [first], parent);
         if (Parent(elements, last) != parent)
             throw new UsageException($"The range starts in {Named(parent)} and ends in {Named(Parent(elements, last))}: give a range of elements that sit side by side in one parent.");
         var (start, end) = (Math.Min(first.Start, last.Start), Math.Max(first.End, last.End));
         var run = elements.Where(e => e.Start >= start && e.End <= end && Parent(elements, e) == parent).ToList();
+        // Between the elements there may be a code block's braces (@if (x) { … }): the range holds a block whole or not at all.
+        var depth = 0;
+        for (var (i, at) = (0, start); i < run.Count; at = run[i].End, i++)
+        {
+            foreach (var c in page[at..Math.Max(at, run[i].Start)])
+            {
+                if (c == '{') depth++;
+                else if (c == '}' && --depth < 0) break;
+            }
+            if (depth < 0) break;
+        }
+        if (depth != 0)
+            throw new UsageException("The range starts inside a code block (an @if, a loop) and ends outside it, or the other way around: give a range that holds the whole block, or one that stays inside it.");
         return (start, end, run, parent);
 
         static string Named(RazorElement? e) => e is null ? "the page itself" : $"<{e.Tag.Name}>";
@@ -61,12 +93,12 @@ static partial class Restructure
     /// <summary>What one indent step is on this page: a tab, or its smallest run of leading spaces.</summary>
     public static string IndentUnit(string page)
     {
-        // Lines that start a tag or a directive: a comment's or an attribute's continuation lines are aligned, not indented.
+        // Lines that start a tag: a comment's or an attribute's continuation lines (@onclick="…") are aligned, not indented.
         var step = 0;
         foreach (var line in page.Split('\n'))
         {
             var text = line.TrimStart(' ', '\t');
-            if (text.Length == 0 || text[0] is not ('<' or '@')) continue;
+            if (text.Length == 0 || text[0] != '<') continue;
             if (line[0] == '\t') return "\t";
             for (var (a, b) = (step, line.Length - text.Length); ; (a, b) = (b, a % b))
                 if (b == 0) { step = a; break; }
@@ -82,6 +114,9 @@ static partial class Restructure
         var lineEnd = page.IndexOf('\n', end) is var m and >= 0 ? m : page.Length;
         return indent.Trim().Length == 0 && page[end..lineEnd].Trim().Length == 0;
     }
+
+    // Text whose line starts are part of what it says: a pre, a textarea, a raw string. Its lines stay where they are.
+    static bool KeepsItsLines(string text) => Regex.IsMatch(text, @"<(?:pre|textarea)\b|""""""", RegexOptions.IgnoreCase);
 
     static string Eol(string page) => page.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
 
@@ -140,7 +175,8 @@ static partial class Restructure
         var eol = Eol(page);
         var content = page[start..end];
         var text = WholeLines(page, start, end, out var indent)
-            ? open + eol + indent + IndentUnit(page) + Shift(content, IndentUnit(page), deeper: true) + eol + indent + $"</{name}>"
+            ? KeepsItsLines(content) ? open + eol + indent + content + eol + indent + $"</{name}>"
+            : open + eol + indent + IndentUnit(page) + Shift(content, IndentUnit(page), deeper: true) + eol + indent + $"</{name}>"
             : open + content + $"</{name}>";
         var edits = new List<TextInsert> { new(path, start, text, hash) { Length = end - start } };
         if (library.Options(name) is not null && Using(page, path, imports, "IzzyBlazor", hash) is { } added) edits.Insert(0, added);
@@ -171,6 +207,7 @@ static partial class Restructure
         }
         var close = page.LastIndexOf("</", element.End - 1, StringComparison.Ordinal);
         var inner = page[element.Tag.End..close];
+        if (inner.Trim().Length == 0) throw new UsageException($"<{name}> has nothing inside it to keep. Delete it instead.");
         var hash = Inserts.Hash(page);
         // The opening and closing tags each on lines of their own: their lines go, and what's between moves out a step.
         var innerStart = page.IndexOf('\n', element.Tag.End) + 1;
@@ -181,7 +218,8 @@ static partial class Restructure
             var lineStart = element.Start == 0 ? 0 : page.LastIndexOf('\n', element.Start - 1) + 1;
             var body = page[innerStart..closeLine];
             var unit = IndentUnit(page);
-            var moved = string.Join('\n', body.Split('\n').Select(l => l.Trim().Length == 0 ? l : l.StartsWith(unit, StringComparison.Ordinal) ? l[unit.Length..] : l.TrimStart(' ', '\t')));
+            var moved = KeepsItsLines(body) ? body
+                : string.Join('\n', body.Split('\n').Select(l => l.Trim().Length == 0 ? l : l.StartsWith(unit, StringComparison.Ordinal) ? l[unit.Length..] : l.TrimStart(' ', '\t')));
             // Without the last line's ending, which the text after the element still has.
             moved = moved.EndsWith("\r\n", StringComparison.Ordinal) ? moved[..^2] : moved.EndsWith('\n') ? moved[..^1] : moved;
             return [new TextInsert(path, lineStart, moved, hash) { Length = element.End - lineStart }];
@@ -235,16 +273,19 @@ static partial class Restructure
     /// parameter, and a service the page injects is injected there too. What can't be passed that way (a method,
     /// a value the markup changes, a loop's variable) is named in the warnings, for a person to wire.
     /// </summary>
-    public static (List<TextInsert> Inserts, FileCreate Create, List<string> Warnings) Extract(string page, string path, int start, int end, string name, string file, Components library)
+    public static (List<TextInsert> Inserts, FileCreate Create, List<string> Warnings) Extract(string page, string path, int start, int end, string name, string file, Components library, string? codeBehind = null, string? pageNamespace = null)
     {
         var eol = Eol(page);
         var warnings = new List<string>();
         var block = WholeLines(page, start, end, out var indent);
         var markup = page[start..end].Replace("\r\n", "\n", StringComparison.Ordinal);
-        if (block) markup = Shift(markup, indent, deeper: false);
+        if (block && !KeepsItsLines(markup)) markup = Shift(markup, indent, deeper: false);
 
         // What the page's @code declares, and the services it injects.
         var code = string.Concat(RazorPage.CodeBlocks(page).Select(b => page[(b.Open + 1)..b.Close] + "\n"));
+        // The page's other half (Orders.razor.cs) declares members too.
+        if (codeBehind is not null && CSharpSyntaxTree.ParseText(codeBehind).GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault() is { } behind)
+            code += string.Concat(behind.Members.Select(m => m.ToFullString())) + "\n";
         var values = new Dictionary<string, string>(StringComparer.Ordinal);
         var methods = new HashSet<string>(StringComparer.Ordinal);
         var types = new HashSet<string>(StringComparer.Ordinal);
@@ -260,21 +301,20 @@ static partial class Restructure
                 case BaseTypeDeclarationSyntax type: types.Add(type.Identifier.Text); break;
             }
         }
-        var injected = Inject().Matches(page).ToDictionary(m => m.Groups[2].Value, m => m.Groups[1].Value.Trim(), StringComparer.Ordinal);
+        var injected = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (Match m in Inject().Matches(page)) injected[m.Groups[2].Value] = m.Groups[1].Value.Trim();
 
         // Names the markup around it declares (a loop's variable, a template's context) and the text itself doesn't.
-        var around = Declares(page[..start]);
-        around.ExceptWith(Declares(markup));
+        var around = Declares(page, start);
+        around.ExceptWith(Declares(markup, markup.Length, all: true));
         around.ExceptWith(values.Keys);
 
-        var known = values.Keys.Concat(methods).Concat(types).Concat(injected.Keys).Concat(around).Distinct().ToList();
-        var used = new HashSet<string>(StringComparer.Ordinal);
-        if (known.Count > 0)
-        {
-            var marked = ExampleInsert.RenameMarkup(markup, known.ToDictionary(k => k, k => $"\u0001{k}\u0002"), library);
-            used = known.Where(k => marked.Contains($"\u0001{k}\u0002", StringComparison.Ordinal)).ToHashSet(StringComparer.Ordinal);
-        }
-        if (UsesOuterContext(markup, library)) used.Add("context");
+        var known = values.Keys.Concat(methods).Concat(types).Concat(injected.Keys).Concat(around).Append("context").Distinct().ToList();
+        // Each name marked where the markup holds C#, so a word of the page's text is never taken for one.
+        var marked = ExampleInsert.RenameMarkup(markup, known.ToDictionary(k => k, k => $"\u0001{k}\u0002"), library, appTags: true);
+        var used = known.Where(k => k != "context" && marked.Contains($"\u0001{k}\u0002", StringComparison.Ordinal)).ToHashSet(StringComparer.Ordinal);
+        if (!values.ContainsKey("context") && UsesOuterContext(marked, library)) used.Add("context");
+        bool InCode(string pattern) => Regex.IsMatch(marked, pattern);
 
         // A field or property is a parameter under a public name: _orders is Orders.
         var parameters = new List<(string Member, string Parameter, string Type)>();
@@ -282,14 +322,22 @@ static partial class Restructure
         {
             var bare = member.TrimStart('_');
             var parameter = bare.Length == 0 ? "Value" : char.ToUpperInvariant(bare[0]) + bare[1..];
-            while (parameters.Any(p => p.Parameter == parameter) || (parameter != member && used.Contains(parameter))) parameter += "Value";
+            // Not the component's own name either: a member can't have its class's.
+            while (parameter == name || parameters.Any(p => p.Parameter == parameter) || (parameter != member && used.Contains(parameter))) parameter += "Value";
             parameters.Add((member, parameter, values[member]));
-            if (Regex.IsMatch(markup, $@"@bind(?:-[\w:]+)?\s*=\s*""@?{Regex.Escape(member)}\b|(?<![\w.]){Regex.Escape(member)}\s*(?:\+\+|--|[-+*/]?=(?![=>]))"))
+            var it = $"\u0001{Regex.Escape(member)}\u0002";
+            if (InCode($@"@ref\s*=\s*""@?{it}"""))
+                warnings.Add($"{member} is set by an @ref in the markup that moved. In {name} the @ref fills its own parameter {parameter}, and {member} in {path} stays empty: keep that element on the page, or move the code that uses {member} too.");
+            else if (InCode($@"@bind(?:-[\w:]+)?\s*=\s*""@?{it}|(?<![\w.]){it}\s*(?:\+\+|--|(?:[-+*/%|&^]|\?\?|<<|>>)?=(?![=>]))|(?:\+\+|--)\s*{it}"))
                 warnings.Add($"{member} is changed in the markup that moved. {name} gets its value as the parameter {parameter}, and a change there doesn't reach {path}: pass the change back with an EventCallback.");
         }
+        // A type parameter of the page's (@typeparam TItem) isn't one of the new component's.
+        foreach (Match generic in TypeParam().Matches(page))
+            if (parameters.Any(p => Regex.IsMatch(p.Type, $@"(?<![\w.]){Regex.Escape(generic.Groups[1].Value)}(?!\w)")))
+                warnings.Add($"{generic.Groups[1].Value} is a type parameter of {path}. Give {name} the same @typeparam line.");
         foreach (var type in types.Where(t => !used.Contains(t) && parameters.Any(p => Regex.IsMatch(p.Type, $@"(?<![\w.]){Regex.Escape(t)}(?!\w)"))).ToList()) used.Add(type);
         var renames = parameters.Where(p => p.Member != p.Parameter).ToDictionary(p => p.Member, p => p.Parameter, StringComparer.Ordinal);
-        if (renames.Count > 0) markup = ExampleInsert.RenameMarkup(markup, renames, library);
+        if (renames.Count > 0) markup = ExampleInsert.RenameMarkup(markup, renames, library, appTags: true);
         foreach (var method in methods.Where(used.Contains))
             warnings.Add($"{method}() is a method of {path}, and {name} can't call it. Give {name} a parameter for it (an EventCallback, or a Func) and pass it from the page.");
         foreach (var type in types.Where(used.Contains))
@@ -299,13 +347,16 @@ static partial class Restructure
 
         var text = new StringBuilder();
         foreach (Match line in UsingLine().Matches(page)) text.Append(line.Value.Trim()).Append('\n');
+        // In another folder it no longer sees the components beside the page.
+        if (pageNamespace is not null && !Regex.IsMatch(text.ToString(), $@"^@using\s+{Regex.Escape(pageNamespace)}\s*;?\s*$", RegexOptions.Multiline))
+            text.Append($"@using {pageNamespace}\n");
         foreach (var service in injected.Where(s => used.Contains(s.Key))) text.Append($"@inject {service.Value} {service.Key}\n");
         if (text.Length > 0) text.Append('\n');
         text.Append(markup).Append('\n');
         if (parameters.Count > 0)
         {
             text.Append("\n@code {\n");
-            foreach (var (_, parameter, type) in parameters) text.Append($"    [Parameter] public {type} {parameter} {{ get; set; }}{(type.EndsWith('?') ? "" : " = default!;")}\n");
+            foreach (var (_, parameter, type) in parameters) text.Append($"{IndentUnit(page)}[Parameter] public {type} {parameter} {{ get; set; }}{(type.EndsWith('?') ? "" : " = default!;")}\n");
             text.Append("}\n");
         }
 
@@ -317,11 +368,26 @@ static partial class Restructure
     }
 
     // The names that markup declares for what's inside it: a loop's variable, a template's Context, a @{ } block's locals.
-    static HashSet<string> Declares(string markup)
+    // Before a place on a page, only those still open there: a loop that has closed gives its variable to nothing after it.
+    static HashSet<string> Declares(string page, int before, bool all = false)
     {
-        var names = ExampleInsert.Locals(markup);
-        foreach (Match m in LoopVariable().Matches(markup)) names.Add(m.Groups[1].Value);
-        foreach (Match m in ContextName().Matches(markup)) names.Add(m.Groups[1].Value);
+        var names = ExampleInsert.Locals(page[..before]);
+        bool Open(int declared)
+        {
+            if (all) return true;
+            var brace = page.IndexOf('{', declared);
+            if (brace < 0 || brace >= before) return true;
+            var close = RazorPage.MatchBrace(page, brace);
+            return close < 0 || close >= before;
+        }
+        foreach (Match m in LoopVariable().Matches(page))
+        {
+            if (m.Index >= before || !Open(m.Index + m.Length)) continue;
+            foreach (Capture name in m.Groups["n"].Captures) names.Add(name.Value);
+        }
+        var elements = all ? null : Elements(page);
+        foreach (Match m in ContextName().Matches(page))
+            if (m.Index < before && (elements is null || elements.Any(e => e.Tag.Start <= m.Index && m.Index < e.Tag.End && e.End > before))) names.Add(m.Groups[1].Value);
         return names;
     }
 
@@ -329,7 +395,7 @@ static partial class Restructure
     static bool UsesOuterContext(string markup, Components library)
     {
         var elements = Elements(markup);
-        foreach (Match m in ContextWord().Matches(markup))
+        foreach (Match m in MarkedContext().Matches(markup))
         {
             var given = elements.Where(e => m.Index >= e.Tag.End && m.Index < e.End).Any(e =>
                 // A component of the app's, or one of the library's whose content is a template; or a template's own tag.
@@ -347,12 +413,16 @@ static partial class Restructure
     [GeneratedRegex(@"^[ \t]*@using\s+[^\r\n]+", RegexOptions.Multiline)]
     private static partial Regex UsingLine();
 
-    [GeneratedRegex(@"@(?:foreach|for|using)\s*\(\s*(?:var|[\w.<>\[\]?,]+)\s+([A-Za-z_]\w*)\s*(?:in\b|=)")]
+    // foreach (var o in …), for (var i = …), using (var s = …), with or without the @, and foreach (var (a, b) in …).
+    [GeneratedRegex(@"(?<![\w.])(?:foreach|for|using)\s*\(\s*(?:(?:var|[\w.<>\[\]?,]+)\s+(?<n>[A-Za-z_]\w*)|var\s*\(\s*(?:(?<n>[A-Za-z_]\w*)\s*,?\s*)+\))\s*(?:in\b|=)")]
     private static partial Regex LoopVariable();
+
+    [GeneratedRegex(@"^[ \t]*@typeparam\s+([A-Za-z_]\w*)", RegexOptions.Multiline)]
+    private static partial Regex TypeParam();
 
     [GeneratedRegex(@"\bContext\s*=\s*""([A-Za-z_]\w*)""")]
     private static partial Regex ContextName();
 
-    [GeneratedRegex(@"(?<![\w.""])context(?=[.\[)\s,!?])")]
-    private static partial Regex ContextWord();
+    [GeneratedRegex("\u0001context\u0002")]
+    private static partial Regex MarkedContext();
 }

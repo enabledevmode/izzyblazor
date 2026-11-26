@@ -49,7 +49,7 @@
         <TextBlock>
             izzy writes <Code>OrderSummary.razor</Code> beside the page with the markup, and puts
             <Code>&lt;OrderSummary /&gt;</Code> where the markup was. <Code>--folder</Code> names another
-            folder, and the page gets the <Code>@@using</Code> line it then needs.
+            folder of the page's project, such as <Code>Components/Shared</Code>, and the page gets the <Code>@@using</Code> line it then needs.
         </TextBlock>
         <TextBlock>
             A field or property of the page's <Code>@@code</Code> that the markup reads becomes a parameter of
@@ -71,8 +71,8 @@
         <Heading Level="2">See the change first</Heading>
         <TextBlock>
             All three take <Code>--dry-run</Code>, <Code>--diff</Code> and <Code>--json</Code>. With
-            <Code>--stdin</Code>, izzy reads the file's text from standard input and writes nothing, for an
-            editor with unsaved changes. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.
+            <Code>--stdin</Code> and <Code>--json</Code>, izzy reads the file's text from standard input and
+            writes nothing, for an editor with unsaved changes. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.
         </TextBlock>
     </ChildContent>
 </ArticlePage>

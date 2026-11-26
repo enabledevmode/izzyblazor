@@ -340,8 +340,11 @@ static partial class ExampleInsert
 
     // In markup a name is C# only in some places: after an @, in a code block's statements, and in an attribute
     // that takes a value other than text. "Save" on a button's face stays, and so does a word inside a string.
-    internal static string RenameMarkup(string markup, Dictionary<string, string> renames, Components library)
+    // appTags: a component of the app's own takes C# too (Data="_points"), and nothing says which of its options hold
+    // text, so a value that starts with one of the names, or holds a lambda, is read as C#.
+    internal static string RenameMarkup(string markup, Dictionary<string, string> renames, Components library, bool appTags = false)
     {
+        var starts = new Regex(@"^\s*(?:" + string.Join("|", renames.Keys.OrderByDescending(k => k.Length).Select(Regex.Escape)) + @")(?:\s*$|\s*[.(\[?!])|=>");
         var word = new Regex(@"(?<![\w.])(" + string.Join("|", renames.Keys.OrderByDescending(k => k.Length).Select(Regex.Escape)) + @")(?!\w)");
 
         var spans = new List<(int Start, int End)>();
@@ -353,7 +356,8 @@ static partial class ExampleInsert
                 var value = markup.Substring(a.ValueStart, a.ValueLength);
                 // On a component, an option that takes text holds text, as an HTML attribute (class, id) does; the rest hold C#.
                 var isCode = a.Name.StartsWith('@') || value.StartsWith('@')
-                    || (options is not null && char.IsUpper(a.Name[0]) && !(options.TryGetValue(a.Name, out var text) && text));
+                    || (options is not null && char.IsUpper(a.Name[0]) && !(options.TryGetValue(a.Name, out var text) && text))
+                    || (appTags && options is null && char.IsUpper(tag.Name[0]) && char.IsUpper(a.Name[0]) && starts.IsMatch(value));
                 if (isCode) spans.Add((a.ValueStart, a.ValueStart + a.ValueLength));
             }
         }

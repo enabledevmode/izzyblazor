@@ -168,14 +168,15 @@ static partial class Crud
             if (folder.Split('/').Any(part => part is "" or "." or "..") || Path.IsPathRooted(folder))
                 throw new UsageException($"--folder is a folder in the project, such as Components/Pages/Admin, not \"{into}\".");
             var inClient = project.Client is { } clientFolder && folder.StartsWith(clientFolder, StringComparison.Ordinal);
-            if (http && !project.LayoutInBrowser && !inClient)
+            // In an app whose layout is in the browser, Components/… is the .Client project's own folder (Pages.InApp).
+            if (http && !inClient && !(project.LayoutInBrowser && folder.StartsWith("Components/", StringComparison.Ordinal)))
                 throw new UsageException($"With --store http the pages are in the .Client project: give --folder a folder under {project.Client}, or leave it out.");
             if (!http && inClient)
                 throw new UsageException($"{folder} is in the .Client project, and these pages read the store on the server. Give --folder a folder of the server project, or use --store http (Pro).");
             pagesFolder = "~/" + Pages.InApp(project, folder);
         }
         var pageLayout = Given("Layout") is { Length: > 0 } named2 ? named2 : null;
-        if (pageLayout is not null && !Regex.IsMatch(pageLayout, @"^[A-Za-z_][\w.]*$"))
+        if (pageLayout is not null && !Regex.IsMatch(pageLayout, @"^[A-Za-z_]\w*(\.[A-Za-z_]\w*)*$"))
             throw new UsageException($"--layout is a layout component's name, such as EmptyLayout, not \"{pageLayout}\".");
         var noNav = "false".Equals(Given("Nav"), StringComparison.OrdinalIgnoreCase);
 
