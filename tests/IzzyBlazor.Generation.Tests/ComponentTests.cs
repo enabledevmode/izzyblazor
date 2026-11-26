@@ -64,6 +64,10 @@ public sealed class ComponentTests : IDisposable
         // The file, and the route under another name, are refused with the file named.
         Assert.Contains("Components/Pages/MonthlyReports.razor is already there", Izzy(ItemTier.Free, "add", "page", "--name", "MonthlyReports").Error);
         Assert.Contains("/monthly-reports is already the route of Components/Pages/MonthlyReports.razor", Izzy(ItemTier.Free, "add", "page", "--name", "Reports", "--route", "/monthly-reports").Error);
+        // The @rendermode's own name is read as the mode (the VS Code extension sends it).
+        var live = Izzy(ItemTier.Free, "add", "page", "--name", "LiveOrders", "--mode", "InteractiveServer");
+        Assert.True(live.Exit == 0, live.Error);
+        Assert.Contains("@rendermode InteractiveServer", File.ReadAllText(Path.Combine(pages, "LiveOrders.razor")));
         // A component in a new folder brings its @using, once.
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportSummary", "--folder", "Components/Shared").Exit);
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportTotals", "--folder", "Components/Shared").Exit);

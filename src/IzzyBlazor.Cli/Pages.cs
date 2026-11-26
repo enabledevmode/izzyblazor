@@ -21,6 +21,12 @@ static class Pages
             throw new UsageException($"--name is a component's name, such as {(routed ? "Orders" : "OrderSummary")}, not \"{name}\": it starts with a capital letter and has no spaces.");
 
         var mode = routed ? Given("Mode") ?? "Static" : "Static";
+        // The @rendermode names say the same: InteractiveServer is Server (the VS Code extension sends these).
+        if (mode.StartsWith("Interactive", StringComparison.OrdinalIgnoreCase) && mode.Length > 11)
+        {
+            mode = mode[11..];
+            foreach (var key in settings.Keys.Where(k => k.Equals("Mode", StringComparison.OrdinalIgnoreCase)).ToList()) settings[key] = mode;
+        }
         var program = project.ReadFile(project.Host + "Program.cs") ?? "";
         // An app whose pages all run in the browser, or one whose Routes are interactive: a page says nothing.
         var app = project.ReadFile(project.Host + "Components/App.razor") ?? "";
