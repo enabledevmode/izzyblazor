@@ -87,6 +87,23 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
         [Description("Replaces files that exist with other content. Ask the user first.")] bool overwrite = false) =>
         Run(["add", "crud", model, .. Settings(settings), .. Option("project", project), .. Flags(dryRun, overwrite)]);
 
+    [McpServerTool(Name = "add_page", Title = "Add a new page or component", ReadOnly = false, Destructive = false, Idempotent = false, OpenWorld = false)]
+    [Description("Adds a new page to the app with its route, title and a container to start in, or with component a component with no route. from starts a page from a starter with sample data: list (a grid with search and a filter in the address), detail (one record with its actions) or form (a form that posts, validates and redirects). It stops, naming the file, when the file is there or another page has the route. With dryRun it writes nothing and answers with a diff.")]
+    public string AddPage(
+        [Description("The component's name and its file, such as Orders. Its words are a page's title.")] string name,
+        [Description("True for a component with no route (izzy add razor). Then only name, folder and project apply.")] bool component = false,
+        [Description("A starter page to begin from: list, detail or form. Leave out for a blank page.")] string? from = null,
+        [Description("The page's address, such as orders or orders/{id:int}. Leave out for the name in kebab case.")] string? route = null,
+        [Description("The folder the file goes in, from the project's folder. Leave out for Components/Pages (a page) or Components (a component).")] string? folder = null,
+        [Description("Where the page's C# runs: Static, Server, WebAssembly or Auto. Leave out for Static.")] string? mode = null,
+        [Description("The layout component, such as EmptyLayout, when the page doesn't use the app's default.")] string? layout = null,
+        [Description("Adds a link to the page in the app's nav.")] bool nav = false,
+        [Description("The app's folder or .csproj file, when it isn't where the server runs.")] string? project = null,
+        [Description("Writes nothing and answers with the changes as a diff.")] bool dryRun = false) =>
+        Run(["add", component ? "razor" : "page", .. Option("name", name), .. Option("folder", folder),
+            .. component ? [] : (string[])[.. Option("from", from), .. Option("route", route), .. Option("mode", mode), .. Option("layout", layout), .. nav ? ["--nav"] : Array.Empty<string>()],
+            .. Option("project", project), .. Flags(dryRun, false)]);
+
     [McpServerTool(Name = "new_app", Title = "Create a new IzzyBlazor app", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]
     [Description("Creates a new app from a starter or an app kit in a folder of its own. Answers with the files created. With dryRun it writes nothing and lists them.")]
     public string NewApp(

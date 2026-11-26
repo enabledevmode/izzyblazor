@@ -81,6 +81,19 @@ static partial class ToolManifest
         return (null, new TextInsert(path, open.Index + open.Length, body + (tools.Count > 0 ? "," : eol + "  "), hash), null);
     }
 
+    /// <summary>The manifest that applies in a folder and the version it has izzy at; null when none lists izzy.</summary>
+    public static (string File, string Version)? Pinned(string directory)
+    {
+        try
+        {
+            for (var folder = new DirectoryInfo(directory); folder is not null; folder = folder.Parent)
+                foreach (var path in Paths)
+                    if (Path.Combine(folder.FullName, path) is var full && File.Exists(full) && Version(File.ReadAllText(full)) is { } version) return (full, version);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        return null;
+    }
+
     // The version a manifest has izzy at; null when it doesn't list it.
     static string? Version(string text) => Entry().Match(text) is { Success: true } m ? m.Groups[1].Value : null;
 

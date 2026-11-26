@@ -10,7 +10,7 @@ sealed class UsageException(string message) : Exception(message);
 /// </summary>
 sealed class Args
 {
-    static readonly HashSet<string> Switches = ["json", "dry-run", "diff", "overwrite", "help", "version", "no-build", "no-browser", "tag", "stdin", "all", "run", "pro", "yes", "global"];
+    static readonly HashSet<string> Switches = ["json", "dry-run", "diff", "overwrite", "help", "version", "no-build", "no-browser", "tag", "stdin", "all", "run", "pro", "yes", "global", "suggest", "build"];
     static readonly Dictionary<string, string> Short = new() { ["n"] = "name", ["o"] = "output", ["h"] = "help" };
 
     public List<string> Words { get; } = [];
@@ -67,5 +67,5 @@ sealed class Args
 
     /// <summary>The names the CLI takes for itself, which no item's setting may be given under.</summary>
     public static bool Reserved(string name) =>
-        Switches.Contains(name) || Short.ContainsKey(name) || name is "project" or "at" or "kind" or "example" or "unset" or "to";
+        Switches.Contains(name) || Short.ContainsKey(name) || name is "project" or "at" or "kind" or "example" or "unset" or "to" or "with";
 }

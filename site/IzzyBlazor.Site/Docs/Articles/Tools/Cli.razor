@@ -37,6 +37,18 @@
             <Anchor Href="docs/troubleshooting/izzy-not-found">izzy: command not found</Anchor>.
         </TextBlock>
 
+        <Heading Level="2">Check your setup</Heading>
+        <Code Block Language="bash">izzy doctor</Code>
+        <TextBlock>
+            <Code>izzy doctor</Code> checks what izzy needs on your machine and in the app in this folder: the
+            .NET SDK that folder uses, the app's IzzyBlazor package and its own copy of izzy against the izzy
+            you ran, your account, and the browser for <Anchor Href="docs/accessibility/audit">izzy audit</Anchor>.
+            Each line says what it found, and one that is off says how to fix it. <Code>--build</Code> builds
+            the app too. It changes nothing and needs no account. <Code>--json</Code> prints the checks as
+            data, each with an <Code>id</Code>, a <Code>level</Code> (ok, info, warn or fail), what it
+            <Code>found</Code> and the <Code>fix</Code>.
+        </TextBlock>
+
         <Heading Level="2">Update</Heading>
         <TextBlock>
             The CLI has the same version as the library. When a newer release is out, izzy says so in one line after
@@ -146,6 +158,8 @@
         new("izzy add razor --name <Name>", "Adds a component with no route, and the @using its folder needs. See Pages and components."),
         new("izzy add component <Name> --at <file>:<line>", "Adds a component's usage example from these docs to a page. See Components."),
         new("izzy add crud <Model>", "Creates a page to display, add, edit and delete a model's records."),
+        new("izzy wrap, unwrap, extract", "Puts a component around markup, takes one away, or moves markup to a component of its own. Pro. See Wrap, unwrap and extract."),
+        new("izzy doctor", "Checks the .NET SDK, your app's versions, your account and the audit's browser, and says how to fix what is off."),
         new("izzy login", "Signs this machine in to your free IzzyBlazor account, which the app starters, blocks and kits come with. See Your account."),
         new("izzy audit <url>", "Checks a page's accessibility with axe-core in the Chrome or Edge on your machine, and writes a report. See Accessibility audit."),
         new("izzy agent", "Sets up your AI assistant in your app. It writes a skill that teaches the assistant to build with IzzyBlazor, and connects the docs server and izzy mcp. See AI assistants."),

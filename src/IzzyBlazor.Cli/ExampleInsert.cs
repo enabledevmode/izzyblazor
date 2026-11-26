@@ -196,7 +196,7 @@ static partial class ExampleInsert
     }
 
     // Just past the page's opening run of directives; 0 when it has none.
-    static int DirectivesEnd(string page)
+    internal static int DirectivesEnd(string page)
     {
         var end = 0;
         var offset = 0;
@@ -227,7 +227,7 @@ static partial class ExampleInsert
     }
 
     // What the @{ } blocks in markup declare: variables (out and pattern ones too) and local functions.
-    static HashSet<string> Locals(string markup)
+    internal static HashSet<string> Locals(string markup)
     {
         var names = new HashSet<string>(StringComparer.Ordinal);
         var comments = RazorPage.Comments(markup);
@@ -340,7 +340,7 @@ static partial class ExampleInsert
 
     // In markup a name is C# only in some places: after an @, in a code block's statements, and in an attribute
     // that takes a value other than text. "Save" on a button's face stays, and so does a word inside a string.
-    static string RenameMarkup(string markup, Dictionary<string, string> renames, Components library)
+    internal static string RenameMarkup(string markup, Dictionary<string, string> renames, Components library)
     {
         var word = new Regex(@"(?<![\w.])(" + string.Join("|", renames.Keys.OrderByDescending(k => k.Length).Select(Regex.Escape)) + @")(?!\w)");
 

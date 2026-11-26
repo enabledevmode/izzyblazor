@@ -7,7 +7,7 @@
     <Lead>
         <Code>izzy add page</Code> adds a new page to your app with its route, its title and a container to start
         in. <Code>izzy add razor</Code> adds a component with no route, for a part you use on several pages.
-        Neither needs an account.
+        Neither needs an account. With a free account, a page can start from a list, a detail page or a form.
     </Lead>
     <ChildContent>
         <Heading Level="2">Add a page</Heading>
@@ -28,6 +28,23 @@
         <TextBlock>
             izzy doesn't replace a page. When the file is already there, or another page has the route, it stops
             and names the file.
+        </TextBlock>
+
+        <Heading Level="2">Start from a starter page</Heading>
+        <TextBlock>
+            With a free account, <Code>--from</Code> starts the page from a working example in place of a blank
+            one. Each is one file with sample data, static unless you say otherwise:
+        </TextBlock>
+        <Code Block Language="bash">izzy add page --name Projects --from list --nav</Code>
+        <Table Items="Starts" Caption="Starter pages" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="The page has">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            For pages made from a model class of yours, with a store behind them, see
+            <Anchor Href="docs/tools/crud">CRUD pages</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Render mode</Heading>
@@ -72,9 +89,17 @@
         </Container>
         """;
 
+    private static readonly Row[] Starts =
+    [
+        new("--from list", "A grid that sorts and pages, with a search and a filter. All four are in the address, so they work with no circuit."),
+        new("--from detail", "One record: its name, status and actions in the header, its facts under it, and an action that asks first."),
+        new("--from form", "A form that posts, checks each field on the server and redirects with a message."),
+    ];
+
     private static readonly Row[] PageOptions =
     [
         new("--name <Name>", "The component's name and its file. Its words are the page's title."),
+        new("--from list", "Starts from a starter page: list, detail or form. A free account."),
         new("--route <path>", "The page's address, such as reports or reports/{year:int}. Without it, the name in kebab case."),
         new("--folder <folder>", "The folder the file goes in, from the project's folder. Without it, Components/Pages."),
         new("--mode Static", "Where the page's C# runs: Static, Server, WebAssembly or Auto."),

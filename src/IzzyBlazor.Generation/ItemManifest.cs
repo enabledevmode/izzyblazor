@@ -214,7 +214,7 @@ public static class ItemKinds
         };
 
     /// <summary>An item its own command names with no kind before it: <c>izzy add crud</c>, <c>izzy add page</c>, <c>izzy add razor</c>.</summary>
-    public static bool NamedAlone(this ItemManifest manifest) => manifest.Id is "crud" or "page" or "razor";
+    public static bool NamedAlone(this ItemManifest manifest) => manifest.Id is "crud" or "page" or "razor" or "list-page" or "detail-page" or "form-page";
 }
 
 /// <summary>The item a kit is made over.</summary>

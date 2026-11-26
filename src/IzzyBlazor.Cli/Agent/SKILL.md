@@ -33,6 +33,7 @@ The catalog has starters, app kits, pages and blocks (hero, pricing, FAQ, contac
 2. `describe_item` gives an item's settings. Pass its `kind` with its id, as `list_items` gives them.
 3. `add_item` with `dryRun: true` shows the changes as a diff. Run it again without `dryRun` to write them.
 4. `add_crud` makes a page that lists, adds, edits and deletes a model class's records.
+   `add_page` makes a new page with its route and nav link, blank or from a starter (`from`: list, detail or form), or with `component` a component with no route.
 5. `init_app` sets IzzyBlazor up in an app that doesn't have it. `new_app` makes a new app.
 6. `add_item` with `kind: "component"` and `at` puts a component's usage example from the docs on a page, with its sample data and code. `describe_item` with `kind: "component"` gives a component's options.
 

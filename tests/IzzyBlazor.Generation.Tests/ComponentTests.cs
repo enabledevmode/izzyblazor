@@ -68,6 +68,42 @@ public sealed class ComponentTests : IDisposable
         var live = Izzy(ItemTier.Free, "add", "page", "--name", "LiveOrders", "--mode", "InteractiveServer");
         Assert.True(live.Exit == 0, live.Error);
         Assert.Contains("@rendermode InteractiveServer", File.ReadAllText(Path.Combine(pages, "LiveOrders.razor")));
+        // Markup moves and the app still builds: a wrapper put on and taken off leaves the page as it was, and
+        // part of a page becomes a component that takes what it read from the page's @code as a parameter.
+        const string weather = "Components/Pages/Weather.razor", counter = "Components/Pages/Counter.razor";
+        string At(string page, string tag) => $"{page}:{Array.FindIndex(File.ReadAllLines(Path.Combine(_work, page)), l => l.TrimStart().StartsWith(tag, StringComparison.Ordinal)) + 1}:{File.ReadAllLines(Path.Combine(_work, page)).First(l => l.TrimStart().StartsWith(tag, StringComparison.Ordinal)).IndexOf('<') + 2}";
+        var before = File.ReadAllText(Path.Combine(_work, weather));
+        Assert.Equal(3, Izzy(ItemTier.Account, "wrap", At(weather, "<PageHeader"), "--with", "Stack").Exit);
+        var wrapped = Izzy("wrap", At(weather, "<PageHeader"), "--with", "stack", "--gap", "2");
+        Assert.True(wrapped.Exit == 0, wrapped.Error);
+        Assert.Contains("        <Stack Gap=\"2\">\n            <PageHeader Title=\"Weather\"", File.ReadAllText(Path.Combine(_work, weather)).ReplaceLineEndings("\n"));
+        Assert.Contains("\"component\": \"Row\"", Izzy("wrap", $"{At(weather, "<PropertyColumn")}-{At(weather, "<PropertyColumn Property=\"f => f.Summary\"")[(weather.Length + 1)..]}", "--suggest", "--json").Out);
+        Assert.Equal(0, Izzy("unwrap", At(weather, "<Stack")).Exit);
+        Assert.Equal(before, File.ReadAllText(Path.Combine(_work, weather)));
+        Assert.Contains("<DataGrid> holds <Columns>", Izzy("unwrap", At(weather, "<DataGrid")).Error);
+        var extracted = Izzy("extract", At(counter, "<PageHeader"), "--name", "CounterHeader", "--folder", "Components/Shared");
+        Assert.True(extracted.Exit == 0 && extracted.Error.Length == 0, extracted.Error);
+        Assert.Contains("<CounterHeader Mode=\"@Mode\" />", File.ReadAllText(Path.Combine(_work, counter)));
+        Assert.Contains("[Parameter] public (string Text, Status Status, string Note) Mode { get; set; }", File.ReadAllText(Path.Combine(_work, "Components", "Shared", "CounterHeader.razor")));
+        // What can't be passed as a value is said, not guessed.
+        Assert.Contains("IncrementCount() is a method of", Izzy("extract", At(counter, "<Row"), "--name", "CounterActions", "--dry-run").Error);
+        Assert.Contains("\"id\": \"sdk\"", Izzy(ItemTier.Free, "doctor", "--json").Out);
+
+        // The three starter pages are in the build too, each from a free account; signed out, izzy says to sign in.
+        // Their files are in the private catalog: where it isn't on this machine, they are left out.
+        Assert.Equal(4, Izzy(ItemTier.Free, "add", "page", "--name", "Projects", "--from", "list").Exit);
+        if (Directory.Exists(ProjectBuild.PrivateCatalog))
+        {
+            foreach (var (name, from) in new[] { ("Projects", "list"), ("ProjectDetails", "detail"), ("NewProject", "form") })
+            {
+                var error = new StringWriter();
+                var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, new StringWriter(), error, proRoot: ProjectBuild.PrivateCatalog, access: ItemTier.Account)
+                    .Run(["add", "page", "--name", name, "--from", from]);
+                Assert.True(exit == 0, error.ToString());
+            }
+            Assert.Contains("FormName=\"new-project\"", File.ReadAllText(Path.Combine(pages, "NewProject.razor")));
+        }
+
         // A component in a new folder brings its @using, once.
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportSummary", "--folder", "Components/Shared").Exit);
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportTotals", "--folder", "Components/Shared").Exit);

@@ -44,6 +44,8 @@ public static class Articles
                 "Add a new page with its route and nav link, or a component with no route, to your app."),
             new("components", "Components", "Component",
                 "Add a component's example to a page, and list every component's options."),
+            new("markup", "Wrap, unwrap and extract", "Group",
+                "Put a component around markup you have, take one away, or move part of a page to its own component."),
             new("crud", "CRUD pages", "Table2",
                 "A page to list, add, edit and delete a model's records, from a class in your app."),
             new("changes", "Previewing changes", "FileDiff",

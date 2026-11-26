@@ -48,7 +48,7 @@ static class Pages
         if (project.ReadFile(file) is not null) throw new UsageException($"{file} is already there. Pick another --name or --folder.");
 
         var facts = new Dictionary<string, object>(project.Facts) { ["Routed"] = routed, ["AddNav"] = false, ["NavIcons"] = false, ["HasLayout"] = false, ["SaysRenderMode"] = false, ["AddUsing"] = false };
-        var tokens = new Dictionary<string, string>(project.Tokens) { ["File"] = "~/" + file, ["Title"] = ModelReader.Words(name) };
+        var tokens = new Dictionary<string, string>(project.Tokens) { ["File"] = "~/" + file, ["Title"] = ModelReader.Words(name), ["FormName"] = Kebab(name) };
         settings["Name"] = name;
 
         if (!routed)

@@ -123,7 +123,9 @@ static partial class RazorPage
         while (i < text.Length && (char.IsLetterOrDigit(text[i]) || text[i] is '.' or '-' or '_' or ':')) i++;
         var name = text[(open + 1)..i];
         if (name.Length == 0) return -1;
-        // The tag, to its >: a quoted value or an @( ) may hold one.
+        // The tag, to its >: a quoted value or an @( ) may hold one. Read as a tag with attributes when it is one,
+        // so a quote inside an expression (Text="@($"Count: {n}")") isn't taken for the value's end.
+        if (Tag(text, open) is { } whole) i = whole.End - 1;
         for (; i < text.Length && text[i] != '>'; i++)
         {
             var c = text[i];

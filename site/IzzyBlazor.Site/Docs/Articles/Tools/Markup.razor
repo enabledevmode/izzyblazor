@@ -1,0 +1,117 @@
+@page "/docs/tools/markup"
+
+@* izzy wrap, izzy unwrap and izzy extract (src/IzzyBlazor.Cli/Restructure.cs; the commands in Cli.cs): what each
+   changes, what it refuses and what extract leaves for a person. All three are Pro. An editor calls them with
+   --stdin --dry-run --json, as it calls izzy set. *@
+
+<ArticlePage Section="tools" Slug="markup">
+    <Lead>
+        <Code>izzy wrap</Code> puts a component around markup you have, <Code>izzy unwrap</Code> takes one
+        away, and <Code>izzy extract</Code> moves part of a page to a component of its own. Use them to
+        change a page's structure without retyping it. They come with IzzyBlazor Pro.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Say where</Heading>
+        <TextBlock>
+            Each command takes a place in a <Code>.razor</Code> file as <Code>file:line:column</Code>, counted
+            from 1, and works on the element whose tag is there. A second line and column after a dash makes a
+            range: every element from the first to the second. The elements of a range must sit side by side in
+            the same parent.
+        </TextBlock>
+        <Code Block Language="bash">@Places</Code>
+
+        <Heading Level="2">Wrap</Heading>
+        <Code Block Language="bash">izzy wrap Components/Pages/Orders.razor:14:9-15:9 --with Row --gap 3</Code>
+        <TextBlock>
+            izzy writes the wrapper's tags around the elements and moves them in one step, in the file's own
+            indent. <Code>--with</Code> takes a component's name or an HTML element such as <Code>div</Code>.
+            Options after it are the wrapper's, checked as <Code>izzy set</Code> checks them. When neither the
+            file nor an <Code>_Imports.razor</Code> has <Code>@@using IzzyBlazor</Code>, izzy adds it.
+        </TextBlock>
+        <Code Block Language="diff">@Wrapped</Code>
+        <TextBlock>
+            <Code>--suggest --json</Code> lists the wrappers that fit the place, the likeliest first, each with
+            the reason: a <Code>GridItem</Code> for an element in a <Code>Grid</Code>, a <Code>Stack</Code> or a
+            <Code>Row</Code> for several elements, a <Code>Fieldset</Code> for several fields.
+        </TextBlock>
+
+        <Heading Level="2">Unwrap</Heading>
+        <Code Block Language="bash">izzy unwrap Components/Pages/Orders.razor:14:9</Code>
+        <TextBlock>
+            izzy removes the element's opening and closing tags and moves what it holds out one step. It stops
+            when the element holds a part that can't stand alone, such as a DataGrid's
+            <Code>&lt;Columns&gt;</Code>, and names the part. It also stops at an element with nothing inside.
+        </TextBlock>
+
+        <Heading Level="2">Extract a component</Heading>
+        <Code Block Language="bash">izzy extract Components/Pages/Orders.razor:22:5-41:5 --name OrderSummary</Code>
+        <TextBlock>
+            izzy writes <Code>OrderSummary.razor</Code> beside the page with the markup, and puts
+            <Code>&lt;OrderSummary /&gt;</Code> where the markup was. <Code>--folder</Code> names another
+            folder, and the page gets the <Code>@@using</Code> line it then needs.
+        </TextBlock>
+        <TextBlock>
+            A field or property of the page's <Code>@@code</Code> that the markup reads becomes a parameter of
+            the new component, and the page passes it. A service the page injects is injected in the component
+            too, and the page's <Code>@@using</Code> lines are copied.
+        </TextBlock>
+        <Code Block Language="razor" Title="Components/Pages/OrderSummary.razor">@Extracted</Code>
+        <TextBlock>
+            izzy doesn't guess at what a parameter can't carry. It makes the change and says what is left for
+            you, in a warning for each:
+        </TextBlock>
+        <Table Items="Left" Caption="What izzy extract leaves for you" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="The markup uses" Width="Length.Rem(16)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="What to do">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">See the change first</Heading>
+        <TextBlock>
+            All three take <Code>--dry-run</Code>, <Code>--diff</Code> and <Code>--json</Code>. With
+            <Code>--stdin</Code>, izzy reads the file's text from standard input and writes nothing, for an
+            editor with unsaved changes. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private const string Places = """
+        Components/Pages/Orders.razor:14:9          # the element at line 14, column 9
+        Components/Pages/Orders.razor:14:9-15:9     # from it to the element at line 15, column 9
+        """;
+
+    private const string Wrapped = """
+        -        <Button Submit>Save</Button>
+        -        <Button Href="orders" Variant="ButtonVariant.Outline">Cancel</Button>
+        +        <Row Gap="3">
+        +            <Button Submit>Save</Button>
+        +            <Button Href="orders" Variant="ButtonVariant.Outline">Cancel</Button>
+        +        </Row>
+        """;
+
+    private const string Extracted = """
+        <Card>
+            <CardBody Gap="3">
+                <Heading Level="2" Size="TextSize.Lg">Summary</Heading>
+                <TextBlock>@Orders.Count orders, @Total.ToString("C") in all.</TextBlock>
+            </CardBody>
+        </Card>
+
+        @code {
+            [Parameter] public List<Order> Orders { get; set; } = default!;
+            [Parameter] public decimal Total { get; set; } = default!;
+        }
+        """;
+
+    private static readonly Row[] Left =
+    [
+        new("A method of the page", "Give the component a parameter for it, an EventCallback or a Func, and pass the method from the page."),
+        new("A value it changes", "The parameter passes the value in. Pass the change back with an EventCallback."),
+        new("A loop's variable or a template's context", "Give the component a parameter for it and pass it from the page."),
+        new("A type declared in the page's @code", "Move the type to a file of its own, so both can use it."),
+    ];
+}

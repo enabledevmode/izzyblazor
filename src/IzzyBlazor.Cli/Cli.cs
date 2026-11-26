@@ -32,11 +32,15 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy describe component --all --json
           izzy describe crud|init [--json]
           izzy add block <id> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
-          izzy add page --name <Name> [--route <path>] [--folder <folder>] [--mode Static|Server|WebAssembly|Auto] [--layout <Layout>] [--nav] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy add page --name <Name> [--from list|detail|form] [--route <path>] [--folder <folder>] [--mode Static|Server|WebAssembly|Auto] [--layout <Layout>] [--nav] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add razor --name <Name> [--folder <folder>] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add component <Name> [--example <name> | --tag] --at <file>:<line>[:<col>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
           izzy inspect <file>:<line>:<col> [--stdin] [--project <path>] --json
           izzy set <file>:<line>:<col> --<option> <value> ... [--unset <option>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy wrap <file>:<line>:<col>[-<line>:<col>] --with <component> [--<option> <value> ...] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy wrap <file>:<line>:<col>[-<line>:<col>] --suggest --json
+          izzy unwrap <file>:<line>:<col> [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy extract <file>:<line>:<col>[-<line>:<col>] --name <Name> [--folder <folder>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory|Http] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
@@ -48,6 +52,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy audit --recheck <finding id> [--run] [--project <path>]
           izzy agent [--project <path>] [--dry-run]
           izzy mcp
+          izzy doctor [--build] [--project <path>] [--json]
           izzy login [--no-browser]
           izzy logout
           izzy account [--json]
@@ -58,6 +63,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         examples (izzy describe component <Name> lists them); --tag puts the tag alone, at the column too.
         izzy inspect answers with the component at a place on a page and what each of its attributes says, for
         an editor's side panel (a free account). izzy set changes or removes its options there (IzzyBlazor Pro).
+        izzy wrap puts a component or an HTML element around the element at a place, or around the elements from
+        it to a second place in the same parent; --suggest lists the wrappers that fit there. izzy unwrap takes an
+        element away and keeps what it holds. izzy extract moves markup to a component of its own and passes it
+        what it read from the page's @code as parameters (all three: IzzyBlazor Pro).
         izzy add crud makes a page whose grid adds, edits and deletes a model's records (list, detail and
         form pages are --mode pages, Pro), for a model class in your app read from its source: no build needed.
         izzy init sets up IzzyBlazor in the app you have: a Blazor Web App, or an MVC or Razor Pages app, which
@@ -72,6 +81,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         Settings are the item's, as izzy describe lists them (izzy describe block hero), such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
+        izzy doctor checks what izzy needs on this machine and in this app: the .NET SDK, the app's IzzyBlazor
+        package and its own izzy against this izzy, your account and the browser for the audit. --build builds
+        the app too. It changes nothing.
         izzy audit checks a page's accessibility with axe-core and izzy's own checks (target size, focus
         hidden under a header that stays in place, and focus and indicators in forced colors), in the Chrome
         or Edge on this machine, at two widths, in light and dark and once more in forced colors. It writes
@@ -136,6 +148,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "add" => Add(args),
                 "inspect" => Inspect(args),
                 "set" => Set(args),
+                "wrap" => Wrap(args),
+                "unwrap" => Unwrap(args),
+                "extract" => Extract(args),
+                "doctor" => Doctor(args),
                 "new" => New(args),
                 "init" => Init(args),
                 "update" => Update(args),
@@ -148,7 +164,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account [--json]", "json").Status(output, args.Switch("json")),
                 "feedback" => Feedback(args),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, new, init, update, upgrade, audit, agent, mcp, login, logout, account, feedback."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, wrap, unwrap, extract, new, init, update, upgrade, audit, agent, mcp, doctor, login, logout, account, feedback."),
             };
         }
         catch (ProRequiredException e)
@@ -673,10 +689,15 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         // izzy add block hero: the kind, then the id. izzy add crud <Model>: the model after it.
         // izzy add page --name Orders, izzy add razor --name OrderSummary: a new page, or a component with no route.
         var made = args.Words.Count == 2 && args.Words[1].ToLowerInvariant() is "page" or "razor" ? args.Words[1].ToLowerInvariant() : null;
+        // izzy add page --from list: a starter page (list, detail or form) in place of the blank one, with a free account.
+        var from = made == "page" ? args.Take("from") : null;
+        if (from is not null && from.ToLowerInvariant() is not ("list" or "detail" or "form"))
+            throw new UsageException($"--from is list, detail or form, not \"{from}\".");
         var isCrud = args.Words.Count > 1 && args.Words[1].Equals("crud", StringComparison.OrdinalIgnoreCase);
         var crud = args.Words.Count == 3 && isCrud;
         if (args.Words.Count == 2 && isCrud) throw new UsageException("Usage: izzy add crud <Model>, such as izzy add crud Customer.");
-        var item = crud ? Catalog["crud"] : made is not null ? Catalog[made] : Item(args, "izzy add", "izzy add block <id>");
+        var item = crud ? Catalog["crud"] : made is not null ? Catalog[from is null ? made : from.ToLowerInvariant() + "-page"] : Item(args, "izzy add", "izzy add block <id>");
+        if (made is null && item.Manifest.Id is "list-page" or "detail-page" or "form-page") made = "page";
         if (item.Manifest.Kind == ItemKind.Setup) throw new UsageException("IzzyBlazor's setup runs with izzy init.");
         if (item.Manifest.Kind.MakesProject())
             throw new UsageException($"{item.Manifest.Id} makes a new project: {item.Manifest.NewCommand()} -n <name>.");
@@ -965,6 +986,256 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         ChangesetWriter.Apply(changeset, project.Directory!);
         if (!flags.Json) Summary(changeset, "Created", "Changed", "Added package");
         return 0;
+    }
+
+    // izzy wrap Components/Pages/Home.razor:12:5 --with Card: a wrapper around the element there, or around
+    // the siblings from it to a second position (…:12:5-18:9). --suggest lists the wrappers that fit.
+    int Wrap(Args args)
+    {
+        const string usage = "izzy wrap <file>:<line>:<col>[-<line>:<col>] --with <component> [--<option> <value> ...], or --suggest --json";
+        Words(args, 2, usage);
+        var stdin = args.Switch("stdin");
+        var suggest = args.Switch("suggest");
+        var folder = _projectFolder = args.Take("project");
+        var with = suggest ? null : args.Take("with") ?? throw new UsageException($"Say what to wrap it in. Usage: {usage}");
+        var flags = Flags(args);
+        if ((stdin || suggest) && !flags.Json) throw new UsageException($"{(suggest ? "--suggest" : "--stdin")} answers as data: add --json.");
+        if (suggest) NoSettings(args);
+        if (!HasPro)
+        {
+            error.WriteLine("Wrapping markup with izzy wrap comes with IzzyBlazor Pro.");
+            return 3;
+        }
+        if (!flags.Json) PreviewNote();
+        var (page, path, start, end, project) = RangeAt(args.Words[1], folder, stdin, usage);
+        var (from, to, run, parent) = Restructure.Range(page, path, start, end);
+        if (suggest)
+        {
+            Print(new JsonObject { ["path"] = path, ["start"] = from, ["end"] = to, ["suggestions"] = Restructure.Suggest(run, parent, Library) });
+            return 0;
+        }
+        var options = args.Options.Select(o => (o.Name, (string?)(o.Value ?? TagEdit.Switch))).ToList();
+        var name = Restructure.WrapperName(with!, Library);
+        var edits = Restructure.Wrap(page, path, from, to, name, Restructure.OpenTag(name, Library, options), Imports(project, path), Library);
+        return Edited(new Changeset { Creates = [], Inserts = edits, Packages = [], Conflicts = [], Warnings = [] }, project, flags, stdin);
+    }
+
+    // izzy unwrap Components/Pages/Home.razor:12:5: the element there goes, and what it holds moves out a level.
+    int Unwrap(Args args)
+    {
+        const string usage = "izzy unwrap <file>:<line>:<col>";
+        Words(args, 2, usage);
+        var stdin = args.Switch("stdin");
+        var folder = _projectFolder = args.Take("project");
+        var flags = Flags(args);
+        NoSettings(args);
+        if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
+        if (!HasPro)
+        {
+            error.WriteLine("Unwrapping markup with izzy unwrap comes with IzzyBlazor Pro.");
+            return 3;
+        }
+        if (!flags.Json) PreviewNote();
+        var (page, path, start, end, project) = RangeAt(args.Words[1], folder, stdin, usage);
+        if (end is not null) throw new UsageException($"izzy unwrap takes one position. Usage: {usage}");
+        var element = Restructure.At(Restructure.Elements(page), start) ?? throw new UsageException($"No element at that place in {path}: put the position on a tag.");
+        var edits = Restructure.Unwrap(page, path, element, Library);
+        return Edited(new Changeset { Creates = [], Inserts = edits, Packages = [], Conflicts = [], Warnings = [] }, project, flags, stdin);
+    }
+
+    // izzy extract Components/Pages/Home.razor:12:5-30:9 --name OrderSummary: the markup there becomes a component
+    // of its own, in the page's folder or the one --folder names, and its tag takes the markup's place.
+    int Extract(Args args)
+    {
+        const string usage = "izzy extract <file>:<line>:<col>[-<line>:<col>] --name <Name> [--folder <folder>]";
+        Words(args, 2, usage);
+        var stdin = args.Switch("stdin");
+        var folder = _projectFolder = args.Take("project");
+        var name = args.Take("name") ?? throw new UsageException($"Give the new component a name. Usage: {usage}");
+        var into = args.Take("folder");
+        var flags = Flags(args);
+        NoSettings(args);
+        if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
+        if (!Regex.IsMatch(name, "^[A-Z][A-Za-z0-9_]*$"))
+            throw new UsageException($"--name is a component's name, such as OrderSummary, not \"{name}\": it starts with a capital letter and has no spaces.");
+        if (Library.Options(name) is not null) throw new UsageException($"{name} is an IzzyBlazor component's name. Pick another --name.");
+        if (!HasPro)
+        {
+            error.WriteLine("Moving markup to a component with izzy extract comes with IzzyBlazor Pro.");
+            return 3;
+        }
+        if (!flags.Json) PreviewNote();
+        var (page, path, start, end, project) = RangeAt(args.Words[1], folder, stdin, usage);
+        var (from, to, _, _) = Restructure.Range(page, path, start, end);
+        var own = Path.GetDirectoryName(path)!.Replace('\\', '/');
+        var target = (into ?? own).Replace('\\', '/').Trim('/');
+        if (target.Split('/').Any(part => part is "." or "..") || Path.IsPathRooted(target))
+            throw new UsageException($"--folder is a folder in the project, such as Components/Shared, not \"{into}\".");
+        var file = (target.Length > 0 ? target + "/" : "") + name + ".razor";
+        if (project.ReadFile(file) is not null) throw new UsageException($"{file} is already there. Pick another --name or --folder.");
+        var (edits, create, warnings) = Restructure.Extract(page, path, from, to, name, file, Library);
+        // A component in another folder is in another namespace: the page names it, unless an _Imports.razor does.
+        if (!target.Equals(own, StringComparison.OrdinalIgnoreCase))
+        {
+            var inClient = project.Client is { } client && file.StartsWith(client, StringComparison.Ordinal);
+            var root = inClient ? project.Client! : project.Host;
+            if (!file.StartsWith(root, StringComparison.Ordinal)) throw new UsageException($"--folder is a folder of the project the page is in, under {root.TrimEnd('/')}.");
+            var inside = target.Length > root.TrimEnd('/').Length ? target[root.Length..].Trim('/') : "";
+            var ns = (inClient ? project.ClientNamespace ?? project.RootNamespace + ".Client" : project.RootNamespace)
+                + (inside.Length > 0 ? "." + string.Join('.', inside.Split('/').Select(NamespacePart)) : "");
+            if (Restructure.Using(page, path, Imports(project, path), ns, Inserts.Hash(page)) is { } added) edits.Insert(0, added);
+        }
+        return Edited(new Changeset { Creates = [create], Inserts = edits, Packages = [], Conflicts = [], Warnings = warnings }, project, flags, stdin);
+    }
+
+    // izzy doctor: whether what izzy needs is in place on this machine and in this app, each check with what it
+    // found and how to put it right. It changes nothing; --build also builds the app.
+    int Doctor(Args args)
+    {
+        const string usage = "izzy doctor [--build] [--project <path>] [--json]";
+        Words(args, 1, usage);
+        var folder = _projectFolder = args.Take("project");
+        var json = args.Switch("json");
+        var build = args.Switch("build");
+        var browser = args.Take("browser");
+        NoSettings(args);
+        var checks = new JsonArray();
+        void Check(string id, string title, string level, string found, string? detail = null, string? fix = null) =>
+            checks.Add(new JsonObject { ["id"] = id, ["title"] = title, ["level"] = level, ["found"] = found, ["detail"] = detail, ["fix"] = fix });
+        var izzy = Generator.IzzyBlazorVersion;
+
+        // The app, when this is one.
+        ProjectInfo? project = null;
+        string? none = null;
+        try { project = ProjectInfo.FromProject(FindProject(folder)); }
+        catch (Exception e) when (e is UsageException or GenerationException) { none = e.Message; }
+        var directory = project?.Directory ?? (folder is not null && Directory.Exists(Path.GetFullPath(folder, workingDirectory)) ? Path.GetFullPath(folder, workingDirectory) : workingDirectory);
+
+        // The SDK dotnet picks in that folder: a global.json there can name another.
+        string? sdk = null;
+        try
+        {
+            using var process = DotnetHost.Start(directory, ["--version"], "so the SDK wasn't checked.");
+            sdk = process.StandardOutput.ReadToEnd().Trim().Split('\n')[^1].Trim();
+            process.WaitForExit();
+            if (process.ExitCode != 0) sdk = null;
+        }
+        catch (GenerationException) { }
+        if (sdk is null || !int.TryParse(sdk.Split('.')[0], out var major))
+            Check("sdk", ".NET SDK", "fail", "Not found", "IzzyBlazor needs the .NET 10 SDK or later. A global.json in this folder may name one that isn't installed.", "Install the .NET SDK from https://dotnet.microsoft.com/download");
+        else if (major < 10)
+            Check("sdk", ".NET SDK", "fail", sdk, "IzzyBlazor needs the .NET 10 SDK or later. A global.json in this folder may hold it at an older one.", "Install the .NET SDK from https://dotnet.microsoft.com/download");
+        else Check("sdk", ".NET SDK", "ok", sdk);
+
+        Check("izzy", "izzy", "ok", izzy);
+
+        if (project is null)
+            Check("app", "IzzyBlazor app", "info", "None in this folder", none, "izzy new starter blazor -n <name>, or izzy init in a Blazor app");
+        else
+        {
+            var package = ProjectVersion(folder);
+            if (package is null)
+            {
+                var csproj = File.ReadAllText(Path.Combine(project.Directory!, project.Host, project.Name + ".csproj"));
+                if (ReferencesIzzyBlazor(csproj)) Check("app", "IzzyBlazor app", "ok", $"{project.Name}: IzzyBlazor, version set outside the project file");
+                else Check("app", "IzzyBlazor app", "info", $"{project.Name} doesn't reference IzzyBlazor", "izzy can set it up: the package, the stylesheet, the theme and the services.", "izzy init");
+            }
+            else if (package == izzy) Check("app", "IzzyBlazor app", "ok", $"{project.Name}: IzzyBlazor {package}");
+            else
+                Check("app", "IzzyBlazor app", "warn", $"{project.Name}: IzzyBlazor {package}", $"izzy is {izzy} and the app uses {package}. What izzy adds is written for its own version, so keep the two the same.",
+                    ToolManifest.Pinned(directory) is null ? "izzy update" : "dotnet tool restore, then dotnet izzy update");
+
+            if (ToolManifest.Pinned(directory) is not { } pinned)
+                Check("tool", "The app's own izzy", "info", "Not in a tool manifest", "The izzy on this machine is used. An app that lists izzy in .config/dotnet-tools.json gives everyone who works on it the same version.", "izzy update");
+            else if (package is not null && pinned.Version != package)
+                Check("tool", "The app's own izzy", "warn", $"{pinned.Version} in {Path.GetRelativePath(directory, pinned.File).Replace('\\', '/')}", $"The app's package is {package}: its izzy should be the same version.", "izzy update");
+            else Check("tool", "The app's own izzy", "ok", $"{pinned.Version} in {Path.GetRelativePath(directory, pinned.File).Replace('\\', '/')}");
+
+            if (build)
+            {
+                string text;
+                int exit;
+                try
+                {
+                    using var process = DotnetHost.Start(project.Directory!, ["build", Path.Combine(project.Host, project.Name + ".csproj"), "--nologo", "-v", "q"], "so the app wasn't built.");
+                    text = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+                    exit = process.ExitCode;
+                }
+                catch (GenerationException e) { (text, exit) = (e.Message, 1); }
+                var errors = text.Split('\n').Select(l => l.Trim()).Where(l => Regex.IsMatch(l, @"\berror\b")).Distinct().ToList();
+                if (exit == 0) Check("build", "Build", "ok", "The app builds");
+                else Check("build", "Build", "fail", errors.Count > 0 ? $"{errors.Count} error{(errors.Count == 1 ? "" : "s")}" : "The build failed", errors.FirstOrDefault() ?? text.Trim(), "dotnet build");
+            }
+        }
+
+        if (account is null) Check("account", "Account", "info", "This izzy has no account service");
+        else if (!account.SignedIn) Check("account", "Account", "info", "Not signed in", "Everything open works without an account. A free account adds app starters, blocks, Izzy CRM and the audit's verdicts.", "izzy login");
+        else Check("account", "Account", "ok", account.Preview ? "Signed in: Pro preview" : account.Plan == ItemTier.Pro ? "Signed in: Pro" : "Signed in: Free");
+
+        string? chrome = null;
+        string? wrong = null;
+        try { chrome = Chromium.Find(browser); }
+        catch (UsageException e) { wrong = e.Message; }
+        if (chrome is not null) Check("browser", "Browser for the audit", "ok", chrome);
+        else Check("browser", "Browser for the audit", "warn", wrong ?? "Chrome, Edge or Chromium not found", "izzy audit opens pages in one of them. Everything else works without.", "Install Chrome or Edge, or name one: izzy audit --browser <path> (or IZZY_BROWSER)");
+
+        var failed = checks.Count(c => (string)c!["level"]! == "fail");
+        if (json)
+        {
+            Print(new JsonObject { ["ok"] = failed == 0, ["izzy"] = izzy, ["checks"] = checks });
+            return 0;
+        }
+        foreach (var check in checks)
+        {
+            var level = (string)check!["level"]!;
+            output.WriteLine($"{level switch { "ok" => "ok  ", "warn" => "warn", "fail" => "FAIL", _ => "info" }}  {(string)check["title"]!}: {(string)check["found"]!}");
+            if (level != "ok" && (string?)check["detail"] is { } detail) output.WriteLine($"      {detail}");
+            if (level != "ok" && (string?)check["fix"] is { } fix) output.WriteLine($"      Fix: {fix}");
+        }
+        return failed == 0 ? 0 : 1;
+    }
+
+    // A changeset printed, shown or written, as izzy set does: an editor's buffer (--stdin) is never written.
+    int Edited(Changeset changeset, ProjectInfo project, (bool Json, bool DryRun, bool Diff, bool Overwrite) flags, bool stdin)
+    {
+        var write = !flags.DryRun && !stdin;
+        if (flags.Diff && !stdin && !flags.Json) output.Write(ChangesetWriter.Diff(changeset, project));
+        if (flags.Json) Print(ChangesetJson(changeset, write));
+        foreach (var warning in changeset.Warnings) error.WriteLine($"warning: {warning}");
+        if (!write)
+        {
+            if (!flags.Json && !flags.Diff) Summary(changeset, "Would create", "Would change", "Would add package");
+            return 0;
+        }
+        ChangesetWriter.Apply(changeset, project.Directory!);
+        if (!flags.Json) Summary(changeset, "Created", "Changed", "Added package");
+        return 0;
+    }
+
+    // The page and the offsets of <file>:<line>:<col>, or of a range of two: <file>:<line>:<col>-<line>:<col>.
+    (string Page, string Path, int Start, int? End, ProjectInfo Project) RangeAt(string at, string? folder, bool stdin, string usage)
+    {
+        var project = ProjectInfo.FromProject(FindProject(folder));
+        var range = Regex.Match(at, @"^(?<first>.+:\d+:\d+)-(?:.+:)?(?<line>\d+):(?<col>\d+)$");
+        var (path, line, column) = Position(range.Success ? range.Groups["first"].Value : at, project);
+        RazorFile(path);
+        if (column is not { } col) throw new UsageException($"Give the column too. Usage: {usage}");
+        var page = stdin ? (input ?? Console.In).ReadToEnd() : project.ReadFile(path) ?? throw new UsageException($"{path} isn't in the project.");
+        int? end = range.Success ? RazorPage.Offset(page, path, int.Parse(range.Groups["line"].Value), int.Parse(range.Groups["col"].Value)) : null;
+        return (page, path, RazorPage.Offset(page, path, line, col), end, project);
+    }
+
+    // The text of the _Imports.razor files that apply to a file.
+    static string Imports(ProjectInfo project, string path)
+    {
+        var imports = new StringBuilder();
+        for (var directory = Path.GetDirectoryName(path); directory is not null; directory = Path.GetDirectoryName(directory))
+        {
+            imports.Append(project.ReadFile((directory.Length > 0 ? directory.Replace('\\', '/') + "/" : "") + "_Imports.razor")).Append('\n');
+            if (directory.Length == 0) break;
+        }
+        return imports.ToString();
     }
 
     // The page (from standard input for an editor's buffer) and the component's tag at <file>:<line>:<col>.
