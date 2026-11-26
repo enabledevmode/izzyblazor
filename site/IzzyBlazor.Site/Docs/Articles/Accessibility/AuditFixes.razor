@@ -63,9 +63,10 @@
             same rule the earlier run lacks, and names one.
         </TextBlock>
         <TextBlock>
-            Fixed means the finding is no longer open: the rule doesn't fail on that element, or it does and the
-            finding is now accepted, a false positive or a demo page's, and the answer says which. For a name, a label or an
-            announcement, listen to it with a screen reader as well.
+            Fixed means the rule no longer fails on that element. For a name, a label or an announcement, listen
+            to it with a screen reader as well. In <Code>results.json</Code>, <Code>recheck.state</Code> is
+            <Code>fixed</Code>, <Code>closed</Code> (still there, with a verdict that doesn't count),
+            <Code>still there</Code> or <Code>not checked</Code>.
         </TextBlock>
 
         <Heading Level="2">With a coding agent</Heading>
@@ -88,8 +89,9 @@
 
     private static readonly Row[] Answers =
     [
-        new("Fixed", "0", "The page was audited again and the finding is gone, or it is there with a verdict of false positive, demo page or accepted."),
-        new("Still there", "5", "The finding is on the page again."),
+        new("Fixed", "0", "The page was audited again and the finding is gone."),
+        new("Still there, accepted", "0", "The element still fails the rule, and the finding no longer counts: you accepted it, or its verdict is false positive or demo page, and the answer says which with the reason. It isn't fixed."),
+        new("Still there", "5", "The finding is on the page again, and it is real or needs a person."),
         new("Not checked", "1", "The page didn't load, answered with an error or led to another page, or you asked for other widths or schemes than the earlier run's."),
     ];
 

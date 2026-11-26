@@ -96,6 +96,8 @@
             "Typing the number works instead. To show full-height buttons on each side, set StepButtons=\"StepButtons.Split\"."),
         new("Field borders and switch tracks have about 2:1 contrast against the page. WCAG requires 3:1 when a border is the only thing that shows where a control is. Every field also has a visible label above it, so this is a judgment call, and some audits flag it.",
             "To meet a strict 3:1, set --ib-color-outline in your theme to a darker gray, such as #8e8e96 on white."),
+        new("LiveRegion inside Tabs on a static page: after a search that reloads the page's content, such as a FilterForm's, VoiceOver with Safari doesn't announce the region's change. Other screen readers haven't been checked.",
+            "The cause is in how Safari treats the tab panel around the region, so put the LiveRegion outside the Tabs. A fix is planned for the release after 0.1.0-alpha.30."),
         new("No full screen reader pass yet.",
             "Names, roles and states are checked in the accessibility tree. If a screen reader gets something wrong, report it as an issue."),
     ];

@@ -83,7 +83,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         and --format sarif writes results.sarif for code scanning. --format html writes report.html, the
         report as one file with a picture of each element, to hand to a client. --recheck audits again the
         page a finding of a past run in .izzy/audit/ is on, by the finding's id from report.md, and says
-        whether it is fixed (exit code 5 when it is still there). One page a run is free; the verdicts and
+        whether it is fixed (exit code 5 when it is still there and open). One page a run is free; the verdicts and
         the reports beyond the first two need the account. With IzzyBlazor
         Pro, --site audits every page of a site: those its sitemap.xml lists, else those its links lead to;
         izzy audit --run --site is the whole app. --urls <file> audits a list, one address a line, and
@@ -418,7 +418,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             exit = 1;
         }
         // A finding looked for again: still there is 5, as a finding under --fail-on; not looked at is an error.
-        if (results["recheck"] is { } again) exit = (string)again["state"]! switch { Audit.StillThere => 5, Audit.Fixed => exit, _ => exit == 0 ? 1 : exit };
+        if (results["recheck"] is { } again) exit = (string)again["state"]! switch { Audit.StillThere => 5, Audit.Fixed or Audit.Closed => exit, _ => exit == 0 ? 1 : exit };
         if (json)
         {
             Print(results);

@@ -99,6 +99,14 @@ public sealed class AuditTests : IDisposable
         Assert.Contains("/report.md", tools.AuditPage(site.Url));
         Assert.Contains("Still there: `image-alt` on `/`", tools.RecheckFinding(picked));
 
+        // A finding the app accepted is still on the page: the recheck says so, never "Fixed", and doesn't fail.
+        var accepted = (string)JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "first", "results.json")))!["pages"]![0]!["violations"]!.AsArray()
+            .SelectMany(rule => rule!["nodes"]!.AsArray()).First(node => (string)node!["verdict"]!["is"]! == "accepted")!["id"]!;
+        var kept = Audit("--recheck", accepted, "--baseline", "first/results.json", "--out", "kept");
+        Assert.True(kept.Exit == 0, kept.Error);
+        Assert.Contains("Still there, accepted: `color-contrast` on `/`", kept.Output);
+        Assert.DoesNotContain("Fixed", kept.Output);
+
         // The picture gets its text and a button arrives with no name: one fixed, one new.
         body = body.Replace(picture, "<img alt=\"Orders by month\" src=\"data:image/gif;base64,R0lGODlhAQABAAAAACw=\"><button></button>");
         var second = Audit("--out", "second", "--baseline", "first/results.json", "--fail-on", "new");

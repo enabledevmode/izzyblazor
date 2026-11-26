@@ -257,7 +257,7 @@ static partial class Audit
     }
 
     /// <summary>What a finding looked for again is: gone, found, or on a page that wasn't checked as before.</summary>
-    public const string Fixed = "fixed", StillThere = "still there", NotLooked = "not checked";
+    public const string Fixed = "fixed", Closed = "closed", StillThere = "still there", NotLooked = "not checked";
 
     /// <summary>Whether a run has a finding with this id.</summary>
     public static bool Has(JsonObject run, string id)
@@ -287,7 +287,8 @@ static partial class Audit
 
     /// <summary>
     /// Looks in <paramref name="run"/> for a finding <paramref name="past"/> had. Fixed means looked for again
-    /// and not found, at every width and scheme the past run found it at. An edit can move the element, which
+    /// and not found, at every width and scheme the past run found it at. Closed means found again with a verdict
+    /// that isn't open (accepted, false positive, demo page): still on the page, and not said to be fixed. An edit can move the element, which
     /// gives its finding a new id: the findings of the same rule on the page that the past run lacks are listed.
     /// </summary>
     public static JsonObject Recheck(JsonObject run, JsonObject past, string id)
@@ -303,7 +304,7 @@ static partial class Audit
         if (now.FirstOrDefault(f => f.Id == id) is { } found)
         {
             // Found again and judged no fault (a hit area that now covers 24 pixels, a finding the app accepted since) is closed.
-            answer["state"] = found.Node["verdict"] is null || found.Verdict is Real or NeedsPerson ? StillThere : Fixed;
+            answer["state"] = found.Node["verdict"] is null || found.Verdict is Real or NeedsPerson ? StillThere : Closed;
             answer["where"] = new JsonArray([.. found.Where.Distinct().Select(w => (JsonNode)w)]);
             if (found.Node["verdict"] is { } verdict) answer["verdict"] = verdict.DeepClone();
         }
@@ -322,9 +323,11 @@ static partial class Audit
         switch ((string)recheck["state"]!)
         {
             case Fixed:
-                text.Append((string?)recheck["verdict"]?["is"] is { } closed
-                    ? $"Fixed: {what} is {closed} now{((string?)recheck["verdict"]!["why"] is { } reason ? $". {reason.TrimEnd('.')}" : "")}.\n"
-                    : $"Fixed: {what} isn't found anymore.\n");
+                text.Append($"Fixed: {what} isn't found anymore.\n");
+                break;
+            case Closed:
+                // Still on the page: the word says so, and the verdict says why it no longer counts.
+                text.Append($"Still there, {(string)recheck["verdict"]!["is"]!}: {what}, at {string.Join("; ", recheck["where"]!.AsArray().Select(w => (string)w!))}{((string?)recheck["verdict"]!["why"] is { } reason ? $". {reason.TrimEnd('.')}" : "")}. It isn't fixed, and it doesn't count as a failure.\n");
                 break;
             case StillThere:
                 var verdict = (string?)recheck["verdict"]?["is"] is { } v ? $" Verdict: {v}{((string?)recheck["verdict"]!["why"] is { } why ? $". {why.TrimEnd('.')}" : "")}." : "";

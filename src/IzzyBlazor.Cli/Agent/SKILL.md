@@ -57,7 +57,7 @@ IzzyBlazor's components are built and tested for accessibility. A page built fro
 
 1. After you add or change a page, call `audit_page` with its address, or with `run: true` and its path (`/orders`), which starts the app for the audit. It checks one page with axe-core and izzy's own checks, at two widths, in light and dark and in forced colors.
 2. Read `report.md` where the answer says it is. Each finding has an id, a verdict and its reason, the element, the component that drew it, the fix when izzy knows one and, with `run` or `project`, the file and line. Fix what is "real". Show the user what "needs a person": a tool can't settle those. Leave "false positive" and "demo page" alone.
-3. The audit changes no code. Make the fix, then call `recheck_finding` with the finding's id. If it also names a new finding of the same rule, the edit may have moved the element: look at that finding before you call it fixed.
+3. The audit changes no code. Make the fix, then call `recheck_finding` with the finding's id. If it also names a new finding of the same rule, the edit may have moved the element: look at that finding before you call it fixed. "Still there, accepted" (or "false positive", or "demo page") means the element still fails the rule and the finding no longer counts: tell the user that, not that it is fixed.
 4. Never tell the user a page is accessible or conforms to WCAG because the audit found nothing. It doesn't open closed dialogs or menus, and doesn't check keyboard order or what a screen reader says. Say what was checked and what wasn't: the report's "Not checked" section lists it.
 5. A finding the user decides to keep goes in `.izzy/audit.json` under `accepted`, with their reason. Ask first; never accept one on your own.
 

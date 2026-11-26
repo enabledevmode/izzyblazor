@@ -102,14 +102,14 @@
     private static readonly Dictionary<string, string> ScreenReaders = new()
     {
         ["Switch"] = "VoiceOver with Safari, by script: transcript read, one open question",
-        ["LiveRegion"] = "VoiceOver with Safari, by script: one bug found, not fixed yet",
+        ["LiveRegion"] = "VoiceOver with Safari, by script: one bug found, in Known gaps",
     };
 
     // Components whose docs examples have accepted findings in the baseline.
     private static readonly Dictionary<string, int> Accepted = new() { ["RichTextEditor"] = 2, ["TextBlock"] = 1 };
 
     // Components with a gap in the overview's Known gaps.
-    private static readonly HashSet<string> Gaps = ["NumberField"];
+    private static readonly HashSet<string> Gaps = ["NumberField", "LiveRegion"];
 
     private static readonly Row[] Meanings =
     [
