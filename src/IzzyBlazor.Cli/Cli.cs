@@ -421,7 +421,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         // A finding looked for again: still there is 5, as a finding under --fail-on; not looked at is an error.
         if (results["recheck"] is { } again) exit = (string)again["state"]! switch { Audit.StillThere => 5, Audit.Fixed or Audit.Closed => exit, _ => exit == 0 ? 1 : exit };
-        if (json)
+        // --json prints the results and writes no files, unless --out says where: an editor reads the answer and
+        // keeps the reports. The printed results then name the folder and its files.
+        if (json && outFolder is null)
         {
             Print(results);
             return exit;
@@ -442,6 +444,17 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 if (Directory.Exists(Path.Combine(dir.FullName, ".git")) || File.Exists(Path.Combine(dir.FullName, ".git"))) { repository = dir.FullName; break; }
             var prefix = Path.GetRelativePath(repository, home).Replace('\\', '/') is var from && from != "." ? from + "/" : "";
             File.WriteAllText(Path.Combine(target, "results.sarif"), Audit.Sarif(results, prefix).ToJsonString(Json).ReplaceLineEndings("\n") + "\n");
+        }
+        if (json)
+        {
+            var printed = results.DeepClone().AsObject();
+            printed["written"] = new JsonObject
+            {
+                ["folder"] = target.Replace('\\', '/'),
+                ["files"] = new JsonArray([.. new[] { ("md", "report.md"), ("json", "results.json"), ("tasks", "tasks.md"), ("html", "report.html"), ("sarif", "results.sarif") }.Where(f => formats.Contains(f.Item1)).Select(f => (JsonNode)f.Item2)]),
+            };
+            Print(printed);
+            return exit;
         }
         if (results["recheck"] is JsonObject looked) output.Write(Audit.Rechecked(looked));
         output.Write(Audit.Summary(results));

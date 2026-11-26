@@ -124,7 +124,7 @@
         new("--out <folder>", "Where the files go, in place of a new folder in .izzy/audit/."),
         new("--format md,json", "Which files to write. With an account, tasks adds tasks.md, html adds report.html and sarif adds results.sarif."),
         new("--project <path>", "The app's project: where --run starts it, and with an account where a finding's file and line are looked for."),
-        new("--json", "Prints the results as JSON and writes no files."),
+        new("--json", "Prints the results as JSON and writes no files. With --out, it writes the files too, and the JSON names them in written."),
         new("--fail-on any", "Ends with exit code 5 when there are findings. With an account, real counts real findings and new counts real findings the baseline lacks."),
         new("--baseline <file>", "A past run's results.json to compare with. Needs an account."),
         new("--recheck <id>", "Audits again the page a past run's finding is on, and says whether it is fixed."),
