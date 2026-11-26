@@ -87,7 +87,10 @@ public sealed class ComponentTests : IDisposable
         Assert.Contains("[Parameter] public (string Text, Status Status, string Note) Mode { get; set; }", File.ReadAllText(Path.Combine(_work, "Components", "Shared", "CounterHeader.razor")));
         // What can't be passed as a value is said, not guessed.
         Assert.Contains("IncrementCount() is a method of", Izzy("extract", At(counter, "<Row"), "--name", "CounterActions", "--dry-run").Error);
-        Assert.Contains("\"id\": \"sdk\"", Izzy(ItemTier.Free, "doctor", "--json").Out);
+        // Each check has what to do as a sentence, and beside it the command or the address for an editor's button.
+        var doctor = Izzy(ItemTier.Free, "doctor", "--json").Out;
+        Assert.Contains("\"id\": \"sdk\"", doctor);
+        Assert.Contains("\"command\":", doctor);
 
         // A component in a new folder brings its @using, once.
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportSummary", "--folder", "Components/Shared").Exit);

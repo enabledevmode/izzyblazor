@@ -1096,8 +1096,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var browser = args.Take("browser");
         NoSettings(args);
         var checks = new JsonArray();
-        void Check(string id, string title, string level, string found, string? detail = null, string? fix = null) =>
-            checks.Add(new JsonObject { ["id"] = id, ["title"] = title, ["level"] = level, ["found"] = found, ["detail"] = detail, ["fix"] = fix });
+        // fix says what to do, in a sentence; command is the one command that does it, when there is one, and
+        // url the page to get it from, so an editor can offer a button for either.
+        void Check(string id, string title, string level, string found, string? detail = null, string? fix = null, string? command = null, string? url = null) =>
+            checks.Add(new JsonObject { ["id"] = id, ["title"] = title, ["level"] = level, ["found"] = found, ["detail"] = detail, ["fix"] = fix, ["command"] = command, ["url"] = url });
+        const string download = "https://dotnet.microsoft.com/download";
         var izzy = Generator.IzzyBlazorVersion;
 
         // The app, when this is one.
@@ -1118,15 +1121,15 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         catch (GenerationException) { }
         if (sdk is null || !int.TryParse(sdk.Split('.')[0], out var major))
-            Check("sdk", ".NET SDK", "fail", "Not found", "IzzyBlazor needs the .NET 10 SDK or later. A global.json in this folder may name one that isn't installed.", "Install the .NET SDK from https://dotnet.microsoft.com/download");
+            Check("sdk", ".NET SDK", "fail", "Not found", "IzzyBlazor needs the .NET 10 SDK or later. A global.json in this folder may name one that isn't installed.", "Install the .NET 10 SDK or later.", url: download);
         else if (major < 10)
-            Check("sdk", ".NET SDK", "fail", sdk, "IzzyBlazor needs the .NET 10 SDK or later. A global.json in this folder may hold it at an older one.", "Install the .NET SDK from https://dotnet.microsoft.com/download");
+            Check("sdk", ".NET SDK", "fail", sdk, "IzzyBlazor needs the .NET 10 SDK or later. A global.json in this folder may hold it at an older one.", "Install the .NET 10 SDK or later.", url: download);
         else Check("sdk", ".NET SDK", "ok", sdk);
 
         Check("izzy", "izzy", "ok", izzy);
 
         if (project is null)
-            Check("app", "IzzyBlazor app", "info", "None in this folder", none, "izzy new starter blazor -n <name>, or izzy init in a Blazor app");
+            Check("app", "IzzyBlazor app", "info", "None in this folder", none, "Create an app with izzy new starter blazor -n <name>, or open a Blazor app's folder and run izzy init.");
         else
         {
             var package = ProjectVersion(folder);
@@ -1134,17 +1137,17 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             {
                 var csproj = File.ReadAllText(Path.Combine(project.Directory!, project.Host, project.Name + ".csproj"));
                 if (ReferencesIzzyBlazor(csproj)) Check("app", "IzzyBlazor app", "ok", $"{project.Name}: IzzyBlazor, version set outside the project file");
-                else Check("app", "IzzyBlazor app", "info", $"{project.Name} doesn't reference IzzyBlazor", "izzy can set it up: the package, the stylesheet, the theme and the services.", "izzy init");
+                else Check("app", "IzzyBlazor app", "info", $"{project.Name} doesn't reference IzzyBlazor", "izzy can set it up: the package, the stylesheet, the theme and the services.", "Set up IzzyBlazor in this app.", "izzy init");
             }
             else if (package == izzy) Check("app", "IzzyBlazor app", "ok", $"{project.Name}: IzzyBlazor {package}");
             else
                 Check("app", "IzzyBlazor app", "warn", $"{project.Name}: IzzyBlazor {package}", $"izzy is {izzy} and the app uses {package}. What izzy adds is written for its own version, so keep the two the same.",
-                    ToolManifest.Pinned(directory) is null ? "izzy update" : "dotnet tool restore, then dotnet izzy update");
+                    "Move the app to this izzy's version.", "izzy update");
 
             if (ToolManifest.Pinned(directory) is not { } pinned)
-                Check("tool", "The app's own izzy", "info", "Not in a tool manifest", "The izzy on this machine is used. An app that lists izzy in .config/dotnet-tools.json gives everyone who works on it the same version.", "izzy update");
+                Check("tool", "The app's own izzy", "info", "Not in a tool manifest", "The izzy on this machine is used. An app that lists izzy in .config/dotnet-tools.json gives everyone who works on it the same version.", $"Add it in the app's folder: dotnet new tool-manifest, then dotnet tool install IzzyBlazor.Cli --version {package ?? izzy}.");
             else if (package is not null && pinned.Version != package)
-                Check("tool", "The app's own izzy", "warn", $"{pinned.Version} in {Path.GetRelativePath(directory, pinned.File).Replace('\\', '/')}", $"The app's package is {package}: its izzy should be the same version.", "izzy update");
+                Check("tool", "The app's own izzy", "warn", $"{pinned.Version} in {Path.GetRelativePath(directory, pinned.File).Replace('\\', '/')}", $"The app's package is {package}: its izzy should be the same version.", "Move the app's package and its izzy to one version.", "izzy update");
             else Check("tool", "The app's own izzy", "ok", $"{pinned.Version} in {Path.GetRelativePath(directory, pinned.File).Replace('\\', '/')}");
 
             if (build)
@@ -1161,12 +1164,12 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 catch (GenerationException e) { (text, exit) = (e.Message, 1); }
                 var errors = text.Split('\n').Select(l => l.Trim()).Where(l => Regex.IsMatch(l, @"\berror\b")).Distinct().ToList();
                 if (exit == 0) Check("build", "Build", "ok", "The app builds");
-                else Check("build", "Build", "fail", errors.Count > 0 ? $"{errors.Count} error{(errors.Count == 1 ? "" : "s")}" : "The build failed", errors.FirstOrDefault() ?? text.Trim(), "dotnet build");
+                else Check("build", "Build", "fail", errors.Count > 0 ? $"{errors.Count} error{(errors.Count == 1 ? "" : "s")}" : "The build failed", errors.FirstOrDefault() ?? text.Trim(), "Fix the errors, then build again.", "dotnet build");
             }
         }
 
         if (account is null) Check("account", "Account", "info", "This izzy has no account service");
-        else if (!account.SignedIn) Check("account", "Account", "info", "Not signed in", "Everything open works without an account. A free account adds app starters, blocks, Izzy CRM and the audit's verdicts.", "izzy login");
+        else if (!account.SignedIn) Check("account", "Account", "info", "Not signed in", "Everything open works without an account. A free account adds app starters, blocks, Izzy CRM and the audit's verdicts.", "Sign in with a free account.", "izzy login");
         else Check("account", "Account", "ok", account.Preview ? "Signed in: Pro preview" : account.Plan == ItemTier.Pro ? "Signed in: Pro" : "Signed in: Free");
 
         string? chrome = null;
@@ -1174,7 +1177,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         try { chrome = Chromium.Find(browser); }
         catch (UsageException e) { wrong = e.Message; }
         if (chrome is not null) Check("browser", "Browser for the audit", "ok", chrome);
-        else Check("browser", "Browser for the audit", "warn", wrong ?? "Chrome, Edge or Chromium not found", "izzy audit opens pages in one of them. Everything else works without.", "Install Chrome or Edge, or name one: izzy audit --browser <path> (or IZZY_BROWSER)");
+        else Check("browser", "Browser for the audit", "warn", wrong ?? "Chrome, Edge or Chromium not found", "izzy audit opens pages in one of them. Everything else works without.", "Install Chrome or Edge, or name a browser with izzy audit --browser <path> or IZZY_BROWSER.", url: "https://www.google.com/chrome/");
 
         var failed = checks.Count(c => (string)c!["level"]! == "fail");
         if (json)
@@ -1188,6 +1191,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             output.WriteLine($"{level switch { "ok" => "ok  ", "warn" => "warn", "fail" => "FAIL", _ => "info" }}  {(string)check["title"]!}: {(string)check["found"]!}");
             if (level != "ok" && (string?)check["detail"] is { } detail) output.WriteLine($"      {detail}");
             if (level != "ok" && (string?)check["fix"] is { } fix) output.WriteLine($"      Fix: {fix}");
+            if (level != "ok" && (string?)check["command"] is { } command) output.WriteLine($"      Run: {command}");
+            if (level != "ok" && (string?)check["url"] is { } url) output.WriteLine($"      See: {url}");
         }
         return failed == 0 ? 0 : 1;
     }

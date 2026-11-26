@@ -201,6 +201,9 @@ static partial class Restructure
             found.Add(("GridItem", "It sits in a Grid: a GridItem says how many columns it spans."));
         if (parent?.Tag.Name == "TileLayout" && names.Any(n => n != "Tile"))
             found.Add(("Tile", "It sits in a TileLayout, which places Tiles."));
+        // A control of the page's own, not one of the library's, which bring their label, hint and errors.
+        if (run.Count == 1 && parent?.Tag.Name != "FieldFrame" && names[0] is "input" or "select" or "textarea" or "InputText" or "InputNumber" or "InputDate" or "InputSelect" or "InputTextArea" or "InputCheckbox" or "InputFile")
+            found.Add(("FieldFrame", "A control of your own: a FieldFrame gives it a label, a hint and its errors. Set Label, and Id to the control's id. A TextField or a Select does this itself, and may be the better choice."));
         if (inputs >= 2)
             found.Add(("Fieldset", "Several fields that belong together: a Fieldset groups them under one legend."));
         if (run.Count >= 2)
