@@ -1,0 +1,36 @@
+// izzy add page --name <Name>: a page with a route, a title and a container, written into the project as
+// code you own. The CLI works out where it goes and what it needs (Pages.Prepare): the file, the route,
+// whether the page says its render mode, and the nav link. Free, with no account.
+{
+  "id": "page",
+  "name": "Page",
+  "kind": "page",
+  "category": "Pages",
+  "summary": "A new page with a route, a title and a container: izzy add page --name Orders.",
+  "components": ["Container", "PageHeader"],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Name": { "type": "string", "default": "", "description": "The component's name and its file, such as Orders. Its words are the page's title." },
+      "Route": { "type": "string", "default": "", "description": "The page's address, such as orders or orders/{id:int}: the name in kebab case by default." },
+      "Folder": { "type": "string", "default": "", "description": "The folder the file goes in, from the project's folder: Components/Pages by default." },
+      "Mode": {
+        "type": "string", "enum": ["Static", "Server", "WebAssembly", "Auto"], "default": "Static",
+        "description": "Where the page's C# runs. Static: on the server, once per request. Server: over a circuit. WebAssembly and Auto: in the browser, for an app with a .Client project."
+      },
+      "Layout": { "type": "string", "default": "", "description": "The layout component, such as EmptyLayout, when the page doesn't use the app's default." },
+      "Nav": { "type": "boolean", "default": false, "description": "Adds a link to the page in the app's nav." }
+    }
+  },
+  "accessibility": [
+    "The page has a title for the browser's tab and one h1 with the same words."
+  ],
+  "rename": [
+    { "if": "Routed", "paths": { "Page.razor": "{{File}}" } }
+  ],
+  "inserts": [
+    { "if": "AddNav && NavIcons", "file": "{{LayoutFile}}", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"[^>]*\\bIcon=", "position": "after", "text": "<NavItem Href=\"{{NavRoute}}\" Icon=\"Lucide.File\">{{Title}}</NavItem>\n" },
+    { "if": "AddNav && !NavIcons", "file": "{{LayoutFile}}", "pattern": "<NavItem Href=\"\" Match=\"NavLinkMatch.All\"", "position": "after", "text": "<NavItem Href=\"{{NavRoute}}\">{{Title}}</NavItem>\n" }
+  ]
+}

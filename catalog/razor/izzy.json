@@ -1,0 +1,25 @@
+// izzy add razor --name <Name>: a component with no route, written into the project as code you own. The
+// CLI works out its file and whether the app's _Imports.razor already covers its folder (Pages.Prepare).
+// Free, with no account.
+{
+  "id": "razor",
+  "name": "Component",
+  "kind": "page",
+  "category": "Pages",
+  "summary": "A new component with no route, ready to use on a page: izzy add razor --name OrderSummary.",
+  "components": [],
+  "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "full", "Auto": "full" },
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "Name": { "type": "string", "default": "", "description": "The component's name and its file, such as OrderSummary." },
+      "Folder": { "type": "string", "default": "", "description": "The folder the file goes in, from the project's folder: Components by default." }
+    }
+  },
+  "rename": [
+    { "if": "!Routed", "paths": { "Component.razor": "{{File}}" } }
+  ],
+  "inserts": [
+    { "if": "AddUsing", "file": "{{ImportsFile}}", "position": "end", "text": "@using {{Namespace}}\n" }
+  ]
+}

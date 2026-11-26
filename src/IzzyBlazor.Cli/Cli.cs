@@ -32,6 +32,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy describe component --all --json
           izzy describe crud|init [--json]
           izzy add block <id> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
+          izzy add page --name <Name> [--route <path>] [--folder <folder>] [--mode Static|Server|WebAssembly|Auto] [--layout <Layout>] [--nav] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy add razor --name <Name> [--folder <folder>] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add component <Name> [--example <name> | --tag] --at <file>:<line>[:<col>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
           izzy inspect <file>:<line>:<col> [--stdin] [--project <path>] --json
           izzy set <file>:<line>:<col> --<option> <value> ... [--unset <option>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
@@ -669,10 +671,12 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     {
         if (args.Words.Count > 1 && args.Words[1].Equals("component", StringComparison.OrdinalIgnoreCase)) return AddComponent(args);
         // izzy add block hero: the kind, then the id. izzy add crud <Model>: the model after it.
+        // izzy add page --name Orders, izzy add razor --name OrderSummary: a new page, or a component with no route.
+        var made = args.Words.Count == 2 && args.Words[1].ToLowerInvariant() is "page" or "razor" ? args.Words[1].ToLowerInvariant() : null;
         var isCrud = args.Words.Count > 1 && args.Words[1].Equals("crud", StringComparison.OrdinalIgnoreCase);
         var crud = args.Words.Count == 3 && isCrud;
         if (args.Words.Count == 2 && isCrud) throw new UsageException("Usage: izzy add crud <Model>, such as izzy add crud Customer.");
-        var item = crud ? Catalog["crud"] : Item(args, "izzy add", "izzy add block <id>");
+        var item = crud ? Catalog["crud"] : made is not null ? Catalog[made] : Item(args, "izzy add", "izzy add block <id>");
         if (item.Manifest.Kind == ItemKind.Setup) throw new UsageException("IzzyBlazor's setup runs with izzy init.");
         if (item.Manifest.Kind.MakesProject())
             throw new UsageException($"{item.Manifest.Id} makes a new project: {item.Manifest.NewCommand()} -n <name>.");
@@ -687,6 +691,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var notes = new List<string>();
         var written = new List<string>();
         if (crud) project = Crud.Prepare(project, args.Words[2], settings, notes, written);
+        if (made is not null) project = Pages.Prepare(project, made == "page", settings, notes);
         var changes = Generator.Generate(item, settings, project, at);
         // What was made is said by the run that makes it, not by one that changes nothing.
         if (changes.Creates.Count > 0 || changes.Inserts.Count > 0 || changes.Packages.Count > 0) notes.InsertRange(0, written);
@@ -1646,14 +1651,14 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (args.Words.Count == 2)
         {
             if (!Catalog.Items.TryGetValue(args.Words[1], out var alone)) throw new UsageException($"Usage: {usage}");
-            if (alone.Manifest.Kind == ItemKind.Setup || alone.Manifest.Id == "crud") return alone;
+            if (alone.Manifest.Kind == ItemKind.Setup || alone.Manifest.NamedAlone()) return alone;
             if (command == "izzy add" && alone.Manifest.Kind.MakesProject())
                 throw new UsageException($"{alone.Manifest.Id} makes a new project: {alone.Manifest.NewCommand()} -n <name>.");
             throw new UsageException($"Say what {alone.Manifest.Id} is: {command} {alone.Manifest.Kind.ToString().ToLowerInvariant()} {alone.Manifest.Id}.");
         }
         Words(args, 3, usage);
         var item = Catalog[args.Words[2]];
-        if (item.Manifest.Kind == ItemKind.Setup || item.Manifest.Id == "crud")
+        if (item.Manifest.Kind == ItemKind.Setup || item.Manifest.NamedAlone())
             throw new UsageException($"{item.Manifest.Id} is named alone: {(command == "izzy add" ? item.Manifest.Kind == ItemKind.Setup ? "izzy init" : item.Manifest.AddCommand() : $"{command} {item.Manifest.Id}")}.");
         var kind = item.Manifest.Kind.ToString().ToLowerInvariant();
         if (!kind.Equals(args.Words[1], StringComparison.OrdinalIgnoreCase))

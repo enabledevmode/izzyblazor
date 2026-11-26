@@ -55,6 +55,21 @@ public sealed class ComponentTests : IDisposable
         Assert.Contains("<Button Submit>Save</Button>", button);
         Assert.Contains("private void OnInitialized2() => Model2 ??= new();", button);
 
+        // A new page and a new component are in the build too: izzy add page and izzy add razor, signed out.
+        var page2 = Izzy(ItemTier.Free, "add", "page", "--name", "MonthlyReports", "--nav");
+        Assert.True(page2.Exit == 0, page2.Error);
+        var reports = File.ReadAllText(Path.Combine(pages, "MonthlyReports.razor"));
+        Assert.StartsWith("@page \"/monthly-reports\"\n\n<PageTitle>Monthly reports</PageTitle>", reports.ReplaceLineEndings("\n"));
+        Assert.Contains("<NavItem Href=\"monthly-reports\"", File.ReadAllText(Path.Combine(_work, "Components", "Layout", "MainLayout.razor")));
+        // The file, and the route under another name, are refused with the file named.
+        Assert.Contains("Components/Pages/MonthlyReports.razor is already there", Izzy(ItemTier.Free, "add", "page", "--name", "MonthlyReports").Error);
+        Assert.Contains("/monthly-reports is already the route of Components/Pages/MonthlyReports.razor", Izzy(ItemTier.Free, "add", "page", "--name", "Reports", "--route", "/monthly-reports").Error);
+        // A component in a new folder brings its @using, once.
+        Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportSummary", "--folder", "Components/Shared").Exit);
+        Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportTotals", "--folder", "Components/Shared").Exit);
+        Assert.Single(File.ReadAllLines(Path.Combine(_work, "Components", "_Imports.razor")), l => l.Trim() == "@using Acme.Components.Shared");
+        File.AppendAllText(Path.Combine(pages, "MonthlyReports.razor"), "<ReportSummary />\n");
+
         ProjectBuild.PointAtRepo(_work);
         await ProjectBuild.BuildAsync(_work, "Acme with every usage example");
     }

@@ -106,6 +106,7 @@
             <ListItem><Anchor Href="docs/tools/account">Your account</Anchor>: sign in for the app starters, blocks and kits.</ListItem>
             <ListItem><Anchor Href="docs/tools/templates">Templates</Anchor>: create an app from a starter or an app kit.</ListItem>
             <ListItem><Anchor Href="docs/tools/blocks">Blocks</Anchor>: add a hero, pricing or a sign-up form to a page.</ListItem>
+            <ListItem><Anchor Href="docs/tools/pages">Pages and components</Anchor>: add a new page or a component with no route.</ListItem>
             <ListItem><Anchor Href="docs/tools/crud">CRUD pages</Anchor>: create a page to display, add, edit and delete a model's records.</ListItem>
             <ListItem><Anchor Href="docs/accessibility/audit">Accessibility audit</Anchor>: check a page with axe-core and get a report.</ListItem>
             <ListItem><Anchor Href="docs/tools/changes">Previewing changes</Anchor>: see a change before izzy makes it.</ListItem>
@@ -141,6 +142,8 @@
         new("izzy update", "Moves your app to the newest IzzyBlazor: the package and the app's izzy. Outside an app, it updates the izzy on your machine. See Update."),
         new("izzy upgrade", "Finds where your app uses what the releases between its old version and the new one removed or renamed. With --apply, renames what has a new name (Pro). See Update."),
         new("izzy add block <id>", "Adds a block to your app, such as izzy add block hero."),
+        new("izzy add page --name <Name>", "Adds a new page with its route and title, and with --nav a link in the app's nav. See Pages and components."),
+        new("izzy add razor --name <Name>", "Adds a component with no route, and the @using its folder needs. See Pages and components."),
         new("izzy add component <Name> --at <file>:<line>", "Adds a component's usage example from these docs to a page. See Components."),
         new("izzy add crud <Model>", "Creates a page to display, add, edit and delete a model's records."),
         new("izzy login", "Signs this machine in to your free IzzyBlazor account, which the app starters, blocks and kits come with. See Your account."),

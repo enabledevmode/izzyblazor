@@ -205,7 +205,16 @@ public static class ItemKinds
     /// block and a component may share a name. The crud page is named alone and takes a model.
     /// </summary>
     public static string AddCommand(this ItemManifest manifest) =>
-        manifest.Id == "crud" ? "izzy add crud <Model>" : $"izzy add {manifest.Kind.ToString().ToLowerInvariant()} {manifest.Id}";
+        manifest.Id switch
+        {
+            "crud" => "izzy add crud <Model>",
+            "page" => "izzy add page --name <Name>",
+            "razor" => "izzy add razor --name <Name>",
+            _ => $"izzy add {manifest.Kind.ToString().ToLowerInvariant()} {manifest.Id}",
+        };
+
+    /// <summary>An item its own command names with no kind before it: <c>izzy add crud</c>, <c>izzy add page</c>, <c>izzy add razor</c>.</summary>
+    public static bool NamedAlone(this ItemManifest manifest) => manifest.Id is "crud" or "page" or "razor";
 }
 
 /// <summary>The item a kit is made over.</summary>

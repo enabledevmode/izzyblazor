@@ -1,0 +1,85 @@
+@page "/docs/tools/pages"
+
+@* izzy add page and izzy add razor (src/IzzyBlazor.Cli/Pages.cs; catalog/page, catalog/razor): the file, the route,
+   the render mode, the layout, the nav link, the @using a new folder needs, and what each refuses. Free, no account. *@
+
+<ArticlePage Section="tools" Slug="pages">
+    <Lead>
+        <Code>izzy add page</Code> adds a new page to your app with its route, its title and a container to start
+        in. <Code>izzy add razor</Code> adds a component with no route, for a part you use on several pages.
+        Neither needs an account.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Add a page</Heading>
+        <TextBlock>Run it in your app's folder with the page's name:</TextBlock>
+        <Code Block Language="bash">izzy add page --name MonthlyReports --nav</Code>
+        <TextBlock>
+            izzy writes <Code>Components/Pages/MonthlyReports.razor</Code> at the address
+            <Code>/monthly-reports</Code>, titled "Monthly reports". With <Code>--nav</Code>, it adds a link to the
+            page in the app's nav.
+        </TextBlock>
+        <Code Block Language="razor" Title="Components/Pages/MonthlyReports.razor">@PageFile</Code>
+        <Table Items="PageOptions" Caption="Options of izzy add page" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            izzy doesn't replace a page. When the file is already there, or another page has the route, it stops
+            and names the file.
+        </TextBlock>
+
+        <Heading Level="2">Render mode</Heading>
+        <TextBlock>
+            A page is static unless you say otherwise: its C# runs on the server once for each request.
+            <Code>--mode server</Code> writes <Code>@@rendermode InteractiveServer</Code> on the page.
+            <Code>--mode webassembly</Code> and <Code>--mode auto</Code> put the page in the app's
+            <Code>.Client</Code> project, where it runs in the browser. In an app whose pages are all interactive,
+            the page says nothing and takes the app's mode. See
+            <Anchor Href="docs/common/render-modes">Render modes</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Add a component</Heading>
+        <Code Block Language="bash">izzy add razor --name OrderSummary --folder Components/Shared</Code>
+        <TextBlock>
+            izzy writes <Code>Components/Shared/OrderSummary.razor</Code>, an empty component to fill in. When the
+            folder is new, it adds the folder's <Code>@@using</Code> line to <Code>_Imports.razor</Code>, so every
+            page can write <Code>&lt;OrderSummary /&gt;</Code>. Without <Code>--folder</Code>, the file goes in
+            <Code>Components</Code>.
+        </TextBlock>
+
+        <Heading Level="2">See the change first</Heading>
+        <TextBlock>
+            Both commands take <Code>--dry-run</Code>, <Code>--diff</Code> and <Code>--json</Code>. See
+            <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private const string PageFile = """
+        @page "/monthly-reports"
+
+        <PageTitle>Monthly reports</PageTitle>
+
+        <Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
+            <Column Gap="new() { Base = 6, Md = 8 }">
+                <PageHeader Title="Monthly reports" />
+            </Column>
+        </Container>
+        """;
+
+    private static readonly Row[] PageOptions =
+    [
+        new("--name <Name>", "The component's name and its file. Its words are the page's title."),
+        new("--route <path>", "The page's address, such as reports or reports/{year:int}. Without it, the name in kebab case."),
+        new("--folder <folder>", "The folder the file goes in, from the project's folder. Without it, Components/Pages."),
+        new("--mode Static", "Where the page's C# runs: Static, Server, WebAssembly or Auto."),
+        new("--layout <Layout>", "The layout component, such as EmptyLayout, when the page doesn't use the app's default."),
+        new("--nav", "Adds a link to the page in the app's nav."),
+        new("--project <path>", "The app's project, when it isn't the folder you run izzy in."),
+    ];
+}

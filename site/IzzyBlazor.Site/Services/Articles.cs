@@ -37,6 +37,8 @@ public static class Articles
                 "Create an app from a starter or an app kit, with its name, folder and options."),
             new("blocks", "Blocks", "LayoutTemplate",
                 "Add a hero, pricing or a sign-up form, and place it on a page or at a line."),
+            new("pages", "Pages and components", "FilePlus",
+                "Add a new page with its route and nav link, or a component with no route, to your app."),
             new("components", "Components", "Component",
                 "Add a component's example to a page, and list every component's options."),
             new("crud", "CRUD pages", "Table2",

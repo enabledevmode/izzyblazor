@@ -1,0 +1,15 @@
+@page "/{{Route}}"
+@*#if (SaysRenderMode) *@
+@rendermode {{RenderMode}}
+@*#endif *@
+@*#if (HasLayout) *@
+@layout {{Layout}}
+@*#endif *@
+
+<PageTitle>{{Title}}</PageTitle>
+
+<Container Size="ContainerSize.Md" Align="ContainerAlign.Start" Gutters="false">
+    <Column Gap="new() { Base = 6, Md = 8 }">
+        <PageHeader Title="{{Title}}" />
+    </Column>
+</Container>
