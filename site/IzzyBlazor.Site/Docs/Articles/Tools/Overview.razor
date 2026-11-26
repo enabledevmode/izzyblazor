@@ -1,8 +1,9 @@
 @page "/docs/tools/overview"
 
 @* The section's first page: every tool, what it is for, where it runs and what it needs. The rows of "What each needs"
-   repeat the pricing page's table (Components/Pages/Pricing.razor, Makes) and the extension's own table
-   (docs/tools/vs-code): keep the three in step. Until Nov 26, 2026
+   repeat the pricing page's table (Components/Pages/Pricing.razor, Makes): keep the two in step. The VS Code extension's
+   pages are written and held back until it is published (Docs/Drafts/VsCode; see Articles.cs): then add its row to The
+   tools ("IzzyBlazor for VS Code", docs/tools/vs-code, "In VS Code") and to What each needs. Until Nov 26, 2026
    this section was "The izzy CLI" at docs/cli (redirected). *@
 
 <ArticlePage Section="tools" Slug="overview">
@@ -21,8 +22,8 @@
             </Columns>
         </Table>
         <TextBlock>
-            All of them but the docs server and the extension are the <Code>izzy</Code> command, one .NET tool,
-            and the extension runs it. To install it, see <Anchor Href="docs/tools/cli">The izzy CLI</Anchor>.
+            All of them but the docs server are the <Code>izzy</Code> command, one .NET tool. To install it, see
+            <Anchor Href="docs/tools/cli">The izzy CLI</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Pick a tool by task</Heading>
@@ -55,7 +56,7 @@
         <Heading Level="2">What every tool keeps to</Heading>
         <List Gap="2">
             <ListItem>The code is yours. A tool adds plain Razor and C# files to your project, and nothing checks a license when the app builds or runs. See the <Anchor Href="docs/tools/license">License</Anchor>.</ListItem>
-            <ListItem>You see a change first. Every command that changes your app's code takes <Code>--dry-run</Code> and <Code>--diff</Code>, and none replaces a file you've changed unless you pass <Code>--overwrite</Code>. <Code>izzy agent</Code> takes <Code>--dry-run</Code> and replaces its own skill file with the current one. The VS Code extension opens a change to your files for review before it is made. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.</ListItem>
+            <ListItem>You see a change first. Every command that changes your app's code takes <Code>--dry-run</Code> and <Code>--diff</Code>, and none replaces a file you've changed unless you pass <Code>--overwrite</Code>. <Code>izzy agent</Code> takes <Code>--dry-run</Code> and replaces its own skill file with the current one. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.</ListItem>
             <ListItem>Your code stays on your machine. izzy creates code locally, online or offline, and never sends your code or your app's name. A sign-in sends the machine's name, its operating system and izzy's version.</ListItem>
             <ListItem>A person and an agent get the same result. <Code>izzy mcp</Code> runs the commands you run in a terminal.</ListItem>
             <ListItem>The audit reports and changes no code, and a report with no findings is not a statement of conformance. See <Anchor Href="docs/accessibility/automated-and-manual">Automated and manual checks</Anchor>.</ListItem>
@@ -71,7 +72,6 @@
     private static readonly Tool[] Tools =
     [
         new("The izzy CLI", "docs/tools/cli", "Creates an app from a starter or a kit, sets up IzzyBlazor in an app you have, adds blocks, component examples and CRUD pages, and moves an app to a new release.", "In a terminal"),
-        new("IzzyBlazor for VS Code", "docs/tools/vs-code", "Puts the catalog, each component's reference and options, a live preview and the audit in the editor.", "In VS Code"),
         new("izzy audit", "docs/accessibility/audit", "Checks a page's accessibility in your own browser with axe-core and checks of its own, and writes reports. It changes no code.", "In a terminal or a build"),
         new("The docs server", "docs/tools/ai-assistants", "Gives a coding agent each component's parameters, examples and known issues for the current release, so it doesn't guess.", "On izzyblazor.com, over MCP"),
         new("izzy mcp", "docs/tools/ai-assistants", "Runs izzy's commands as tools for a coding agent: add a block, create CRUD pages, audit a page, recheck a finding.", "On your machine, over MCP"),
@@ -100,7 +100,6 @@
         new("Updates", "izzy update, with the list of what a release renamed or removed", "The same", "izzy upgrade finds each use in your code and makes the renames"),
         new("The docs server", "Everything", "Everything", "Everything"),
         new("izzy mcp", "None", "The free items, and the audit of one page", "Everything"),
-        new("The VS Code extension", "The catalog, every component's reference and the live preview", "Also each component's options in Properties", "Also changing options in Properties"),
         new("izzy audit", "One page", "One page, with verdicts, the fix and the line in your code", "A whole site in one run"),
     ];
 }

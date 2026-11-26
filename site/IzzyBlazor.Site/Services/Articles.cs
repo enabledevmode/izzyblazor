@@ -10,8 +10,8 @@ public static class Articles
     // The audit's pages are one group in the Accessibility section's sidebar.
     private const string Audit = "izzy audit";
 
-    // The extension's pages are one group in the Developer Tools section's sidebar.
-    private const string VsCode = "VS Code";
+    // The extension's pages are one group in the Developer Tools section's sidebar (held back: see below).
+    // private const string VsCode = "VS Code";
 
     public static IReadOnlyList<ArticleSection> Sections { get; } =
     [
@@ -31,7 +31,7 @@ public static class Articles
         new("tools", "Developer Tools", "Wrench",
         [
             new("overview", "Developer tools overview", "Wrench",
-                "The izzy CLI, the VS Code extension, the tools for coding agents and the accessibility audit: what each does and what it needs."),
+                "The izzy CLI, the tools for coding agents and the accessibility audit: what each does and what it needs."),
             new("cli", "The izzy CLI", "SquareTerminal",
                 "Install izzy, and add blocks and pages to your app as code you own."),
             new("account", "Your account", "KeyRound",
@@ -50,16 +50,19 @@ public static class Articles
                 "See a change first as a diff or JSON, keep the files you've changed, and read the exit codes."),
             new("ai-assistants", "AI assistants", "Bot",
                 "Connect Claude, Copilot or Cursor to IzzyBlazor's MCP server for components, parameters and examples."),
-            new("vs-code", "IzzyBlazor for VS Code", "CodeXml",
-                "Install the extension, and see what it adds to the editor and what each account gets.") { Area = VsCode },
-            new("vs-code-add", "Add from the catalog", "ListPlus",
-                "Browse components, blocks and templates in the side bar, and add one at the cursor.") { Area = VsCode },
-            new("vs-code-properties", "Component properties", "SlidersHorizontal",
-                "See every option of the component under the cursor, and set one without typing its name.") { Area = VsCode },
-            new("vs-code-preview", "Live preview", "MonitorSmartphone",
-                "Run the app beside your code and see the page at a phone's, a tablet's or the panel's width.") { Area = VsCode },
-            new("vs-code-accessibility", "Check accessibility", "Accessibility",
-                "Audit the page you're editing, and read the findings in the side bar and the Problems panel.") { Area = VsCode },
+            // The VS Code extension's five pages, held back until the extension is published (after alpha.30; Israel,
+            // Nov 26, 2026). Their files are in Docs/Drafts/VsCode, which the project leaves out of the build: move them
+            // back to Docs/Articles/Tools, restore these entries and the extension's rows in Tools/Overview.razor.
+            // new("vs-code", "IzzyBlazor for VS Code", "CodeXml",
+            // "Install the extension, and see what it adds to the editor and what each account gets.") { Area = VsCode },
+            // new("vs-code-add", "Add from the catalog", "ListPlus",
+            // "Browse components, blocks and templates in the side bar, and add one at the cursor.") { Area = VsCode },
+            // new("vs-code-properties", "Component properties", "SlidersHorizontal",
+            // "See every option of the component under the cursor, and set one without typing its name.") { Area = VsCode },
+            // new("vs-code-preview", "Live preview", "MonitorSmartphone",
+            // "Run the app beside your code and see the page at a phone's, a tablet's or the panel's width.") { Area = VsCode },
+            // new("vs-code-accessibility", "Check accessibility", "Accessibility",
+            // "Audit the page you're editing, and read the findings in the side bar and the Problems panel.") { Area = VsCode },
             new("license", "License", "Scale",
                 "What you can do with the code izzy creates, and which parts are MIT licensed."),
         ]),
