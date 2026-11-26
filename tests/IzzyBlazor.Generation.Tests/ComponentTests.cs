@@ -108,6 +108,12 @@ public sealed class ComponentTests : IDisposable
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportSummary", "--folder", "Components/Shared").Exit);
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportTotals", "--folder", "Components/Shared").Exit);
         Assert.Single(File.ReadAllLines(Path.Combine(_work, "Components", "_Imports.razor")), l => l.Trim() == "@using Acme.Components.Shared");
+        // A folder whose _Imports.razor names its namespace: the @using is that one, not the folder's path.
+        Directory.CreateDirectory(Path.Combine(_work, "Components", "Widgets"));
+        File.WriteAllText(Path.Combine(_work, "Components", "Widgets", "_Imports.razor"), "@namespace Acme.UI\n");
+        Assert.Contains("Gauge is an IzzyBlazor component's name", Izzy(ItemTier.Free, "add", "razor", "--name", "Gauge", "--folder", "Components/Widgets/Meters").Error);
+        Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "FuelMeter", "--folder", "Components/Widgets/Meters").Exit);
+        Assert.Contains("@using Acme.UI.Meters", File.ReadAllText(Path.Combine(_work, "Components", "_Imports.razor")));
         // A folder's name is written as Razor writes it in a namespace.
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "AreaNote", "--folder", "Components/my-area").Exit);
         Assert.Contains("@using Acme.Components.my_area", File.ReadAllText(Path.Combine(_work, "Components", "_Imports.razor")));

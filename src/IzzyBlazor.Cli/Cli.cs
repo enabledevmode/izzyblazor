@@ -712,6 +712,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var notes = new List<string>();
         var written = new List<string>();
         if (crud) project = Crud.Prepare(project, args.Words[2], settings, notes, written);
+        // A component named as one of the library's makes its tag mean two things on every page that has both.
+        if (made == "razor" && settings.FirstOrDefault(kv => kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase)).Value is { } razorName && Library.Options(razorName) is not null)
+            throw new UsageException($"{razorName} is an IzzyBlazor component's name. Pick another --name.");
         if (made is not null) project = Pages.Prepare(project, made == "page", settings, notes);
         var changes = Generator.Generate(item, settings, project, at);
         // What was made is said by the run that makes it, not by one that changes nothing.
@@ -1080,9 +1083,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             var inClient = project.Client is { } client && file.StartsWith(client, StringComparison.Ordinal);
             var root = inClient ? project.Client! : project.Host;
             if (!file.StartsWith(root, StringComparison.Ordinal)) throw new UsageException($"--folder is a folder of the project the page is in, under {root.TrimEnd('/')}.");
-            var inside = target.Length > root.TrimEnd('/').Length ? target[root.Length..].Trim('/') : "";
-            var ns = (inClient ? project.ClientNamespace ?? project.RootNamespace + ".Client" : project.RootNamespace)
-                + (inside.Length > 0 ? "." + string.Join('.', inside.Split('/').Select(NamespacePart)) : "");
+            var ns = Pages.NamespaceOf(project, file);
             if (Restructure.Using(page, path, Imports(project, path), ns, Inserts.Hash(page)) is { } added) edits.Insert(0, added);
         }
         return Edited(new Changeset { Creates = [create], Inserts = edits, Packages = [], Conflicts = [], Warnings = warnings }, project, flags, stdin);

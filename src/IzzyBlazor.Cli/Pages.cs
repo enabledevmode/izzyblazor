@@ -58,8 +58,7 @@ static class Pages
             var inClient = project.Client is { } client && file.StartsWith(client, StringComparison.Ordinal);
             var root = inClient ? project.Client! : project.Host;
             var imports = inClient ? root + "_Imports.razor" : root + "Components/_Imports.razor";
-            var inside = Path.GetDirectoryName(file[root.Length..])!.Replace('\\', '/');
-            var ns = (inClient ? project.ClientNamespace ?? project.RootNamespace + ".Client" : project.RootNamespace) + (inside.Length > 0 ? "." + string.Join('.', inside.Split('/').Select(Cli.NamespacePart)) : "");
+            var ns = NamespaceOf(project, file);
             tokens["Namespace"] = ns;
             tokens["ImportsFile"] = "~/" + imports;
             if (project.ReadFile(imports) is { } text)
@@ -99,6 +98,27 @@ static class Pages
             }
         }
         return project with { Facts = facts, Tokens = tokens };
+    }
+
+    /// <summary>
+    /// The namespace Razor gives a .razor file at a path in the app: the <c>@namespace</c> of the nearest
+    /// _Imports.razor at or above its folder, else its project's root namespace, with the folders below that
+    /// point after it, each written as an identifier.
+    /// </summary>
+    public static string NamespaceOf(ProjectInfo project, string file)
+    {
+        var inClient = project.Client is { } client && file.StartsWith(client, StringComparison.Ordinal);
+        var root = (inClient ? project.Client! : project.Host).TrimEnd('/');
+        var folders = (Path.GetDirectoryName(file)!.Replace('\\', '/') is var all && all.Length > root.Length ? all[root.Length..].Trim('/') : "")
+            .Split('/', StringSplitOptions.RemoveEmptyEntries);
+        string Below(int from) => string.Concat(folders.Skip(from).Select(f => "." + Cli.NamespacePart(f)));
+        for (var depth = folders.Length; depth >= 0; depth--)
+        {
+            var imports = string.Join('/', new[] { root }.Concat(folders.Take(depth)).Where(p => p.Length > 0).Append("_Imports.razor"));
+            if (project.ReadFile(imports) is { } text && Regex.Match(text, @"^[ \t]*@namespace\s+([\w.]+)", RegexOptions.Multiline) is { Success: true } declared)
+                return declared.Groups[1].Value + Below(depth);
+        }
+        return (inClient ? project.ClientNamespace ?? project.RootNamespace + ".Client" : project.RootNamespace) + Below(0);
     }
 
     // The path in the app of a path from the project's folder, as the generator places it.
