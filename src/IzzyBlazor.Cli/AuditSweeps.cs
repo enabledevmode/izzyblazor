@@ -116,6 +116,7 @@ static partial class Audit
         var index = $"[{kind}][{member}]";
         if ((string?)await browser.Evaluate(Box.Replace("__I__", index).Replace("__AROUND__", around ? "true" : "false")) is not { } answer) return null;
         var box = JsonNode.Parse(answer)!;
+        if ((bool?)box["appears"] == true) return (Enough, 0, true);
         var clip = new JsonObject { ["x"] = (int)box["x"]!, ["y"] = (int)box["y"]!, ["width"] = (int)box["width"]!, ["height"] = (int)box["height"]!, ["scale"] = 1 };
         async Task<Png?> Shot() => (string?)(await browser.Send("Page.captureScreenshot", new JsonObject { ["format"] = "png", ["clip"] = clip.DeepClone(), ["captureBeyondViewport"] = false }))["data"] is { Length: > 0 } data ? Png.Read(Convert.FromBase64String(data)) : null;
         var before = await Shot();
@@ -546,6 +547,14 @@ static partial class Audit
             await S.frames();
             if (e.getBoundingClientRect().width >= 6) {
               shown = e.getBoundingClientRect();
+              // Drawn with focus and in sight (its middle is its own): appearing is how its focus shows.
+              // No pictures: giving it focus scrolled the page as a person would, and a page that
+              // loads more at its end may be changing under them.
+              const over = document.elementFromPoint(shown.left + shown.width / 2, shown.top + shown.height / 2);
+              if (over && e.contains(over) && e.matches(":focus-visible")) {
+                e.blur();
+                return JSON.stringify({ appears: true });
+              }
               // Without focus it takes no room, and a box scrolled to its end scrolls back: where each
               // was is kept, for the picture with focus.
               const boxes = [];

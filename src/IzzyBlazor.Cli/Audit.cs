@@ -558,7 +558,7 @@ static partial class Audit
         ];
         if (run["sweeps"] is not null)
         {
-            lines.Add("Focus is measured in forced colors only, on one of each kind of control (at most 40 kinds a page; all of a kind that fails, up to ten) in the page itself, not in its iframes or shadow roots. Anything that changes around a control counts, a tooltip that opens too. Whether focus is easy to see in the light and dark schemes is for a person to judge.");
+            lines.Add("Focus is measured in forced colors only, on one of each kind of control (at most 40 kinds a page; all of a kind that fails, up to ten) in the page itself, not in its iframes or shadow roots. Anything that changes around a control counts, a tooltip that opens too, and a control that is drawn only with focus (a skip link) passes when it comes into sight. Whether focus is easy to see in the light and dark schemes is for a person to judge.");
             lines.Add("Forced colors are the browser's emulation, not a Windows contrast theme: it shows what disappears, not the colors a person's theme has.");
             lines.Add("A part drawn only by a fill is looked for inside controls and meters. An indicator elsewhere, such as a status dot or a chart's bars, is not, and neither is a state a control shows by its own fill, such as a selected tab.");
             lines.Add("Focus under a bar that stays in place is tried with links and buttons, not fields, for a bar across at least half the top or bottom of the page or of a scrolling area.");
