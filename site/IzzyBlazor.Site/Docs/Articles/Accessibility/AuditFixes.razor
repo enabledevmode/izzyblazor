@@ -45,8 +45,8 @@
 
         <Heading Level="2">Check a fix</Heading>
         <TextBlock>
-            Each finding <Code>report.md</Code> shows has an id that stays the same from run to run, and
-            <Code>results.json</Code> has every finding's. After a fix,
+            Each finding has <Anchor Href="docs/accessibility/audit-reports#ids">an id</Anchor>, printed in
+            <Code>report.md</Code> and <Code>results.json</Code>. After a fix,
             <Code>--recheck</Code> audits the finding's page again and says whether it is fixed. izzy finds the
             page in the newest run in <Code>.izzy/audit/</Code> that has the finding:
         </TextBlock>
@@ -59,9 +59,8 @@
             </Columns>
         </Table>
         <TextBlock>
-            An id is made from the rule, the page and the element's selector, so an edit that moves the element
-            gives its finding a new id. izzy then says how many findings of the same rule the earlier run lacks,
-            and names one.
+            An edit that moves the element gives its finding a new id. izzy then says how many findings of the
+            same rule the earlier run lacks, and names one.
         </TextBlock>
         <TextBlock>
             Fixed means the finding is no longer open: the rule doesn't fail on that element, or it does and the

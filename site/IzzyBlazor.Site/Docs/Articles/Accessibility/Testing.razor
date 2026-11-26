@@ -15,7 +15,8 @@
             <ListItem>Put the mouse away and Tab through the page. Tab should reach every link, button and field in reading order, and you should always see where focus is.</ListItem>
             <ListItem>Open and close every dialog, menu and popover with the keyboard. Escape closes it, and focus returns to what opened it.</ListItem>
             <ListItem>Submit each form with a mistake in it. Focus goes to the list of errors (a <Code>FormErrors</Code>) or to the field with the mistake, and each error names its field.</ListItem>
-            <ListItem>Check that nothing traps focus, and that nothing works only on hover.</ListItem>
+            <ListItem>Do each task of the page from start to end. Nothing traps focus, and nothing needs the mouse.</ListItem>
+            <ListItem>Watch the focus ring in light and in dark. It is easy to see on every control.</ListItem>
         </List>
 
         <Heading Level="2">With a screen reader</Heading>
@@ -25,9 +26,16 @@
         </TextBlock>
         <List Gap="2">
             <ListItem>The page title, then one level 1 heading, then headings in order. Most screen reader users move by headings.</ListItem>
+            <ListItem>Read the page from top to bottom. The order makes sense, and lists and tables are announced as lists and tables.</ListItem>
             <ListItem>Each control's name says what it does, even out of context: "Delete invoice INV-1042", not "Delete".</ListItem>
             <ListItem>Changes you make without a full reload, such as a saved form or a filtered list, are announced. Use a <Anchor Href="docs/components/live-region">LiveRegion</Anchor> or <Code>Announcer</Code> where they aren't.</ListItem>
             <ListItem>Pictures that carry meaning are described, and decorative ones are silent.</ListItem>
+        </List>
+
+        <Heading Level="2">With a pointer</Heading>
+        <List Gap="2">
+            <ListItem>Hover and focus each tooltip and popover. It stays while you point at it, and Escape closes it.</ListItem>
+            <ListItem>Do each drag, swipe and pinch with single clicks. <Anchor Href="docs/accessibility/pointer-and-touch">Pointer and touch</Anchor> lists the click-only way for each component's drag.</ListItem>
         </List>
 
         <Heading Level="2">Zoom, contrast and motion</Heading>
@@ -35,7 +43,9 @@
             <ListItem>Zoom the browser to 200%, and narrow the window to 320 pixels. Nothing is cut off, and only wide content, such as a table, scrolls sideways.</ListItem>
             <ListItem>Turn on a contrast theme in Windows (Settings, Accessibility, Contrast themes), or, as a first look, emulate forced colors in the browser's developer tools. Every control, its focus and its state still show.</ListItem>
             <ListItem>Turn on reduced motion in the operating system, and check that your own animations stop.</ListItem>
-            <ListItem>Check the contrast of any color you set yourself: 4.5:1 for text, 3:1 for icons and control edges.</ListItem>
+            <ListItem>Check the contrast of any color you set yourself: 4.5:1 for text, 3:1 for icons, control edges and chart marks.</ListItem>
+            <ListItem>Look at each status, error and chart in grayscale. Nothing is told by color alone.</ListItem>
+            <ListItem>Check what flashes or times out, that the user can extend a time limit, and that a video's captions are there and accurate.</ListItem>
         </List>
 
         <Heading Level="2">Automated tools</Heading>
@@ -48,10 +58,8 @@
             to a Playwright test of the page.
         </TextBlock>
         <TextBlock>
-            Automated tools can't tell whether a name makes sense, whether the focus order matches the reading order, or whether
-            an announcement comes at the right time. The checks above cover those.
             <Anchor Href="docs/accessibility/automated-and-manual">Automated and manual checks</Anchor> lists what a tool
-            settles and what is left to you.
+            settles and what is left to the checks above.
         </TextBlock>
     </ChildContent>
 </ArticlePage>

@@ -41,14 +41,12 @@
             <ListItem>When a component is built or changed, its examples are checked in Chromium with axe and the accessibility tree.</ListItem>
             <ListItem>A sweep of every example checks that focus shows in the browser's forced colors, which emulates a Windows contrast theme, and that targets are at least 24 by 24 pixels.</ListItem>
             <ListItem>When the page renders, IzzyBlazor calculates the shades of a brand or gray color you set to meet contrast ratios. The built-in themes are tuned to the same ratios.</ListItem>
-            <ListItem><Anchor Href="docs/accessibility/audit">izzy audit</Anchor> runs over every page of this site, at two widths, in light, dark and forced colors. Each finding is judged, and the last run left none open: 3 contrast findings on docs examples are accepted with a reason.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit">izzy audit</Anchor> runs over every page of this site, at two widths, in light, dark and forced colors, and each finding is judged. <Anchor Href="docs/accessibility/component-status">Component status</Anchor> has the last run.</ListItem>
             <ListItem>A full pass with screen readers (NVDA, JAWS, Narrator, VoiceOver and TalkBack) has started and isn't done. Names, roles and states are checked in the accessibility tree, which is what screen readers read, but that is not the same as listening to one.</ListItem>
         </List>
         <TextBlock>
             A tool checks part of this, and a person the rest:
             <Anchor Href="docs/accessibility/automated-and-manual">Automated and manual checks</Anchor> says which.
-            <Anchor Href="docs/accessibility/component-status">Component status</Anchor> lists what has been checked
-            on each component.
         </TextBlock>
 
         <Heading Level="2">Known gaps</Heading>

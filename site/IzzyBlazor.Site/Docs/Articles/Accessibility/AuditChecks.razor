@@ -41,19 +41,15 @@
 
         <Heading Level="2">What a measurement settles</Heading>
         <TextBlock>
-            A measurement settles some of these and not others, and the
-            <Anchor Href="docs/accessibility/audit-verdicts">verdict</Anchor> says which. Real means izzy
-            measured the failure: a control left hidden under a header, or one that doesn't change at all when it
-            takes focus. Needs a person means izzy measured something a person has to judge: a slight change on
-            focus, or a part that disappears and may be decoration. Look at each of those, then fix it or accept
-            it in <Code>.izzy/audit.json</Code>. Signed out, a finding of these checks has izzy's own note in
-            place of a verdict.
+            A measurement settles some of these and not others, and the verdict says which: real when izzy
+            measured the failure, <Anchor Href="docs/accessibility/audit-verdicts#needs-a-person">needs a person</Anchor>
+            when a person has to judge what it measured. Signed out, a finding of these checks has izzy's own
+            note in place of a verdict.
         </TextBlock>
 
         <Heading Level="2">What it doesn't check</Heading>
         <TextBlock>
-            An audit with no findings is not a statement of conformance. Automated checks find part of what WCAG
-            asks. The rest needs a person with a keyboard and a screen reader. <Code>report.md</Code> and
+            An audit with no findings is not a statement of conformance. <Code>report.md</Code> and
             <Code>report.html</Code> end with a list like this one:
         </TextBlock>
         <List Gap="2">
