@@ -1,0 +1,100 @@
+@page "/docs/accessibility/audit-verdicts"
+
+@* The verdict each finding gets from the pack and .izzy/audit.json, with a free account (AuditVerdicts.cs): the five
+   verdicts, accepting a finding, demo pages. *@
+
+<ArticlePage Section="accessibility" Slug="audit-verdicts">
+    <Lead>
+        A tool's findings are not all failures. axe is wrong about some patterns, some findings need a person's
+        eyes, and some are yours to accept. With a free account, <Code>izzy audit</Code> gives each finding a
+        verdict and its reason.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">The five verdicts</Heading>
+        <Table Items="Verdicts" Caption="The verdict of a finding" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Verdict" Width="Length.Rem(10)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="Means">@context!.Text</TemplateColumn>
+                <TemplateColumn Title="What you do">@context!.Do</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            The report groups the findings by verdict, real ones first, and <Code>results.json</Code> has each
+            finding's verdict, reason and confidence.
+        </TextBlock>
+
+        <Heading Level="2">Where a verdict comes from</Heading>
+        <TextBlock>
+            izzy keeps a list of patterns it has looked at: a rule, the markup it fires on, and what was found by
+            hand. A finding that matches a pattern gets that pattern's verdict and reason. A finding of
+            <Anchor Href="docs/accessibility/audit-checks">izzy's own checks</Anchor> gets its verdict from what the
+            check measured. A finding nothing matches is real: izzy doesn't excuse what it hasn't looked at.
+        </TextBlock>
+        <TextBlock>
+            A verdict is about one finding. It doesn't say the element is accessible, only that this rule's
+            complaint about it is right, wrong or open.
+        </TextBlock>
+
+        <Heading Level="2">Needs a person</Heading>
+        <TextBlock>
+            This verdict is the line between what a tool can settle and what it can't. izzy measured something
+            and a person has to judge it: text in a color set on the element itself, a control that changes only
+            slightly when it takes focus, a part that disappears in forced colors and may be decoration. Look at
+            the element on the page. Then fix it, or accept it with your reason.
+        </TextBlock>
+
+        <Heading Level="2">Accept a finding</Heading>
+        <TextBlock>
+            Your own decisions go in <Code>.izzy/audit.json</Code> in the project. An accepted finding stays in the
+            report with your reason and doesn't fail a build that uses <Code>--fail-on real</Code> or
+            <Code>--fail-on new</Code>. <Code>rule</Code> and <Code>reason</Code> are required.
+            <Code>selector</Code> is a CSS selector for the element or one it is inside, and <Code>pages</Code> is a
+            path, where <Code>*</Code> stands for one part and <Code>**</Code> for any number. A selector
+            also finds an element in an iframe of your own site, and what the iframe is inside counts as around
+            the element.
+        </TextBlock>
+        <Code Block Language="json" Title=".izzy/audit.json">@ProjectFile</Code>
+        <TextBlock>
+            Accepting is a person's decision, written down with a name and a date. A coding agent that runs the
+            audit is told never to accept a finding by itself.
+        </TextBlock>
+
+        <Heading Level="2">Demo pages</Heading>
+        <TextBlock>
+            <Code>demoPages</Code> lists pages that show a component several times, such as a style guide. Two
+            landmarks with one name are a demo page's finding there and a real one anywhere else. Add
+            <Code>examples</Code>, a selector, to count only what is inside an example.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text, string Do);
+
+    private static readonly Row[] Verdicts =
+    [
+        new("Real", "A problem for users.", "Fix it."),
+        new("Needs a person", "A tool can't settle it, such as text in a color set on the element itself.", "Look at it, then fix or accept it."),
+        new("Accepted", "You accepted it in .izzy/audit.json. The report prints your reason.", "Nothing, while your reason holds."),
+        new("Demo page", "Caused by a page that shows a component several times. A page of an app doesn't have it.", "Nothing."),
+        new("False positive", "The rule is wrong here, such as low contrast on a part of a disabled control.", "Nothing."),
+    ];
+
+    private const string ProjectFile = """
+        {
+          "accepted": [
+            {
+              "rule": "color-contrast",
+              "selector": ".order-footnote",
+              "pages": "/orders/**",
+              "reason": "The footnote repeats what the table says",
+              "by": "Dana",
+              "on": "2026-11-24"
+            }
+          ],
+          "demoPages": [
+            { "pages": "/styleguide/**", "examples": ".example" }
+          ]
+        }
+        """;
+}

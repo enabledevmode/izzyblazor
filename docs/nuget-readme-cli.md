@@ -30,4 +30,4 @@ echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.bash_profile    # bash
 - Files that exist with other content are never replaced without `--overwrite`.
 - Each item added is recorded in `.izzy/items.json` with its version and settings.
 
-Docs: https://izzyblazor.com/docs/cli
+Docs: https://izzyblazor.com/docs/tools

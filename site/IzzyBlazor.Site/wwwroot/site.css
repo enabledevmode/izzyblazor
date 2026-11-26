@@ -584,6 +584,14 @@
 /* A third for the first column, so its sentence wraps over a few lines, not a word a line. */
 .site-params-wrap :is(td, th):first-child { width: 33%; }
 .site-params-wrap :is(td, th):last-child { width: auto; }
+/* Three or more columns of sentences (the tools overview, the audit's pages): every column wraps, and a
+   column keeps a Width it sets. */
+.site-params-prose td:not(:last-child) { white-space: normal; }
+.site-params-prose :is(td, th):last-child { width: auto; }
+/* Component status: one table a category, the same four columns in each, so they line up down the page. */
+@media (min-width: 40rem) { .site-params-status table { table-layout: fixed; width: 100%; } }
+/* On a phone a quarter is too narrow for a component's name: the table keeps its own widths and scrolls. */
+@media (max-width: 39.99rem) { .site-params-status :is(td, th) { white-space: nowrap; } }
 /* One thing in two libraries, row by row: equal halves, each wrapping. */
 .site-params.site-params-pair :is(td, th) { width: 50%; white-space: normal; }
 .site-params-pair code { overflow-wrap: anywhere; }

@@ -116,9 +116,23 @@ else
         @foreach (var group in Articles.Sections.Where(g => !g.IndexOnly))
         {
             <NavLabel>@group.Title</NavLabel>
-            @foreach (var article in group.Articles)
+            @* Articles with an Area (the audit's pages) are one group under its name, open on its pages. *@
+            @foreach (var article in group.Articles.Where(a => a.Area is null || a == group.Articles.First(b => b.Area == a.Area)))
             {
-                <NavItem Href="@group.HrefOf(article)">@article.Title</NavItem>
+                @if (article.Area is { } area)
+                {
+                    var inArea = group.Articles.Where(a => a.Area == area).ToList();
+                    <NavGroup Label="@area" Open="@inArea.Any(a => _path == group.HrefOf(a))">
+                        @foreach (var item in inArea)
+                        {
+                            <NavItem Href="@group.HrefOf(item)" Match="NavLinkMatch.All">@item.Title</NavItem>
+                        }
+                    </NavGroup>
+                }
+                else
+                {
+                    <NavItem Href="@group.HrefOf(article)">@article.Title</NavItem>
+                }
             }
         }
 
@@ -135,6 +149,9 @@ else
     // The components list's order, and this page's path for the toggle's way back.
     private bool _az;
     private string _here = "/";
+
+    // This page's path with no query, as an article's Href is written: for the group that is open.
+    private string _path = "";
 
     private IEnumerable<(string Name, RegistryComponent? Component)> AtoZ => Registry.Components
         .Concat(_current is { Preview: true } ? [_current] : [])
@@ -186,6 +203,7 @@ else
         _area = AreaOf(Navigation);
         _az = Http?.Request.Cookies[OrderCookie] == "az";
         _here = new Uri(Navigation.Uri).PathAndQuery;
+        _path = string.Join('/', Parts(Navigation));
         _current = Parts(Navigation) is ["docs", "components", var id, ..] ? Registry.ById(id) : null;
         _group = Parts(Navigation) is ["docs", "components"]
             && QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query).TryGetValue("group", out var group)

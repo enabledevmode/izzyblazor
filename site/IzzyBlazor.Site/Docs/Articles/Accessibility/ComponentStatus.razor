@@ -1,0 +1,115 @@
+@page "/docs/accessibility/component-status"
+@inject Registry Registry
+@inject ApiMetadata Api
+
+@* Every component with what has been checked on it, in three columns that mean different things: its keys (the API
+   metadata's Keyboard table), the automated audit of its docs pages (site/IzzyBlazor.Site/.izzy/audit-baseline.json: remake
+   the numbers in Run when the baseline is remade), and screen readers (artifacts/a11y-audit/SCREEN-READER-PASS.md: add a
+   component to ScreenReaders as the pass reaches it). A cell says what was done, never "conforms". After Syncfusion's
+   per-component table (Nov 25, 2026), which has no column for what wasn't tested. *@
+
+<ArticlePage Section="accessibility" Slug="component-status">
+    <Lead>
+        This page lists every component with what has been checked on it and how. A check by a tool and a test
+        by a person are separate columns, since
+        <Anchor Href="docs/accessibility/automated-and-manual">they answer different questions</Anchor>. Where a
+        test hasn't been done, the cell says so.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">What the columns mean</Heading>
+        <Table Items="Meanings" Caption="The columns of the status table" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Column" Width="Length.Rem(10)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="Says">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">The automated audit</Heading>
+        <TextBlock>
+            <Anchor Href="docs/accessibility/audit">izzy audit</Anchor> ran over this site on @Run.On:
+            @Run.Pages pages, each at 1440 and 375 pixels wide, in light and dark, and once in forced colors.
+            It runs axe-core and <Anchor Href="docs/accessibility/audit-checks">four checks of its own</Anchor>
+            on every example of every component. The run had @Run.Findings findings. None was real and none
+            needed a person: @Run.FalsePositives were false positives of a rule, @Run.DemoPages came from a docs
+            page showing a component several times, and @Run.Accepted are accepted with a reason, on docs
+            examples that show a color on purpose.
+        </TextBlock>
+        <TextBlock>
+            So the Audit column is the same for every component today. It says that the rules found nothing on
+            the component's examples as they load. It doesn't cover a closed dialog or menu, the order of the
+            keyboard or what a screen reader says.
+        </TextBlock>
+
+        <Heading Level="2">Screen readers</Heading>
+        <TextBlock>
+            A pass with screen readers has started and isn't done. Names, roles and states are checked in the
+            browser's accessibility tree, which is what a screen reader reads, but that is not the same as
+            listening to one. The pass covers VoiceOver with Safari, then NVDA with Chrome and Firefox, JAWS and
+            Narrator on Windows, and VoiceOver and TalkBack on phones. A component's cell names the screen
+            readers it has been through. If one gets something wrong,
+            <Anchor Href="https://github.com/IzzyBlazor/izzyblazor/issues" External>report it as an issue</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Known gaps</Heading>
+        <TextBlock>
+            A component with a known gap is marked in the table. The
+            <Anchor Href="docs/accessibility/overview#known-gaps">overview</Anchor> describes each gap and its
+            workaround. One gap is shared by every field and switch: their borders have about 2:1 contrast
+            against the page.
+        </TextBlock>
+
+        @foreach (var category in Registry.Categories)
+        {
+            <Heading Level="2">@category</Heading>
+            <Table Items="@Rows(category)" Caption="@($"{category}: accessibility status")" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-status" Bordered="false">
+                <Columns>
+                    <TemplateColumn Title="Component"><Anchor Href="@context!.Href">@context.Name</Anchor></TemplateColumn>
+                    <TemplateColumn Title="Keys">
+                        @if (context!.Keys)
+                        {
+                            <Anchor Href="@($"{context.Href}#keyboard-navigation")">Listed</Anchor>
+                        }
+                        else
+                        {
+                            <text>The browser's own</text>
+                        }
+                    </TemplateColumn>
+                    <TemplateColumn Title="Audit">@(context!.Gap ? "No findings; one known gap" : "No findings")</TemplateColumn>
+                    <TemplateColumn Title="Screen readers">@context!.ScreenReaders</TemplateColumn>
+                </Columns>
+            </Table>
+        }
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private sealed record Status(string Name, string Href, bool Keys, bool Gap, string ScreenReaders);
+
+    // The run the Audit column reports: .izzy/audit-baseline.json, remade Nov 25, 2026 after the triage.
+    private static readonly (string On, string Pages, int Findings, int FalsePositives, int DemoPages, int Accepted) Run =
+        ("November 25, 2026", "543", 88, 27, 58, 3);
+
+    // Components the screen reader pass has reached, with what was run. Everything else is "Not yet".
+    private static readonly Dictionary<string, string> ScreenReaders = new()
+    {
+        ["Switch"] = "VoiceOver with Safari: read through",
+        ["LiveRegion"] = "VoiceOver with Safari: started",
+    };
+
+    // Components with a gap in the overview's Known gaps.
+    private static readonly HashSet<string> Gaps = ["NumberField"];
+
+    private static readonly Row[] Meanings =
+    [
+        new("Keys", "\"Listed\" links the component's Keyboard navigation table, for keys that IzzyBlazor's script adds. \"The browser's own\" means the component is a native element or takes no keys, and has no keys of its own to list."),
+        new("Audit", "What izzy audit found on the component's docs pages, in every example, as they load."),
+        new("Screen readers", "The screen readers a person has run the component's examples through, or \"Not yet\"."),
+    ];
+
+    private List<Status> Rows(string category) =>
+        [.. Registry.InCategory(category).Select(c => new Status(
+            c.DisplayName, Registry.OverviewHref(c), Api.Component(c.Name)?.Keyboard is { Count: > 0 }, Gaps.Contains(c.Name),
+            ScreenReaders.GetValueOrDefault(c.Name, "Not yet")))];
+}

@@ -110,7 +110,7 @@ public partial class McpTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.StartsWith("# IzzyBlazor\n", text);
         var links = Link().Matches(text).Select(m => m.Groups[1].Value).ToList();
         Assert.Contains("https://izzyblazor.com/docs/components/button", links);
-        Assert.Contains("https://izzyblazor.com/docs/get-started/ai-assistants", links);
+        Assert.Contains("https://izzyblazor.com/docs/tools/ai-assistants", links);
         var broken = new List<string>();
         foreach (var path in links.Select(l => l["https://izzyblazor.com/".Length..]).Distinct())
         {

@@ -1,0 +1,86 @@
+@page "/docs/accessibility/audit-builds"
+
+@* izzy audit on a build server: --fail-on any|real|new and exit code 5, --baseline (AuditVerdicts.cs), the browser,
+   a key for the account (docs/tools/account), results.sarif for code scanning (AuditTrace.cs). *@
+
+<ArticlePage Section="accessibility" Slug="audit-builds">
+    <Lead>
+        Run <Code>izzy audit</Code> in a build to catch a problem when it is added, not months later. The build
+        can fail on any finding, on real ones, or only on those a change brought in.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Fail a build on findings</Heading>
+        <TextBlock>
+            With <Code>--fail-on any</Code>, izzy ends with exit code 5 when the page has a finding, and with
+            exit code 1 when the page didn't open or answered with an error. On a build server, start the app with
+            <Code>--run</Code>:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit / --run --fail-on any</Code>
+        <TextBlock>
+            The build server needs Chrome, Edge or Chromium. If izzy doesn't find one, set <Code>--browser</Code> or
+            the <Code>IZZY_BROWSER</Code> variable to its path.
+        </TextBlock>
+
+        <Heading Level="2">Fail on real findings</Heading>
+        <TextBlock>
+            With a free account, <Code>--fail-on real</Code> ends with exit code 5 only when a finding's
+            <Anchor Href="docs/accessibility/audit-verdicts">verdict</Anchor> is real. False positives, demo pages
+            and the findings you accepted in <Code>.izzy/audit.json</Code> don't fail the build. Neither do the
+            findings that need a person: they are in the report and the task list for someone to look at.
+        </TextBlock>
+        <TextBlock>
+            A build server signs in with a key in the <Code>IZZY_KEY</Code> variable: see
+            <Anchor Href="docs/tools/account">Your account</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Fail only on new findings</Heading>
+        <TextBlock>
+            To hold the line on a site that already has findings, keep a past run's <Code>results.json</Code> in
+            the repository and compare with it:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit / --run --baseline audit-baseline.json --fail-on new</Code>
+        <TextBlock>
+            A real finding the baseline lacks is new, and only those fail the build. The report says how many are
+            new and how many are fixed, and <Code>tasks.md</Code> checks off the fixed ones. Remake the baseline
+            when the old findings are fixed.
+        </TextBlock>
+
+        <Heading Level="2">Code scanning</Heading>
+        <TextBlock>
+            <Code>--format sarif</Code> writes <Code>results.sarif</Code>, which GitHub code scanning and editors
+            read. It holds the real findings and those a person must look at, each on its line. A finding izzy
+            couldn't place is on line 1 of its page's file, with its selector in the message. A finding on a
+            page that has no file in the app is left out, since code scanning takes no result without a place.
+            It stays in the other reports. Paths are written from the repository's root.
+        </TextBlock>
+        <Code Block Language="bash">izzy audit /orders --run --format md,json,sarif</Code>
+
+        <Heading Level="2">Exit codes</Heading>
+        <Table Items="Codes" Caption="Exit codes of izzy audit" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Code" Width="Length.Rem(6)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="Means">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">What a green build means</Heading>
+        <TextBlock>
+            A build that passes had no finding of the kind you chose, on the pages it audited, as they load. It
+            doesn't check a dialog nobody opened, the order of the Tab key or what a screen reader says.
+            Keep the checks <Anchor Href="docs/accessibility/testing">a person does</Anchor> in your release steps.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private static readonly Row[] Codes =
+    [
+        new("0", "The audit ran, and nothing --fail-on counts was found."),
+        new("1", "A page didn't open or answered with an error, or a recheck couldn't be made."),
+        new("3", "The option needs IzzyBlazor Pro: --site."),
+        new("4", "The option needs a free account, and izzy isn't signed in."),
+        new("5", "Findings that --fail-on counts, or a rechecked finding that is still there."),
+    ];
+}

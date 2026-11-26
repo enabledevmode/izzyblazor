@@ -1,11 +1,11 @@
-@page "/docs/get-started/ai-assistants"
+@page "/docs/tools/ai-assistants"
 
 @* Connecting an AI assistant to IzzyBlazor: izzy agent (the skill and both servers, src/IzzyBlazor.Cli/AgentFiles.cs),
    izzy mcp's tools (BuildTools.cs), the docs MCP server at /mcp (Services/Mcp), llms.txt and the API metadata.
    The client settings were the documented ones for each client in Oct 2026 (VS Code's rechecked Nov 23, 2026: .vscode/mcp.json
    is its deprecated format, to be removed Feb 2027; drop it from AgentFiles then); the skill folders in Nov 2026. *@
 
-<ArticlePage Section="get-started" Slug="ai-assistants">
+<ArticlePage Section="tools" Slug="ai-assistants">
     <Lead>
         An AI assistant guesses at a library it hasn't seen, and IzzyBlazor is newer than its training data. When you
         connect your assistant to IzzyBlazor's MCP server, it looks up components, parameters and working examples for the
@@ -15,7 +15,7 @@
         <Heading Level="2">Set up your project</Heading>
         <Code Block Language="bash">izzy agent</Code>
         <TextBlock>
-            Run it in your app's folder. It needs the <Anchor Href="docs/cli/overview">izzy CLI</Anchor>. It sets up three things:
+            Run it in your app's folder. It needs the <Anchor Href="docs/tools/cli">izzy CLI</Anchor>. It sets up three things:
         </TextBlock>
         <List Gap="2">
             <ListItem>

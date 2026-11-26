@@ -1,0 +1,101 @@
+@page "/docs/accessibility/audit-fixes"
+
+@* With a free account: the component, the fix, the file and line of a finding (AuditTrace.cs); --recheck (AuditVerdicts.cs);
+   the agent's tools audit_page and recheck_finding (BuildTools.cs) and the skill's "Check accessibility" (Agent/SKILL.md).
+   The audit changes no code: --fix is paused (Nov 25, 2026). *@
+
+<ArticlePage Section="accessibility" Slug="audit-fixes">
+    <Lead>
+        With a free account, <Code>izzy audit</Code> says which component drew a finding's element, what to
+        change and where it is written in your code. You or your coding agent make the change, and a recheck says
+        whether it worked. izzy itself changes no code.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Find a finding in your code</Heading>
+        <TextBlock>
+            Each finding names the IzzyBlazor component that drew the element, links its docs
+            page, and gives the fix when izzy knows one, such as the option to set. With <Code>--run</Code> or
+            <Code>--project</Code>, izzy also reads the app's source and gives the file and line where the
+            component is written:
+        </TextBlock>
+        <Code Block Language="text" Title="report.md">@TraceLines</Code>
+        <TextBlock>
+            izzy finds the page's file from its <Code>@@page</Code> route, then looks in that file, its layout and
+            the components of yours they use. One tag is that line. Among several, it picks the one whose written
+            text is in the element, such as its <Code>Label</Code> or <Code>id</Code>, and says how sure it is:
+            high for one tag, medium for one picked from several. When it can't pick, it lists the places.
+            An element a component draws for you, such as a button in a DataGrid's toolbar, is traced to that
+            component's tag. Plain HTML is found by its tag with its <Code>id</Code> or <Code>class</Code>.
+        </TextBlock>
+        <TextBlock>
+            Some components draw the same element, such as Dialog and Drawer, or Stack and Row. Without the
+            source the report names each of them, and the source says which one it is. What a component draws
+            inside itself, such as a date field's calendar button or a DataGrid's pager, is traced to that
+            component. What you wrote inside a component, such as a Button as a Menu's
+            <Code>Trigger</Code>, is traced to your own tag.
+        </TextBlock>
+
+        <Heading Level="2">What the fix is, and isn't</Heading>
+        <TextBlock>
+            A fix is a sentence about the rule that failed: the option to set, or the markup to change. It makes
+            that finding go away for the right reason. It doesn't tell you the words to use. A name such as
+            <Code>Label="Order path"</Code> has to say what the thing is to someone who can't see it, and only a
+            person who knows the page can write it.
+        </TextBlock>
+
+        <Heading Level="2">Check a fix</Heading>
+        <TextBlock>
+            Each finding <Code>report.md</Code> shows has an id that stays the same from run to run, and
+            <Code>results.json</Code> has every finding's. After a fix,
+            <Code>--recheck</Code> audits the finding's page again and says whether it is fixed. izzy finds the
+            page in the newest run in <Code>.izzy/audit/</Code> that has the finding:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit --recheck 527e645e33f7 --run</Code>
+        <Table Items="Answers" Caption="What a recheck answers" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Answer" Width="Length.Rem(10)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="Exit code" Width="Length.Rem(6)">@context!.Code</TemplateColumn>
+                <TemplateColumn Title="Means">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            An id is made from the rule, the page and the element's selector, so an edit that moves the element
+            gives its finding a new id. izzy then says how many findings of the same rule the earlier run lacks,
+            and names one.
+        </TextBlock>
+        <TextBlock>
+            Fixed means the rule no longer fails on that element. For a name, a label or an announcement, listen
+            to it with a screen reader as well.
+        </TextBlock>
+
+        <Heading Level="2">With a coding agent</Heading>
+        <TextBlock>
+            <Anchor Href="docs/tools/ai-assistants">izzy mcp</Anchor> gives a coding agent two tools for
+            this. <Code>audit_page</Code> audits one page and answers with the findings by verdict and where the
+            report is. <Code>recheck_finding</Code> takes a finding's id and says whether it is fixed. Neither
+            changes code: the agent or you make the fix. The tools need a free account, and audit one page a call.
+        </TextBlock>
+        <TextBlock>
+            The skill that <Code>izzy agent</Code> writes tells the agent how to use them: fix the real findings,
+            ask you about each one that needs a person, never accept a finding by itself, and never say a page
+            conforms because an audit found nothing.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Code, string Text);
+
+    private static readonly Row[] Answers =
+    [
+        new("Fixed", "0", "The page was audited again and the finding is gone, or it is there with a verdict of false positive or accepted."),
+        new("Still there", "5", "The finding is on the page again."),
+        new("Not checked", "1", "The page didn't load, answered with an error or led to another page, or you asked for other widths than the earlier run's."),
+    ];
+
+    private const string TraceLines = """
+        - Component: `Breadcrumb`, inside `PageHeader`
+        - Fix: Two Breadcrumbs on a page need a name each: set Label on this one, such as Label="Order path". [Docs](https://izzyblazor.com/docs/components/breadcrumb)
+        - Source: `Components/Pages/Orders.razor:12`, confidence high
+        """;
+}

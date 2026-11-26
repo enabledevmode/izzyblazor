@@ -1,9 +1,9 @@
-@page "/docs/cli/crud"
+@page "/docs/tools/crud"
 
 @* izzy add crud <Model> (catalog/crud in src/IzzyBlazor.Cli): the grid page it writes, how it reads the model,
    the store, the options, Pro's --store http (the .Client project and {Model}Api), and Pro's --mode pages (artifacts/izzyblazor-crud-design.md). *@
 
-<ArticlePage Section="cli" Slug="crud">
+<ArticlePage Section="tools" Slug="crud">
     <Lead>
         <Code>izzy add crud</Code> creates a <Anchor Href="docs/components/data-grid">DataGrid</Anchor> page to display,
         add, edit and delete a model's records, for internal tools and admin screens. Name a class from your app; izzy
@@ -21,8 +21,8 @@
            width. The switch reloads the page; data-site-return keeps the preview where it was on the screen. *@
         <div id="crud-demo" class="site-crud-demo" data-site-return>
             <TabNav Label="Preview width" Variant="TabsVariant.Segmented" Size="ControlSize.Sm">
-                <TabLink Href="docs/cli/crud#crud-demo" Label="Desktop" Current="!Phone" />
-                <TabLink Href="docs/cli/crud?width=phone#crud-demo" Label="Phone" Current="Phone" />
+                <TabLink Href="docs/tools/crud#crud-demo" Label="Desktop" Current="!Phone" />
+                <TabLink Href="docs/tools/crud?width=phone#crud-demo" Label="Phone" Current="Phone" />
             </TabNav>
             @if (Phone)
             {
@@ -116,7 +116,7 @@
         <Heading Level="2">After the model changes</Heading>
         <TextBlock>
             Run the command again with <Code>--diff</Code> to see what would change. Then run it with
-            <Code>--overwrite</Code> to update the files. See <Anchor Href="docs/cli/changes">Previewing changes</Anchor>.
+            <Code>--overwrite</Code> to update the files. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.
         </TextBlock>
     </ChildContent>
 </ArticlePage>

@@ -41,8 +41,15 @@
             <ListItem>When a component is built or changed, its examples are checked in Chromium with axe and the accessibility tree.</ListItem>
             <ListItem>A sweep of every example checks that focus shows in Windows high-contrast mode and that targets are at least 24 by 24 pixels.</ListItem>
             <ListItem>When the page renders, IzzyBlazor calculates the shades of a brand or gray color you set to meet contrast ratios. The built-in themes are tuned to the same ratios.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit">izzy audit</Anchor> runs over every page of this site, at two widths, in light, dark and forced colors. Each finding is judged, and the last run had none that was real.</ListItem>
             <ListItem>A full pass with screen readers (NVDA, JAWS, VoiceOver and TalkBack) hasn't been done yet. Names, roles and states are checked in the accessibility tree, which is what screen readers read.</ListItem>
         </List>
+        <TextBlock>
+            A tool checks part of this, and a person the rest:
+            <Anchor Href="docs/accessibility/automated-and-manual">Automated and manual checks</Anchor> says which.
+            <Anchor Href="docs/accessibility/component-status">Component status</Anchor> lists what has been checked
+            on each component.
+        </TextBlock>
 
         <Heading Level="2">Known gaps</Heading>
         <TextBlock>
@@ -74,7 +81,10 @@
             <ListItem><Anchor Href="docs/accessibility/names-and-announcements">Names and announcements</Anchor> covers labels, which components throw an error without a name, and what screen readers announce when something changes.</ListItem>
             <ListItem><Anchor Href="docs/accessibility/color-and-motion">Color, contrast and motion</Anchor> explains how IzzyBlazor keeps contrast with your own colors and in high-contrast mode, and how it handles reduced motion.</ListItem>
             <ListItem><Anchor Href="docs/accessibility/pointer-and-touch">Pointer and touch</Anchor> lists target sizes and the click-only alternative to each drag.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/component-status">Component status</Anchor> lists each component's keys, what the automated audit found and which screen readers it was tested with.</ListItem>
             <ListItem><Anchor Href="docs/accessibility/testing">Testing your app</Anchor> explains how to check your own pages.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/automated-and-manual">Automated and manual checks</Anchor> draws the line between what a tool settles and what a person must check.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit">Audit a page</Anchor> and the pages after it cover <Code>izzy audit</Code>: verdicts, reports, fixes, builds and what it checks.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>

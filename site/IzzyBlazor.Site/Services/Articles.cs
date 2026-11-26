@@ -7,6 +7,9 @@ namespace IzzyBlazor.Site.Services;
 /// </summary>
 public static class Articles
 {
+    // The audit's pages are one group in the Accessibility section's sidebar.
+    private const string Audit = "izzy audit";
+
     public static IReadOnlyList<ArticleSection> Sections { get; } =
     [
         new("get-started", "Get started", "Rocket",
@@ -21,12 +24,12 @@ public static class Articles
                 "Find the IzzyBlazor counterpart of each Radzen component, which members are renamed, and what behaves differently."),
             new("from-mudblazor", "Migrating from MudBlazor", "ArrowRightLeft",
                 "Find the IzzyBlazor counterpart of each MudBlazor component, which members are renamed, and what behaves differently."),
-            new("ai-assistants", "AI assistants", "Bot",
-                "Connect Claude, Copilot or Cursor to IzzyBlazor's MCP server for components, parameters and examples."),
         ]) { OpensAt = "create-app" },
-        new("cli", "The izzy CLI", "SquareTerminal",
+        new("tools", "Developer Tools", "Wrench",
         [
-            new("overview", "CLI overview", "SquareTerminal",
+            new("overview", "Developer tools overview", "Wrench",
+                "The izzy CLI, the tools for coding agents and the accessibility audit: what each does and what it needs."),
+            new("cli", "The izzy CLI", "SquareTerminal",
                 "Install izzy, and add blocks and pages to your app as code you own."),
             new("account", "Your account", "KeyRound",
                 "Sign in with izzy login for the app starters, blocks and kits, and use a key on build servers."),
@@ -38,10 +41,10 @@ public static class Articles
                 "Add a component's example to a page, and list every component's options."),
             new("crud", "CRUD pages", "Table2",
                 "A page to list, add, edit and delete a model's records, from a class in your app."),
-            new("audit", "Accessibility audit", "Accessibility",
-                "Check a page with axe-core in your own browser, and get a report and the results as data."),
             new("changes", "Previewing changes", "FileDiff",
                 "See a change first as a diff or JSON, keep the files you've changed, and read the exit codes."),
+            new("ai-assistants", "AI assistants", "Bot",
+                "Connect Claude, Copilot or Cursor to IzzyBlazor's MCP server for components, parameters and examples."),
             new("license", "License", "Scale",
                 "What you can do with the code izzy creates, and which parts are MIT licensed."),
         ]),
@@ -104,8 +107,24 @@ public static class Articles
                 "Text keeps 4.5:1 contrast with your own colors too, components adapt to high-contrast mode, and motion stops when the user asks."),
             new("pointer-and-touch", "Pointer and touch", "Pointer",
                 "Targets are at least 24 pixels, and every drag has a click-only way to the same result."),
+            new("component-status", "Component status", "ClipboardList",
+                "Each component's keys, what the automated audit found on its pages, and which screen readers it was tested with."),
             new("testing", "Testing your app", "ListChecks",
                 "Check your own pages with a keyboard, a screen reader, zoom and automated tools."),
+            new("automated-and-manual", "Automated and manual checks", "ScanSearch",
+                "What a tool can settle, what it can only point at, and what a person must check."),
+            new("audit", "Audit a page", "Accessibility",
+                "Check a page with axe-core and izzy's own checks in your own browser, or a whole site in one run.") { Area = Audit },
+            new("audit-verdicts", "Verdicts", "Gavel",
+                "What each finding's verdict means, and how to accept a finding with a reason.") { Area = Audit },
+            new("audit-reports", "Reports", "FileText",
+                "The files an audit writes: a report to read, the results as data, a task list and a report to hand over.") { Area = Audit },
+            new("audit-fixes", "Find and check a fix", "LocateFixed",
+                "A finding's component, its fix and its line in your code, and a recheck after you change it.") { Area = Audit },
+            new("audit-builds", "Audit in a build", "Workflow",
+                "Fail a build on findings, on real ones, or only on new ones, and send the results to code scanning.") { Area = Audit },
+            new("audit-checks", "What the audit checks", "ListTodo",
+                "The checks izzy adds to axe-core, how each one measures, and what no run checks.") { Area = Audit },
         ]),
         new("troubleshooting", "Troubleshooting", "LifeBuoy",
         [
@@ -188,7 +207,10 @@ public sealed record Article(string Slug, string Title, string Icon, string Summ
     /// </summary>
     public IReadOnlyList<string> Components { get; init; } = [];
 
-    /// <summary>The group an article is listed under on an <see cref="ArticleSection.IndexOnly"/> section's index, such as "Forms and posts".</summary>
+    /// <summary>
+    /// The group an article is listed under: on an <see cref="ArticleSection.IndexOnly"/> section's index, such as
+    /// "Forms and posts"; in the sidebar of any other section, where the group's articles open under its name.
+    /// </summary>
     public string? Area { get; init; }
 
     /// <summary>The modes the problem happens in (<c>off</c>, <c>static</c>, <c>live</c>), shown under its title.</summary>

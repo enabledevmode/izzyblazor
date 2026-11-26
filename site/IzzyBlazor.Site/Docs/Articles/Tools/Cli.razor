@@ -1,12 +1,13 @@
-@page "/docs/cli/overview"
+@page "/docs/tools/cli"
 
 @* The izzy command (src/IzzyBlazor.Cli): install, the commands, and what it writes. Each kind of item has a page
    of its own in this section. Its help text and exit codes are in Cli.cs; keep them in step with these pages.
-   Until Nov 16, 2026 the whole CLI was one article at docs/get-started/cli. *@
+   Until Nov 16, 2026 the whole CLI was one article at docs/get-started/cli; until Nov 26, 2026 this page was
+   docs/cli/overview, the first of a section named "The izzy CLI". *@
 
-<ArticlePage Section="cli" Slug="overview">
+<ArticlePage Section="tools" Slug="cli">
     <Lead>
-        The <Code>izzy</Code> command creates new apps from <Anchor Href="docs/cli/templates">templates</Anchor>, sets up IzzyBlazor in an app you already have, and adds
+        The <Code>izzy</Code> command creates new apps from <Anchor Href="docs/tools/templates">templates</Anchor>, sets up IzzyBlazor in an app you already have, and adds
         <Anchor Href="blocks">blocks</Anchor> and pages to your app. The code it adds is yours to change. You can see every
         change before izzy makes it.
     </Lead>
@@ -89,11 +90,11 @@
         <Heading Level="2">The code is yours</Heading>
         <TextBlock>
             izzy adds plain Razor and C# files to your app. Nothing is hidden in a package, so you can change the text,
-            the layout and the code. To see what you can do with it, read the <Anchor Href="docs/cli/license">License</Anchor>.
+            the layout and the code. To see what you can do with it, read the <Anchor Href="docs/tools/license">License</Anchor>.
         </TextBlock>
         <TextBlock>
             izzy doesn't replace a file unless you add <Code>--overwrite</Code>. To see what a command would change, add
-            <Code>--diff</Code>. See <Anchor Href="docs/cli/changes">Previewing changes</Anchor>.
+            <Code>--diff</Code>. See <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.
         </TextBlock>
         <TextBlock>
             izzy records each item it adds in <Code>.izzy/items.json</Code>, with its version and settings. Commit this file
@@ -102,14 +103,14 @@
 
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
-            <ListItem><Anchor Href="docs/cli/account">Your account</Anchor>: sign in for the app starters, blocks and kits.</ListItem>
-            <ListItem><Anchor Href="docs/cli/templates">Templates</Anchor>: create an app from a starter or an app kit.</ListItem>
-            <ListItem><Anchor Href="docs/cli/blocks">Blocks</Anchor>: add a hero, pricing or a sign-up form to a page.</ListItem>
-            <ListItem><Anchor Href="docs/cli/crud">CRUD pages</Anchor>: create a page to display, add, edit and delete a model's records.</ListItem>
-            <ListItem><Anchor Href="docs/cli/audit">Accessibility audit</Anchor>: check a page with axe-core and get a report.</ListItem>
-            <ListItem><Anchor Href="docs/cli/changes">Previewing changes</Anchor>: see a change before izzy makes it.</ListItem>
-            <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: set up your assistant with <Code>izzy agent</Code>.</ListItem>
-            <ListItem><Anchor Href="docs/cli/license">License</Anchor>: what you can do with the code izzy creates.</ListItem>
+            <ListItem><Anchor Href="docs/tools/account">Your account</Anchor>: sign in for the app starters, blocks and kits.</ListItem>
+            <ListItem><Anchor Href="docs/tools/templates">Templates</Anchor>: create an app from a starter or an app kit.</ListItem>
+            <ListItem><Anchor Href="docs/tools/blocks">Blocks</Anchor>: add a hero, pricing or a sign-up form to a page.</ListItem>
+            <ListItem><Anchor Href="docs/tools/crud">CRUD pages</Anchor>: create a page to display, add, edit and delete a model's records.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit">Accessibility audit</Anchor>: check a page with axe-core and get a report.</ListItem>
+            <ListItem><Anchor Href="docs/tools/changes">Previewing changes</Anchor>: see a change before izzy makes it.</ListItem>
+            <ListItem><Anchor Href="docs/tools/ai-assistants">AI assistants</Anchor>: set up your assistant with <Code>izzy agent</Code>.</ListItem>
+            <ListItem><Anchor Href="docs/tools/license">License</Anchor>: what you can do with the code izzy creates.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>

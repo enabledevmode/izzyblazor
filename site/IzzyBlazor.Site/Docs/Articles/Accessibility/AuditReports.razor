@@ -1,0 +1,86 @@
+@page "/docs/accessibility/audit-reports"
+
+@* The files izzy audit writes to .izzy/audit/<run>/: report.md and results.json always (Audit.cs); with a free account
+   tasks.md (AuditVerdicts.cs), report.html and the pictures (AuditHtml.cs), results.sarif (AuditTrace.cs). *@
+
+<ArticlePage Section="accessibility" Slug="audit-reports">
+    <Lead>
+        Each run of <Code>izzy audit</Code> writes its files to a new folder in <Code>.izzy/audit/</Code>. One
+        report is for you to read, one is data, and three more are for an issue tracker, a client and code
+        scanning.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">The files</Heading>
+        <Table Items="Files" Caption="What izzy audit writes" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="File" Width="Length.Rem(9)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Written with" Width="Length.Rem(11)">@context!.With</TemplateColumn>
+                <TemplateColumn Title="Holds">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Choose the files with <Code>--format</Code>, and another folder with <Code>--out</Code>.
+            <Code>--json</Code> prints the results and writes no files.
+        </TextBlock>
+        <Code Block Language="bash">izzy audit /orders --run --format md,json,tasks,html</Code>
+
+        <Heading Level="2">What every report says</Heading>
+        <List Gap="2">
+            <ListItem>What was checked: the pages, the widths, the color schemes, the browser and the version of axe-core.</ListItem>
+            <ListItem>Each finding: its rule, the WCAG criterion, the element, its selector, its id and where it was found. With an account, also its verdict, its component and its place in your code.</ListItem>
+            <ListItem>What axe couldn't measure, counted apart from the findings.</ListItem>
+            <ListItem>What the run did not check. The list is the same in every report, so nobody reads a short report as a clean bill.</ListItem>
+        </List>
+
+        <Heading Level="2">What axe couldn't measure</Heading>
+        <TextBlock>
+            axe can't measure some elements, such as text over a picture or a gradient. The report counts these
+            apart from the findings, with the reason. They are not failures and they are not passes: look at them
+            yourself.
+        </TextBlock>
+
+        <Heading Level="2">A task list</Heading>
+        <TextBlock>
+            <Code>--format md,json,tasks</Code> also writes <Code>tasks.md</Code>: a checkbox for each group of real
+            findings and each one a person must look at, for an issue or a coding agent. With a
+            <Anchor Href="docs/accessibility/audit-builds">baseline</Anchor>, the findings fixed since then are
+            checked off.
+        </TextBlock>
+
+        <Heading Level="2">A report to hand over</Heading>
+        <TextBlock>
+            <Code>--format html</Code> writes <Code>report.html</Code>, the report as one file for a client or a
+            procurement review. It opens in any browser, in light or dark, and prints. Each element has a picture
+            of the page around it with the element outlined, in each color scheme it was found in. A group of
+            findings shows ten elements and counts the rest. An element the page doesn't draw as it loads, such as
+            an item of a closed menu, has no picture. The pictures are also files in the run's
+            <Code>pictures</Code> folder, and <Code>results.json</Code> names each finding's file in
+            <Code>picture</Code>.
+        </TextBlock>
+        <TextBlock>
+            The report says what an automated run found on the day it ran. It is not a conformance report: a
+            statement such as a VPAT comes from a person who tested each criterion.
+        </TextBlock>
+
+        <Heading Level="2">Ids</Heading>
+        <TextBlock>
+            Each finding has an id made from the rule, the page and the element's selector. It stays the same from
+            run to run, signed in or not, so a script can compare two runs and
+            <Anchor Href="docs/accessibility/audit-fixes">a recheck</Anchor> can find one finding again. An edit
+            that moves the element gives its finding a new id.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string With, string Text);
+
+    private static readonly Row[] Files =
+    [
+        new("report.md", "Always", "For a person or a coding agent: what was checked, then each finding with its rule, the WCAG criterion, the element, its selector, its id and where it was found."),
+        new("results.json", "Always", "The same results as data, for a script or a later comparison."),
+        new("tasks.md", "A free account", "A checkbox for each group of real findings and each one a person must look at."),
+        new("report.html", "A free account", "The report as one file with a picture of each element, for a client or a procurement review."),
+        new("results.sarif", "A free account", "The real findings and those a person must look at, each on its line of your code, for GitHub code scanning and editors."),
+    ];
+}

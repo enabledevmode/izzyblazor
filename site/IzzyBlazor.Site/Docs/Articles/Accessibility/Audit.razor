@@ -1,0 +1,133 @@
+@page "/docs/accessibility/audit"
+
+@* izzy audit <url>: one page checked with axe-core and izzy's own checks in the machine's own browser; --run; what an account
+   adds; every option; several pages in one run (--site, --urls; Pro) (Audit.cs, AuditSite.cs, Cli.cs). The first of the audit's
+   six pages: verdicts, reports, fixes, builds and checks have their own. Until Nov 26, 2026 the audit was one article at
+   docs/cli/audit (redirected here). *@
+
+<ArticlePage Section="accessibility" Slug="audit">
+    <Lead>
+        <Code>izzy audit</Code> checks a page's accessibility with axe-core and checks of its own, in the Chrome or
+        Edge already on your machine. It writes a report you can read and the same results as data. It reports
+        and changes no code.
+    </Lead>
+    <ChildContent>
+        <Alert Status="Status.Warning" Title="No findings is not conformance">
+            A tool finds part of what WCAG asks. The rest needs a person with a keyboard and a screen reader.
+            <Anchor Href="docs/accessibility/automated-and-manual">Automated and manual checks</Anchor> says which is which.
+        </Alert>
+
+        <Heading Level="2">Audit a page</Heading>
+        <TextBlock>
+            <Code>izzy audit</Code> is a command of the <Anchor Href="docs/tools/cli">izzy CLI</Anchor>. Give it the
+            page's address. The app can be running anywhere the browser can reach:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit https://localhost:5001/orders</Code>
+        <TextBlock>
+            To have izzy start the app in your project, audit it and stop it, add <Code>--run</Code> and give the
+            page's path. Without a path it audits the home page:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit /orders --run</Code>
+        <TextBlock>
+            izzy opens the page five times: at 1440 and 375 pixels wide, in light and in dark, and once in forced
+            colors. Some problems show at one width or in one scheme only. An element found more than once counts
+            once.
+        </TextBlock>
+        <TextBlock>
+            The terminal lists each rule that failed with its count of elements, and izzy writes its files to a new
+            folder in <Code>.izzy/audit/</Code>. <Anchor Href="docs/accessibility/audit-reports">Reports</Anchor> lists
+            them.
+        </TextBlock>
+
+        <Heading Level="2">What is free</Heading>
+        <TextBlock>
+            Auditing one page is free. What you get depends on whether izzy is signed in:
+        </TextBlock>
+        <Table Items="Tiers" Caption="What an audit gives, by account" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="With" Width="Length.Rem(14)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="You get">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Sign in with <Code>izzy login</Code>: see <Anchor Href="docs/tools/account">Your account</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Pages behind a sign-in</Heading>
+        <TextBlock>
+            Sign in to your app in a browser, copy the session cookie's name and value from its developer tools, and
+            pass it with <Code>--cookie</Code>. izzy sends it with every request. Repeat the option for more cookies:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit /orders --run --cookie .AspNetCore.Identity.Application=CfDJ8...</Code>
+
+        <Heading Level="2">Audit the whole site</Heading>
+        <TextBlock>
+            With IzzyBlazor Pro, <Code>--site</Code> audits every page of a site. izzy takes the pages from the site's
+            <Code>sitemap.xml</Code>. Without one, it starts at the address you give and follows the links to the
+            site's other pages. With <Code>--run</Code>, it audits the whole app and needs no address:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit --run --site</Code>
+        <TextBlock>
+            An address with a path keeps the audit inside it: <Code>izzy audit --site https://localhost:5001/docs</Code>
+            audits <Code>/docs</Code> and the pages under it. A page is a path, so two addresses that differ only
+            after the <Code>?</Code> are audited once. izzy stops at 500 pages; change that with
+            <Code>--max-pages</Code>. A long run uses up to three browsers side by side.
+        </TextBlock>
+        <TextBlock>
+            To audit pages of your own choosing, list their addresses in a file, one a line, and pass it with
+            <Code>--urls</Code>:
+        </TextBlock>
+        <Code Block Language="bash">izzy audit --urls pages.txt --run</Code>
+        <TextBlock>
+            Following links finds only what a link in the page's HTML leads to. A page reached another way, such
+            as from a menu drawn by script, needs a sitemap or a line in the file.
+        </TextBlock>
+
+        <Heading Level="2">Options</Heading>
+        <Table Items="Options" Caption="Options of izzy audit" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Option" Width="Length.Rem(14)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/accessibility/audit-verdicts">Verdicts</Anchor>: what each finding's verdict means, and how to accept one.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit-reports">Reports</Anchor>: the files an audit writes.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit-fixes">Find and check a fix</Anchor>: a finding's place in your code, and a recheck after you change it.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit-builds">Audit in a build</Anchor>: fail a build on findings.</ListItem>
+            <ListItem><Anchor Href="docs/accessibility/audit-checks">What the audit checks</Anchor>: each check, and what no run checks.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private static readonly Row[] Tiers =
+    [
+        new("No account", "axe-core and izzy's own checks on one page. The findings are listed as the tools gave them, and a finding of izzy's own checks has izzy's note. report.md and results.json."),
+        new("A free account", "Also a verdict and its reason for each finding, the component that drew the element, the fix when izzy knows one and its line in your code. A task list, a report to hand over, a file for code scanning, a baseline to compare with, and the two tools for a coding agent."),
+        new("IzzyBlazor Pro", "Also several pages in one run: a whole site with --site, or the pages you list with --urls."),
+    ];
+
+    private static readonly Row[] Options =
+    [
+        new("--run", "Starts the app in this project, or the one --project names, and stops it after the audit. With an account, findings are traced into its source."),
+        new("--site", "Audits every page of the site: its sitemap's, else those its links lead to. Pro."),
+        new("--urls <file>", "Audits the addresses a file lists, one a line. Pro."),
+        new("--max-pages 500", "The most pages --site audits."),
+        new("--cookie name=value", "Sends a cookie with every request, for pages behind a sign-in. Repeat it for more cookies."),
+        new("--sizes 1440,375", "The widths to check, in pixels."),
+        new("--schemes light,dark", "The color schemes to check. Each page is also opened once in forced colors."),
+        new("--out <folder>", "Where the files go, in place of a new folder in .izzy/audit/."),
+        new("--format md,json", "Which files to write. With an account, tasks adds tasks.md, html adds report.html and sarif adds results.sarif."),
+        new("--project <path>", "The app's project: where --run starts it, and with an account where a finding's file and line are looked for."),
+        new("--json", "Prints the results as JSON and writes no files."),
+        new("--fail-on any", "Ends with exit code 5 when there are findings. With an account, real counts real findings and new counts real findings the baseline lacks."),
+        new("--baseline <file>", "A past run's results.json to compare with. Needs an account."),
+        new("--recheck <id>", "Audits again the page a past run's finding is on, and says whether it is fixed."),
+        new("--browser <path>", "The Chrome, Edge or Chromium to use."),
+    ];
+}

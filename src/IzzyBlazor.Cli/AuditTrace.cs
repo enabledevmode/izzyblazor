@@ -500,7 +500,7 @@ static partial class Audit
                 {
                     ["driver"] = new JsonObject
                     {
-                        ["name"] = "izzy audit", ["version"] = (string)run["version"]!, ["informationUri"] = "https://izzyblazor.com/docs/cli/audit", ["rules"] = rules,
+                        ["name"] = "izzy audit", ["version"] = (string)run["version"]!, ["informationUri"] = "https://izzyblazor.com/docs/accessibility/audit", ["rules"] = rules,
                     },
                 },
                 ["results"] = results,

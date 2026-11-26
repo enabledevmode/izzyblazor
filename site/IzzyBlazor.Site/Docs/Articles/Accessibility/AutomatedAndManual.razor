@@ -1,0 +1,117 @@
+@page "/docs/accessibility/automated-and-manual"
+
+@* The line between what a tool settles, what it flags for a person, and what only a person checks: for izzy audit
+   (Audit.cs, AuditSweeps.cs, the reports' "Not checked" list) and for any other tool. Israel, Nov 25, 2026: "accessibility
+   can be sensitive, so we need to make sure we are clear where the line is drawn about what can be automated vs what
+   will need human intervention and interaction". Claims here are about checks, never about conformance. *@
+
+<ArticlePage Section="accessibility" Slug="automated-and-manual">
+    <Lead>
+        A tool can measure a page, and it can't use one. Some of what WCAG asks is a measurement, and a tool
+        settles it. Some is a judgment a tool can only point at. The rest shows up only when a person uses the
+        page with a keyboard and a screen reader. This page draws the line for
+        <Anchor Href="docs/accessibility/audit">izzy audit</Anchor> and for any tool like it.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Three kinds of check</Heading>
+        <Table Items="Kinds" Caption="Who settles a check" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Kind" Width="Length.Rem(12)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="Who settles it">@context!.Who</TemplateColumn>
+                <TemplateColumn Title="In izzy audit">@context!.Audit</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">What a tool settles</Heading>
+        <TextBlock>
+            These are measurements. When a tool reports one, it is almost always right, and a fix can be checked
+            by running the tool again.
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>A control, picture or frame has no name at all.</ListItem>
+            <ListItem>Text on a plain background has less contrast than 4.5:1, or 3:1 for large text.</ListItem>
+            <ListItem>ARIA is wrong: a role that doesn't exist, an attribute its role doesn't allow, a required child that is missing, an id that <Code>aria-labelledby</Code> points to and nothing has.</ListItem>
+            <ListItem>Two elements share an id, the page has no <Code>lang</Code> or no title, or a heading skips a level.</ListItem>
+            <ListItem>A control is smaller than 24 by 24 pixels and takes clicks in a smaller area than that.</ListItem>
+            <ListItem>A link or button that takes focus stays hidden under a header or footer that stays in place.</ListItem>
+            <ListItem>In forced colors, a control doesn't change at all when it takes focus, or a meter's value isn't drawn.</ListItem>
+        </List>
+
+        <Heading Level="2">What a tool points at, and a person decides</Heading>
+        <TextBlock>
+            Here a tool finds the place, and the answer needs eyes. <Code>izzy audit</Code> gives these the
+            verdict <Anchor Href="docs/accessibility/audit-verdicts">needs a person</Anchor>, or counts them
+            apart as not measured. It never counts them as passed.
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>Text over a picture, a gradient or another element, where the background can't be measured.</ListItem>
+            <ListItem>Text in a color set on the element itself, which may be there for a reason.</ListItem>
+            <ListItem>A control that changes only slightly when it takes focus: is the change enough to see?</ListItem>
+            <ListItem>A part that disappears in forced colors: does it carry meaning, or is it decoration?</ListItem>
+            <ListItem>Two landmarks with one name: a mistake on a page of an app, expected on a page that shows a component twice.</ListItem>
+        </List>
+
+        <Heading Level="2">What only a person can check</Heading>
+        <TextBlock>
+            No run of <Code>izzy audit</Code>, axe or Lighthouse checks these. A report with no findings says
+            nothing about them.
+        </TextBlock>
+        <Table Items="Manual" Caption="Checks that need a person" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Check" Width="Length.Rem(14)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="Why a tool can't">@context!.Who</TemplateColumn>
+                <TemplateColumn Title="How to check it">@context!.Audit</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            <Anchor Href="docs/accessibility/testing">Testing your app</Anchor> has the steps for each.
+        </TextBlock>
+
+        <Heading Level="2">What a report can claim</Heading>
+        <List Gap="2">
+            <ListItem>A finding with the verdict real is a failure of the criterion its rule names. Fix it.</ListItem>
+            <ListItem>No findings means the rules that ran found nothing, on the pages that were audited, in the state they loaded in. It doesn't mean the page meets WCAG.</ListItem>
+            <ListItem>Conformance is a statement a person makes after testing every criterion, by tool and by hand. A VPAT or an accessibility statement needs that work, and an audit report is one of its inputs.</ListItem>
+            <ListItem>An accepted finding is your decision, with your reason. It is not a pass, and the report keeps showing it.</ListItem>
+        </List>
+
+        <Heading Level="2">What IzzyBlazor claims for itself</Heading>
+        <TextBlock>
+            The same line holds for the library. Its components are built to WCAG 2.2 level AA, and the
+            <Anchor Href="docs/accessibility/overview">overview</Anchor> says how that is checked and which gaps
+            are known. <Anchor Href="docs/accessibility/component-status">Component status</Anchor> lists, for each
+            component, what a tool checked and what a person tested with a screen reader. Where a check hasn't
+            been done, it says so.
+        </TextBlock>
+        <TextBlock>
+            Accessible components don't make an app conform. The names, the headings, the order of the page and
+            the words in an error are yours.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Who, string Audit);
+
+    private static readonly Row[] Kinds =
+    [
+        new("A measurement", "The tool. The answer is a number or a fact about the markup.", "A finding with the verdict real, or no finding."),
+        new("A judgment a tool can point at", "A person, looking at the place the tool found.", "A finding with the verdict needs a person, or an element counted as not measured."),
+        new("Use of the page", "A person with a keyboard, a screen reader, zoom and a contrast theme.", "Not checked. Every report lists it under what the run did not check."),
+    ];
+
+    private static readonly Row[] Manual =
+    [
+        new("Names that make sense", "A tool sees that a button has a name, not whether \"Delete\" says which invoice.", "Read each control's name out of context, or list them with a screen reader."),
+        new("Alt text that fits", "A tool sees that a picture has alt text, not whether it describes the picture.", "Read the alt text without looking at the picture."),
+        new("Keyboard order and traps", "The order is right or wrong against the page's meaning.", "Tab through every page, and open and close each dialog and menu."),
+        new("Every feature by keyboard", "A tool doesn't know what your page is for.", "Do each task with the mouse put away."),
+        new("What a screen reader says", "Browsers and screen readers differ, and timing matters.", "Do each task with NVDA, VoiceOver or TalkBack."),
+        new("Announcements", "A change with no reload is silent unless the page announces it.", "Save, filter and delete with a screen reader on, and listen."),
+        new("Dialogs, menus and other states", "An audit sees the page as it loads.", "Open each one and check it by hand, or audit an address that opens it."),
+        new("Zoom and reflow", "Content that is cut off at 200% still measures as present.", "Zoom to 200%, and narrow the window to 320 pixels."),
+        new("A real contrast theme", "A browser's forced colors show what disappears, not a person's own colors.", "Turn on a Windows contrast theme."),
+        new("Errors and instructions", "Whether a message tells the user what to do is a matter of words.", "Submit each form with a mistake in it and read what it says."),
+        new("Time limits, motion and media", "A tool doesn't wait for a session to end or watch a video.", "Check what moves or times out, and that video has captions."),
+    ];
+}

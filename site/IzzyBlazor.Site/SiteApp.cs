@@ -196,7 +196,7 @@ public static class SiteApp
         // The Chat examples' stand-in model (canned answers, no API key).
         builder.Services.AddSingleton<Microsoft.Extensions.AI.IChatClient, Services.CannedChatClient>();
 
-        // The MCP server at /mcp (docs/get-started/ai-assistants): read-only tools over the same
+        // The MCP server at /mcp (docs/tools/ai-assistants): read-only tools over the same
         // data, stateless so any of Fly's machines can answer any request.
         builder.Services.AddSingleton<PageText>();
         builder.Services.AddSingleton<McpDocs>();
@@ -631,6 +631,16 @@ public static class SiteApp
         }
         // Accessibility was one article under Common features until Nov 10, 2026; it's a section now.
         app.MapGet("/docs/common/accessibility", () => Results.Redirect("/docs/accessibility/overview", permanent: true));
+        // "The izzy CLI" became Developer Tools on Nov 26, 2026: its overview is the CLI's page there, AI assistants
+        // moved in from Get started, and the audit's article became pages of the Accessibility section.
+        app.MapGet("/docs/cli", () => Results.Redirect("/docs/tools", permanent: true));
+        app.MapGet("/docs/cli/{slug}", (string slug) => Results.Redirect(slug switch
+        {
+            "overview" => "/docs/tools/cli",
+            "audit" => "/docs/accessibility/audit",
+            _ => $"/docs/tools/{Uri.EscapeDataString(slug)}",
+        }, permanent: true));
+        app.MapGet("/docs/get-started/ai-assistants", () => Results.Redirect("/docs/tools/ai-assistants", permanent: true));
         // Chart types that were topics on Chart's pages until Nov 7, 2026 have pages of their own.
         foreach (var (topic, page) in new[] { ("bars", "bar-chart"), ("lines", "line-chart"), ("scatter", "scatter-chart") })
         {

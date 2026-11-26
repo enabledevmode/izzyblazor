@@ -97,4 +97,4 @@ Add `--dry-run` to see what a command would change before it writes anything. So
 - [Docs](https://izzyblazor.com/docs): theming, forms, data and layout
 - [Templates](https://izzyblazor.com/templates) and [Blocks](https://izzyblazor.com/blocks)
 
-The code in this folder is yours to change and ship. [License](https://izzyblazor.com/docs/cli/license) has the details.
+The code in this folder is yours to change and ship. [License](https://izzyblazor.com/docs/tools/license) has the details.
