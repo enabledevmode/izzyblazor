@@ -14,7 +14,7 @@
     </Lead>
     <ChildContent>
         <Heading Level="2">The tools</Heading>
-        <Table Items="Tools" Caption="IzzyBlazor's developer tools" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+        <Table Items="Tools" Caption="IzzyBlazor's developer tools" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="Tool"><Anchor Href="@context!.Href">@context.Name</Anchor></TemplateColumn>
                 <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
@@ -27,7 +27,7 @@
         </TextBlock>
 
         <Heading Level="2">Pick a tool by task</Heading>
-        <Table Items="Tasks" Caption="The tool for a task" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+        <Table Items="Tasks" Caption="The tool for a task" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="To">@context!.Name</TemplateColumn>
                 <TemplateColumn Title="Run"><code>@context!.Runs</code></TemplateColumn>
@@ -40,7 +40,7 @@
             The components need no account and no tool. The tools work with no account too, and do more with a
             free account or with IzzyBlazor Pro. <Anchor Href="pricing">Pricing</Anchor> has the whole list.
         </TextBlock>
-        <Table Items="Needs" Caption="What each tool does, by account" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+        <Table Items="Needs" Caption="What each tool does, by account" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="Tool">@context!.Name</TemplateColumn>
                 <TemplateColumn Title="No account">@context!.Open</TemplateColumn>

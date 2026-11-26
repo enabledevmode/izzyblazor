@@ -73,7 +73,7 @@
             <Code>App.razor</Code> always renders on the server, so you set up the stylesheet and theme only once, in the
             server project.
         </TextBlock>
-        <Table Items="Packages" Caption="Packages" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <Table Items="Packages" Caption="Packages" Size="ControlSize.Sm" Class="site-params site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="Package" Width="Length.Rem(10)"><code>@context!.Name</code></TemplateColumn>
                 <TemplateColumn Title="Contains">@context!.Contains</TemplateColumn>

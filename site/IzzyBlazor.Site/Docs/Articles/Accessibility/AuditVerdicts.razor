@@ -11,7 +11,7 @@
     </Lead>
     <ChildContent>
         <Heading Level="2">The five verdicts</Heading>
-        <Table Items="Verdicts" Caption="The verdict of a finding" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+        <Table Items="Verdicts" Caption="The verdict of a finding" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="Verdict" Width="Length.Rem(10)">@context!.Name</TemplateColumn>
                 <TemplateColumn Title="Means">@context!.Text</TemplateColumn>

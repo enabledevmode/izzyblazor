@@ -6,7 +6,7 @@
     {
         @* Overview: name, type and default, with the first sentence of each description. The API page
            has the rest. *@
-        <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params site-params-compact" Bordered="false">
+        <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params site-params-compact site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="Prop">
                     <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover" Class="site-member-name"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
@@ -37,7 +37,7 @@
     }
     else
     {
-    <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+    <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
         <Columns>
             <TemplateColumn Title="Prop">
                 <span class="site-member-name">

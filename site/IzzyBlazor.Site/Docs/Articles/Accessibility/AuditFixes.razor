@@ -51,7 +51,7 @@
             page in the newest run in <Code>.izzy/audit/</Code> that has the finding:
         </TextBlock>
         <Code Block Language="bash">izzy audit --recheck 527e645e33f7 --run</Code>
-        <Table Items="Answers" Caption="What a recheck answers" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+        <Table Items="Answers" Caption="What a recheck answers" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="Answer" Width="Length.Rem(10)">@context!.Name</TemplateColumn>
                 <TemplateColumn Title="Exit code" Width="Length.Rem(6)">@context!.Code</TemplateColumn>

@@ -592,6 +592,30 @@
 @media (min-width: 40rem) { .site-params-status table { table-layout: fixed; width: 100%; } }
 /* On a phone a quarter is too narrow for a component's name: the table keeps its own widths and scrolls. */
 @media (max-width: 39.99rem) { .site-params-status :is(td, th) { white-space: nowrap; } }
+/* A name and its description (commands, options) on a phone: the name's column, on one line at its set Width,
+   left the description a word a line. The two columns are equal halves and both wrap, a long command inside a
+   word if it must. (!important: a column's Width is an inline style.) Compact tables keep their own split;
+   an API page's type tables (.site-type-block) and a component's keys (.site-keys) are the same two columns. */
+@media (width < 40rem) {
+  :is(.site-params:not(.site-params-compact), .site-type-block, .site-keys):has(thead th:nth-child(2):last-child) :is(td, th) { width: 50% !important; white-space: normal; }
+  :is(.site-params:not(.site-params-compact), .site-type-block, .site-keys):has(thead th:nth-child(2):last-child) td code { overflow-wrap: anywhere; }
+  /* A key written as a sentence (RichTextEditor's "[ ] or [x] at the start of a line") wraps too. */
+  .site-keys :is(.ib-kbd-combo, .ib-kbd) { flex-wrap: wrap; white-space: normal; }
+}
+/* Three or more columns on a phone: the table stacks (SmallScreen="Stack", below 40rem here and on the Table), a
+   row a card. The first cell is the row's name, with no title; each other cell has its column's title above its
+   text, at the start. The header row is kept for screen readers only: its titles are on the cells. */
+@container (width < 40rem) {
+  .site-params-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .site-params.site-params-stack tbody > tr > td { width: auto !important; text-align: start; white-space: normal; }
+  .site-params-stack tbody > tr > td::before { float: none; display: block; margin: 0; font-size: var(--ib-text-xs); font-weight: 600; }
+  .site-params-stack tbody > tr > td:first-child { font-weight: 600; }
+  .site-params-stack tbody > tr > td:first-child::before { content: none; }
+  .site-params-stack td code { overflow-wrap: anywhere; }
+  /* A parameter's type and default are a word or two: the title sits beside each. */
+  .site-params-compact.site-params-stack tbody > tr > td:first-child { font-weight: inherit; }
+  .site-params-compact.site-params-stack tbody > tr > td:not(:first-child)::before { display: inline-block; min-width: 4rem; font-weight: inherit; }
+}
 /* One thing in two libraries, row by row: equal halves, each wrapping. */
 .site-params.site-params-pair :is(td, th) { width: 50%; white-space: normal; }
 .site-params-pair code { overflow-wrap: anywhere; }
@@ -633,7 +657,9 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .site-member .ib-prose p { margin: 0; }
 .site-member-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ib-space-1) var(--ib-space-3); }
 .site-member-head .site-member-name code { font-size: 1rem; }
-.site-member-type { font-size: var(--ib-text-sm); color: var(--ib-color-muted); background: none; padding: 0; }
+.site-member-type { font-size: var(--ib-text-sm); color: var(--ib-color-muted); background: none; padding: 0; min-width: 0; overflow-wrap: anywhere; }
+/* A long type name (SchedulerAppointmentContext) wraps on a phone, in a member's type and in a heading. */
+.site-article .ib-heading { min-width: 0; overflow-wrap: anywhere; }
 .site-member-default { color: var(--ib-color-subtle); }
 .site-member-text { max-inline-size: 42rem; color: var(--ib-color-on-surface); }
 /* In descriptions, code is a light tint and a member link is underlined mono text, not both. */
@@ -835,6 +861,11 @@ html:has(> body > .frame) body { margin: 0; }
 .site-table { overflow-x: auto; }
 .site-table table { min-width: 32rem; }
 .site-table code { white-space: nowrap; }
+/* Two columns fit a phone without scrolling: the table takes the width it has, and a token's name wraps. */
+@media (width < 40rem) {
+  .site-table:has(thead th:nth-child(2):last-child) table { min-width: 0; }
+  .site-table:has(thead th:nth-child(2):last-child) code { white-space: normal; overflow-wrap: anywhere; }
+}
 
 /* The components index: a card a component, A to Z (after Chakra's overview), its picture on
    top and its summary held to two lines. */

@@ -14,7 +14,7 @@
     </Lead>
     <ChildContent>
         <Heading Level="2">Three kinds of check</Heading>
-        <Table Items="Kinds" Caption="Who settles a check" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+        <Table Items="Kinds" Caption="Who settles a check" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="Kind" Width="Length.Rem(12)">@context!.Name</TemplateColumn>
                 <TemplateColumn Title="Who settles it">@context!.Who</TemplateColumn>
@@ -55,7 +55,7 @@
             No tool settles these. Where a tool checks a small part, such as whether a video has a captions
             track, a clean result says little. A report with no findings says nothing about them.
         </TextBlock>
-        <Table Items="Manual" Caption="Checks that need a person" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+        <Table Items="Manual" Caption="Checks that need a person" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
                 <TemplateColumn Title="Check" Width="Length.Rem(14)">@context!.Name</TemplateColumn>
                 <TemplateColumn Title="Why a tool can't">@context!.Why</TemplateColumn>
