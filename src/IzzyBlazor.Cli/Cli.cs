@@ -32,7 +32,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy describe component --all --json
           izzy describe crud|init [--json]
           izzy add block <id> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
-          izzy add page --name <Name> [--from list|detail|form] [--route <path>] [--folder <folder>] [--mode Static|Server|WebAssembly|Auto] [--layout <Layout>] [--nav] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy add page --name <Name> [--route <path>] [--folder <folder>] [--mode Static|Server|WebAssembly|Auto] [--layout <Layout>] [--nav] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add razor --name <Name> [--folder <folder>] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add component <Name> [--example <name> | --tag] --at <file>:<line>[:<col>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
           izzy inspect <file>:<line>:<col> [--stdin] [--project <path>] --json
@@ -41,7 +41,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy wrap <file>:<line>:<col>[-<line>:<col>] --suggest --json
           izzy unwrap <file>:<line>:<col> [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
           izzy extract <file>:<line>:<col>[-<line>:<col>] --name <Name> [--folder <folder>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
-          izzy add crud <Model> [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory|Http] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
+          izzy add crud <Model> [--folder <folder>] [--layout <Layout>] [--render Server|WebAssembly|Auto] [--nav false] [--name <Plural>] [--singular <words>] [--plural <words>] [--route <path>] [--mode Grid|Pages] [--store Ef|Memory|Http] [--context <DbContext>] [--authorize] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]
           izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]
           izzy update [--to <version>] [--global] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]
@@ -689,15 +689,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         // izzy add block hero: the kind, then the id. izzy add crud <Model>: the model after it.
         // izzy add page --name Orders, izzy add razor --name OrderSummary: a new page, or a component with no route.
         var made = args.Words.Count == 2 && args.Words[1].ToLowerInvariant() is "page" or "razor" ? args.Words[1].ToLowerInvariant() : null;
-        // izzy add page --from list: a starter page (list, detail or form) in place of the blank one, with a free account.
-        var from = made == "page" ? args.Take("from") : null;
-        if (from is not null && from.ToLowerInvariant() is not ("list" or "detail" or "form"))
-            throw new UsageException($"--from is list, detail or form, not \"{from}\".");
         var isCrud = args.Words.Count > 1 && args.Words[1].Equals("crud", StringComparison.OrdinalIgnoreCase);
         var crud = args.Words.Count == 3 && isCrud;
         if (args.Words.Count == 2 && isCrud) throw new UsageException("Usage: izzy add crud <Model>, such as izzy add crud Customer.");
-        var item = crud ? Catalog["crud"] : made is not null ? Catalog[from is null ? made : from.ToLowerInvariant() + "-page"] : Item(args, "izzy add", "izzy add block <id>");
-        if (made is null && item.Manifest.Id is "list-page" or "detail-page" or "form-page") made = "page";
+        var item = crud ? Catalog["crud"] : made is not null ? Catalog[made] : Item(args, "izzy add", "izzy add block <id>");
         if (item.Manifest.Kind == ItemKind.Setup) throw new UsageException("IzzyBlazor's setup runs with izzy init.");
         if (item.Manifest.Kind.MakesProject())
             throw new UsageException($"{item.Manifest.Id} makes a new project: {item.Manifest.NewCommand()} -n <name>.");

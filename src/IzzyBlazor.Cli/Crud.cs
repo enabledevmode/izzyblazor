@@ -136,6 +136,49 @@ static partial class Crud
         var navRenamed = named is not null && named != plural && layout is not null
             && Regex.IsMatch(layout, NavEntry(route, named), RegexOptions.IgnoreCase);
 
+        // Where the pages run: static with a store on the server, in the browser with --store http. --render
+        // puts a server store's pages on a circuit, or picks between the browser's two modes.
+        var circuits = Regex.IsMatch(program, @"\bAddInteractiveServerComponents\b");
+        var render = Given("Render") is { Length: > 0 } asked && !asked.Equals("Default", StringComparison.OrdinalIgnoreCase) && !asked.Equals("Static", StringComparison.OrdinalIgnoreCase)
+            ? (asked.StartsWith("Interactive", StringComparison.OrdinalIgnoreCase) ? asked["Interactive".Length..] : asked).ToLowerInvariant() : null;
+        if ("Static".Equals(Given("Render"), StringComparison.OrdinalIgnoreCase) && http)
+            throw new UsageException("--store http writes pages that run in the browser: use --render webassembly or auto, or a store on the server.");
+        switch (render)
+        {
+            case null: break;
+            case "server":
+                if (http) throw new UsageException("--store http writes pages that run in the browser: use --render webassembly or auto, or a store on the server.");
+                if (!circuits) throw new UsageException($"--render server needs interactive server components, and {project.Host}Program.cs doesn't add them (AddInteractiveServerComponents). Leave the pages static, or add them first.");
+                break;
+            case "webassembly" or "auto":
+                if (!http) throw new UsageException($"--render {render} runs the pages in the browser, where they can't read a store on the server. Add --store http (Pro), which gives them an API to call.");
+                if (render == "auto" && !circuits) throw new UsageException($"--render auto starts on a circuit, and {project.Host}Program.cs doesn't add interactive server components. Use --render webassembly.");
+                break;
+            default: throw new UsageException($"--render is Server, WebAssembly or Auto, not \"{Given("Render")}\".");
+        }
+        if (Given("Render") is not null) settings[settings.Keys.First(k => k.Equals("Render", StringComparison.OrdinalIgnoreCase))] = render switch { "server" => "Server", "webassembly" => "WebAssembly", "auto" => "Auto", _ => "Default" };
+        // An app whose Routes are interactive: a page says nothing and takes the app's mode.
+        var appWide = project.LayoutInBrowser || Regex.IsMatch(project.ReadFile(project.Host + "Components/App.razor") ?? "", @"<Routes\b[^>]*@rendermode");
+
+        // The folder the pages' own folder goes in, when it isn't the usual one.
+        string? pagesFolder = null;
+        if (Given("Folder") is { Length: > 0 } into)
+        {
+            var folder = into.Replace('\\', '/').Trim('/');
+            if (folder.Split('/').Any(part => part is "" or "." or "..") || Path.IsPathRooted(folder))
+                throw new UsageException($"--folder is a folder in the project, such as Components/Pages/Admin, not \"{into}\".");
+            var inClient = project.Client is { } clientFolder && folder.StartsWith(clientFolder, StringComparison.Ordinal);
+            if (http && !project.LayoutInBrowser && !inClient)
+                throw new UsageException($"With --store http the pages are in the .Client project: give --folder a folder under {project.Client}, or leave it out.");
+            if (!http && inClient)
+                throw new UsageException($"{folder} is in the .Client project, and these pages read the store on the server. Give --folder a folder of the server project, or use --store http (Pro).");
+            pagesFolder = "~/" + Pages.InApp(project, folder);
+        }
+        var pageLayout = Given("Layout") is { Length: > 0 } named2 ? named2 : null;
+        if (pageLayout is not null && !Regex.IsMatch(pageLayout, @"^[A-Za-z_][\w.]*$"))
+            throw new UsageException($"--layout is a layout component's name, such as EmptyLayout, not \"{pageLayout}\".");
+        var noNav = "false".Equals(Given("Nav"), StringComparison.OrdinalIgnoreCase);
+
         settings["Model"] = info.Name;
         settings["Name"] = name;
         settings["Singular"] = singular;
@@ -227,13 +270,14 @@ static partial class Crud
             ["OverHttp"] = http,
             ["InEf"] = context is not null,
             // In an app whose pages are static unless they say otherwise, a page in the .Client project says so.
-            ["ClientRenderMode"] = http && !project.LayoutInBrowser,
+            ["ClientRenderMode"] = !appWide && (http || render == "server"),
+            ["HasLayout"] = pageLayout is not null,
             ["HasHttpClient"] = Regex.IsMatch(clientProgram, @"new\s+HttpClient\b|\bAddHttpClient\b|<\s*HttpClient\s*>"),
             // A run with the other store replaces its registration rather than adding a second.
             ["HasStoreRegistration"] = registration.IsMatch(program),
             // The nav links to the pages already (a second run, or a kit's nav): no second link.
-            ["NavRenamed"] = navRenamed,
-            ["HasNavLink"] = layout is not null && Regex.IsMatch(layout, $@"<NavItem\b[^>]*\bHref=""/?{Regex.Escape(route)}""", RegexOptions.IgnoreCase),
+            ["NavRenamed"] = navRenamed && !noNav,
+            ["HasNavLink"] = noNav || layout is not null && Regex.IsMatch(layout, $@"<NavItem\b[^>]*\bHref=""/?{Regex.Escape(route)}""", RegexOptions.IgnoreCase),
             ["HasViewPolicy"] = settings.GetValueOrDefault("ViewPolicy") is { Length: > 0 },
             ["HasEditPolicy"] = settings.GetValueOrDefault("EditPolicy") is { Length: > 0 },
         };
@@ -250,7 +294,9 @@ static partial class Crud
             // The API is the model's, as the store is, whatever --name and --route the pages have.
             ["ApiRoute"] = Kebab(Plural(info.Name)),
             // Auto where the app has circuits too, so the page works before the browser has the app.
-            ["RenderMode"] = Regex.IsMatch(program, @"\bAddInteractiveServerComponents\b") ? "InteractiveAuto" : "InteractiveWebAssembly",
+            ["RenderMode"] = render switch { "server" => "InteractiveServer", "webassembly" => "InteractiveWebAssembly", "auto" => "InteractiveAuto", _ => circuits ? "InteractiveAuto" : "InteractiveWebAssembly" },
+            ["Layout"] = pageLayout ?? "",
+            ["PagesFolder"] = pagesFolder ?? (http ? project.Client + "Pages" : "Components/Pages"),
             // A new record's dates start at today, not the type's empty 01/01/0001.
             ["NewItemInit"] = NewItemInit(shown),
             ["Singular"] = singular,

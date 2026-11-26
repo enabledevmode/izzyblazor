@@ -78,7 +78,7 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
         Run(["add", .. Word(kind), item, .. Settings(settings), .. Option("example", example), .. Option("at", at), .. Option("project", project), .. Flags(dryRun, overwrite)]);
 
     [McpServerTool(Name = "add_crud", Title = "Add a page that edits a model's records", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]
-    [Description("Adds a page whose grid lists, adds, edits and deletes the records of a model class in the app, read from its source (no build needed), with a store for it. describe_item crud lists the settings (Name, Route, Store, Context, Authorize and more). With dryRun it writes nothing and answers with a diff.")]
+    [Description("Adds a page whose grid lists, adds, edits and deletes the records of a model class in the app, read from its source (no build needed), with a store for it. describe_item crud lists the settings (Name, Route, Folder, Layout, Render, Nav, Store, Context, Authorize and more). With dryRun it writes nothing and answers with a diff.")]
     public string AddCrud(
         [Description("The model class's name, such as Customer.")] string model,
         [Description("The crud item's settings by name, as describe_item crud lists them.")] Dictionary<string, JsonElement>? settings = null,
@@ -88,11 +88,10 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
         Run(["add", "crud", model, .. Settings(settings), .. Option("project", project), .. Flags(dryRun, overwrite)]);
 
     [McpServerTool(Name = "add_page", Title = "Add a new page or component", ReadOnly = false, Destructive = false, Idempotent = false, OpenWorld = false)]
-    [Description("Adds a new page to the app with its route, title and a container to start in, or with component a component with no route. from starts a page from a starter with sample data: list (a grid with search and a filter in the address), detail (one record with its actions) or form (a form that posts, validates and redirects). It stops, naming the file, when the file is there or another page has the route. With dryRun it writes nothing and answers with a diff.")]
+    [Description("Adds a new page to the app with its route, title and a container to start in, or with component a component with no route. For a page that lists or edits a model's records, use add_crud. It stops, naming the file, when the file is there or another page has the route. With dryRun it writes nothing and answers with a diff.")]
     public string AddPage(
         [Description("The component's name and its file, such as Orders. Its words are a page's title.")] string name,
         [Description("True for a component with no route (izzy add razor). Then only name, folder and project apply.")] bool component = false,
-        [Description("A starter page to begin from: list, detail or form. Leave out for a blank page.")] string? from = null,
         [Description("The page's address, such as orders or orders/{id:int}. Leave out for the name in kebab case.")] string? route = null,
         [Description("The folder the file goes in, from the project's folder. Leave out for Components/Pages (a page) or Components (a component).")] string? folder = null,
         [Description("Where the page's C# runs: Static, Server, WebAssembly or Auto. Leave out for Static.")] string? mode = null,
@@ -101,7 +100,7 @@ sealed class BuildTools(Func<string[], (int Exit, string Out, string Error)> izz
         [Description("The app's folder or .csproj file, when it isn't where the server runs.")] string? project = null,
         [Description("Writes nothing and answers with the changes as a diff.")] bool dryRun = false) =>
         Run(["add", component ? "razor" : "page", .. Option("name", name), .. Option("folder", folder),
-            .. component ? [] : (string[])[.. Option("from", from), .. Option("route", route), .. Option("mode", mode), .. Option("layout", layout), .. nav ? ["--nav"] : Array.Empty<string>()],
+            .. component ? [] : (string[])[.. Option("route", route), .. Option("mode", mode), .. Option("layout", layout), .. nav ? ["--nav"] : Array.Empty<string>()],
             .. Option("project", project), .. Flags(dryRun, false)]);
 
     [McpServerTool(Name = "new_app", Title = "Create a new IzzyBlazor app", ReadOnly = false, Destructive = false, Idempotent = true, OpenWorld = false)]

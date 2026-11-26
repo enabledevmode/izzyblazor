@@ -89,21 +89,6 @@ public sealed class ComponentTests : IDisposable
         Assert.Contains("IncrementCount() is a method of", Izzy("extract", At(counter, "<Row"), "--name", "CounterActions", "--dry-run").Error);
         Assert.Contains("\"id\": \"sdk\"", Izzy(ItemTier.Free, "doctor", "--json").Out);
 
-        // The three starter pages are in the build too, each from a free account; signed out, izzy says to sign in.
-        // Their files are in the private catalog: where it isn't on this machine, they are left out.
-        Assert.Equal(4, Izzy(ItemTier.Free, "add", "page", "--name", "Projects", "--from", "list").Exit);
-        if (Directory.Exists(ProjectBuild.PrivateCatalog))
-        {
-            foreach (var (name, from) in new[] { ("Projects", "list"), ("ProjectDetails", "detail"), ("NewProject", "form") })
-            {
-                var error = new StringWriter();
-                var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, new StringWriter(), error, proRoot: ProjectBuild.PrivateCatalog, access: ItemTier.Account)
-                    .Run(["add", "page", "--name", name, "--from", from]);
-                Assert.True(exit == 0, error.ToString());
-            }
-            Assert.Contains("FormName=\"new-project\"", File.ReadAllText(Path.Combine(pages, "NewProject.razor")));
-        }
-
         // A component in a new folder brings its @using, once.
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportSummary", "--folder", "Components/Shared").Exit);
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportTotals", "--folder", "Components/Shared").Exit);

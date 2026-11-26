@@ -2,8 +2,8 @@
 
 @* The extension's catalog and everything that adds to an app (0.9.4: out/catalog.js, components.js, dragDrop.js,
    itemPage.js, form.js, formPanel.js, extension.js newPage/newComponent). Each command is one of izzy's: this page
-   says where it is in the editor and links the command's own page. New Page's "Start from" is izzy add
-   page --from (built Nov 26, 2026). *@
+   says where it is in the editor and links the command's own page. izzy add page has no --from (built and
+   removed Nov 26, 2026: a page with data is izzy add crud, which takes --layout, --folder, --render and --nav). *@
 
 <ArticlePage Section="tools" Slug="vs-code-add">
     <Lead>
@@ -61,7 +61,7 @@
             </Columns>
         </Table>
         <TextBlock>
-            New Page's Start from makes a list, a detail page or a form with sample data, with a free account.
+            New Page makes a blank page. For a list, a detail page or a form, use Page for a Model.
             For a page that runs in the browser (Interactive WebAssembly or Auto), start New Page from a
             folder of the app's <Code>.Client</Code> project.
         </TextBlock>

@@ -35,6 +35,13 @@
         "description": "Where the records are kept: Ef, through the DbContext with a DbSet of the model (the default when there's one), or Memory, until the app stops. Http is for an app with a .Client project: the pages run in the browser and call an API that crud adds to the server, over the DbContext or memory (Pro)."
       },
       "Context": { "type": "string", "default": "", "description": "The DbContext, when more than one has a DbSet of the model." },
+      "Folder": { "type": "string", "default": "", "description": "The folder the pages' own folder goes in, from the project's folder: Components/Pages by default, or the .Client project's Pages with --store Http." },
+      "Layout": { "type": "string", "default": "", "description": "The layout component, such as EmptyLayout, when the pages don't use the app's default." },
+      "Render": {
+        "type": "string", "enum": ["Default", "Server", "WebAssembly", "Auto"], "default": "Default",
+        "description": "Where the pages' C# runs. Default: on the server once per request, or in the browser with --store Http. Server: over a circuit. WebAssembly and Auto: in the browser, with --store Http only."
+      },
+      "Nav": { "type": "boolean", "default": true, "description": "Adds a link to the pages in the app's nav. --nav false leaves the nav as it is." },
       "Authorize": { "type": "boolean", "default": false, "description": "Only signed-in people can open the pages. On by default when the app signs people in." },
       "ViewPolicy": { "type": "string", "default": "", "description": "The authorization policy people need to open the pages, such as ViewSales." },
       "EditPolicy": { "type": "string", "default": "", "description": "The policy people need to add, edit and delete; others see the records read-only." }
@@ -55,9 +62,10 @@
     { "if": "!OverHttp", "paths": ["Data/Http{{Model}}Store.cs", "Data/{{Model}}Api.cs"] }
   ],
   "rename": [
-    { "if": "OverHttp && Mode == \"Grid\"", "paths": { "Components/Pages/{{Name}}/Grid.razor": "{{Client}}Pages/{{Name}}/Index.razor" } },
-    { "if": "OverHttp", "paths": { "Components/Pages/{{Name}}/": "{{Client}}Pages/{{Name}}/", "Data/I{{Model}}Store.cs": "{{Client}}Data/I{{Model}}Store.cs", "Data/Http{{Model}}Store.cs": "{{Client}}Data/Http{{Model}}Store.cs" } },
-    { "if": "Mode == \"Grid\"", "paths": { "Components/Pages/{{Name}}/Grid.razor": "Components/Pages/{{Name}}/Index.razor" } }
+    { "if": "OverHttp && Mode == \"Grid\"", "paths": { "Components/Pages/{{Name}}/Grid.razor": "{{PagesFolder}}/{{Name}}/Index.razor" } },
+    { "if": "OverHttp", "paths": { "Components/Pages/{{Name}}/": "{{PagesFolder}}/{{Name}}/", "Data/I{{Model}}Store.cs": "{{Client}}Data/I{{Model}}Store.cs", "Data/Http{{Model}}Store.cs": "{{Client}}Data/Http{{Model}}Store.cs" } },
+    { "if": "Mode == \"Grid\"", "paths": { "Components/Pages/{{Name}}/Grid.razor": "{{PagesFolder}}/{{Name}}/Index.razor" } },
+    { "if": "Mode == \"Pages\"", "paths": { "Components/Pages/{{Name}}/": "{{PagesFolder}}/{{Name}}/" } }
   ],
   "inserts": [
     { "if": "!HasStoreRegistration", "file": "Program.cs", "anchor": "var app = builder.Build();", "position": "before", "text": "builder.Services.{{StoreLifetime}}<{{StoreNamespace}}.I{{Model}}Store, {{RootNamespace}}.Data.{{StoreClass}}>();\n\n" },

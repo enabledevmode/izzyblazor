@@ -74,7 +74,11 @@ public sealed class CrudTests : IDisposable
 
         var customers = Izzy(app, "add", "crud", "Customer");
         Assert.True(customers.Exit == 0, customers.Error);
-        Assert.True(Izzy(app, "add", "crud", "Task").Exit == 0);
+        // Task's page says where it goes and how it runs, as a page from izzy add page does: its folder, its layout,
+        // a circuit, and no link in the nav.
+        var tasks = Izzy(app, "add", "crud", "Task", "--folder", "Components/Pages/Admin", "--layout", "MainLayout", "--render", "InteractiveServer", "--nav", "false");
+        Assert.True(tasks.Exit == 0, tasks.Error);
+        Assert.Contains("Add --store http (Pro)", Izzy(app, "add", "crud", "Task", "--name", "Chores", "--render", "webassembly").Error);
         Assert.Contains("--mode pages (Pro)", Izzy(app, "add", "crud", "Invoice").Error);
         Assert.Equal(3, Izzy(app, "add", "crud", "Customer", "--mode", "pages").Exit);
 
@@ -83,7 +87,12 @@ public sealed class CrudTests : IDisposable
         Assert.Contains("[Microsoft.AspNetCore.Authorization.Authorize]", File.ReadAllText(Path.Combine(app, "Components", "Pages", "Customers", "Index.razor")));
         Assert.False(File.Exists(Path.Combine(app, "Components", "Pages", "Customers", "Edit.razor")));
         // The model named Task is TaskItem in its pages, so Task stays System's.
-        Assert.Contains("@using TaskItem = global::Acme.Models.Task", File.ReadAllText(Path.Combine(app, "Components", "Pages", "Tasks", "Index.razor")));
+        var tasksPage = File.ReadAllText(Path.Combine(app, "Components", "Pages", "Admin", "Tasks", "Index.razor")).ReplaceLineEndings("\n");
+        Assert.Contains("@using TaskItem = global::Acme.Models.Task", tasksPage);
+        Assert.StartsWith("@page \"/tasks\"\n@rendermode InteractiveServer\n@layout MainLayout\n", tasksPage);
+        var nav = File.ReadAllText(Path.Combine(app, "Components", "Layout", "MainLayout.razor"));
+        Assert.Contains("Href=\"customers\"", nav);
+        Assert.DoesNotContain("Href=\"tasks\"", nav);
         Assert.Contains("Nothing to change", Izzy(app, "add", "crud", "Customer").Out);
 
         ProjectBuild.PointAtRepo(_work);

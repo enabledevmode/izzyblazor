@@ -2,6 +2,9 @@
 @*#if (ClientRenderMode) *@
 @rendermode {{RenderMode}}
 @*#endif *@
+@*#if (HasLayout) *@
+@layout {{Layout}}
+@*#endif *@
 @*#if (HasViewPolicy) *@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize(Policy = "{{ViewPolicy}}")]
 @*#elif (Authorize) *@
