@@ -1,0 +1,172 @@
+@page "/docs/tools/vs-code"
+
+@* IzzyBlazor for VS Code, written from the extension itself (0.9.4, Nov 26, 2026: its readme, package.json and
+   out/*.js; the extension is in no repo on this machine). The first of five pages in the sidebar group "VS Code":
+   install, what it needs, the side bar, review before a change, what each account gets, settings, keys and
+   Check Setup (out/doctor.js). The plans table repeats pricing's rows (Components/Pages/Pricing.razor) and the
+   overview's "What each needs": keep the three in step. *@
+
+<ArticlePage Section="tools" Slug="vs-code">
+    <Lead>
+        The IzzyBlazor extension puts the catalog, the component reference, a properties panel, a live preview
+        and the accessibility audit in VS Code. It runs the <Code>izzy</Code> command for everything it
+        does, so the editor writes the files a terminal would.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Install</Heading>
+        <TextBlock>
+            In VS Code, open Extensions, search for IzzyBlazor and choose Install. Or run this in a terminal:
+        </TextBlock>
+        <Code Block Language="bash">code --install-extension izzyblazor.izzyblazor</Code>
+        <TextBlock>The extension needs VS Code 1.101 or later (1.106 to put Properties on the right), and:</TextBlock>
+        <List Gap="2">
+            <ListItem>The .NET 10 SDK or later.</ListItem>
+            <ListItem>The <Code>izzy</Code> tool. When it's missing or too old, the extension offers to install it. When the app has its own copy of izzy in <Code>.config/dotnet-tools.json</Code>, the extension runs that copy, so izzy's version matches the app. See <Anchor Href="docs/tools/cli">The izzy CLI</Anchor>.</ListItem>
+            <ListItem>Chrome or Edge, for the accessibility audit only.</ListItem>
+            <ListItem>A trusted folder. You can browse the catalog in any folder. A command that runs izzy on your app or changes its files needs a folder you trust.</ListItem>
+        </List>
+        <TextBlock>
+            In WSL, over SSH, in a dev container and in Codespaces, izzy installs and runs where the project is.
+        </TextBlock>
+
+        <Heading Level="2">First steps</Heading>
+        <TextBlock>
+            Open the IzzyBlazor icon in the Activity Bar. Get Started has five steps: install izzy, create an app
+            or set up one you have, sign in, add a block or a component, and set up your coding agent. Run
+            IzzyBlazor: Get Started in the Command Palette to open it again.
+        </TextBlock>
+
+        <Heading Level="2">The side bar</Heading>
+        <Table Items="Views" Caption="The views in the IzzyBlazor side bar" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="View" Width="Length.Rem(10)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="What it has">@context!.Text</TemplateColumn>
+                <TemplateColumn Title="Read"><Anchor Href="@context!.Href">@context.Link</Anchor></TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            The status bar shows your plan: Free, Pro preview or Pro. Click it to sign in, sign out or open your
+            account. A right-click in a <Code>.razor</Code> file or on a file in the Explorer has one IzzyBlazor
+            menu with the commands for that place.
+        </TextBlock>
+
+        <Heading Level="2">You see a change first</Heading>
+        <TextBlock>
+            A command that adds or changes files in your app, such as a block, a new page or setting up
+            IzzyBlazor, asks izzy what it would change and opens the answer in VS Code's Refactor Preview:
+            each file with a checkbox and its diff. Nothing is written until you apply it, and undo takes it
+            back. When a file has unsaved changes, the extension asks you to save it first. When a file is
+            already there with other content, you choose to keep yours or to see the replacement as a change.
+            After you apply, the extension offers to build the app, and a failed build's errors are in the
+            Problems panel.
+        </TextBlock>
+        <TextBlock>
+            A component's tag or example, and an option changed in Properties, go straight into the open editor,
+            where undo takes them back. New App and Write Agent Files list what they would write and ask before
+            izzy writes it.
+        </TextBlock>
+        <TextBlock>
+            The extension applies a reviewed change itself and adds the item's packages after. It doesn't
+            record the item in <Code>.izzy/items.json</Code>, as the same command in a terminal does.
+        </TextBlock>
+        <TextBlock>
+            Copy izzy Command, on an item, gives you the same command for a terminal. See
+            <Anchor Href="docs/tools/changes">Previewing changes</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">What each account gets</Heading>
+        <Table Items="Plans" Caption="The extension by account" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="In the editor">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="No account">@context!.Open</TemplateColumn>
+                <TemplateColumn Title="A free account">@context!.Free</TemplateColumn>
+                <TemplateColumn Title="Pro">@context!.Pro</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            Sign In shows a code. Compare it with the code in your browser, then approve. A command your account
+            doesn't have stays in its menu and says what it needs when you choose it. Pro preview is Pro's
+            tools at no charge for a reserved founding price, until Pro is on sale. See
+            <Anchor Href="docs/tools/account">Your account</Anchor> and <Anchor Href="pricing">Pricing</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Coding agents</Heading>
+        <TextBlock>
+            In a trusted folder, the extension registers <Code>izzy mcp</Code> with VS Code. With a free
+            account, agent mode can then list, describe and add the items your account has, with no settings
+            file. Write Agent Files runs <Code>izzy agent</Code> in your app for
+            other agents. See <Anchor Href="docs/tools/ai-assistants">AI assistants</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Settings</Heading>
+        <Table Items="Settings" Caption="The extension's settings" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Setting" Width="Length.Rem(20)"><code>@context!.Name</code></TemplateColumn>
+                <TemplateColumn Title="Default" Width="Length.Rem(6)"><code>@context!.Default</code></TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">Keyboard shortcuts</Heading>
+        <TextBlock>Each works in a <Code>.razor</Code> file. On a Mac, press Cmd for Ctrl and Option for Alt.</TextBlock>
+        <Table Items="Keys" Caption="The extension's keyboard shortcuts" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Keys" Width="Length.Rem(10)"><Kbd Keys="@context!.Name" /></TemplateColumn>
+                <TemplateColumn Title="Command">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+
+        <Heading Level="2">When something doesn't work</Heading>
+        <TextBlock>
+            Run IzzyBlazor: Check Setup, also under Help and Feedback. It checks the .NET SDK, izzy and its version
+            against your app's package, the app's own copy of izzy, your account, the browser for the audit,
+            whether the folder is trusted, and VS Code's version. Each line says what it found and offers the fix. Report a Bug fills in
+            the result and your versions. Show Log opens what izzy printed.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record View(string Name, string Text, string Href, string Link);
+
+    private sealed record Plan(string Name, string Open, string Free, string Pro);
+
+    private sealed record Setting(string Name, string Default, string Text);
+
+    private sealed record Row(string Name, string Text);
+
+    private static readonly View[] Views =
+    [
+        new("Project", "The app's IzzyBlazor version, with a warning when izzy's version differs, and the commands for the app, under Run, Add, Check and Maintain.", "docs/tools/vs-code-add", "Add from the catalog"),
+        new("Accessibility", "The pages you've checked and their findings. It shows after the first check.", "docs/tools/vs-code-accessibility", "Check accessibility"),
+        new("Components", "Every component by category, with the ones you used lately first.", "docs/tools/vs-code-add", "Add from the catalog"),
+        new("Catalog", "Starters, app kits, pages and blocks.", "docs/tools/vs-code-add", "Add from the catalog"),
+        new("Properties", "The options of the component under the cursor. It opens on the right, beside your code.", "docs/tools/vs-code-properties", "Component properties"),
+        new("Help and Feedback", "Check Setup, the docs, Report a Bug and, with Pro or its preview, Send Feedback.", "docs/tools/vs-code#when-something-doesnt-work", "When something doesn't work"),
+    ];
+
+    private static readonly Plan[] Plans =
+    [
+        new("The catalog and every component's reference", "Everything", "Everything", "Everything"),
+        new("Create an app and add to it", "The IzzyBlazor App starter, pages, components and a grid page for a model", "Also six app starters, 15 blocks and Izzy CRM", "Everything"),
+        new("Live preview", "Yes", "Yes", "Yes"),
+        new("Component properties", "No", "View options", "View and edit"),
+        new("Accessibility audit", "One page", "One page, with a verdict on each finding", "The whole app in one run"),
+    ];
+
+    private static readonly Setting[] Settings =
+    [
+        new("izzyblazor.cliPath", "izzy", "The izzy command to run. With the default, the extension runs the app's own copy, or else the one installed on your machine."),
+        new("izzyblazor.formStyle", "auto", "How a catalog item's settings and New Page's are asked for. auto: steps for up to four settings, a form for more. quickPick: always steps. panel: always a form."),
+        new("izzyblazor.buildAfterApply", "ask", "Whether to build the app after you apply changes: ask, always or never."),
+        new("izzyblazor.inspector.open", "click", "When Properties opens by itself: on a click in a component's tag, on a doubleClick on its name, or only when you ask for it (manual)."),
+        new("izzyblazor.inspector.saveAfterChange", "false", "Saves the page after each change made in Properties, so the live preview shows it."),
+    ];
+
+    private static readonly Row[] Keys =
+    [
+        new("Ctrl+Alt+I", "Insert a Component or Block Here"),
+        new("Ctrl+Alt+P", "Show Component Properties"),
+        new("Ctrl+Alt+O", "Set an Option"),
+    ];
+}

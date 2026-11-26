@@ -1,0 +1,65 @@
+@page "/docs/tools/vs-code-preview"
+
+@* Preview with Hot Reload (0.9.4: out/preview.js, framing.js). The app runs with dotnet watch; the panel loads it
+   through a local relay that drops the headers forbidding frames. The library sets nothing for it: the request for
+   IZZYBLAZOR_PREVIEW=1 was declined (Nov 26, 2026), since the relay removes the header. *@
+
+<ArticlePage Section="tools" Slug="vs-code-preview">
+    <Lead>
+        Preview with Hot Reload runs your app and shows the page you're editing beside its code, at a phone's,
+        a tablet's or the panel's width. Use it to see a page at each size as you write it.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Start it</Heading>
+        <TextBlock>
+            Choose Preview with Hot Reload in the title bar of a <Code>.razor</Code> page, in its right-click
+            menu, or under Project, in Run. The extension starts the app with <Code>dotnet watch</Code> and
+            opens the page beside the editor. The status bar shows the app while it runs. Stop the app, in the
+            preview's bar, ends it. For a route with a parameter, type the address in the preview's bar.
+        </TextBlock>
+
+        <Heading Level="2">Sizes</Heading>
+        <Table Items="Sizes" Caption="The preview's sizes" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Size" Width="Length.Rem(8)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="The page is">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            The page is drawn at the device's real width and scaled to fit the panel, so your breakpoints apply
+            as they would on the device. Rotate turns a phone or a tablet to landscape.
+        </TextBlock>
+
+        <Heading Level="2">As you edit</Heading>
+        <TextBlock>
+            When you save, the page reloads as soon as hot reload has applied the change, and keeps its scroll
+            position. When a change needs a restart, the page reloads once the app is back. A page with
+            WebAssembly components isn't reloaded: <Code>dotnet watch</Code> changes it in place.
+        </TextBlock>
+        <TextBlock>
+            With Follow editor on, the preview moves to the page you open in the editor. Links in the preview
+            work, and the preview's bar shows the address you are at. You can type another address, or open
+            the page in your browser.
+        </TextBlock>
+
+        <Heading Level="2">How the page is loaded</Heading>
+        <TextBlock>
+            ASP.NET Core forbids framing a page that has a form: its antiforgery token comes with the header
+            <Code>X-Frame-Options: SAMEORIGIN</Code>. The preview loads the app through a small relay on your
+            machine, which removes that header and a <Code>frame-ancestors</Code> rule, and adds a script that
+            reloads the page and reports its address. Your app isn't changed, and Open in Browser goes straight
+            to it. When the preview stays blank, open the page in your browser.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private static readonly Row[] Sizes =
+    [
+        new("Phone", "390 by 844 pixels."),
+        new("Tablet", "768 by 1024 pixels."),
+        new("Desktop", "As wide as the panel."),
+    ];
+}

@@ -1,0 +1,80 @@
+@page "/docs/tools/vs-code-accessibility"
+
+@* The audit in the editor (0.9.4: out/audit.js): a front end over izzy audit <path> --run --json. What a run checks,
+   the verdicts and the reports are on the Accessibility section's audit pages: this page says where the results show
+   in VS Code. Left out on purpose (Nov 26, 2026): 0.9.4's comparison with the last audit, Open Audit Report and Open
+   tasks.md. They need the run's files, and the extension passes no --out and reads landed, not written, so with
+   this izzy they never show. Add them here and to the table on docs/tools/vs-code when the extension reads written. *@
+
+<ArticlePage Section="tools" Slug="vs-code-accessibility">
+    <Lead>
+        Check Page Accessibility runs <Anchor Href="docs/accessibility/audit">izzy audit</Anchor> on the page
+        you're editing and lists what it found in the side bar and the Problems panel. It reports and changes
+        no code.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Check a page</Heading>
+        <TextBlock>
+            Right-click a page in the editor or the Explorer and choose Check Page Accessibility, or use the
+            icon in the editor's title bar. Check Accessibility, in the Project view under Check, lists every
+            page of your app and takes a path you type. For a route with a parameter, such as
+            <Code>/orders/{id:int}</Code>, the extension asks for a value and remembers it.
+        </TextBlock>
+        <TextBlock>
+            izzy builds and starts your app, audits the page in Chrome or Edge, and stops the app.
+            <Anchor Href="docs/accessibility/audit">Audit a page</Anchor> says what a run does. The audit
+            runs the saved files: the extension asks when the page has unsaved changes. When the app doesn't
+            build, the message names the error and takes you to it. A component with no <Code>@@page</Code>
+            route can't be opened alone: check a page that uses it.
+        </TextBlock>
+
+        <Heading Level="2">Read the results</Heading>
+        <Table Items="Places" Caption="Where an audit's results show" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Place" Width="Length.Rem(12)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="What it shows">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            The view groups findings by the rule that failed, and calls each group a problem. Needs a person
+            to check lists each check axe-core couldn't measure, such as contrast over a picture, with how
+            many elements. These are neither findings nor passes: look at each one. See
+            <Anchor Href="docs/accessibility/automated-and-manual">Automated and manual checks</Anchor>.
+        </TextBlock>
+        <TextBlock>
+            With a free account, each finding has its <Anchor Href="docs/accessibility/audit-verdicts">verdict</Anchor>
+            and the reason for it. After a fix, Check Again on a page audits it again. The results stay in the
+            view until you clear them.
+        </TextBlock>
+        <TextBlock>
+            For <Code>report.md</Code>, a task list and a comparison with an earlier run, run
+            <Code>izzy audit</Code> in a terminal: see <Anchor Href="docs/accessibility/audit-reports">Reports</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">The whole app</Heading>
+        <TextBlock>
+            With Pro, Whole App, in the list of pages, audits every page your app links to, or its sitemap
+            lists, in one run.
+        </TextBlock>
+
+        <Heading Level="2">What a clean result means</Heading>
+        <TextBlock>
+            No findings means the automated checks found nothing on that page as it loaded. It doesn't mean
+            the page meets WCAG. The audit doesn't
+            open closed dialogs or menus, and doesn't check keyboard order or what a screen reader says. See
+            <Anchor Href="docs/accessibility/audit-checks">What the audit checks</Anchor> and
+            <Anchor Href="docs/accessibility/testing">Testing your app</Anchor>.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private static readonly Row[] Places =
+    [
+        new("The Accessibility view", "The findings by page, then problem, then element, the most serious first. Copy Selector, on an element, copies its CSS selector."),
+        new("The Problems panel", "Each problem on the page's @page line, with a link to how to fix it. A finding on an address no .razor file has a route for isn't listed here."),
+        new("A details page", "For each problem: the elements, their markup, the ways to fix it, and the verdict when the run has one."),
+    ];
+}

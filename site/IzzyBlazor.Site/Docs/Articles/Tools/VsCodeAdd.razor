@@ -1,0 +1,100 @@
+@page "/docs/tools/vs-code-add"
+
+@* The extension's catalog and everything that adds to an app (0.9.4: out/catalog.js, components.js, dragDrop.js,
+   itemPage.js, form.js, formPanel.js, extension.js newPage/newComponent). Each command is one of izzy's: this page
+   says where it is in the editor and links the command's own page. New Page's "Start from" (list, detail, form)
+   isn't here: izzy add page has no --from yet (Nov 26, 2026). *@
+
+<ArticlePage Section="tools" Slug="vs-code-add">
+    <Lead>
+        Browse every component, block and template in the side bar and read its reference in the editor.
+        Insert a component or a block at the cursor, add a page, or create an app from a template.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Browse</Heading>
+        <TextBlock>
+            Components lists every component by category, with the ones you used lately under Recent. Type in
+            the view, or use its search button, to filter the list. Catalog lists the starters, app kits, pages
+            and blocks, and labels the ones that need Pro. Search Catalog finds any item by
+            name, components too.
+        </TextBlock>
+        <TextBlock>
+            Select an item to open its reference in an editor tab. A component's has every option with its type
+            and default, its events, slots and parts, and its usage examples. A block's has its picture, its
+            render modes and its main settings. A starter's or kit's also has its screens at desktop and phone
+            sizes. The pictures load from izzyblazor.com.
+        </TextBlock>
+
+        <Heading Level="2">Create an app</Heading>
+        <TextBlock>
+            New App starts from a starter or an app kit. Give the app a name and a folder, fill in its settings,
+            and confirm the list of files. Set Up IzzyBlazor in This App adds IzzyBlazor to a Blazor app you
+            have. See <Anchor Href="docs/tools/templates">Templates</Anchor> and
+            <Anchor Href="docs/get-started/existing-app">Add to an existing app</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Insert at the cursor</Heading>
+        <Table Items="Ways" Caption="Ways to put a component or block in a page" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Use" Width="Length.Rem(12)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            A component goes in as its tag, with no review: undo takes it back. When the cursor is inside another tag's attributes, the new tag goes
+            after that tag, so the page still builds. Markup can't go inside <Code>@@code</Code>: move the cursor
+            into the markup first. A block with settings asks for them, then shows the changes to review. See
+            <Anchor Href="docs/tools/components">Components</Anchor> and
+            <Anchor Href="docs/tools/blocks">Blocks</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Add pages and components</Heading>
+        <TextBlock>
+            The first four commands are in the Project view, under Add. New Page and New Component are also in
+            the IzzyBlazor menu of a right-click on a folder or in a <Code>.razor</Code> file.
+        </TextBlock>
+        <Table Items="Adds" Caption="Commands that add a file to the app" Size="ControlSize.Sm" Class="site-params site-params-prose" Bordered="false">
+            <Columns>
+                <TemplateColumn Title="Command" Width="Length.Rem(12)">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="What it makes">@context!.Text</TemplateColumn>
+                <TemplateColumn Title="Read"><Anchor Href="@context!.Href">@context.Link</Anchor></TemplateColumn>
+            </Columns>
+        </Table>
+        <TextBlock>
+            In New Page, leave Start from at Blank: izzy doesn't make the list, detail and form starter pages
+            yet. For a page that runs in the browser (Interactive WebAssembly or Auto), start New Page from a
+            folder of the app's <Code>.Client</Code> project.
+        </TextBlock>
+
+        <Heading Level="2">Settings forms</Heading>
+        <TextBlock>
+            A catalog item with settings asks for them first: as steps at the top of the window, or as a form
+            that shows what the item would create and change as you fill it in.
+            <Anchor Href="docs/tools/vs-code#settings"><Code>izzyblazor.formStyle</Code></Anchor> says which.
+            A choice that needs Pro is labeled Pro, and says so when you pick it.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Row(string Name, string Text);
+
+    private sealed record Add(string Name, string Text, string Href, string Link);
+
+    private static readonly Row[] Ways =
+    [
+        new("The + button", "On a component or block in the side bar or on its reference: inserts it in the .razor file you were last in, at the cursor. The reference names that file and line."),
+        new("Ctrl+Alt+I", "Opens a search at the cursor for any component or block, recent components first. Cmd+Option+I on a Mac."),
+        new("Drag", "Drag a component or block from the side bar into the page, and hold Shift as you drop. Without Shift, VS Code opens what you dragged. After you drop a component, VS Code's Drop with button switches between its tag and its usage example."),
+        new("Insert Example", "Inserts one of a component's usage examples from the docs, with its @using lines and @code members."),
+    ];
+
+    private static readonly Add[] Adds =
+    [
+        new("New Page", "A .razor page with its route, render mode and layout, and a link in the app's nav unless you clear the box.", "docs/tools/pages", "Pages and components"),
+        new("New Component", "A component with no route, in the folder you right-clicked or the open file's folder.", "docs/tools/pages", "Pages and components"),
+        new("Page for a Model", "A page that lists, adds, edits and deletes a model class's records. Also in a right-click on a .cs file. It finds the classes through the C# extension.", "docs/tools/crud", "CRUD pages"),
+        new("Block as a Page", "A block from the catalog as a page of its own.", "docs/tools/blocks", "Blocks"),
+        new("Add to App", "On a block's reference or its right-click in Catalog: adds it as a file of its own, when you have no .razor file open to insert it in.", "docs/tools/blocks", "Blocks"),
+    ];
+}

@@ -1,0 +1,62 @@
+@page "/docs/tools/vs-code-properties"
+
+@* The Properties view, Set an Option and the hover (0.9.4: out/inspector.js, setOption.js). Reading runs izzy
+   inspect (a free account), changing runs izzy set (Pro, and its preview): the same tiers as pricing's row
+   "Component inspector in the IDE". *@
+
+<ArticlePage Section="tools" Slug="vs-code-properties">
+    <Lead>
+        Properties lists every option of the component under the cursor, with the values its tag sets. Use
+        it to find an option without leaving the file, and to set one without typing its name. Seeing the
+        options needs a free account, and setting one from the editor is part of Pro.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Open it</Heading>
+        <TextBlock>
+            Click a component's tag in a <Code>.razor</Code> page. Properties opens in the side bar on the right,
+            beside your code, and follows the cursor from then on. <Kbd Keys="Ctrl+Alt+P" /> opens it from the
+            keyboard (<Kbd Keys="Cmd+Option+P" /> on a Mac).
+            <Anchor Href="docs/tools/vs-code#settings"><Code>izzyblazor.inspector.open</Code></Anchor> changes
+            when it opens by itself.
+        </TextBlock>
+        <TextBlock>
+            In VS Code before 1.106, and in editors with no side bar on the right for extensions, Properties is in
+            the IzzyBlazor side bar. You can drag it anywhere.
+        </TextBlock>
+
+        <Heading Level="2">Read a component's options</Heading>
+        <List Gap="2">
+            <ListItem>The breadcrumbs show where the component sits, such as Container, Column, DataGrid. Click one to see that component's options.</ListItem>
+            <ListItem>Options are in the groups of the component's docs page, such as Layout, Field and Styling.</ListItem>
+            <ListItem>An option the tag sets has a bar in the margin. An option it doesn't set shows its default.</ListItem>
+            <ListItem>A long group shows the options in use and the main ones. Show more shows the rest.</ListItem>
+            <ListItem>Point to an option, or move focus to it, to read its description, type and default at the bottom of the panel.</ListItem>
+            <ListItem>The filter box finds an option by name. The toggle at its end shows only the options the tag sets.</ListItem>
+            <ListItem>A value written as a C# expression is shown as written.</ListItem>
+        </List>
+
+        <Heading Level="2">Change an option</Heading>
+        <TextBlock>
+            With Pro, pick a value or type one for an option that is on or off, a choice, text or a number.
+            Other options show their type, and are set in the code. The change is written to the open editor at once, so undo takes it
+            back, and the file is saved only when you save it. To go back to the default, choose Default in a
+            list, clear a text field, or use Reset beside the option's name.
+        </TextBlock>
+        <TextBlock>
+            The <Anchor Href="docs/tools/vs-code-preview">live preview</Anchor> shows a change when the file is
+            saved: <Anchor Href="docs/tools/vs-code#settings"><Code>izzyblazor.inspector.saveAfterChange</Code></Anchor>
+            saves after each change.
+        </TextBlock>
+
+        <Heading Level="2">Without Properties</Heading>
+        <TextBlock>
+            Set an Option (<Kbd Keys="Ctrl+Alt+O" />, or <Kbd Keys="Ctrl+." /> on a tag) lists the options of
+            the component under the cursor that it can set, the ones in use first. Pick one, then its value.
+            It asks in VS Code's own lists at the top of the window. Setting the value needs Pro.
+        </TextBlock>
+        <TextBlock>
+            Point to a component's name in the file to see what it is and the options its tag sets, with links to
+            set one or to open Properties.
+        </TextBlock>
+    </ChildContent>
+</ArticlePage>
