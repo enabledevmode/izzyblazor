@@ -52,7 +52,9 @@ public sealed class AccountTests : IDisposable
         var ids = zip.Entries.Select(e => e.FullName.Split('/')[0]).Distinct().ToList();
 
         var all = Catalog.Load(Path.Combine(ProjectBuild.RepoRoot, "catalog"), ProjectBuild.PrivateCatalog);
-        Assert.Equal(all.Items.Values.Where(i => i.Manifest.Tier == ItemTier.Account).Select(i => i.Manifest.Id).Order(StringComparer.Ordinal), ids.Order(StringComparer.Ordinal));
+        // With the items, the pack izzy audit judges one page's findings with.
+        Assert.Equal(all.Items.Values.Where(i => i.Manifest.Tier == ItemTier.Account).Select(i => i.Manifest.Id).Append(".audit").Order(StringComparer.Ordinal), ids.Order(StringComparer.Ordinal));
+        Assert.Contains(zip.Entries, e => e.FullName == ".audit/pack.json");
         // crud's Pages mode is Pro: its files are in the private catalog and stay there.
         Assert.DoesNotContain(zip.Entries, e => e.FullName.StartsWith("crud/", StringComparison.Ordinal));
     }

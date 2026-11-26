@@ -185,10 +185,21 @@ static partial class Audit
                         var nth = met[element] = met.GetValueOrDefault(element) + 1;
                         // Only a tracer writes a trace: a page's own is not printed.
                         node.AsObject().Remove("trace");
-                        if (judge is null) node.AsObject().Remove("judged");
                         node["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{element}{(nth > 1 ? $"|{nth}" : "")}")))[..12];
                     }
                 }
+                // Without a judge a sweep's own answer stays on its finding, as a note; what it measured to be no
+                // fault (a hit area larger than the box) is no finding. Ids are given first, so an element has
+                // the id a run with a judge gives it. No picture is taken in such a run, so
+                // the elements kept in the page for pictures need not follow.
+                if (judge is null)
+                    foreach (var rule in page["violations"]!.AsArray().ToList())
+                    {
+                        var nodes = rule!["nodes"]!.AsArray();
+                        for (var i = nodes.Count - 1; i >= 0; i--)
+                            if ((string?)nodes[i]!["judged"]?["is"] == FalsePositive) nodes.RemoveAt(i);
+                        if (nodes.Count == 0) page["violations"]!.AsArray().Remove(rule);
+                    }
             }
             catch (Exception e) when (e is InvalidOperationException or NullReferenceException or System.Text.Json.JsonException or InvalidCastException)
             {
@@ -525,9 +536,12 @@ static partial class Audit
         text.Append($"\n  On {Code((string)page["url"]!)} at {string.Join("; ", where)}:\n\n");
         text.Append($"  ```html\n  {Spaces().Replace((string)node["html"]!, " ")}\n  ```\n");
         text.Append($"  - Selector: {Code((string)node["target"]!)}\n");
+        if ((string?)node["id"] is { } id) text.Append($"  - Id: `{id}`\n");
         if ((string?)node["summary"] is { } summary) text.Append($"  - {(Swept(rule) ? "izzy" : "axe")}: {Plain(FixLead().Replace(Spaces().Replace(summary, " "), ""))}\n");
         if (node["contrast"] is { } contrast)
             text.Append($"  - Measured: {(string?)contrast["foreground"]} on {(string?)contrast["background"]}, {contrast["ratio"]}:1 at {(string?)contrast["size"]}; needs {(string?)contrast["needs"]}\n");
+        // A sweep's own answer, in a run with no verdicts.
+        if (node["judged"] is { } own) text.Append($"  - izzy's check: {(string?)own["is"]}. {((string?)own["why"] ?? "").TrimEnd('.')}.\n");
         text.Append(TraceLines(node));
         return text.ToString();
     }

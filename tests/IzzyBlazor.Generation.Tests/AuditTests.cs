@@ -47,9 +47,9 @@ public sealed class AuditTests : IDisposable
     }
 
     [BrowserFact]
-    public void With_the_pack_each_finding_has_a_verdict_and_a_later_run_is_compared_with_the_first()
+    public void With_an_account_each_finding_of_a_page_has_a_verdict_and_a_later_run_is_compared_with_the_first()
     {
-        // Pro: the pack is in the private catalog, and the app has its own decisions.
+        // A free account's copy of the catalog has the pack, and the app has its own decisions.
         var pro = Path.Combine(_work, "pro");
         Directory.CreateDirectory(Path.Combine(pro, ".audit"));
         File.WriteAllText(Path.Combine(pro, ".audit", "pack.json"), """
@@ -69,8 +69,8 @@ public sealed class AuditTests : IDisposable
         (int Exit, string Output, string Error) Audit(params string[] options)
         {
             var (output, error) = (new StringWriter(), new StringWriter());
-            var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, output, error, proRoot: pro)
-                .Run(["audit", site.Url, "--sizes", "1440", "--schemes", "light", "--format", "md,json,tasks,html", .. options]);
+            var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, output, error, proRoot: pro, access: ItemTier.Account)
+                .Run(["audit", .. options.Contains("--recheck") ? Array.Empty<string>() : [site.Url, "--sizes", "1440", "--schemes", "light"], "--format", "md,json,tasks,html", .. options]);
             return (exit, output.ToString(), error.ToString());
         }
 
@@ -91,6 +91,14 @@ public sealed class AuditTests : IDisposable
         var pictured = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "first", "results.json")))!["pages"]![0]!["violations"]![0]!["nodes"]![0]!["picture"]!;
         Assert.True(File.Exists(Path.Combine(_work, "first", (string)pictured["file"]!)));
 
+        // Looked for again by its id, the picture's finding is still there, and gone once the picture has its text (below).
+        var picked = (string)JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "first", "results.json")))!["pages"]![0]!["violations"]!.AsArray().First(rule => (string)rule!["id"]! == "image-alt")!["nodes"]![0]!["id"]!;
+        Assert.Contains($"- Id: `{picked}`", File.ReadAllText(Path.Combine(_work, "first", "report.md")));
+        // An agent's tools do the same through izzy mcp: the page, then the finding, found in the newest run in .izzy/audit.
+        var tools = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _work, new StringWriter(), new StringWriter(), proRoot: pro, access: ItemTier.Account).BuildTools();
+        Assert.Contains("/report.md", tools.AuditPage(site.Url));
+        Assert.Contains("Still there: `image-alt` on `/`", tools.RecheckFinding(picked));
+
         // The picture gets its text and a button arrives with no name: one fixed, one new.
         body = body.Replace(picture, "<img alt=\"Orders by month\" src=\"data:image/gif;base64,R0lGODlhAQABAAAAACw=\"><button></button>");
         var second = Audit("--out", "second", "--baseline", "first/results.json", "--fail-on", "new");
@@ -99,6 +107,9 @@ public sealed class AuditTests : IDisposable
         var tasks = File.ReadAllText(Path.Combine(_work, "second", "tasks.md"));
         Assert.Contains("- [ ] **Buttons must have discernible text** (`button-name`", tasks);
         Assert.Contains("- [x] **Images must have alternative text** (`image-alt`", tasks);
+        var gone = Audit("--recheck", picked, "--baseline", "first/results.json", "--out", "after");
+        Assert.True(gone.Exit == 0, gone.Error);
+        Assert.Contains("Fixed: `image-alt` on `/`", gone.Output);
     }
 
     [BrowserFact]

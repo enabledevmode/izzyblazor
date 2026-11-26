@@ -24,7 +24,7 @@ echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.bash_profile    # bash
 - `izzy upgrade` finds where the app uses what the releases between its old version and the new one removed or renamed, in its `.razor` and `.cs` files, and prints a plan: each rename it would make, and the rest by file and line. `izzy upgrade --apply` makes the renames (Pro). `izzy update` lists the changes themselves.
 - `izzy list` shows the catalog; `izzy describe block hero` lists an item's settings.
 - `izzy login` signs this machine in to a free IzzyBlazor account, which the app starters, the blocks and the CRM kit come with. In CI, set `IZZY_KEY` to a key from your account page.
-- `izzy audit <url>` checks a page's accessibility with axe-core in the Chrome or Edge on your machine, and writes a report and the results as JSON. `--run` starts your app for it.
+- `izzy audit <url>` checks a page's accessibility with axe-core and checks of its own in the Chrome or Edge on your machine, and writes a report and the results as JSON. `--run` starts your app for it. One page is free; with a free account each finding has a verdict and its component, and with `--run` the file and line.
 - `izzy agent` sets up your coding agent in the app. It writes a skill that teaches the agent to build with IzzyBlazor, and connects the docs server and `izzy mcp`, which runs izzy's commands as tools.
 - `--dry-run` writes nothing, `--diff` shows the changes as a unified diff, and `--json` prints them as data for editors and agents.
 - Files that exist with other content are never replaced without `--overwrite`.

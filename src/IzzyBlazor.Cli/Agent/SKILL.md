@@ -51,6 +51,18 @@ If a tool answers that the user must run `izzy login`, tell them: it is a free a
 2. If it isn't known, tell the user what you worked around and offer to report it.
 3. Call `report_gap` only after they agree and know the report is public, with a minimal `.razor` repro that uses sample names, never their code or data.
 
+## Check accessibility
+
+IzzyBlazor's components are built and tested for accessibility. A page built from them can still fail: a picture with no text, an `IconButton` with no `Label`, two navigation regions with one name, a color set by hand.
+
+1. After you add or change a page, call `audit_page` with its address, or with `run: true` and its path (`/orders`), which starts the app for the audit. It checks one page with axe-core and izzy's own checks, at two widths, in light and dark and in forced colors.
+2. Read `report.md` where the answer says it is. Each finding has an id, a verdict and its reason, the element, the component that drew it, the fix when izzy knows one and, with `run` or `project`, the file and line. Fix what is "real". Show the user what "needs a person": a tool can't settle those. Leave "false positive" and "demo page" alone.
+3. The audit changes no code. Make the fix, then call `recheck_finding` with the finding's id. If it also names a new finding of the same rule, the edit may have moved the element: look at that finding before you call it fixed.
+4. Never tell the user a page is accessible or conforms to WCAG because the audit found nothing. It doesn't open closed dialogs or menus, and doesn't check keyboard order or what a screen reader says. Say what was checked and what wasn't: the report's "Not checked" section lists it.
+5. A finding the user decides to keep goes in `.izzy/audit.json` under `accepted`, with their reason. Ask first; never accept one on your own.
+
+One page a call is free with the account. A whole site is `izzy audit --site <url>`, or `izzy audit --run --site`, in a terminal: it comes with IzzyBlazor Pro and takes minutes.
+
 ## Moving to a newer IzzyBlazor
 
 `izzy update` sets the app's IzzyBlazor version and builds; it ends with what the releases in between removed or renamed. Razor takes an old parameter name without a warning, so act on that list. With IzzyBlazor Pro, `izzy upgrade --json` gives each use in the app and writes nothing (`uses`: file, line, column, and a `note` saying what to use instead). Show the person that plan; when they approve it, `izzy upgrade --apply` makes the plain renames. Change the rest by hand, then build.

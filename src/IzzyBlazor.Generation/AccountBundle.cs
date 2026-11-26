@@ -18,8 +18,9 @@ public static partial class AccountBundle
     /// <summary>
     /// Writes the bundle from the two catalogs. From the private one it takes the folder of each item whose
     /// public manifest says <c>"tier": "account"</c>, less its Pro layouts (<c>layouts/&lt;choice&gt;.*</c> for a
-    /// Pro choice). Pro items and the Pro files of free items are left out. A file kept that has a condition on
-    /// a Pro choice stops the export: that markup belongs in a layout file of its own.
+    /// Pro choice). Pro items and the Pro files of free items are left out; <c>.audit/</c>, the pack izzy audit
+    /// judges findings with, is in. A file kept that has a condition on a Pro choice stops the export: that
+    /// markup belongs in a layout file of its own.
     /// </summary>
     /// <param name="publicRoot">The public catalog, with every item's manifest.</param>
     /// <param name="privateRoot">The private catalog.</param>
@@ -64,8 +65,22 @@ public static partial class AccountBundle
                     stream.Write(bytes);
                 }
             }
+            Folder(zip, Path.Combine(privateRoot, ".audit"));
         }
         return buffer.ToArray();
+    }
+
+    // A folder as it is: .audit/, the pack izzy audit judges findings with, is in every account's copy.
+    static void Folder(ZipArchive zip, string folder)
+    {
+        if (!Directory.Exists(folder)) return;
+        var id = Path.GetFileName(folder);
+        Entry(zip, id + "/");
+        foreach (var file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
+        {
+            using var stream = Entry(zip, $"{id}/{Path.GetRelativePath(folder, file).Replace('\\', '/')}").Open();
+            stream.Write(File.ReadAllBytes(file));
+        }
     }
 
     static byte[] ExportAll(string privateRoot)
@@ -74,16 +89,7 @@ public static partial class AccountBundle
         using (var zip = new ZipArchive(buffer, ZipArchiveMode.Create, leaveOpen: true))
         {
             var folders = Directory.EnumerateDirectories(privateRoot).Where(d => Path.GetFileName(d) is var name && (name == ".audit" || !name.StartsWith('.')));
-            foreach (var folder in folders.Order(StringComparer.Ordinal))
-            {
-                var id = Path.GetFileName(folder);
-                Entry(zip, id + "/");
-                foreach (var file in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
-                {
-                    using var stream = Entry(zip, $"{id}/{Path.GetRelativePath(folder, file).Replace('\\', '/')}").Open();
-                    stream.Write(File.ReadAllBytes(file));
-                }
-            }
+            foreach (var folder in folders.Order(StringComparer.Ordinal)) Folder(zip, folder);
         }
         return buffer.ToArray();
     }

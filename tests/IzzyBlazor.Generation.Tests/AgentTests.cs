@@ -26,7 +26,7 @@ public sealed class AgentTests : IDisposable
         await using var session = await Session.Start(cli);
         var client = session.Client;
 
-        Assert.Equal(["add_crud", "add_item", "describe_item", "init_app", "list_items", "new_app"],
+        Assert.Equal(["add_crud", "add_item", "audit_page", "describe_item", "init_app", "list_items", "new_app", "recheck_finding"],
             (await client.ListToolsAsync()).Select(t => t.Name).Order(StringComparer.Ordinal));
 
         var created = await client.CallToolAsync("new_app", new Dictionary<string, object?>

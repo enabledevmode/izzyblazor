@@ -7,7 +7,7 @@ using IzzyBlazor.Generation;
 namespace IzzyBlazor.Cli;
 
 // Verdicts: what each of axe's findings is, decided from the app's own decisions (.izzy/audit.json) and the
-// pack of known patterns that comes with IzzyBlazor Pro. A run with verdicts also has tasks.md and a baseline.
+// pack of known patterns that comes with an account. A run with verdicts also has tasks.md and a baseline.
 static partial class Audit
 {
     public const string Accepted = "accepted", FalsePositive = "false positive", DemoPage = "demo page", NeedsPerson = "needs a person", Real = "real";
@@ -254,6 +254,89 @@ static partial class Audit
                 ["page"] = PathOf((string)finding.Page["url"]!), ["target"] = (string)finding.Node["target"]!,
             });
         run["baseline"] = new JsonObject { ["file"] = file, ["at"] = (string?)baseline["at"], ["new"] = added, ["fixed"] = gone };
+    }
+
+    /// <summary>What a finding looked for again is: gone, found, or on a page that wasn't checked as before.</summary>
+    public const string Fixed = "fixed", StillThere = "still there", NotLooked = "not checked";
+
+    /// <summary>Whether a run has a finding with this id.</summary>
+    public static bool Has(JsonObject run, string id)
+    {
+        try { return run["pages"] is JsonArray && AllFindings(run).Any(f => f.Id == id); }
+        catch (Exception e) when (e is InvalidOperationException or NullReferenceException or InvalidCastException) { return false; }
+    }
+
+    /// <summary>The newest run under <paramref name="folder"/> (<c>.izzy/audit</c>) that has a finding with this id.</summary>
+    public static JsonObject? RunWith(string folder, string id)
+    {
+        if (!Directory.Exists(folder)) return null;
+        foreach (var file in Directory.EnumerateDirectories(folder).OrderDescending(StringComparer.Ordinal).Select(run => Path.Combine(run, "results.json")).Where(File.Exists))
+        {
+            string text;
+            try { text = File.ReadAllText(file); }
+            catch (IOException) { continue; }
+            if (!text.Contains($"\"{id}\"", StringComparison.Ordinal)) continue;
+            try
+            {
+                if (JsonNode.Parse(text) is JsonObject run && Has(run, id)) return run;
+            }
+            catch (JsonException) { }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Looks in <paramref name="run"/> for a finding <paramref name="past"/> had. Fixed means looked for again
+    /// and not found, at every width and scheme the past run found it at. An edit can move the element, which
+    /// gives its finding a new id: the findings of the same rule on the page that the past run lacks are listed.
+    /// </summary>
+    public static JsonObject Recheck(JsonObject run, JsonObject past, string id)
+    {
+        var before = AllFindings(past);
+        var sought = before.First(f => f.Id == id);
+        var (rule, path) = ((string)sought.Rule["id"]!, PathOf((string)sought.Page["url"]!));
+        var now = AllFindings(run);
+        var failed = Unchecked(run);
+        // A load that led somewhere else (a sign-in page) looked at another page.
+        var looked = run["pages"]!.AsArray().Select(p => p!.AsObject()).Where(p => !failed.Contains(p) && p["sweepError"] is null && p["landed"] is null).Select(p => $"{(int)p["width"]!}px {(string)p["scheme"]!}").ToHashSet(StringComparer.Ordinal);
+        var answer = new JsonObject { ["id"] = id, ["rule"] = rule, ["help"] = (string)sought.Rule["help"]!, ["page"] = path, ["target"] = (string)sought.Node["target"]! };
+        if (now.FirstOrDefault(f => f.Id == id) is { } found)
+        {
+            // Found again and judged no fault (a hit area that now covers 24 pixels, a finding the app accepted since) is closed.
+            answer["state"] = found.Node["verdict"] is null || found.Verdict is Real or NeedsPerson ? StillThere : Fixed;
+            answer["where"] = new JsonArray([.. found.Where.Distinct().Select(w => (JsonNode)w)]);
+            if (found.Node["verdict"] is { } verdict) answer["verdict"] = verdict.DeepClone();
+        }
+        else answer["state"] = sought.Where.All(looked.Contains) ? Fixed : NotLooked;
+        var known = before.Select(f => f.Id).ToHashSet(StringComparer.Ordinal);
+        var moved = now.Where(f => (string)f.Rule["id"]! == rule && !known.Contains(f.Id)).ToList();
+        if (moved.Count > 0) answer["others"] = new JsonArray([.. moved.Select(f => (JsonNode)new JsonObject { ["id"] = f.Id, ["target"] = (string)f.Node["target"]! })]);
+        return answer;
+    }
+
+    /// <summary>What the terminal says of a finding looked for again, before the run's summary.</summary>
+    public static string Rechecked(JsonObject recheck)
+    {
+        var what = $"{Code((string)recheck["rule"]!)} on {Code((string)recheck["page"]!)} ({Code((string)recheck["target"]!)})";
+        var text = new StringBuilder();
+        switch ((string)recheck["state"]!)
+        {
+            case Fixed:
+                text.Append((string?)recheck["verdict"]?["is"] is { } closed
+                    ? $"Fixed: {what} is {closed} now{((string?)recheck["verdict"]!["why"] is { } reason ? $". {reason.TrimEnd('.')}" : "")}.\n"
+                    : $"Fixed: {what} isn't found anymore.\n");
+                break;
+            case StillThere:
+                var verdict = (string?)recheck["verdict"]?["is"] is { } v ? $" Verdict: {v}{((string?)recheck["verdict"]!["why"] is { } why ? $". {why.TrimEnd('.')}" : "")}." : "";
+                text.Append($"Still there: {what}, at {string.Join("; ", recheck["where"]!.AsArray().Select(w => (string)w!))}.{verdict}\n");
+                break;
+            default:
+                text.Append($"Not checked: {what} wasn't found, but the page wasn't checked everywhere the finding was (a load failed, or other widths or schemes were asked for), so this run can't say it is fixed.\n");
+                break;
+        }
+        if (recheck["others"] is JsonArray { Count: > 0 } others)
+            text.Append($"The page has {Elements(others.Count, "finding")} of this rule that the earlier run lacks, such as {Code((string)others[0]!["target"]!)} ({(string)others[0]!["id"]!}). If the edit moved the element, that is the same one.\n");
+        return text.ToString();
     }
 
     /// <summary>The report of a run with verdicts: a summary by verdict, then each group of findings under its verdict.</summary>

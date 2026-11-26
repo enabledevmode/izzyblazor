@@ -6,7 +6,8 @@ namespace IzzyBlazor.Cli;
 
 // The sweeps: checks of izzy's own beside axe's, for what axe doesn't look at. Each measures something in
 // the open page and answers with a rule as axe does, so a finding of a sweep gets its verdict, trace and
-// picture like any other. They come with IzzyBlazor Pro.
+// picture like any other. Every run has them; with no judge (no account) a sweep's own answer is the
+// finding's note.
 //
 //   target-size                  axe's own rule, off unless asked for: on in a run with sweeps. axe measures a
 //                                control's box, so one it finds small is clicked around its center: a hit
