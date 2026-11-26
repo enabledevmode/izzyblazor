@@ -1257,7 +1257,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     }
 
     // A folder's name as Razor writes it in a namespace: my-area is my_area, 2024 is _2024.
-    static string NamespacePart(string folder)
+    internal static string NamespacePart(string folder)
     {
         var part = new string(folder.Select(c => char.IsLetterOrDigit(c) || c == '_' ? c : '_').ToArray());
         return part.Length > 0 && char.IsDigit(part[0]) ? "_" + part : part;

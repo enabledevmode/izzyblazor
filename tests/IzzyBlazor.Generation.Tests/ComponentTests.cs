@@ -108,6 +108,9 @@ public sealed class ComponentTests : IDisposable
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportSummary", "--folder", "Components/Shared").Exit);
         Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "ReportTotals", "--folder", "Components/Shared").Exit);
         Assert.Single(File.ReadAllLines(Path.Combine(_work, "Components", "_Imports.razor")), l => l.Trim() == "@using Acme.Components.Shared");
+        // A folder's name is written as Razor writes it in a namespace.
+        Assert.Equal(0, Izzy(ItemTier.Free, "add", "razor", "--name", "AreaNote", "--folder", "Components/my-area").Exit);
+        Assert.Contains("@using Acme.Components.my_area", File.ReadAllText(Path.Combine(_work, "Components", "_Imports.razor")));
         File.AppendAllText(Path.Combine(pages, "MonthlyReports.razor"), "<ReportSummary />\n");
 
         ProjectBuild.PointAtRepo(_work);

@@ -59,7 +59,7 @@ static class Pages
             var root = inClient ? project.Client! : project.Host;
             var imports = inClient ? root + "_Imports.razor" : root + "Components/_Imports.razor";
             var inside = Path.GetDirectoryName(file[root.Length..])!.Replace('\\', '/');
-            var ns = (inClient ? project.ClientNamespace ?? project.RootNamespace + ".Client" : project.RootNamespace) + (inside.Length > 0 ? "." + inside.Replace('/', '.') : "");
+            var ns = (inClient ? project.ClientNamespace ?? project.RootNamespace + ".Client" : project.RootNamespace) + (inside.Length > 0 ? "." + string.Join('.', inside.Split('/').Select(Cli.NamespacePart)) : "");
             tokens["Namespace"] = ns;
             tokens["ImportsFile"] = "~/" + imports;
             if (project.ReadFile(imports) is { } text)
