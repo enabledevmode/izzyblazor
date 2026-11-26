@@ -52,7 +52,7 @@ static partial class Audit
     /// once more, in forced colors.
     /// </summary>
     public static async Task<JsonObject> Run(string browserPath, IReadOnlyList<string> urls, IReadOnlyList<int> widths, IReadOnlyList<string> schemes, string izzyVersion, Action<string>? progress = null, Judge? judge = null,
-        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1, Tracer? tracer = null, Pictures? pictures = null, bool sweeps = false)
+        IReadOnlyList<KeyValuePair<string, string>>? cookies = null, int browsers = 1, Tracer? tracer = null, Pictures? pictures = null, bool sweeps = false, int undecided = 0)
     {
         var loads = (from width in widths from scheme in schemes from url in urls select (Width: width, Scheme: scheme, Url: url)).ToList();
         // Forced colors once for each address, at the widest width: what it erases is erased at every width.
@@ -97,7 +97,7 @@ static partial class Audit
                         set = (load.Width, load.Scheme);
                     }
                     progress?.Invoke($"{(loads.Count > 8 ? $"[{at + 1}/{loads.Count}] " : "")}{load.Url} at {load.Width}, {load.Scheme}");
-                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge, tracer, pictures, sweeps, schemes[0]);
+                    pages[at] = await Page(browser, load.Url, load.Width, load.Scheme, judge, tracer, pictures, sweeps, schemes[0], undecided);
                     // A page in forced colors leaves them on: the next load sets its own.
                     if (load.Scheme == Forced) set = null;
                     // A browser that died fails every load it is given at once, and so would take the rest of
@@ -130,7 +130,7 @@ static partial class Audit
         return run;
     }
 
-    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge, Tracer? tracer, Pictures? pictures, bool sweeps = false, string colors = "light")
+    static async Task<JsonObject> Page(Chromium browser, string url, int width, string scheme, Judge? judge, Tracer? tracer, Pictures? pictures, bool sweeps = false, string colors = "light", int undecided = 0)
     {
         var forced = scheme == Forced;
         var page = new JsonObject { ["url"] = url, ["width"] = width, ["scheme"] = scheme };
@@ -147,7 +147,7 @@ static partial class Audit
 
             // In forced colors axe doesn't run: it ran on this page in each scheme, and the sweeps are what this load is for.
             var answer = await browser.Evaluate(Collect.Replace("__CLAIMS__", judge?.Claims() ?? "[]").Replace("__MARKS__", tracer?.Marks() ?? "{ \"keys\": [], \"all\": [] }").Replace("__KEEP__", pictures is null && !sweeps ? "false" : "true")
-                .Replace("__SKIP__", forced ? "true" : "false").Replace("__RULES__", sweeps ? "{ \"target-size\": { \"enabled\": true } }" : "{}"));
+                .Replace("__SKIP__", forced ? "true" : "false").Replace("__RULES__", sweeps ? "{ \"target-size\": { \"enabled\": true } }" : "{}").Replace("__NODES__", undecided.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             try
             {
                 var found = JsonNode.Parse((string)answer!)!.AsObject();
@@ -185,6 +185,17 @@ static partial class Audit
                         var nth = met[element] = met.GetValueOrDefault(element) + 1;
                         // Only a tracer writes a trace: a page's own is not printed.
                         node.AsObject().Remove("trace");
+                        node["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{element}{(nth > 1 ? $"|{nth}" : "")}")))[..12];
+                    }
+                }
+                // What axe couldn't decide has ids the same way, where its elements are named.
+                foreach (var rule in page["incomplete"]!.AsArray().Where(r => r!["nodes"] is JsonArray))
+                {
+                    var met = new Dictionary<string, int>(StringComparer.Ordinal);
+                    foreach (var node in rule!["nodes"]!.AsArray())
+                    {
+                        var element = Stable((string)node!["target"]!);
+                        var nth = met[element] = met.GetValueOrDefault(element) + 1;
                         node["id"] = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{(string)rule["id"]!}|{path}|{element}{(nth > 1 ? $"|{nth}" : "")}")))[..12];
                     }
                 }
@@ -385,7 +396,9 @@ static partial class Audit
             incomplete: r.incomplete.map(v => {
               const reasons = {};
               for (const n of v.nodes) { const why = whole((n.any.concat(n.all, n.none)[0] || {}).message || v.help); reasons[why] = (reasons[why] || 0) + 1; }
-              return { id: v.id, help: v.help, count: v.nodes.length, reasons };
+              // The elements themselves, for an editor to point at: the first few of a rule (a one-page run asks for them).
+              const nodes = v.nodes.slice(0, __NODES__).map(n => ({ target: where(n.target), html: n.html.length > 300 ? n.html.slice(0, 300) + "…" : n.html, summary: (n.any.concat(n.all, n.none)[0] || {}).message || v.help }));
+              return { id: v.id, help: v.help, count: v.nodes.length, reasons, nodes: nodes.length ? nodes : undefined };
             }),
             refused: refused.size ? [...refused] : undefined,
           }, (key, value) => typeof value === "string" ? whole(value) : value);

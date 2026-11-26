@@ -139,6 +139,10 @@ public sealed class ComponentTests : IDisposable
         // From inside its content too.
         Assert.Contains("\"component\": \"Card\"", Izzy(ItemTier.Account, "inspect", $"{page}:6:1", "--json").Out);
 
+        // A comment over two lines above a tag, with Windows line endings: the line under it is the tag's.
+        File.WriteAllText(Path.Combine(_work, "Components/Pages/Notes.razor"), "@page \"/notes\"\r\n\r\n@* A sample page. Its headings\r\n   list themselves. *@\r\n<Column Gap=\"4\">\r\n</Column>\r\n");
+        Assert.Contains("\"component\": \"Column\"", Izzy(ItemTier.Account, "inspect", "Components/Pages/Notes.razor:5:2", "--json").Out);
+
         // Signed out there is no panel; with an account it is read-only.
         Assert.Equal(4, Izzy(ItemTier.Free, "inspect", $"{page}:4:8", "--json").Exit);
         Assert.Equal(3, Izzy(ItemTier.Account, "set", $"{page}:4:8", "--variant", "Ghost").Exit);

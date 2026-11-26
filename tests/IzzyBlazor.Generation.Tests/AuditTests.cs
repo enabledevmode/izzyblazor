@@ -62,6 +62,8 @@ public sealed class AuditTests : IDisposable
             """);
         const string picture = "<img src=\"data:image/gif;base64,R0lGODlhAQABAAAAACw=\">";
         var body = $"{picture}<p class=\"quiet\" style=\"color:#aaa\">Prices exclude tax</p><div class=\"sample\"><span style=\"color:#bbb\">Unavailable</span></div>"
+            // Text over a gradient: axe can't measure it, and a one-page run names the element.
+            + "<p class=\"total\" style=\"background:linear-gradient(#fff,#eee)\">Total</p>"
             // The same sample drawn in an iframe: the element is in the frame, what it is inside is around it.
             + "<div class=\"sample\"><iframe title=\"Preview\" srcdoc=\"<body style='background:#fff'><span style='color:#bbb'>Unavailable</span></body>\"></iframe></div>";
         using var site = new Site(() => $"<!doctype html><html lang=\"en\"><head><title>Orders</title></head><body style=\"background:#fff\"><main><h1>Orders</h1>{body}</main></body></html>");
@@ -82,6 +84,10 @@ public sealed class AuditTests : IDisposable
         Assert.Equal(["color-contrast: accepted", "color-contrast: false positive", "color-contrast: false positive", "image-alt: real"], verdicts);
         Assert.Contains("The footnote is quiet on purpose (Ada, 2026-11-24)", File.ReadAllText(Path.Combine(_work, "first", "report.md")));
         Assert.Contains("- [ ] **Images must have alternative text** (`image-alt`", File.ReadAllText(Path.Combine(_work, "first", "tasks.md")));
+
+        var undecided = JsonNode.Parse(File.ReadAllText(Path.Combine(_work, "first", "results.json")))!["pages"]![0]!["incomplete"]!.AsArray().First(rule => (string)rule!["id"]! == "color-contrast")!["nodes"]![0]!;
+        Assert.Equal(".total", (string)undecided["target"]!);
+        Assert.Equal(12, ((string)undecided["id"]!).Length);
 
         // report.html is one file: each of the four elements has its picture in it, the one in the iframe too.
         var html = File.ReadAllText(Path.Combine(_work, "first", "report.html"));
