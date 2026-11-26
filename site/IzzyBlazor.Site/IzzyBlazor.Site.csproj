@@ -37,7 +37,6 @@
     <!-- Read by the build, not served. -->
     <!-- Pages written ahead of what they describe: kept in the repo, left out of the build. -->
     <Content Remove="Docs\Drafts\**" />
-    <None Include="Docs\Drafts\**" />
     <Content Remove="Api\released.api.json" />
     <None Include="Api\released.api.json" />
     <Content Remove="Api\changes.json" />
@@ -47,7 +46,7 @@
     <!-- A .cs file an example names with @* file: Name.cs *@, shown on a tab beside it. -->
     <EmbeddedResource Include="Examples\**\*.cs" LogicalName="examplefile:%(RecursiveDir)%(Filename)" />
     <!-- The docs pages' sources, where search reads the headings of articles and Overviews: page:{Path}/{Name}. -->
-    <EmbeddedResource Include="Docs\**\*.razor" LogicalName="page:%(RecursiveDir)%(Filename)" />
+    <EmbeddedResource Include="Docs\**\*.razor" Exclude="Docs\Drafts\**" LogicalName="page:%(RecursiveDir)%(Filename)" />
     <InternalsVisibleTo Include="IzzyBlazor.Site.Tests" />
   </ItemGroup>
 
