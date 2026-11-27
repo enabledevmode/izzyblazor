@@ -158,6 +158,25 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
             .Concat(Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf)))
             .Concat(["docs", ""]);
 
+    // An enhanced navigation patches a static page to the server's markup; ids that changed on every
+    // render were patched on every search (29 on the LiveRegion page). A script's request for a part
+    // of a page keeps random ids, since the part joins a page that counted its own.
+    [Fact]
+    public async Task A_static_page_renders_the_same_ids_each_time()
+    {
+        static List<string> Ids(string html) => Regex.Matches(html, "id=\"(ib-[^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
+
+        var first = Ids(await site.Client.GetStringAsync("docs/components/live-region"));
+        var second = Ids(await site.Client.GetStringAsync("docs/components/live-region"));
+        Assert.Contains("ib-tabs-1", first);
+        Assert.Equal(first, second);
+
+        using var part = new HttpRequestMessage(HttpMethod.Get, "docs/components/live-region");
+        part.Headers.Add("X-Izzy-Part", "1");
+        var response = await site.Client.SendAsync(part);
+        Assert.DoesNotContain("ib-tabs-1", Ids(await response.Content.ReadAsStringAsync()));
+    }
+
     [Fact]
     public async Task A_components_topics_are_pages_under_it_in_the_sidebar()
     {

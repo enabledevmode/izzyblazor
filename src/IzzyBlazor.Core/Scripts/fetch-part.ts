@@ -5,9 +5,15 @@
  * the response isn't OK or holds no match; a network failure or abort throws.
  */
 export async function fetchPart(url: URL, selector: string, signal: AbortSignal, init?: RequestInit): Promise<Element | null> {
-  const response = await fetch(url, { ...init, signal });
+  const response = await fetch(url, { ...init, signal, headers: partHeaders });
   if (!response.ok) return null;
   const doc = new DOMParser().parseFromString(await response.text(), "text/html");
   const streamed = [...doc.querySelectorAll<HTMLTemplateElement>("blazor-ssr template")].map((t) => t.content.querySelector(selector)).filter(Boolean);
   return streamed.pop() ?? doc.querySelector(selector);
 }
+
+/**
+ * Sent with a request for a part of a page: the server gives that render random ids, not the ids a
+ * static page counts (IdGenerator), which could match ids already on the page the part joins.
+ */
+export const partHeaders = { "X-Izzy-Part": "1" };

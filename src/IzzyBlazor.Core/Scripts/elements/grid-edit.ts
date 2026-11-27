@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { partHeaders } from "../fetch-part";
 
 // The first that's this grid's own, not a grid's in one of its details.
 const own = <T extends Element = HTMLElement>(root: Element, selector: string): T | null =>
@@ -292,7 +293,7 @@ class GridEdit extends IzzyElement {
     if (this.#opening) return;
     this.#opening = true;
     try {
-      const page = new DOMParser().parseFromString(await (await fetch(link.href)).text(), "text/html");
+      const page = new DOMParser().parseFromString(await (await fetch(link.href, { headers: partHeaders })).text(), "text/html");
       if (link.hasAttribute("data-ib-edit-row")) {
         this.#takeRow(root, page, link);
         history.pushState(null, "", link.href);

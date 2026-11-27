@@ -17,6 +17,9 @@ public static class IzzyBlazorServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
         services.AddIzzyBlazorCore();
         services.AddHttpContextAccessor();
+
+        // A static page's ids are counted, so they match between its renders (see IdGenerator).
+        IdGenerator.Current ??= StaticRenderIds.Current;
         services.TryAddScoped<IToastCarrier, CookieToastCarrier>();
         services.TryAddScoped<IRequestCookies, HttpRequestCookies>();
 
