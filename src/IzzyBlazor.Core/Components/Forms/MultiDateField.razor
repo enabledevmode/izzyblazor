@@ -15,7 +15,8 @@
     Accessibility:
     - The button stands in for an input, so it's named by the field's label and the dates, and takes the
       hint and errors. Its panel is a non-modal `dialog`, named by the button.
-    - The month is a `grid` with `aria-multiselectable`, and each chosen day has `aria-selected`. A polite
+    - The month is a `grid` with `aria-multiselectable`, and each chosen day has `aria-selected` on its
+      cell and `aria-pressed` on its button. A polite
       announcement says what each press added or removed.
     - With JavaScript off, it's a labeled date input for each date, and one empty.
 

@@ -31,8 +31,8 @@
 
     Accessibility:
     - The month is a `grid` named by the field's label and the month, with full day names on its
-      columns and the full date on each day. The chosen day has `aria-selected`, and today
-      `aria-current`.
+      columns and the full date on each day. The chosen day's cell has `aria-selected` and
+      its button `aria-pressed`, which VoiceOver reads as "selected"; today has `aria-current`.
     - One day is a tab stop, and arrow keys move it. A day that can't be chosen can take focus so the
       keys move evenly, and has `aria-disabled`.
     - A polite announcement gives the month when it changes.

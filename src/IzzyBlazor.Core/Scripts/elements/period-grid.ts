@@ -113,6 +113,7 @@ class PeriodGrid extends IzzyElement {
         put(cell, "aria-current", n === now ? "date" : null);
         if (panel) put(cell, "autofocus", stop ? "" : null);
         put(cell.parentElement!, "aria-selected", n === chosen ? "true" : null);
+        put(cell, "aria-pressed", String(n === chosen));
       });
       setText(title, years ? `${Math.max(page, FIRST)} – ${Math.min(page + PAGE - 1, LAST)}` : String(page / 12));
       set(prev, "disabled", disabled || page <= min);

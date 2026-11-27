@@ -220,6 +220,8 @@ internal static class CalendarGrid
                 builder.AddAttribute(25, "hidden", !real);
                 builder.AddAttribute(26, "disabled", view.Disabled);
                 builder.AddAttribute(27, "aria-label", view.Years ? null : new DateOnly(Math.Max(year, 1), index + 1, 1).ToString("Y", view.Culture));
+                // VoiceOver reads the button, not its cell's aria-selected: the chosen one says "selected".
+                builder.AddAttribute(30, "aria-pressed", number == view.Selected ? "true" : "false");
                 builder.AddContent(28, view.Years ? (real ? number.ToString(CultureInfo.InvariantCulture) : "") : view.Culture.DateTimeFormat.MonthNames[index]);
                 builder.CloseElement();
                 builder.CloseElement();
@@ -437,6 +439,8 @@ internal static class CalendarGrid
                 builder.AddAttribute(41, "aria-label", date?.ToString("D", culture));
                 builder.AddAttribute(42, "aria-disabled", off || date < view.Min || date > view.Max ? "true" : null);
                 builder.AddAttribute(43, "disabled", view.Disabled);
+                // VoiceOver reads the button, not its cell's aria-selected: the chosen one says "selected".
+                builder.AddAttribute(45, "aria-pressed", date is { } chosen && (view.Several?.Contains(chosen) ?? chosen == view.Selected) ? "true" : "false");
                 builder.AddContent(44, date?.Day.ToString(CultureInfo.InvariantCulture) ?? "");
                 builder.CloseElement();
                 builder.CloseElement();

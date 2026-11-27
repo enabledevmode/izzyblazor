@@ -244,7 +244,10 @@ class Calendar extends IzzyElement {
           if (panel) put(day, "autofocus", stop ? "" : null);
           const spanned = spanFrom !== null && spanTo !== null && n >= spanFrom && n <= spanTo && !outside;
           put(cell, "class", [outside ? "ib-calendar-outside" : "", spanned ? "ib-calendar-span" : ""].join(" ").trim() || null);
-          put(cell, "aria-selected", (many ? picks.includes(n) : end ? !outside && (n === spanFrom || (pending === null && n === spanTo)) : n === chosen) ? "true" : null);
+          const selected = many ? picks.includes(n) : end ? !outside && (n === spanFrom || (pending === null && n === spanTo)) : n === chosen;
+          put(cell, "aria-selected", selected ? "true" : null);
+          // VoiceOver reads the focused button, not its cell's aria-selected: the chosen day says "selected".
+          put(day, "aria-pressed", String(selected));
         });
 
         const anchor = data.ibWeekAnchor;
