@@ -396,6 +396,15 @@ class Calendar extends IzzyElement {
       panel?.hidePopover();
     };
 
+    // A panel's focus goes back to the toggle, which names the new range: the count would be said over it.
+    const closeRange = (): void => {
+      const quiet = panel ? summary : null;
+      quiet?.removeAttribute("aria-live");
+      draw();
+      close();
+      if (quiet) setTimeout(() => quiet.setAttribute("aria-live", "polite"));
+    };
+
     const choose = (n: number): void => {
       // A chosen day can always come off, even one the rules have since turned away.
       const allowed = data.ibDisabled === undefined && data.ibReadonly === undefined && (!blocked(n) || (many && listed().includes(n)));
@@ -415,8 +424,7 @@ class Calendar extends IzzyElement {
           const from = pending;
           pending = hover = null;
           writeRange(from, n);
-          draw();
-          close();
+          closeRange();
           return;
         }
         // The first day, or one before it, which starts again.
@@ -521,8 +529,7 @@ class Calendar extends IzzyElement {
         if (!target) return;
         if (target.dataset.start) {
           writeRange(parse(target.dataset.start), parse(target.dataset.end));
-          draw();
-          close();
+          closeRange();
         } else if (target === prev || target === next) {
           // Together, so a cursor in a later month doesn't leave the months where they are.
           shown += target === prev ? -1 : 1;
