@@ -48,8 +48,21 @@ class FieldClear extends IzzyElement {
           part.dispatchEvent(new Event("change", { bubbles: true }));
         }
         draw();
-        // The button's gone, so focus goes where the next thing would be typed.
-        parts[0]?.focus();
+        // The button's gone, so focus goes where the next thing would be typed. VoiceOver on Safari said
+        // nothing of a TimeField's input focused as the button hid: focused again a task later, it's read.
+        // Not once a key has been pressed there.
+        const to = parts[0];
+        if (!to) return;
+        to.focus();
+        let pressed = false;
+        const press = () => (pressed = true);
+        to.addEventListener("keydown", press, { once: true });
+        setTimeout(() => {
+          to.removeEventListener("keydown", press);
+          if (pressed || document.activeElement !== to) return;
+          to.blur();
+          to.focus({ preventScroll: true });
+        });
       },
       { signal }
     );
