@@ -24,6 +24,36 @@ export function focusMarked(): void {
 }
 
 /**
+ * A link or button that toggles something on a static page (a group's row, a row's detail) is
+ * patched in place by the enhanced navigation or post it starts: it keeps focus, and its new state
+ * or name ("expanded", "Hide details for Order 1001") isn't read, where an interactive render
+ * changing the same attributes is. VoiceOver said nothing. When the focused element's state or name
+ * changed, rereadFocused() focuses it again so it's read anew. Its text isn't compared: a grid cell
+ * whose text changes with the page is announced by the grid's own count.
+ */
+const STATE = ["aria-expanded", "aria-pressed", "aria-checked", "aria-selected", "aria-current", "aria-label"];
+const stateOf = (el: Element) => STATE.map((name) => el.getAttribute(name)).join("\u0000");
+let pressed: { el: Element; state: string } | null = null;
+
+export function installRereadFocused(): void {
+  const remember = () => {
+    const el = document.activeElement;
+    pressed = el && el !== document.body ? { el, state: stateOf(el) } : null;
+  };
+  document.addEventListener("click", remember, true);
+  document.addEventListener("submit", remember, true);
+}
+
+export function rereadFocused(): void {
+  const was = pressed;
+  pressed = null;
+  const el = document.activeElement;
+  if (!was || el !== was.el || !(el instanceof HTMLElement) || stateOf(el) === was.state) return;
+  el.blur();
+  el.focus({ preventScroll: true });
+}
+
+/**
  * A skip link (AppShell's "Skip to content") moves focus to its target natively, but Blazor's
  * enhanced navigation handles the click itself and only scrolls. Focus the target after it, so
  * the next Tab starts in the main area. The target needs tabindex="-1" (AppMain has it).

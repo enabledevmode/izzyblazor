@@ -24,7 +24,7 @@ import { installSelects, syncSelects } from "./select";
 import { installKeepPlace, keepPlaceArrived, openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
 import { installDisabledUntil, installIndeterminate, installSelectAll, syncDisabledUntil, syncIndeterminate } from "./checkbox";
-import { focusMarked, installFocusRescue, installSkipLinks } from "./focus";
+import { focusMarked, installFocusRescue, installRereadFocused, installSkipLinks, rereadFocused } from "./focus";
 import { installLazyElements, load, loadElementsIn } from "./lazy";
 import { installScrollbarWidth, measureScrollbar } from "./scrollbar";
 import { installTabScroll, revealSelectedTabs } from "./tab-scroll";
@@ -60,6 +60,7 @@ installDialogAutoClose();
 installDismissMemory();
 installSkipLinks();
 installFocusRescue();
+installRereadFocused();
 installReconnectDialog();
 installPrint();
 if (document.readyState === "loading") {
@@ -181,6 +182,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     clearClosedDialogQuery();
     keepDismissed();
     focusMarked();
+    rereadFocused();
     announceRendered();
     applySavedScheme();
     measureScrollbar();
