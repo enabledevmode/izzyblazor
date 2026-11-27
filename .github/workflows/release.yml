@@ -131,8 +131,9 @@ jobs:
     # izzy downloads the account's templates for its own version from the account service, so each
     # release sends its bundle there (the service signs it). A job of its own: it holds the upload
     # token, and nothing from npm runs here, only the CLI's own build. The bundle is never an
-    # artifact: this repo is public and the templates are not. Skipped, with a warning, without the
-    # ACCOUNT_UPLOAD_TOKEN and PRO_CATALOG_TOKEN secrets.
+    # artifact: this repo is public and the templates are not. It fails without the
+    # ACCOUNT_UPLOAD_TOKEN and PRO_CATALOG_TOKEN secrets: alpha.30 went out with an empty
+    # PRO_CATALOG_TOKEN, and its izzy answered "templates aren't published yet" for every account item.
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -153,7 +154,7 @@ jobs:
           PRO_CATALOG_TOKEN: ${{ secrets.PRO_CATALOG_TOKEN }}
         shell: bash
         run: |
-          if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::warning::No PRO_CATALOG_TOKEN: the account catalog for $VERSION was not published."; exit 0; fi
+          if [ -z "$PRO_CATALOG_TOKEN" ]; then echo "::error::No PRO_CATALOG_TOKEN: the account catalog for $VERSION can't be published, and izzy $VERSION couldn't add a starter, a block or a kit. Set the secret and run this job again."; exit 1; fi
           git clone --depth 1 "https://x-access-token:${PRO_CATALOG_TOKEN}@github.com/IzzyBlazor/izzyblazor-pro-catalog.git" "$RUNNER_TEMP/izzyblazor-pro-catalog"
           rm -rf "$RUNNER_TEMP/izzyblazor-pro-catalog/.git"
           echo "IZZY_PRO_CATALOG=$RUNNER_TEMP/izzyblazor-pro-catalog" >> "$GITHUB_ENV"
@@ -168,7 +169,7 @@ jobs:
           ACCOUNT_UPLOAD_TOKEN: ${{ secrets.ACCOUNT_UPLOAD_TOKEN }}
         shell: bash
         run: |
-          if [ -z "$ACCOUNT_UPLOAD_TOKEN" ]; then echo "::warning::No ACCOUNT_UPLOAD_TOKEN: the account catalog for $VERSION was not published."; exit 0; fi
+          if [ -z "$ACCOUNT_UPLOAD_TOKEN" ]; then echo "::error::No ACCOUNT_UPLOAD_TOKEN: the account catalog for $VERSION can't be published, and izzy $VERSION couldn't add a starter, a block or a kit. Set the secret and run this job again."; exit 1; fi
           # Pro's copy: the whole private catalog, with the audit pack. It goes to accounts with Pro or its preview.
           # It is sent first, and the account's copy last: an account service from before Pro's copy ignores
           # ?tier=pro and would keep whichever came last as the copy every account downloads.
@@ -180,7 +181,8 @@ jobs:
           rm "$RUNNER_TEMP/account.zip"
 
   publish:
-    needs: build
+    # After the account catalog: a version on nuget.org can't be taken back, so its templates are up first.
+    needs: [build, account-catalog]
     runs-on: ubuntu-latest
     environment: release
     permissions:
