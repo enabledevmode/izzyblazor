@@ -506,6 +506,12 @@
     scale: 1;
   }
 
+  /* Opening focuses the dialog itself (dialog.ts) so screen readers start inside it: that focus
+     is a starting place, not a control, so it gets no ring. Tab goes on to its first control. */
+  .ib-dialog:focus {
+    outline: none;
+  }
+
   @starting-style {
     .ib-dialog[open] {
       opacity: 0;

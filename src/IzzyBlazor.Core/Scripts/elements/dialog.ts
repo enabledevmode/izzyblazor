@@ -53,6 +53,12 @@ class DialogRoot extends IzzyElement {
       }
     }, { signal });
 
+    dialog.addEventListener("toggle", (event) => {
+      if ((event as ToggleEvent).newState !== "open" || !dialog.matches(":modal")) return;
+      const picked = document.activeElement;
+      requestAnimationFrame(() => focusDialog(dialog, picked));
+    }, { signal });
+
     if (this.hasAttribute("data-close-on-backdrop") && !("closedBy" in HTMLDialogElement.prototype)) {
       // Only a press that starts and ends on the backdrop closes it: dragging a text selection
       // out of a field must not.
@@ -180,6 +186,23 @@ export function clearClosedDialogQuery(): void {
 }
 
 defineElement("ib-dialog", DialogRoot);
+
+/**
+ * When a modal dialog opens, the browser focuses its first control: often the header's Close
+ * button. Safari's VoiceOver then says only "Close button" and treats its next item as the page
+ * behind the dialog (inert, so empty); 14 of 15 opens on Nov 27, and a plain dialog with no
+ * IzzyBlazor code did the same. Focusing the dialog itself a frame later makes VoiceOver name the
+ * dialog and start at its title. A field the browser chose (a form's first input), one with
+ * `autofocus`, or focus that code moved since (the first invalid field after a post) is kept.
+ */
+function focusDialog(dialog: HTMLDialogElement, picked: Element | null): void {
+  if (!dialog.matches(":modal") || document.activeElement !== picked) return;
+  if (picked && picked !== dialog && picked !== document.body) {
+    if (!dialog.contains(picked) || picked.hasAttribute("autofocus") || !picked.matches("button, a[href], summary")) return;
+  }
+  if (!dialog.hasAttribute("tabindex")) dialog.tabIndex = -1;
+  dialog.focus({ preventScroll: true });
+}
 
 /**
  * A small fallback for the native commandfor/command attributes (DialogTrigger, DialogClose

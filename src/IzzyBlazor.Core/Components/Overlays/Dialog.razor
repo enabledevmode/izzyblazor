@@ -33,10 +33,13 @@
       `ShowCloseButton` and `CloseOnBackdrop` are off.
     - DialogTrigger is a native `button` with `aria-haspopup="dialog"`, and focus comes back to
       it when the dialog closes.
-    - Opening moves focus into the dialog as it shows, with no delay or animation to wait for (the
-      browser's `showModal`): to the field with `autofocus`, else the first thing that takes focus.
-      A browser test can check focus as soon as the dialog shows. After an enhanced post that comes back with
-      errors, the dialog reopens with focus on the first invalid field.
+    - Opening moves focus into the dialog as it shows (the browser's `showModal`): to the control
+      with `autofocus`, else the first field. When the first thing that takes focus is a button or
+      a link (the header's Close button, say), the dialog itself takes focus a frame later, so
+      screen readers name it and start at its title; Tab goes on to that button. (Safari's
+      VoiceOver otherwise starts on the button and moves next to the page behind.) With
+      JavaScript off, focus stays on the first button. After an enhanced post that comes back
+      with errors, the dialog reopens with focus on the first invalid field.
     - With JavaScript off, a dialog opened from the server (`?dialog=id`, `Open`) isn't modal:
       focus can leave it for the page behind. In browsers with the `closedby` attribute (Chrome
       and Edge 134, Firefox 141; not Safari), Escape closes it, and so does a click outside while
