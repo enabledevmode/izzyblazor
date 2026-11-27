@@ -20,7 +20,7 @@
                 <Badge Variant="BadgeVariant.Outline" Pill>Preview</Badge>
             </div>
             <Heading Level="1" Wrap="TextWrap.Balance" Class="site-pricing-title">Build faster. Maintain with confidence.</Heading>
-            <TextBlock Color="Color.Muted" Class="site-pricing-hero-lead">Pro gives you project-aware tools to create pages, audit your whole site for accessibility and upgrade safely, from your IDE, the CLI or your coding agent.</TextBlock>
+            <TextBlock Color="Color.Muted" Class="site-pricing-hero-lead">Pro gives you project-aware tools to create pages, audit your whole site for accessibility and upgrade safely, from the CLI or your coding agent, and from your IDE once its plugins ship.</TextBlock>
             <div class="site-pricing-hero-actions">
                 <Button Href="pricing#reserve" Size="ControlSize.Lg">Reserve the founding price</Button>
                 <Button Href="pricing#plans" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Compare plans</Button>
@@ -86,7 +86,7 @@
                     <span data-primary>Apply 4 changes</span>
                 </div>
             </div>
-            <span class="site-ide-caption">Illustration: the IDE plugin’s wizard</span>
+            <span class="site-ide-caption">Illustration: the IDE plugin’s wizard, planned</span>
         </div>
     </div>
 </Section>
@@ -189,7 +189,7 @@
                         <List Plain Icon="Lucide.Check" IconColor="Color.SuccessText" Gap="2">
                             @foreach (var item in level.Items)
                             {
-                                <ListItem>@item</ListItem>
+                                <ListItem>@item.Text@if (item.Planned) {<Planned />}</ListItem>
                             }
                         </List>
                     </div>
@@ -248,7 +248,7 @@
                 @foreach (var row in Makes)
                 {
                     <tr>
-                        <th scope="row">@row.Item</th>
+                        <th scope="row">@row.Item@if (row.Planned) {<Planned />}</th>
                         @Cell("Open", row.Open)
                         @Cell("Free account", row.Free)
                         @Cell("Pro", row.Pro)
@@ -301,11 +301,10 @@
 
     private static readonly StoryPoints.Point[] Value =
     [
-        new(Lucide.AppWindow, "See each page before you add it", "Change a block’s or page’s settings and watch a preview update in your IDE. Then review every file Pro will add or edit before it touches your project."),
         new(Lucide.Layers, "Get every page, variant and kit", "Get list, detail and form pages for any model, plus every variant of every block and every app kit."),
         new(Lucide.Accessibility, "Audit your whole site at once", "One run audits every page, judges each finding and traces it to the component and line behind it, so you know what to fix and where."),
         new(Lucide.RefreshCw, "Upgrade without surprises", "izzy upgrade finds every place your app uses something a release renamed or removed, and shows you each change for review before it’s applied."),
-        new(Lucide.Bot, "Your coding agent can use it too", "Pro adds skills that take an agent through an upgrade or a migration from start to finish, with the tools you use."),
+        new(Lucide.Bot, "Your coding agent can use it too", "Pro adds skills that take an agent through an upgrade or a migration from start to finish, with the tools you use.", Planned: true),
         new(Lucide.FileCode, "The code stays yours", "Everything Pro generates lives in your project and keeps working if you stop paying."),
     ];
 
@@ -314,7 +313,7 @@
     [
         new("Reserve the founding price", "It takes your email address and nothing else. Reserving is free."),
         new("Buy Pro at launch", "We’ll email you when Pro goes on sale, with $199 a year held for you."),
-        new("Generate from your IDE", "Sign in once on each machine, then create pages from the IDE or the CLI.", "izzy login"),
+        new("Generate with izzy", "Sign in once on each machine, then create pages with the CLI or your coding agent.", "izzy login"),
     ];
 
     private const string Yes = "yes", No = "no";
@@ -331,7 +330,7 @@
                 "The IzzyBlazor App starter, with dotnet new",
                 "A grid page for any model, with izzy add crud",
                 "Docs and pictures for every template and block",
-                "Inline docs and a live preview of your app in the IDE plugins",
+                new("Inline docs and a live preview of your app in the IDE plugins", Planned: true),
             ]),
         new("free", "Free account", "For starting real apps faster.", "$0", ["forever", "free account"], null,
             "Create free account", AccountService.SignIn, "Code is generated on your machine, offline.", false, true, "Everything in Open, plus:",
@@ -339,7 +338,7 @@
                 "Six app starters, from a sidebar app to a docs site",
                 "15 page blocks, including hero, pricing and FAQ sections",
                 "Izzy CRM, a complete sample app to build on",
-                "Edit component options, wrap, unwrap and extract markup in your IDE",
+                new("Edit component options, wrap, unwrap and extract markup in your IDE", Planned: true),
             ]),
         new("pro", "Pro", "For building faster and maintaining with confidence.", "$199", ["a year", "per developer"], "Instead of $299, for as long as you renew.",
             "Reserve the founding price", "pricing#reserve", "It’s free, and you pay nothing until launch.", false, false, "Everything in the free account, plus:",
@@ -348,9 +347,9 @@
                 "All app kits",
                 "CRUD as full list, detail and form pages",
                 "Safe upgrades, with every change shown for review",
-                "Previews of blocks and pages with your settings, and quick fixes, in your IDE",
+                new("Quick fixes in your IDE", Planned: true),
                 "The accessibility audit for your whole site",
-                "Agent skills for upgrades and migrations",
+                new("Agent skills for upgrades and migrations", Planned: true),
             ]),
     ];
 
@@ -365,10 +364,10 @@
         new("Blocks", No, "15", "All"),
         new("App kits", No, "Izzy CRM", "All"),
         new("Safe upgrades (izzy upgrade)", No, No, Yes),
-        new("IDE plugins: inline docs and a live preview", Yes, Yes, Yes),
+        new("IDE plugins: inline docs and a live preview", Yes, Yes, Yes, Planned: true),
         new("Generate and customize with the CLI", Yes, Yes, Yes),
-        new("Generate and customize with the IDE", "Open items", "Free items", "Everything"),
-        new("Edit options and markup in the IDE", No, Yes, Yes),
+        new("Generate and customize with the IDE", "Open items", "Free items", "Everything", Planned: true),
+        new("Edit options and markup in the IDE", No, Yes, Yes, Planned: true),
         new("Coding agents (izzy mcp)", No, "Free items", "Everything"),
         new("Accessibility audit", "One page", "One page, with verdicts", "The whole site"),
     ];
@@ -418,9 +417,15 @@
     };
 
     private sealed record Level(string Id, string Name, string For, string Price, string[] Unit, string? PriceNote,
-        string Action, string Href, string Note, bool NoteIsCode, bool Pick, string? Includes, string[] Items);
+        string Action, string Href, string Note, bool NoteIsCode, bool Pick, string? Includes, Feature[] Items);
 
-    private sealed record Make(string Item, string Open, string Free, string Pro);
+    // A line of a level's list; one that isn't built yet is marked Planned.
+    private sealed record Feature(string Text, bool Planned = false)
+    {
+        public static implicit operator Feature(string text) => new(text);
+    }
+
+    private sealed record Make(string Item, string Open, string Free, string Pro, bool Planned = false);
 
     public sealed class Reservation
     {

@@ -1160,6 +1160,8 @@ html:has(> body > .frame) body { margin: 0; }
 .site-pricing-hero { display: grid; align-items: center; gap: var(--ib-space-8); padding-block: 2.5rem 3.5rem; }
 .site-pricing-hero-text { display: flex; flex-direction: column; gap: 1.125rem; min-width: 0; }
 .site-pricing-hero-badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ib-space-2); }
+/* A promise that isn't built yet (Parts/Planned.razor): after its words, on their line. */
+.site-planned { margin-inline-start: var(--ib-space-1); vertical-align: 0.0625rem; }
 .site-pricing-title { font-size: 2.125rem; line-height: 1.08; font-weight: 600; letter-spacing: -0.03em; }
 .site-pricing-hero-lead { max-inline-size: 32em; font-size: 1.0625rem; line-height: 1.6; }
 .site-pricing-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ib-space-3); }

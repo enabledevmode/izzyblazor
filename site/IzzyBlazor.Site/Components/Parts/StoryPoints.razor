@@ -5,7 +5,7 @@
     {
         <div class="site-point">
             <span class="site-point-icon" aria-hidden="true"><Icon Name="point.Icon" /></span>
-            <Heading Level="3" Class="site-point-title">@point.Title</Heading>
+            <Heading Level="3" Class="site-point-title">@point.Title@if (point.Planned) {<Planned />}</Heading>
             <p>@point.Line</p>
         </div>
     }
@@ -14,5 +14,5 @@
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<Point> Items { get; set; } = [];
 
-    public sealed record Point(IconData Icon, string Title, string Line);
+    public sealed record Point(IconData Icon, string Title, string Line, bool Planned = false);
 }
