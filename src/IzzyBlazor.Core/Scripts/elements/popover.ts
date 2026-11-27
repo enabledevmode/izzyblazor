@@ -30,6 +30,12 @@ function applyMenuRoles(root: Element): void {
   root.querySelectorAll<HTMLElement>("[data-ib-haspopup]").forEach((el) => {
     el.setAttribute("aria-haspopup", el.dataset.ibHaspopup!);
   });
+  // An item that closes its menu with JavaScript off is a hide button for it; WebKit reads such a
+  // button as "expanded" while the menu is open. The click handler closes the menu instead.
+  root.querySelectorAll<HTMLElement>("[data-ib-role^='menuitem'][popovertargetaction='hide'], [role^='menuitem'][popovertargetaction='hide']").forEach((el) => {
+    el.removeAttribute("popovertarget");
+    el.removeAttribute("popovertargetaction");
+  });
   root.querySelectorAll<HTMLElement>("[data-ib-checked]").forEach((el) => {
     // aria-checked replaces the no-script stand-ins.
     el.setAttribute("aria-checked", el.dataset.ibChecked!);
@@ -250,7 +256,10 @@ class PopoverRoot extends IzzyElement {
       if (this.isMenu && !this.#hoverOpen && !fromSync) {
         const items = this.items();
         // Not if a key got there first: the toggle event comes a moment after the panel opens.
-        if (!panel.contains(document.activeElement)) (this.#focusLast ? items[items.length - 1] : items[0])?.focus();
+        // One opened at the pointer is kept on the screen and closes when the page scrolls: Safari
+        // scrolls a few pixels to focus an item in it, which would close it as it opens.
+        const preventScroll = panel.hasAttribute("data-ib-at-pointer");
+        if (!panel.contains(document.activeElement)) (this.#focusLast ? items[items.length - 1] : items[0])?.focus({ preventScroll });
       } else if (!this.isMenu && !fromSync) {
         // A popover opened by the user: focus its [autofocus] element, or the panel itself so it's
         // read by its title and Tab moves through it. One opened by the server or C# leaves focus.
