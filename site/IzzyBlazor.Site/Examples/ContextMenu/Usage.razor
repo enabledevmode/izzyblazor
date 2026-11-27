@@ -8,7 +8,7 @@
         <ToolbarButton Href="@To("upload")" StartIcon="Lucide.Upload">Upload</ToolbarButton>
         <ToolbarButton Href="@To("refresh")" StartIcon="Lucide.RefreshCw">Refresh</ToolbarButton>
     </Toolbar>
-    <Card id="project-files" Size="ControlSize.Sm">
+    <Card id="project-files" tabindex="0" role="group" aria-label="Project files" Size="ControlSize.Sm">
         <Stack Gap="2">
             @foreach (var (name, icon) in Files)
             {

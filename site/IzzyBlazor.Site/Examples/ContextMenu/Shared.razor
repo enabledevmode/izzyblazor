@@ -1,13 +1,14 @@
 @inject NavigationManager Navigation
 
-@* One menu for every file: the card pressed says which with data-menu-value. *@
+@* One menu for every file: the card pressed says which with data-menu-value. Each card takes focus,
+   so Shift+F10 opens the menu from the keyboard. *@
 <form method="post" @onsubmit="Posted" @formname="shared-files" data-enhance>
     <AntiforgeryToken />
     <Stack Gap="3" Grow>
         <Grid MinChildWidth="13.Rem" Gap="3">
             @foreach (var file in Files)
             {
-                <Card Class="shared-file" data-menu-value="@file.Name" Size="ControlSize.Sm">
+                <Card Class="shared-file" data-menu-value="@file.Name" tabindex="0" role="group" aria-label="@file.Name" Size="ControlSize.Sm">
                     <Row Gap="2" Align="Align.Center">
                         <Icon Name="file.Icon" />
                         <Stack Gap="0" Grow>

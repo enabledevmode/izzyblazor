@@ -1837,7 +1837,7 @@
         { "id": "context-menu-shared", "title": "One menu for every card", "lead": "A selector as `For`, such as `.file-card`, opens one menu from every element it matches. Each says which it is with `data-menu-value`, and `{0}` in an item's `Value` or `Href` is the value of the one pressed. On interactive pages `OnOpen` gets it, for items that run C#.",
           "notes": {
             "noscript": "Right-click shows the browser's own menu, so each file needs its actions somewhere else too, such as its own page.",
-            "static": "IzzyBlazor's script puts the pressed card's value into the items as the menu opens. Open is a link; Duplicate and Delete post the form."
+            "static": "IzzyBlazor's script puts the pressed card's value into the items as the menu opens. Open is a link; Duplicate and Delete post the form. Each card takes focus (`tabindex=\"0\"`, named by `aria-label`), so Shift+F10 opens its menu."
           } }
       ]
     },
