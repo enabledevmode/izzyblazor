@@ -88,6 +88,27 @@ class TimeSlots extends IzzyElement {
       },
       { signal }
     );
+    // VoiceOver on Safari read the time the popover focused as it opened as "9:00 AM clickable", not as
+    // the list's selected option: focused again a task later, it is. Not once a key has been pressed.
+    panel.addEventListener(
+      "toggle",
+      (event) => {
+        const slot = document.activeElement as HTMLElement;
+        if ((event as ToggleEvent).newState !== "open" || !slots.includes(slot as HTMLButtonElement)) return;
+        let pressed = false;
+        const press = () => (pressed = true);
+        slot.addEventListener("keydown", press, { once: true });
+        requestAnimationFrame(() =>
+          setTimeout(() => {
+            slot.removeEventListener("keydown", press);
+            if (pressed || document.activeElement !== slot) return;
+            slot.blur();
+            slot.focus({ preventScroll: true });
+          })
+        );
+      },
+      { signal }
+    );
     const write = (value: string): void => {
       text.value = value;
       text.dispatchEvent(new Event("input", { bubbles: true }));
