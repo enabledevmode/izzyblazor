@@ -206,16 +206,12 @@
             of the comparison, so a database index can't be used. Two settings change this: one for a single condition, and
             one for every condition on a field.
         </TextBlock>
-        <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-            <table>
-                <thead><tr><th>Setting</th><th>Applies to</th><th>What it does</th></tr></thead>
-                <tbody>
-                    <tr><td><code>MatchCase</code> on a <code>FieldFilter</code></td><td>That condition</td><td>Matches upper and lower case exactly. For <code>Equals</code>, it matches spaces exactly too.</td></tr>
-                    <tr><td><code>FilterCase</code> on a Table or DataGrid</td><td>Every column filter and the search</td><td>Sets how text is compared, with the values below. The columns pass it on to their fields.</td></tr>
-                    <tr><td><code>Case</code> on a <code>DataField</code></td><td>Every condition on that field</td><td>The same values, for fields you declare.</td></tr>
-                </tbody>
-            </table>
-        </Prose>
+        <DocTable Caption="Text and case" Titles="@(["Setting", "Applies to", "What it does"])" Rows="@(
+        [
+            ["`MatchCase` on a `FieldFilter`", "That condition", "Matches upper and lower case exactly. For `Equals`, it matches spaces exactly too."],
+            ["`FilterCase` on a Table or DataGrid", "Every column filter and the search", "Sets how text is compared, with the values below. The columns pass it on to their fields."],
+            ["`Case` on a `DataField`", "Every condition on that field", "The same values, for fields you declare."],
+        ])" />
         <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
             <table>
                 <thead><tr><th><code>FilterCase</code></th><th>How text compares</th></tr></thead>

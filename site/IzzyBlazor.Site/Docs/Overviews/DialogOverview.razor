@@ -54,14 +54,10 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The close button has a name for screen readers. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>CloseLabel</Code></td><td>The close button's name</td><td>"Close"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`CloseLabel`", "The close button's name", "\"Close\""],
+])" />
 <TextBlock>The question <Code>ConfirmAsync</Code> asks has buttons too. To change their text, set <Code>ConfirmText</Code> ("OK" by default) and <Code>CancelText</Code> ("Cancel") in its <Code>ConfirmOptions</Code>.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)

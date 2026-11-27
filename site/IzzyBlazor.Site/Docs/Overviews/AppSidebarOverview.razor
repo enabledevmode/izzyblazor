@@ -45,16 +45,12 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The sidebar and its toggle have names for screen readers. The defaults are below; to set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Names</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>Label</Code></td><td>The navigation landmark</td><td>"Main"</td></tr>
-            <tr><td><Code>CloseLabel</Code></td><td>The drawer's close button</td><td>"Close menu"</td></tr>
-            <tr><td><Code>CollapseLabel</Code></td><td>The collapse control</td><td>"Collapse sidebar"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Names", "Default"])" Rows="@(
+[
+    ["`Label`", "The navigation landmark", "\"Main\""],
+    ["`CloseLabel`", "The drawer's close button", "\"Close menu\""],
+    ["`CollapseLabel`", "The collapse control", "\"Collapse sidebar\""],
+])" />
 <TextBlock><Code>SidebarToggle</Code> has its own <Code>Label</Code> ("Open menu"), <Code>CloseLabel</Code> and <Code>CollapseLabel</Code>.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)

@@ -55,20 +55,16 @@
             Surfaces and overlays sit on the page. Fills go inside a surface. Each fill, from subtle to strong, is further
             from the surface color: darker in light mode, and lighter in dark mode, where the page is the darkest layer.
         </TextBlock>
-        <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-            <table>
-                <thead><tr><th>Layer</th><th>Token</th><th>Use</th></tr></thead>
-                <tbody>
-                    <tr><td>Page</td><td><code>--ib-color-background</code></td><td>The page behind everything</td></tr>
-                    <tr><td>Surface</td><td><code>--ib-color-surface</code>, with a border</td><td>Cards, panels, tables, bars: anything on the page</td></tr>
-                    <tr><td>Sunken</td><td><code>--ib-color-surface-sunken</code></td><td>An area in a surface that contains surfaces: a board's columns, a tray of cards</td></tr>
-                    <tr><td>Overlay</td><td><code>--ib-color-surface-overlay</code>, with a shadow</td><td>Menus, popovers, toasts. Dialogs use the page's surface, as their backdrop sets them apart</td></tr>
-                    <tr><td>Fills</td><td><code>--ib-color-fill-subtle</code></td><td>Large quiet fills inside a surface: a filled card, a panel, a band</td></tr>
-                    <tr><td></td><td><code>--ib-color-fill</code></td><td>Small fills that must show: table heads, code, wells</td></tr>
-                    <tr><td></td><td><code>--ib-color-fill-strong</code></td><td>Selected and pressed fills, chips, tracks, skeletons</td></tr>
-                </tbody>
-            </table>
-        </Prose>
+        <DocTable Caption="The page and its surfaces" Titles="@(["Layer", "Token", "Use"])" Rows="@(
+        [
+            ["Page", "`--ib-color-background`", "The page behind everything"],
+            ["Surface", "`--ib-color-surface`, with a border", "Cards, panels, tables, bars: anything on the page"],
+            ["Sunken", "`--ib-color-surface-sunken`", "An area in a surface that contains surfaces: a board's columns, a tray of cards"],
+            ["Overlay", "`--ib-color-surface-overlay`, with a shadow", "Menus, popovers, toasts. Dialogs use the page's surface, as their backdrop sets them apart"],
+            ["Fills", "`--ib-color-fill-subtle`", "Large quiet fills inside a surface: a filled card, a panel, a band"],
+            ["", "`--ib-color-fill`", "Small fills that must show: table heads, code, wells"],
+            ["", "`--ib-color-fill-strong`", "Selected and pressed fills, chips, tracks, skeletons"],
+        ])" />
         <TextBlock>
             A fill placed directly on the page looks like a hole, not a card. Put a surface between them. For a white page,
             set <Code>--ib-color-background</Code> to the surface color.

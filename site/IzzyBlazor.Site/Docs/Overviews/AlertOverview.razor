@@ -36,15 +36,11 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>Screen readers hear a word for the status before the message, and the close button has a name. The defaults are below; to set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>StatusLabel</Code></td><td>The word before the message. Set it to <Code>""</Code> to leave it out.</td><td>"Info", "Success", "Warning" or "Error"; none for <Code>Neutral</Code></td></tr>
-            <tr><td><Code>DismissLabel</Code></td><td>The close button's name</td><td>"Dismiss"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`StatusLabel`", "The word before the message. Set it to `\"\"` to leave it out.", "\"Info\", \"Success\", \"Warning\" or \"Error\"; none for `Neutral`"],
+    ["`DismissLabel`", "The close button's name", "\"Dismiss\""],
+])" />
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

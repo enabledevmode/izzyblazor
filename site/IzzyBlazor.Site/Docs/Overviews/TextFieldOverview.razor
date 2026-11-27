@@ -63,14 +63,10 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>A mask's error comes from the app's text. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>IzzyText</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>MaskIncomplete</Code></td><td>The error for a masked value with an empty slot; <Code>{0}</Code> is the label. <Code>MaskInvalidMessage</Code> sets it for one field</td><td>"The {0} field is incomplete."</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["IzzyText", "Sets", "Default"])" Rows="@(
+[
+    ["`MaskIncomplete`", "The error for a masked value with an empty slot; `{0}` is the label. `MaskInvalidMessage` sets it for one field", "\"The {0} field is incomplete.\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

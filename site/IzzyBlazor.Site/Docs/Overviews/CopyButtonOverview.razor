@@ -26,15 +26,11 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The button has a tooltip, and screen readers hear a word after a copy. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>Label</Code></td><td>The tooltip, and the name of an icon-only button</td><td>"Copy"</td></tr>
-            <tr><td><Code>CopiedLabel</Code></td><td>The word announced after a copy</td><td>"Copied"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`Label`", "The tooltip, and the name of an icon-only button", "\"Copy\""],
+    ["`CopiedLabel`", "The word announced after a copy", "\"Copied\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

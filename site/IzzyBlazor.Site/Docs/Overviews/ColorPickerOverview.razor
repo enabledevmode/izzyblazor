@@ -44,14 +44,10 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The hex box, the panel's parts and the color names screen readers hear are all text you can set. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Example</th></tr></thead>
-        <tbody>
-            <tr><td><Code>HexLabel</Code></td><td>The end of the hex box's name</td><td>"Brand color, hex"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Example"])" Rows="@(
+[
+    ["`HexLabel`", "The end of the hex box's name", "\"Brand color, hex\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

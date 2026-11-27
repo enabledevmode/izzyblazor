@@ -51,16 +51,12 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The field shows text when nothing matches, and its buttons have names for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>EmptyText</Code></td><td>The text when no option matches</td><td>"No matches"</td></tr>
-            <tr><td><Code>ToggleLabel</Code></td><td>The name of the button that opens the list</td><td>"Show options"</td></tr>
-            <tr><td><Code>RemoveLabel</Code></td><td>The start of each chip's remove button name, as in "Remove Blazor"</td><td>"Remove"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`EmptyText`", "The text when no option matches", "\"No matches\""],
+    ["`ToggleLabel`", "The name of the button that opens the list", "\"Show options\""],
+    ["`RemoveLabel`", "The start of each chip's remove button name, as in \"Remove Blazor\"", "\"Remove\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

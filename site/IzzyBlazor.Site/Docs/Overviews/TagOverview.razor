@@ -23,14 +23,10 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The remove control has a name for screen readers. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>RemoveLabel</Code></td><td>The start of the remove control's name, followed by the tag's label, as in "Remove Blazor"</td><td>"Remove"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`RemoveLabel`", "The start of the remove control's name, followed by the tag's label, as in \"Remove Blazor\"", "\"Remove\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

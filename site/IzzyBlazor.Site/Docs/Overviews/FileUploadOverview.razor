@@ -51,18 +51,14 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The zone's prompt, the line under it and its error messages can all be changed. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>ChooseText</Code></td><td>The prompt's link</td><td>"Choose a file", or "Choose files" with <Code>Multiple</Code></td></tr>
-            <tr><td><Code>DragText</Code></td><td>The rest of the prompt</td><td>"or drag it here", or "or drag them here"</td></tr>
-            <tr><td><Code>AcceptText</Code></td><td>The line under the prompt. Set it to empty for none.</td><td>The types and size limit, such as "PNG or JPEG · up to 2 MB"</td></tr>
-            <tr><td><Code>TooLargeText</Code></td><td>The message for a file that's too large</td><td>"{0} is larger than {1}."</td></tr>
-            <tr><td><Code>WrongTypeText</Code></td><td>The message for a file of the wrong type</td><td>"{0} isn't an accepted file type."</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`ChooseText`", "The prompt's link", "\"Choose a file\", or \"Choose files\" with `Multiple`"],
+    ["`DragText`", "The rest of the prompt", "\"or drag it here\", or \"or drag them here\""],
+    ["`AcceptText`", "The line under the prompt. Set it to empty for none.", "The types and size limit, such as \"PNG or JPEG · up to 2 MB\""],
+    ["`TooLargeText`", "The message for a file that's too large", "\"{0} is larger than {1}.\""],
+    ["`WrongTypeText`", "The message for a file of the wrong type", "\"{0} isn't an accepted file type.\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

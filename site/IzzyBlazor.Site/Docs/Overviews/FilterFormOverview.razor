@@ -64,17 +64,13 @@
 <Heading Level="2">Sizes, labels and localization</Heading>
 <TextBlock>To match a compact toolbar, set <Code>Size</Code> on each filter field; the buttons keep their own size.</TextBlock>
 <TextBlock>The form has a name for screen readers, and its buttons have text of their own. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>Label</Code></td><td>The search landmark's name</td><td>"Filters"</td></tr>
-            <tr><td><Code>ApplyText</Code></td><td>The Apply button's text</td><td>"Apply"</td></tr>
-            <tr><td><Code>ClearText</Code></td><td>The Clear link's text</td><td>"Clear"</td></tr>
-            <tr><td><Code>FiltersText</Code></td><td>The text of the button that opens the panel</td><td>"Filters"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Sizes, labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`Label`", "The search landmark's name", "\"Filters\""],
+    ["`ApplyText`", "The Apply button's text", "\"Apply\""],
+    ["`ClearText`", "The Clear link's text", "\"Clear\""],
+    ["`FiltersText`", "The text of the button that opens the panel", "\"Filters\""],
+])" />
 <TextBlock>Each filter field's <Code>Label</Code> works differently:</TextBlock>
 <Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
     <table>

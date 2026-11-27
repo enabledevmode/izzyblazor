@@ -18,15 +18,11 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The message for a code that's too short comes from the app's text. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>IzzyText</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>PinDigits</Code></td><td>The message for a code that isn't all its digits; <Code>{0}</Code> is the label, <Code>{1}</Code> the length</td><td>"The {0} field must be {1} digits."</td></tr>
-            <tr><td><Code>PinCharacters</Code></td><td>The same with <Code>Letters</Code></td><td>"The {0} field must be {1} letters or digits."</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["IzzyText", "Sets", "Default"])" Rows="@(
+[
+    ["`PinDigits`", "The message for a code that isn't all its digits; `{0}` is the label, `{1}` the length", "\"The {0} field must be {1} digits.\""],
+    ["`PinCharacters`", "The same with `Letters`", "\"The {0} field must be {1} letters or digits.\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

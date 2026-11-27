@@ -31,17 +31,13 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>Pagination has names and words for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>Label</Code></td><td>The navigation landmark's name</td><td>"Pagination"</td></tr>
-            <tr><td><Code>PreviousLabel</Code></td><td>The previous arrow's name</td><td>"Previous page"</td></tr>
-            <tr><td><Code>NextLabel</Code></td><td>The next arrow's name</td><td>"Next page"</td></tr>
-            <tr><td><Code>PageLabel</Code></td><td>The word read before each number</td><td>"Page"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`Label`", "The navigation landmark's name", "\"Pagination\""],
+    ["`PreviousLabel`", "The previous arrow's name", "\"Previous page\""],
+    ["`NextLabel`", "The next arrow's name", "\"Next page\""],
+    ["`PageLabel`", "The word read before each number", "\"Page\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

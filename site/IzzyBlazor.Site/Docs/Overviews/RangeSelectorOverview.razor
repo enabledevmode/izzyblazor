@@ -29,17 +29,13 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>Screen readers hear the strip's <Code>Label</Code> as the name of its group, and each handle by name with the argument it's at. The other words come from the app's text. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>IzzyText</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>RangeSelectorName</Code></td><td>The strip's name when it has no <Code>Label</Code></td><td>"Range in view"</td></tr>
-            <tr><td><Code>RangeSelectorStart</Code>, <Code>RangeSelectorEnd</Code></td><td>The handles' names</td><td>"Start", "End"</td></tr>
-            <tr><td><Code>RangeMonths</Code>, <Code>RangeYearToDate</Code>, <Code>RangeYear</Code>, <Code>RangeAll</Code></td><td>The range buttons' text; <Code>{0}</Code> is the number of months</td><td>"{0}M", "YTD", "1Y", "All"</td></tr>
-            <tr><td><Code>RangeMonthName</Code>, <Code>RangeMonthsName</Code>, <Code>RangeYearToDateName</Code>, <Code>RangeYearName</Code></td><td>The range buttons' names for screen readers</td><td>"Last month", "Last {0} months", "Year to date", "Last year"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["IzzyText", "Sets", "Default"])" Rows="@(
+[
+    ["`RangeSelectorName`", "The strip's name when it has no `Label`", "\"Range in view\""],
+    ["`RangeSelectorStart`, `RangeSelectorEnd`", "The handles' names", "\"Start\", \"End\""],
+    ["`RangeMonths`, `RangeYearToDate`, `RangeYear`, `RangeAll`", "The range buttons' text; `{0}` is the number of months", "\"{0}M\", \"YTD\", \"1Y\", \"All\""],
+    ["`RangeMonthName`, `RangeMonthsName`, `RangeYearToDateName`, `RangeYearName`", "The range buttons' names for screen readers", "\"Last month\", \"Last {0} months\", \"Year to date\", \"Last year\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

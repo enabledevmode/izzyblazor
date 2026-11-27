@@ -31,14 +31,10 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>A loading icon button has a word for screen readers. To set it for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>LoadingLabel</Code></td><td>What screen readers hear before the label while <Code>Loading</Code> is set, as in "Loading Delete"</td><td>"Loading"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`LoadingLabel`", "What screen readers hear before the label while `Loading` is set, as in \"Loading Delete\"", "\"Loading\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

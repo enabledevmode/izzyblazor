@@ -70,14 +70,10 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The error summary has a heading of its own. The words for marks on fields, such as "(required)" and "(optional)", have no parameter. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>Title</Code></td><td>The <Code>FormErrors</Code> summary's heading</td><td>"Please fix the following"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`Title`", "The `FormErrors` summary's heading", "\"Please fix the following\""],
+])" />
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

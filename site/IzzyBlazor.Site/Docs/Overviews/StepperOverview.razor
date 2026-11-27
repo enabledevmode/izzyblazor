@@ -35,15 +35,11 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The list has a name for screen readers, and a finished step has a word in place of its check mark. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>Label</Code></td><td>The list's name</td><td>"Progress"</td></tr>
-            <tr><td><Code>CompletedLabel</Code></td><td>What screen readers hear after a finished step's label, in place of its check mark</td><td>"(completed)"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`Label`", "The list's name", "\"Progress\""],
+    ["`CompletedLabel`", "What screen readers hear after a finished step's label, in place of its check mark", "\"(completed)\""],
+])" />
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

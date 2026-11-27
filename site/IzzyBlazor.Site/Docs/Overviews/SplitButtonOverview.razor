@@ -48,16 +48,12 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The arrow has a name for screen readers, and a loading button and a link that opens in a new tab have words of their own. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>MenuLabel</Code></td><td>The arrow's name and tooltip, and the submenu's name in a Toolbar's … menu</td><td>"{Label}: more options"</td></tr>
-            <tr><td><Code>LoadingLabel</Code></td><td>What screen readers hear while <Code>Loading</Code> is set</td><td>"Loading"</td></tr>
-            <tr><td><Code>NewTabLabel</Code></td><td>What screen readers hear after an external link's text</td><td>"(opens in a new tab)"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`MenuLabel`", "The arrow's name and tooltip, and the submenu's name in a Toolbar's … menu", "\"{Label}: more options\""],
+    ["`LoadingLabel`", "What screen readers hear while `Loading` is set", "\"Loading\""],
+    ["`NewTabLabel`", "What screen readers hear after an external link's text", "\"(opens in a new tab)\""],
+])" />
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

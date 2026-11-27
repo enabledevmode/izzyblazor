@@ -38,15 +38,11 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The region and the close buttons have names for screen readers. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>Label</Code></td><td>The region's name</td><td>"Notifications"</td></tr>
-            <tr><td><Code>DismissLabel</Code></td><td>The close buttons' name</td><td>"Dismiss"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`Label`", "The region's name", "\"Notifications\""],
+    ["`DismissLabel`", "The close buttons' name", "\"Dismiss\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

@@ -55,17 +55,13 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The table has text and names of its own. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>EmptyText</Code></td><td>The text when there are no rows</td><td>"No items"</td></tr>
-            <tr><td><Code>SelectAllLabel</Code></td><td>The select-all checkbox's name</td><td>"Select all rows"</td></tr>
-            <tr><td><Code>SelectRowLabel</Code></td><td>Each row checkbox's name</td><td>"Select"</td></tr>
-            <tr><td><Code>LoadMoreText</Code></td><td>The Load more button's text</td><td>"Load more"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`EmptyText`", "The text when there are no rows", "\"No items\""],
+    ["`SelectAllLabel`", "The select-all checkbox's name", "\"Select all rows\""],
+    ["`SelectRowLabel`", "Each row checkbox's name", "\"Select\""],
+    ["`LoadMoreText`", "The Load more button's text", "\"Load more\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

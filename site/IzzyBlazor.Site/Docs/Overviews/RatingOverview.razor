@@ -24,17 +24,13 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The names screen readers hear for the stars come from the app's text. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>IzzyText</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>RatingOneStar</Code></td><td>The first star's name</td><td>"1 star"</td></tr>
-            <tr><td><Code>RatingStars</Code></td><td>The other stars' names; <Code>{0}</Code> is the number</td><td>"{0} stars"</td></tr>
-            <tr><td><Code>RatingNone</Code></td><td>The empty choice's name</td><td>"No rating"</td></tr>
-            <tr><td><Code>RatingOutOf</Code></td><td>A read-only rating's name; <Code>{0}</Code> is the value, <Code>{1}</Code> the number of stars</td><td>"{0} out of {1} stars"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["IzzyText", "Sets", "Default"])" Rows="@(
+[
+    ["`RatingOneStar`", "The first star's name", "\"1 star\""],
+    ["`RatingStars`", "The other stars' names; `{0}` is the number", "\"{0} stars\""],
+    ["`RatingNone`", "The empty choice's name", "\"No rating\""],
+    ["`RatingOutOf`", "A read-only rating's name; `{0}` is the value, `{1}` the number of stars", "\"{0} out of {1} stars\""],
+])" />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

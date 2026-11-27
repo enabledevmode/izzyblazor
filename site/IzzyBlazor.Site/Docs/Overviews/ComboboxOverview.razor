@@ -47,16 +47,12 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The combobox shows text when nothing matches or a search is running, and its toggle button has a name. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>EmptyText</Code></td><td>The text when no option matches</td><td>"No matches"</td></tr>
-            <tr><td><Code>SearchingText</Code></td><td>The text while <Code>Search</Code> runs</td><td>"Searching…"</td></tr>
-            <tr><td><Code>ToggleLabel</Code></td><td>The name of the button that opens the list</td><td>"Show options"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`EmptyText`", "The text when no option matches", "\"No matches\""],
+    ["`SearchingText`", "The text while `Search` runs", "\"Searching…\""],
+    ["`ToggleLabel`", "The name of the button that opens the list", "\"Show options\""],
+])" />
 <TextBlock>Type "zzz" in the first example to see "No matches".</TextBlock>
 
 <Heading Level="2">Mode support</Heading>

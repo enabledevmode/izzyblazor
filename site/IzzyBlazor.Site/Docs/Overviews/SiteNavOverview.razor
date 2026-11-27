@@ -28,15 +28,11 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The landmark and the menu button have names for screen readers. The landmark's default differs from a sidebar's "Main". To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>Label</Code></td><td>The navigation landmark's name</td><td>"Site"</td></tr>
-            <tr><td><Code>MenuLabel</Code></td><td>The menu button's name</td><td>"Menu"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`Label`", "The navigation landmark's name", "\"Site\""],
+    ["`MenuLabel`", "The menu button's name", "\"Menu\""],
+])" />
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

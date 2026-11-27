@@ -1,0 +1,26 @@
+@* A list in a table (a parameter, what it sets, its default), written in a page as text: `backticks` are Code.
+   It stacks on a phone, a row a card, as the other docs tables of three or more columns do (site.css,
+   .site-params-stack). A comparison read across its rows (the render modes, the presets) stays a plain table
+   in a .site-table, which scrolls. *@
+
+<Table Items="Rows" Caption="@Caption" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
+    <Columns>
+        @for (var i = 0; i < Titles.Length; i++)
+        {
+            // A copy: the column reads it later, after the loop has moved on.
+            var column = i;
+            <TemplateColumn Title="@Titles[column]"><InlineCode Text="@context![column]" /></TemplateColumn>
+        }
+    </Columns>
+</Table>
+
+@code {
+    /// <summary>The table's name for screen readers.</summary>
+    [Parameter, EditorRequired] public string Caption { get; set; } = "";
+
+    /// <summary>The column titles.</summary>
+    [Parameter, EditorRequired] public string[] Titles { get; set; } = [];
+
+    /// <summary>A row a line, a cell a string; text in backticks is shown as Code.</summary>
+    [Parameter, EditorRequired] public string[][] Rows { get; set; } = [];
+}

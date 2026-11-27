@@ -47,14 +47,10 @@
 
 <Heading Level="2">Labels and localization</Heading>
 <TextBlock>The … button has a name for screen readers. A toolbar's buttons have <Code>LoadingLabel</Code> and <Code>NewTabLabel</Code>, as on a <Anchor Href="docs/components/button#labels-and-localization">Button</Anchor>. To set them for the whole app, see <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
-<Prose Class="site-table ib-scroll" tabindex="0" role="group" aria-label="Table">
-    <table>
-        <thead><tr><th>Parameter</th><th>Sets</th><th>Default</th></tr></thead>
-        <tbody>
-            <tr><td><Code>MoreLabel</Code></td><td>The … button's name and tooltip</td><td>"More actions"</td></tr>
-        </tbody>
-    </table>
-</Prose>
+<DocTable Caption="Labels and localization" Titles="@(["Parameter", "Sets", "Default"])" Rows="@(
+[
+    ["`MoreLabel`", "The … button's name and tooltip", "\"More actions\""],
+])" />
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {
