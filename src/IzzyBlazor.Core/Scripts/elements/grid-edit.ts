@@ -104,8 +104,25 @@ class GridEdit extends IzzyElement {
     if (editing !== this.#editing) {
       this.#editing = editing;
       const field = this.#field(editing, "[autofocus]") ?? this.#field(editing, "input, select, textarea");
-      field?.focus();
-      this.#began(editing, field as HTMLInputElement);
+      // VoiceOver on Safari didn't read a row's field focused in the task that put the row in the page,
+      // nor what was typed there: focused a task later, it is. The grid leaves a row being edited alone
+      // meanwhile. A cell's field has focus at once, for the keys that started it, and again a task later.
+      if (editing?.matches("tr") && field) {
+        setTimeout(() => {
+          // Not if focus has gone to another of its controls or out of the grid since. Safari may have
+          // focused the field itself as it came (autofocus), unread too: it's focused again.
+          const now = document.activeElement;
+          const moved = now && now !== document.body && now !== field && (!root.contains(now) || (editing.contains(now) && now.matches("input, select, textarea, button, a")));
+          if (this.#editing !== editing || !field.isConnected || moved) return;
+          if (now === field) field.blur();
+          field.focus();
+          this.#began(editing, field as HTMLInputElement);
+        });
+      } else {
+        field?.focus();
+        this.#began(editing, field as HTMLInputElement);
+        if (field) this.#reread(field);
+      }
     }
     // Not gone just for the moment an enhanced load is merging the page.
     const open = own(root, "[data-ib-edit-for]") ?? editing;
@@ -132,7 +149,23 @@ class GridEdit extends IzzyElement {
     // With the row gone, its Add outside the grid (a tile's header) comes first, as the grid's own toolbar would.
     const id = root.getAttribute("data-ib-grid-id");
     const add = id ? [...document.querySelectorAll<HTMLElement>(`.ib-part[data-ib-grid="${CSS.escape(id)}"] ${action}`)].find((found) => found.checkVisibility()) : undefined;
-    (shown(`${row} ${action}`) ?? shown(`${row} [data-ib-row-menu]`) ?? add ?? shown(action))?.focus();
+    const target = shown(`${row} ${action}`) ?? shown(`${row} [data-ib-row-menu]`) ?? add ?? shown(action);
+    target?.focus();
+    if (target) this.#reread(target);
+  }
+
+  // Focus put on an element in the same task that put it in the page isn't read by VoiceOver on
+  // Safari: after Escape put focus on a row's Edit link, VoiceOver's cursor was lost, and a cell's
+  // field said only the word at the cursor. Focused again a task later, it's read. A cell isn't saved
+  // by that blur, as it is when focus leaves it.
+  #reread(el: HTMLElement): void {
+    setTimeout(() => {
+      if (document.activeElement !== el) return;
+      this.#committing = true;
+      el.blur();
+      el.focus({ preventScroll: true });
+      this.#committing = false;
+    });
   }
 
   // A row or cell has its field: the cursor goes after its text, and what started a cell by typing goes
@@ -142,7 +175,11 @@ class GridEdit extends IzzyElement {
       this.#cell = this.#addressOf(editing);
       this.#after = "";
     }
-    if (field?.matches("textarea, input:is([type=text], [type=number], [type=email], [type=tel], [type=url], [type=search])")) {
+    // Where it can be, the cursor is set without touching the value: VoiceOver on Safari reads a value
+    // set again as the word at the cursor ("Hamilton"), in place of the field.
+    if (!this.#typed && field?.matches("textarea, input:is([type=text], [type=tel], [type=url], [type=search])")) {
+      field.setSelectionRange(field.value.length, field.value.length);
+    } else if (field?.matches("textarea, input:is([type=text], [type=number], [type=email], [type=tel], [type=url], [type=search])")) {
       const was = field.value;
       field.value = "";
       field.value = was + this.#typed;
