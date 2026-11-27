@@ -73,8 +73,8 @@ public sealed class ComponentTests : IDisposable
         const string weather = "Components/Pages/Weather.razor", counter = "Components/Pages/Counter.razor";
         string At(string page, string tag) => $"{page}:{Array.FindIndex(File.ReadAllLines(Path.Combine(_work, page)), l => l.TrimStart().StartsWith(tag, StringComparison.Ordinal)) + 1}:{File.ReadAllLines(Path.Combine(_work, page)).First(l => l.TrimStart().StartsWith(tag, StringComparison.Ordinal)).IndexOf('<') + 2}";
         var before = File.ReadAllText(Path.Combine(_work, weather));
-        Assert.Equal(3, Izzy(ItemTier.Account, "wrap", At(weather, "<PageHeader"), "--with", "Stack").Exit);
-        var wrapped = Izzy("wrap", At(weather, "<PageHeader"), "--with", "stack", "--gap", "2");
+        Assert.Equal(4, Izzy(ItemTier.Free, "wrap", At(weather, "<PageHeader"), "--with", "Stack").Exit);
+        var wrapped = Izzy(ItemTier.Account, "wrap", At(weather, "<PageHeader"), "--with", "stack", "--gap", "2");
         Assert.True(wrapped.Exit == 0, wrapped.Error);
         Assert.Contains("        <Stack Gap=\"2\">\n            <PageHeader Title=\"Weather\"", File.ReadAllText(Path.Combine(_work, weather)).ReplaceLineEndings("\n"));
         Assert.Contains("\"component\": \"Row\"", Izzy("wrap", $"{At(weather, "<PropertyColumn")}-{At(weather, "<PropertyColumn Property=\"f => f.Summary\"")[(weather.Length + 1)..]}", "--suggest", "--json").Out);
@@ -195,11 +195,11 @@ public sealed class ComponentTests : IDisposable
         File.WriteAllText(Path.Combine(_work, "Components/Pages/Notes.razor"), "@page \"/notes\"\r\n\r\n@* A sample page. Its headings\r\n   list themselves. *@\r\n<Column Gap=\"4\">\r\n</Column>\r\n");
         Assert.Contains("\"component\": \"Column\"", Izzy(ItemTier.Account, "inspect", "Components/Pages/Notes.razor:5:2", "--json").Out);
 
-        // Signed out there is no panel; with an account it is read-only.
+        // Signed out there is no panel and no editing; a free account does both.
         Assert.Equal(4, Izzy(ItemTier.Free, "inspect", $"{page}:4:8", "--json").Exit);
-        Assert.Equal(3, Izzy(ItemTier.Account, "set", $"{page}:4:8", "--variant", "Ghost").Exit);
+        Assert.Equal(4, Izzy(ItemTier.Free, "set", $"{page}:4:8", "--variant", "Ghost").Exit);
 
-        Assert.Equal(0, Izzy("set", $"{page}:4:8", "--variant", "ghost", "--full-width", "--unset", "submit").Exit);
+        Assert.Equal(0, Izzy(ItemTier.Account, "set", $"{page}:4:8", "--variant", "ghost", "--full-width", "--unset", "submit").Exit);
         Assert.Contains("    <Button Variant=\"ButtonVariant.Ghost\" Size=\"@_size\"\n            Href=\"a&amp;b\" FullWidth>Save</Button>\n", File.ReadAllText(Path.Combine(_work, page)));
     }
 

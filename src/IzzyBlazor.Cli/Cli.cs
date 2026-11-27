@@ -62,11 +62,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         its @using lines at the top and its @code members in the page's @code. --example takes another of its
         examples (izzy describe component <Name> lists them); --tag puts the tag alone, at the column too.
         izzy inspect answers with the component at a place on a page and what each of its attributes says, for
-        an editor's side panel (a free account). izzy set changes or removes its options there (IzzyBlazor Pro).
+        an editor's side panel. izzy set changes or removes its options there (both: a free account).
         izzy wrap puts a component or an HTML element around the element at a place, or around the elements from
         it to a second place in the same parent; --suggest lists the wrappers that fit there. izzy unwrap takes an
         element away and keeps what it holds. izzy extract moves markup to a component of its own and passes it
-        what it read from the page's @code as parameters (all three: IzzyBlazor Pro).
+        what it read from the page's @code as parameters (all three: a free account).
         izzy add crud makes a page whose grid adds, edits and deletes a model's records (list, detail and
         form pages are --mode pages, Pro), for a model class in your app read from its source: no build needed.
         izzy init sets up IzzyBlazor in the app you have: a Blazor Web App, or an MVC or Razor Pages app, which
@@ -958,12 +958,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         changes.AddRange(args.Options.Select(o => (o.Name, (string?)(o.Value ?? TagEdit.Switch))));
         if (changes.Count == 0) throw new UsageException($"Nothing to set. Usage: {usage}");
         if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
-        if (!HasPro)
+        if (Plan == ItemTier.Free)
         {
-            error.WriteLine("Changing a component's options with izzy set comes with IzzyBlazor Pro.");
-            return 3;
+            error.WriteLine("Changing a component's options with izzy set comes with a free IzzyBlazor account. Run izzy login.");
+            return 4;
         }
-        if (!flags.Json) PreviewNote();
         var (page, path, tag) = TagAt(args.Words[1], folder, stdin, usage);
         var project = ProjectInfo.FromProject(FindProject(folder));
         var edits = TagEdit.Set(page, path, tag, Library, changes);
@@ -999,12 +998,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var flags = Flags(args);
         if ((stdin || suggest) && !flags.Json) throw new UsageException($"{(suggest ? "--suggest" : "--stdin")} answers as data: add --json.");
         if (suggest) NoSettings(args);
-        if (!HasPro)
+        if (Plan == ItemTier.Free)
         {
-            error.WriteLine("Wrapping markup with izzy wrap comes with IzzyBlazor Pro.");
-            return 3;
+            error.WriteLine("Wrapping markup with izzy wrap comes with a free IzzyBlazor account. Run izzy login.");
+            return 4;
         }
-        if (!flags.Json) PreviewNote();
         var (page, path, start, end, project) = RangeAt(args.Words[1], folder, stdin, usage);
         var (from, to, run, parent) = Restructure.Range(page, path, start, end);
         if (suggest)
@@ -1028,12 +1026,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var flags = Flags(args);
         NoSettings(args);
         if (stdin && !flags.Json) throw new UsageException("--stdin answers with the changes as data: add --json.");
-        if (!HasPro)
+        if (Plan == ItemTier.Free)
         {
-            error.WriteLine("Unwrapping markup with izzy unwrap comes with IzzyBlazor Pro.");
-            return 3;
+            error.WriteLine("Unwrapping markup with izzy unwrap comes with a free IzzyBlazor account. Run izzy login.");
+            return 4;
         }
-        if (!flags.Json) PreviewNote();
         var (page, path, start, end, project) = RangeAt(args.Words[1], folder, stdin, usage);
         if (end is not null) throw new UsageException($"izzy unwrap takes one position. Usage: {usage}");
         var element = Restructure.At(page, Restructure.Elements(page), start) ?? throw new UsageException($"No element at that place in {path}: put the position on a tag.");
@@ -1057,12 +1054,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (!Regex.IsMatch(name, "^[A-Z][A-Za-z0-9_]*$"))
             throw new UsageException($"--name is a component's name, such as OrderSummary, not \"{name}\": it starts with a capital letter and has no spaces.");
         if (Library.Options(name) is not null) throw new UsageException($"{name} is an IzzyBlazor component's name. Pick another --name.");
-        if (!HasPro)
+        if (Plan == ItemTier.Free)
         {
-            error.WriteLine("Moving markup to a component with izzy extract comes with IzzyBlazor Pro.");
-            return 3;
+            error.WriteLine("Moving markup to a component with izzy extract comes with a free IzzyBlazor account. Run izzy login.");
+            return 4;
         }
-        if (!flags.Json) PreviewNote();
         var (page, path, start, end, project) = RangeAt(args.Words[1], folder, stdin, usage);
         var (from, to, _, _) = Restructure.Range(page, path, start, end);
         var own = Path.GetDirectoryName(path)!.Replace('\\', '/');

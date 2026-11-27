@@ -1,14 +1,14 @@
 @page "/docs/tools/vs-code-properties"
 
 @* The Properties view, Set an Option and the hover (0.9.4: out/inspector.js, setOption.js). Reading runs izzy
-   inspect (a free account), changing runs izzy set (Pro, and its preview): the same tiers as pricing's row
-   "Component inspector in the IDE". *@
+   inspect and changing runs izzy set, both with a free account: the same tiers as pricing's row
+   "Edit options and markup in the IDE". *@
 
 <ArticlePage Section="tools" Slug="vs-code-properties">
     <Lead>
         Properties lists every option of the component under the cursor, with the values its tag sets. Use
         it to find an option without leaving the file, and to set one without typing its name. Seeing the
-        options needs a free account, and setting one from the editor is part of Pro.
+        options and setting them needs a free account.
     </Lead>
     <ChildContent>
         <Heading Level="2">Open it</Heading>
@@ -37,7 +37,7 @@
 
         <Heading Level="2">Change an option</Heading>
         <TextBlock>
-            With Pro, pick a value or type one for an option that is on or off, a choice, text or a number.
+            Pick a value or type one for an option that is on or off, a choice, text or a number.
             Other options show their type, and are set in the code. The change is written to the open editor at once, so undo takes it
             back, and the file is saved only when you save it. To go back to the default, choose Default in a
             list, clear a text field, or use Reset beside the option's name.
@@ -52,7 +52,7 @@
         <TextBlock>
             Set an Option (<Kbd Keys="Ctrl+Alt+O" />, or <Kbd Keys="Ctrl+." /> on a tag) lists the options of
             the component under the cursor that it can set, the ones in use first. Pick one, then its value.
-            It asks in VS Code's own lists at the top of the window. Setting the value needs Pro.
+            It asks in VS Code's own lists at the top of the window.
         </TextBlock>
         <TextBlock>
             Point to a component's name in the file to see what it is and the options its tag sets, with links to
