@@ -157,10 +157,15 @@ class GridEdit extends IzzyElement {
   // Focus put on an element in the same task that put it in the page isn't read by VoiceOver on
   // Safari: after Escape put focus on a row's Edit link, VoiceOver's cursor was lost, and a cell's
   // field said only the word at the cursor. Focused again a task later, it's read. A cell isn't saved
-  // by that blur, as it is when focus leaves it.
+  // by that blur, as it is when focus leaves it. Not once a key has been pressed there: it's in use, and
+  // the blur could drop the next key ("Sved by Tab").
   #reread(el: HTMLElement): void {
+    let pressed = false;
+    const press = () => (pressed = true);
+    el.addEventListener("keydown", press, { once: true });
     setTimeout(() => {
-      if (document.activeElement !== el) return;
+      el.removeEventListener("keydown", press);
+      if (pressed || document.activeElement !== el) return;
       this.#committing = true;
       el.blur();
       el.focus({ preventScroll: true });
