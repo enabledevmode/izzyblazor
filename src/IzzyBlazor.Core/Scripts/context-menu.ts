@@ -30,11 +30,12 @@ export function openPanelAt(panel: HTMLElement, anchor: Element, x: number, y: n
   // Not placed by its button, which is what the script does where the browser can't anchor it.
   panel.dataset.ibAtPointer = "";
   panel.showPopover();
-  // Kept on the screen; the panel's own placement comes back when it closes.
+  // Kept on the screen; the panel's own placement comes back when it closes. Its position-area goes
+  // too: Safari still reads the panel as placed by it, and VoiceOver scrolled the page there.
   const { width, height } = panel.getBoundingClientRect();
   const left = Math.max(0, Math.min(x, innerWidth - width));
   const top = Math.max(0, Math.min(y, innerHeight - height));
-  panel.style.cssText += `;position:fixed;inset:auto;margin:0;position-anchor:none;left:${left}px;top:${top}px`;
+  panel.style.cssText += `;position:fixed;inset:auto;margin:0;position-anchor:none;position-area:none;left:${left}px;top:${top}px`;
 
   // It stays where it opened, so once its row has scrolled away it's closed, not left over another.
   // By where the row is, not that something scrolled: another list may have, or a scroll that had
@@ -50,7 +51,7 @@ export function openPanelAt(panel: HTMLElement, anchor: Element, x: number, y: n
     panel.removeEventListener("toggle", reset);
     document.removeEventListener("scroll", scrolled, { capture: true });
     delete panel.dataset.ibAtPointer;
-    for (const name of ["position", "inset", "margin", "position-anchor", "left", "top"]) panel.style.removeProperty(name);
+    for (const name of ["position", "inset", "margin", "position-anchor", "position-area", "left", "top"]) panel.style.removeProperty(name);
   });
 }
 
