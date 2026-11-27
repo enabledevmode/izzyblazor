@@ -41,12 +41,14 @@ public class NavigationRenderTests : BunitContext
         Assert.True(radios[0].HasAttribute("checked"));
         Assert.Equal("acct-billing-history-panel", radios[1].GetAttribute("aria-controls"));
 
-        // With no script the tabs are a radio group; <ib-tabs> adds the tab roles.
+        // With no script the tabs are a radio group; <ib-tabs> adds the tab roles. Each panel is a
+        // tabpanel named by its tab from the server, so enhanced navigation doesn't strip the role.
         Assert.Equal("radiogroup", cut.Find(".ib-tabs-list").GetAttribute("role"));
         var panels = cut.FindAll(".ib-tab-panel");
         Assert.Equal(3, panels.Count);
         Assert.Equal("acct-billing-history-panel", panels[1].Id);
-        Assert.Null(panels[1].GetAttribute("role"));
+        Assert.Equal("tabpanel", panels[1].GetAttribute("role"));
+        Assert.Equal("acct-billing-history-tab", panels[1].GetAttribute("aria-labelledby"));
     }
 
     [Fact]

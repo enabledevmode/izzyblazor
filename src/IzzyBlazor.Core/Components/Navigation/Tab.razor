@@ -9,9 +9,14 @@
 
 @if (Context is not null)
 {
-    @* Tab roles come from <ib-tabs> with script; with no script the tabs are a radio group. *@
+    @* Tab roles come from <ib-tabs> with script; with no script the tabs are a radio group. The
+       panel's role and name are rendered here, true in both cases: an enhanced navigation patches
+       the page to this markup, and a role the script had added is removed and added back, after
+       which Safari stops announcing a live region inside the panel. *@
     <div @attributes="AdditionalAttributes"
          id="@Context.PanelId(this)"
+         role="tabpanel"
+         aria-labelledby="@Context.TabId(this)"
          class="@_class"
          style="@_style">
         @* Shown only when the panels are stacked: in a form, with JavaScript off. *@
