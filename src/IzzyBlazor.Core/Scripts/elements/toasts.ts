@@ -41,6 +41,7 @@ class Toasts extends IzzyElement {
   #paused = false;
   #count = 0;
   #returnFocus: HTMLElement | null = null;
+  #lastOutside: HTMLElement | null = null;
 
   protected setup(signal: AbortSignal): void {
     this.armAll();
@@ -98,11 +99,21 @@ class Toasts extends IzzyElement {
       },
       { signal }
     );
+    // Where focus was before the region. A screen reader's cursor moving into a toast (VoiceOver
+    // on Safari) blurs the old element first, so the focusin that follows has no relatedTarget.
+    document.addEventListener(
+      "focusout",
+      (event) => {
+        if (event.target instanceof HTMLElement && !this.contains(event.target)) this.#lastOutside = event.target;
+      },
+      { capture: true, signal }
+    );
     this.addEventListener(
       "focusin",
       (event) => {
-        if (!this.#focused && event.relatedTarget instanceof HTMLElement && !this.contains(event.relatedTarget)) {
-          this.#returnFocus = event.relatedTarget;
+        if (!this.#focused) {
+          const from = event.relatedTarget instanceof HTMLElement ? event.relatedTarget : this.#lastOutside;
+          if (from && !this.contains(from)) this.#returnFocus = from;
         }
         this.#focused = true;
         this.updatePause();
@@ -276,7 +287,8 @@ class Toasts extends IzzyElement {
         .filter((t) => t !== toast && !t.closest("template") && this.dismissInput(t)?.checked === false)
         .map((t) => this.dismissControl(t))
         .find(Boolean);
-      const target = next ?? (this.#returnFocus?.isConnected ? this.#returnFocus : null);
+      const back = this.#returnFocus;
+      const target = next ?? (back?.isConnected && back.checkVisibility() ? back : null);
       if (target) target.focus();
       else (document.activeElement as HTMLElement).blur();
     }

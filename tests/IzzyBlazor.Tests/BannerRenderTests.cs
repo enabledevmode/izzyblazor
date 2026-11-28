@@ -34,7 +34,7 @@ public class BannerRenderTests : BunitContext
         var input = cut.Find("input.ib-banner-dismiss");
         Assert.Equal("b1-dismiss", input.Id);
         Assert.Equal("b1-dismiss", cut.Find("label.ib-banner-close").GetAttribute("for"));
-        Assert.Equal("Dismiss", cut.Find("ib-dismiss > button.ib-banner-close").GetAttribute("aria-label"));
+        Assert.Equal("Dismiss", cut.Find("ib-dismiss > button.ib-banner-close .ib-visually-hidden").TextContent);
 
         input.Change(true);
         Assert.True(reported);

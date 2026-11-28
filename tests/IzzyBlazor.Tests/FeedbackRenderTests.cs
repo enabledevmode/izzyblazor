@@ -46,7 +46,7 @@ public class FeedbackRenderTests : BunitContext
         // With the script, a real button takes the checkbox's place (CSS swaps them on :defined).
         var button = cut.Find("ib-dismiss > button.ib-alert-close");
         Assert.Equal("button", button.GetAttribute("type"));
-        Assert.Equal("Dismiss", button.GetAttribute("aria-label"));
+        Assert.Equal("Dismiss", button.QuerySelector(".ib-visually-hidden")!.TextContent);
 
         input.Change(true);
         Assert.True(reported);
