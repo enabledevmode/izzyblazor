@@ -27,7 +27,7 @@
     <fieldset class="@Class" style="@Style" aria-describedby="@DescribedBy">
         @if (!string.IsNullOrEmpty(Label))
         {
-            <legend class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")">@Label@RequiredMark@RequiredText</legend>
+            <legend class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")" id="@LabelId">@Label@RequiredMark@RequiredText</legend>
         }
         @ChildContent
         @Footer

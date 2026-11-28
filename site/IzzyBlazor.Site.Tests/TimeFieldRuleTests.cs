@@ -16,13 +16,13 @@ public sealed class TimeFieldRuleTests(SiteFixture site) : IClassFixture<SiteFix
 
         // As a crafted post would, or a phone that ignored the limit.
         await form.EvaluateAsync("f => { f.noValidate = true; f.querySelectorAll('input[min], input[max]').forEach(i => { i.removeAttribute('min'); i.removeAttribute('max'); }); }");
-        await form.GetByLabel("Night shift starts").FillAsync("12:00");
+        await form.GetByRole(AriaRole.Textbox, new() { Name = "Night shift starts", Exact = true }).FillAsync("12:00");
         await form.GetByRole(AriaRole.Button, new() { Name = "Save hours" }).ClickAsync();
         await Assertions.Expect(form).ToContainTextAsync("must be between");
         await Assertions.Expect(form).Not.ToContainTextAsync("Saved:");
 
         await form.EvaluateAsync("f => { f.noValidate = true; }");
-        await form.GetByLabel("Night shift starts").FillAsync("23:30");
+        await form.GetByRole(AriaRole.Textbox, new() { Name = "Night shift starts", Exact = true }).FillAsync("23:30");
         await form.GetByRole(AriaRole.Button, new() { Name = "Save hours" }).ClickAsync();
         await Assertions.Expect(form).ToContainTextAsync("night shift from 23:30");
     }

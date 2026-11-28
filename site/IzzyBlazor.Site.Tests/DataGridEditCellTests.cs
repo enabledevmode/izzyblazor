@@ -100,7 +100,7 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
         await Assertions.Expect(Open(page)).ToHaveCountAsync(0);
 
         await Cell(page, 1001, "date").ClickAsync();
-        await Assertions.Expect(Open(page).GetByLabel("Date", new() { Exact = true })).ToBeFocusedAsync();
+        await Assertions.Expect(Open(page).GetByRole(AriaRole.Textbox, new() { Name = "Date", Exact = true })).ToBeFocusedAsync();
         // Through the date's own parts, as many as the browser gives it, and then its button.
         var toggle = Open(page).Locator(".ib-date-toggle");
         for (var i = 0; i < 4 && !await toggle.EvaluateAsync<bool>("e => document.activeElement === e"); i++)

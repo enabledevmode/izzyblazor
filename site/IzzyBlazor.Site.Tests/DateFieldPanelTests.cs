@@ -21,7 +21,7 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
         var (page, form, browser) = await OpenAsync(mode);
         await using (browser)
         {
-            var input = form.GetByLabel("Delivery", new() { Exact = true });
+            var input = form.GetByRole(AriaRole.Textbox, new() { Name = "Delivery", Exact = true });
             var button = form.GetByRole(AriaRole.Button, new() { Name = "Change date, Monday, March 15, 2027" });
             await button.ClickAsync();
             await Assertions.Expect(form.GetByRole(AriaRole.Button, new() { Name = "Monday, March 15, 2027", Exact = true })).ToBeFocusedAsync();
@@ -43,7 +43,7 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
         var (page, form, browser) = await OpenAsync("static");
         await using (browser)
         {
-            var input = form.GetByLabel("Delivery", new() { Exact = true });
+            var input = form.GetByRole(AriaRole.Textbox, new() { Name = "Delivery", Exact = true });
             await Assertions.Expect(form.Locator("ib-calendar").First).ToHaveAttributeAsync("data-ready", "");
             await input.FillAsync("2027-04-07");
             await input.FocusAsync();
@@ -75,7 +75,7 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
         await using (browser)
         {
             var form = page.Locator("[data-ex='date-field-time-zones'] form");
-            var input = form.GetByLabel("Standup (New York)");
+            var input = form.GetByRole(AriaRole.Textbox, new() { Name = "Standup (New York)", Exact = true });
             var panel = form.Locator("[popover]").Nth(1);
             var day = panel.GetByRole(AriaRole.Button, new() { Name = "Monday, March 15, 2027", Exact = true });
             var open = form.GetByRole(AriaRole.Button, new() { Name = "Change date, Tuesday, March 2, 2027, 09:30" });
@@ -118,7 +118,7 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
         var (_, form, browser) = await OpenAsync("noscript", script: false);
         await using (browser)
         {
-            await Assertions.Expect(form.GetByLabel("Delivery", new() { Exact = true })).ToBeVisibleAsync();
+            await Assertions.Expect(form.GetByRole(AriaRole.Textbox, new() { Name = "Delivery", Exact = true })).ToBeVisibleAsync();
             await Assertions.Expect(form.Locator(".ib-date-toggle")).ToBeHiddenAsync();
         }
     }

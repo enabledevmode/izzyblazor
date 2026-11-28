@@ -47,7 +47,7 @@
     See also: DateField, TextField, Form.
 *@
 
-<FieldFrame Class="@WrapperClass("time")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
+<FieldFrame Class="@WrapperClass("time")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput"
             Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
         <ib-field-control class="@ControlClass" style="@(HasPanel ? $"anchor-name:{StyleValues.AnchorName(FieldId + "-control")}" : null)">
@@ -73,7 +73,8 @@
             {
                 <Popover Placement="Placement.BottomStart">
                     <Trigger Context="trigger">
-                        <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
+                        <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText"
+                                aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {trigger["id"]}")">
                             <Icon Purpose="IconPurpose.Clock" Class="ib-field-icon" />
                         </button>
                     </Trigger>
@@ -117,6 +118,9 @@
 
     /// <inheritdoc />
     protected override bool OwnReadOnly => ReadOnly;
+
+    // The list's button is named by the label too, as a page can have several.
+    private string LabelId => FieldId + "-label";
 
     /// <summary>The earliest time. Defaults to <c>[Range]</c>'s minimum. After <see cref="Max"/>, the allowed times run across midnight.</summary>
     [Parameter] public TimeOnly? Min { get; set; }

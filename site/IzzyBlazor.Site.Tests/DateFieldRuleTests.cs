@@ -16,8 +16,8 @@ public sealed class DateFieldRuleTests(SiteFixture site) : IClassFixture<SiteFix
 
         // As a crafted post would, or a phone that ignored the limit.
         await form.EvaluateAsync("f => { f.noValidate = true; f.querySelectorAll('input[min], input[max]').forEach(i => { i.removeAttribute('min'); i.removeAttribute('max'); }); }");
-        await form.GetByLabel("Check-in").FillAsync("2027-06-10");
-        await form.GetByLabel("Check-out").FillAsync("2027-06-01");
+        await form.GetByRole(AriaRole.Textbox, new() { Name = "Check-in", Exact = true }).FillAsync("2027-06-10");
+        await form.GetByRole(AriaRole.Textbox, new() { Name = "Check-out", Exact = true }).FillAsync("2027-06-01");
         await form.GetByRole(AriaRole.Button, new() { Name = "Book" }).ClickAsync();
 
         await Assertions.Expect(form).ToContainTextAsync("or later");

@@ -16,8 +16,8 @@ public sealed class DateFieldZoneTests(SiteFixture site) : IClassFixture<SiteFix
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/date-field?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
 
         // July in New York is four hours behind UTC, whatever zone the server runs in.
-        await page.GetByLabel("Deploy at (UTC)").FillAsync("2027-07-01T09:30");
-        await page.GetByLabel("Standup (New York)").FillAsync("2027-07-01T09:30");
+        await page.GetByRole(AriaRole.Textbox, new() { Name = "Deploy at (UTC)", Exact = true }).FillAsync("2027-07-01T09:30");
+        await page.GetByRole(AriaRole.Textbox, new() { Name = "Standup (New York)", Exact = true }).FillAsync("2027-07-01T09:30");
         var post = await page.RunAndWaitForRequestAsync(
             () => page.GetByRole(AriaRole.Button, new() { Name = "Schedule" }).ClickAsync(),
             request => request.Method == "POST");
@@ -31,6 +31,6 @@ public sealed class DateFieldZoneTests(SiteFixture site) : IClassFixture<SiteFix
         Assert.Equal("Saved 2027-07-01 09:30:00Z and 2027-07-01 09:30 -04:00.", (await saved.TextContentAsync())?.Trim());
 
         // The page shows the posted values back as they were typed.
-        Assert.Equal("2027-07-01T09:30", await page.GetByLabel("Standup (New York)").InputValueAsync());
+        Assert.Equal("2027-07-01T09:30", await page.GetByRole(AriaRole.Textbox, new() { Name = "Standup (New York)", Exact = true }).InputValueAsync());
     }
 }

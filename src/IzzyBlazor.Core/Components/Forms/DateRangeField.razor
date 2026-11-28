@@ -55,7 +55,7 @@
     See also: DateField, Calendar, Form.
 *@
 
-<FieldFrame Class="@WrapperClass("date-range")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput" Group
+<FieldFrame Class="@WrapperClass("date-range")" Style="@WrapperStyle" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" NoInput="TakesNoInput" Group
             Hint="@Hint" HintStatus="HintStatus" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <div class="ib-date-range-captions">
         <label for="@FieldId">@(StartText ?? TextDefaults.DateRangeStart)</label>
@@ -104,7 +104,8 @@
             }
             <Popover Placement="Placement.BottomStart" PanelWidth="Length.FitContent">
                 <Trigger Context="trigger">
-                    <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
+                    <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText"
+                            aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {trigger["id"]}")">
                         <Icon Purpose="IconPurpose.Calendar" Class="ib-field-icon" />
                     </button>
                 </Trigger>

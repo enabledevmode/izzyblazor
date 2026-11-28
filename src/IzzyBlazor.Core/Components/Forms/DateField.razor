@@ -90,7 +90,8 @@
             {
                 <Popover Placement="Placement.BottomStart">
                     <Trigger Context="trigger">
-                        <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
+                        <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText"
+                                aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {trigger["id"]}")">
                             <Icon Purpose="IconPurpose.Calendar" Class="ib-field-icon" />
                         </button>
                     </Trigger>

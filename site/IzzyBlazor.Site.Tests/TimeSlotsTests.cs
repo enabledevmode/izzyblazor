@@ -12,7 +12,7 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/time-field?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var form = page.Locator("[data-ex='time-field-slots'] form");
         await form.Locator("ib-time-slots[data-ready]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
-        return (page, form, form.GetByLabel("Visit"), browser);
+        return (page, form, form.GetByRole(AriaRole.Textbox, new() { Name = "Visit", Exact = true }), browser);
     }
 
     private static ILocator Slot(ILocator form, string value) => form.Locator($"[role=option][data-value='{value}']");
