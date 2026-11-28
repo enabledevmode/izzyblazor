@@ -1,0 +1,9 @@
+@* Toasts drawn on the page, as a theme preview or a help article shows them: a save, and a
+   failed upload with a retry. *@
+<Column Gap="3" Grow>
+    <Toast Status="Status.Success" Title="Changes saved">Q3 roadmap was updated.</Toast>
+    <Toast Status="Status.Danger" Title="Upload failed">
+        budget.xlsx is over the 25 MB limit.
+        <AlertActions><Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline">Try again</Button></AlertActions>
+    </Toast>
+</Column>

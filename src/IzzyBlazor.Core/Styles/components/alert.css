@@ -331,6 +331,17 @@
     }
   }
 
+  /* Toast: one drawn on the page, as wide as a region's, and still (it's there from the start). */
+  .ib-toast.ib-toast-inline {
+    width: min(24rem, 100%);
+    transition: none;
+
+    @starting-style {
+      opacity: 1;
+      translate: none;
+    }
+  }
+
   .ib-toast.ib-alert:has(> .ib-alert-dismiss:checked) {
     opacity: 0;
   }

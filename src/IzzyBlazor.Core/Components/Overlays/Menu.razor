@@ -83,6 +83,13 @@
     /// </summary>
     [Parameter] public RenderFragment<IReadOnlyDictionary<string, object>>? Trigger { get; set; }
 
+    /// <summary>
+    /// Draws the open menu on the page, with no button: a picture of it for a theme preview, a
+    /// mockup or docs. Its items still work as plain links and buttons, but it isn't a menu to
+    /// screen readers, and has no arrow keys. <see cref="Label"/> names it.
+    /// </summary>
+    [Parameter] public bool Inline { get; set; }
+
     /// <summary>Where the menu opens. Defaults to <see cref="Placement.BottomStart"/>.</summary>
     [Parameter] public Placement Placement { get; set; } = Placement.BottomStart;
 
@@ -101,7 +108,13 @@
     private protected ControlSize TriggerSize => !_sizeSet && Group?.DefaultSize is { } size ? size : Size;
 
     /// <inheritdoc />
-    private protected override RenderFragment TriggerContent => Trigger is not null ? Trigger(TriggerAttributes) : DefaultTrigger;
+    private protected override RenderFragment? TriggerContent => Inline ? null : Trigger is not null ? Trigger(TriggerAttributes) : DefaultTrigger;
+
+    /// <inheritdoc />
+    private protected override bool InlinePanel => Inline;
+
+    /// <inheritdoc />
+    private protected override string? MenuName => Inline ? Label : null;
 
     // Built in C#, not markup: with markup in @code, the .NET 11 SDK's Razor compiler doesn't see a C#
     // subclass (ToolbarMenu) as a component, so <ToolbarMenu> in the library's own .razor files fails.
@@ -128,6 +141,16 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (Inline && string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("An Inline Menu needs a Label, which names it.");
+        }
+
+        if (Inline && ContextFor is not null)
+        {
+            throw new InvalidOperationException("An Inline Menu is drawn on the page, so it can't also open by right-click: leave out ContextFor.");
+        }
+
         if (Trigger is null && string.IsNullOrWhiteSpace(Label))
         {
             throw new InvalidOperationException("Menu needs a Label for its button, or a Trigger. For a menu with no button, use ContextMenu.");

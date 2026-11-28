@@ -254,6 +254,7 @@ Stack
 Stat
 Step
 Stepper
+Swatch
 Switch
 Tab
 TabLink
@@ -271,6 +272,7 @@ TileLayout
 TimeField
 Timeline
 TimelineItem
+Toast
 ToastRegion
 ToggleButton
 ToggleGroup

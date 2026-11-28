@@ -7,6 +7,25 @@
     ContextFor add <ib-context-menu>, which opens the panel at the pointer.
 *@
 
+@if (InlinePanel)
+{
+    @* Drawn on the page, as a picture of the menu: no trigger, no popover, and no menu roles, as
+       there are no arrow keys outside <ib-popover>. A group named by the menu's label. *@
+    <div @attributes="AdditionalAttributes"
+         id="@ElementId"
+         role="group"
+         aria-label="@MenuName"
+         class="@_class"
+         style="@_style">
+        <CascadingValue Value="_context" IsFixed="true">
+            <CascadingValue Value="ToolbarContext.Outside" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
+        </CascadingValue>
+    </div>
+    return;
+}
+
 <ib-popover class="@_outerClass"
             style="@_outerStyle"
             data-placement="@PanelPlacement.Name()"
@@ -73,6 +92,9 @@
     /// <summary>The menu's name when no button names it.</summary>
     private protected virtual string? MenuName => null;
 
+    /// <summary>The panel is drawn on the page, with no trigger: <see cref="Menu.Inline"/>.</summary>
+    private protected virtual bool InlinePanel => false;
+
     /// <summary>Where the panel opens from the button.</summary>
     private protected virtual Placement PanelPlacement => Placement.BottomStart;
 
@@ -94,8 +116,16 @@
     {
         classes.Add("ib-pop");
         classes.Add("ib-menu");
-        classes.Add($"ib-place-{PanelPlacement.Name()}");
-        styles.AddRaw($"position-anchor:{StyleValues.AnchorName(ElementId)}");
+        if (InlinePanel)
+        {
+            classes.Add("ib-pop-inline");
+        }
+        else
+        {
+            classes.Add($"ib-place-{PanelPlacement.Name()}");
+            styles.AddRaw($"position-anchor:{StyleValues.AnchorName(ElementId)}");
+        }
+
         if (PanelWidth is { } width)
         {
             classes.Add("ib-pop-sized");
@@ -110,7 +140,7 @@
     {
         base.OnParametersSet();
         ToolbarControl.Refuse(this, Toolbar, Group);
-        _context ??= new MenuContext(ElementId);
+        _context ??= new MenuContext(ElementId, InlinePanel);
         TriggerAttributes = new Dictionary<string, object>
         {
             ["id"] = TriggerId,

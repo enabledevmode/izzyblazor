@@ -51,6 +51,50 @@
     See also: Drawer, ConfirmButton, Popover, Alert.
 *@
 
+@if (Inline)
+{
+    @* Drawn on the page, as a picture of the dialog open: a div in the page's flow, not a <dialog>,
+       so it isn't modal and no script runs. The close button is drawn but inert, as there's nothing
+       to close. The title is still a heading. *@
+    <div @attributes="AdditionalAttributes" id="@ElementId" class="@_class" style="@_style">
+        <CascadingValue Value="_context" IsFixed="true">
+        <CascadingValue Value="ButtonGroup.Reset" IsFixed="true">
+        <CascadingValue Value="ToolbarContext.Outside" IsFixed="true">
+            @if (Title is not null || ShownHeader is not null || ShowCloseButton)
+            {
+                <header class="ib-dialog-header">
+                    @if (ShownHeader is not null)
+                    {
+                        <div class="ib-dialog-title" id="@TitleId" role="heading" aria-level="2">@_scope.Outlet(ShownHeader!)</div>
+                    }
+                    else if (Title is not null)
+                    {
+                        <h2 class="ib-dialog-title" id="@TitleId">@Title</h2>
+                    }
+                    @if (ShowCloseButton)
+                    {
+                        <button type="button" inert
+                                class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-dialog-close"
+                                aria-label="@(CloseLabel ?? TextDefaults.Close)">
+                            <Icon Purpose="IconPurpose.Close" />
+                        </button>
+                    }
+                </header>
+            }
+            <CascadingValue Value="_scope" IsFixed="true">
+                <div class="@_bodyClass" style="@_bodyStyle">@ChildContent</div>
+                @if (_scope.Shown<DialogFooterPart>() is { } footer)
+                {
+                    @_scope.Outlet(footer)
+                }
+            </CascadingValue>
+        </CascadingValue>
+        </CascadingValue>
+        </CascadingValue>
+    </div>
+    return;
+}
+
 <ib-dialog data-open="@(IsOpen ? "" : null)"
            data-query-key="@QueryKey"
            data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
@@ -158,6 +202,13 @@
     [Parameter] public bool InsideForm { get; set; }
 
     /// <summary>
+    /// Draws the dialog open on the page, in its flow, with no backdrop: a picture of it for a theme
+    /// preview, a mockup or docs. It isn't modal or a dialog to screen readers, and its close button
+    /// is drawn but does nothing. Its buttons and forms still work. Only a centered dialog.
+    /// </summary>
+    [Parameter] public bool Inline { get; set; }
+
+    /// <summary>
     /// The query-string key that opens a dialog from a link: <c>?dialog=my-id</c> renders the
     /// dialog with that id already open. Defaults to <c>dialog</c>; null turns it off.
     /// </summary>
@@ -187,6 +238,7 @@
         classes.Add("ib-dialog");
         classes.Add($"ib-dialog-{Size.Name()}");
         classes.Add($"ib-dialog-{Placement.Name()}");
+        classes.Add("ib-dialog-inline", Inline);
         base.BuildAttributes(classes, styles);
     }
 
@@ -195,25 +247,40 @@
     /// through the size's own variables, which keep a margin on small screens. A top or bottom
     /// sheet narrower than the screen is centered.
     /// </summary>
-    private protected override void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles, bool itemProps) =>
+    private protected override void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles, bool itemProps)
+    {
+        // Inline, it's in the page's flow, so it takes margins and the flex props like any item.
+        if (Inline)
+        {
+            base.BuildLayoutAttributes(classes, styles, itemProps);
+            return;
+        }
+
         ApplyResponsive(classes, styles, Width, "ib-dialog-sized", "dlgw", StyleValues.Length);
+    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        if (!Margin.IsEmpty || !MarginX.IsEmpty || !MarginY.IsEmpty || !MarginTop.IsEmpty || !MarginBottom.IsEmpty
+        if (Inline && Placement != DialogPlacement.Center)
+        {
+            throw new InvalidOperationException($"An Inline {GetType().Name} draws a centered dialog: leave Placement at Center.");
+        }
+
+        if (!Inline && (!Margin.IsEmpty || !MarginX.IsEmpty || !MarginY.IsEmpty || !MarginTop.IsEmpty || !MarginBottom.IsEmpty
             || !MarginStart.IsEmpty || !MarginEnd.IsEmpty || !MinWidth.IsEmpty || !MaxWidth.IsEmpty
-            || Grow || !Shrink || !Basis.IsEmpty || !AlignSelf.IsEmpty)
+            || Grow || !Shrink || !Basis.IsEmpty || !AlignSelf.IsEmpty))
         {
             throw new InvalidOperationException(
                 $"A {GetType().Name} isn't laid out in the page, so margins, MinWidth, MaxWidth and the flex props don't apply. Set its Size, or Width for a width the sizes don't cover.");
         }
 
-        _context ??= new DialogContext(ElementId, !InsideForm);
+        // Inline: no close form, so close buttons in it are plain buttons that do nothing.
+        _context ??= new DialogContext(ElementId, !InsideForm && !Inline);
 
         // ?dialog=id opens it. Only a change in the URL does, so closing it in the browser sticks.
-        if (QueryKey is not null)
+        if (QueryKey is not null && !Inline)
         {
             var query = QueryString.Of(Navigation.Uri);
             var value = query.TryGetValue(QueryKey, out var values) ? values.ToString() : null;
@@ -252,7 +319,7 @@
 
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
     {
-        if (QueryKey is null)
+        if (QueryKey is null || Inline)
         {
             return;
         }

@@ -43,6 +43,11 @@
 <TextBlock>A submenu is an item that opens another menu beside it. Add a <Code>MenuSub</Code>. Choosing an item in it closes the whole menu.</TextBlock>
 <ExampleViewer Example="menu-sub" />
 
+<Heading Level="2">Drawn on the page</Heading>
+<TextBlock>To show a menu open, as a theme preview or a help article does, set <Code>Inline</Code>. The menu has no button, and <Code>Label</Code> names it.</TextBlock>
+<ExampleViewer Example="menu-inline" />
+<TextBlock>Its items are plain links and buttons that still work, but it isn't a menu to screen readers and has no arrow keys. Don't use it in place of a list of actions: use a <Anchor Href="docs/components/toolbar">Toolbar</Anchor> or buttons.</TextBlock>
+
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {
     <Heading Level="2">Parts</Heading>

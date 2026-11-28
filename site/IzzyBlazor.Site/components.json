@@ -306,6 +306,13 @@
     },
 
     {
+      "id": "swatch", "icon": "SwatchBook", "name": "Swatch", "category": "Utilities", "summary": "Shows a color with its name.", "keywords": ["color chip", "palette", "token", "brand colors"],
+      "examples": [
+        { "id": "swatch-usage", "title": "Tokens and your own colors", "lead": "Set `Color` to a token, such as `Color.PrimarySoft`, one of your own (`Color.Token(\"promo\")`) or a CSS color (`Color.Of(\"#0f766e\")`), and name it with `Label`. Its variable, or the CSS color, shows under the name." }
+      ]
+    },
+
+    {
       "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "Utilities", "summary": "Lets the user pick System, Light or Dark.", "keywords": ["dark mode", "theme toggle"],
       "features": [
         { "feature": "Picks a scheme, kept in a cookie for every later page", "noscript": "none" },
@@ -1754,6 +1761,7 @@
           } },
         { "id": "dialog-parts", "title": "Header, body and footer", "after": ["Write the `DialogFooter` anywhere in the dialog, or in its form. The dialog draws it under the body."] },
         { "id": "dialog-placement", "title": "Size and placement" },
+        { "id": "dialog-inline", "title": "Drawn on the page", "lead": "To show a dialog open, as a theme preview or a help article does, set `Inline`. It sits in the page with no backdrop, isn't modal, and its close button does nothing." },
         { "id": "dialog-service", "title": "Dialogs from code", "modes": ["interactive"] }
       ]
     },
@@ -1863,7 +1871,8 @@
           "notes": {
             "noscript": "A click opens a submenu. Opening one on hover or with the arrow keys needs IzzyBlazor's script.",
             "static": "Hover and the right arrow open a submenu and the left arrow closes it, as on interactive pages."
-          } }
+          } },
+        { "id": "menu-inline", "title": "Drawn on the page", "lead": "To show a menu open, as a theme preview or a help article does, set `Inline`. It has no button, and its items are plain links and buttons, with no menu keys. `Label` names it." }
       ]
     },
 
@@ -2071,6 +2080,13 @@
               "noscript": "Closing hides the banner on this page only: it's back after Exports or Billing. If it was closed in another render mode first, the cookie keeps it out of this one too; Post a new notice brings it back.",
               "static": "Closing writes a cookie for a year, so the server leaves it out of every later page."
             } }
+      ]
+    },
+
+    {
+      "id": "toast", "icon": "Bell", "name": "Toast", "category": "Feedback", "summary": "Draws one toast on the page, for previews and docs.", "keywords": ["toast", "snackbar", "notification preview"],
+      "examples": [
+        { "id": "toast-usage", "title": "A toast on the page", "lead": "A `Toast` looks like one in a `ToastRegion`, but it's part of the page: for a theme preview, a mockup or a help article. Set `Status` and `Title`, write the message inside, and put any button in `AlertActions`. To tell people something just happened, use `ToastService` instead." }
       ]
     },
 

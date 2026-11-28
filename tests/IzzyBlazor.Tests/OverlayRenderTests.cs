@@ -118,6 +118,36 @@ public class OverlayRenderTests : BunitContext
     }
 
     [Fact]
+    public void Inline_menu_and_dialog_are_drawn_on_the_page_without_their_roles()
+    {
+        // Even interactive, an inline menu has no arrow keys, so no menu roles: a named group of buttons.
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var menu = Render<Menu>(p => p
+            .Add(m => m.Id, "m")
+            .Add(m => m.Label, "Project")
+            .Add(m => m.Inline, true)
+            .Add(m => m.ChildContent, (RenderFragment)(b => b.AddContent(0, Item("Duplicate")))));
+
+        Assert.Empty(menu.FindAll("ib-popover, [popover], [role=menu], [role=menuitem], [data-ib-role]"));
+        var panel = menu.Find("#m");
+        Assert.Equal("group", panel.GetAttribute("role"));
+        Assert.Equal("Project", panel.GetAttribute("aria-label"));
+        Assert.Equal("ib-pop ib-menu ib-pop-inline", panel.ClassName);
+        Assert.Null(menu.Find("button").GetAttribute("popovertarget"));
+
+        var dialog = Render<Dialog>(p => p
+            .Add(d => d.Id, "confirm")
+            .Add(d => d.Title, "Delete?")
+            .Add(d => d.Inline, true)
+            .AddChildContent("Sure?"));
+
+        Assert.Empty(dialog.FindAll("dialog, ib-dialog, form"));
+        Assert.Contains("ib-dialog-inline", dialog.Find("#confirm").ClassName);
+        Assert.Equal("Delete?", dialog.Find("h2").TextContent);
+        Assert.True(dialog.Find(".ib-dialog-close").HasAttribute("inert"));
+    }
+
+    [Fact]
     public void Dialog_renders_closed_with_labeled_title_and_close_button()
     {
         var cut = Render<Dialog>(p => p

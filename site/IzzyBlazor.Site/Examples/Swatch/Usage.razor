@@ -1,0 +1,13 @@
+@* The colors a team's brand page lists: the theme's brand and surfaces, each named with its
+   variable under it, and the app's own promo token (defined on the Grid here, in theme.css in an
+   app). *@
+<Grid Columns="new() { Base = 2, Sm = 4 }" Gap="4" Grow Style="--ib-color-promo: light-dark(#7c3aed, #a78bfa)">
+    <Swatch Color="Color.Primary" Label="Brand" />
+    <Swatch Color="Color.PrimarySoft" Label="Brand soft" />
+    <Swatch Color="Color.PrimaryText" Label="Brand text" />
+    <Swatch Color='Color.Token("promo")' Label="Promo" />
+    <Swatch Color="Color.Background" Label="Background" />
+    <Swatch Color="Color.Surface" Label="Surface" />
+    <Swatch Color="Color.SurfaceSunken" Label="Sunken" />
+    <Swatch Color="Color.FillStrong" Label="Fill strong" />
+</Grid>

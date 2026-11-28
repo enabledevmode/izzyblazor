@@ -109,3 +109,39 @@
     }
   }
 }
+
+/* Swatch: a chip as wide as its place, then the name and the variable under it (the Theme sample's
+   design, TS1). The chip's border shows a color that matches the page. */
+@layer izzy.components {
+  .ib-swatch {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    min-width: 0;
+  }
+
+  .ib-swatch-chip {
+    box-sizing: border-box;
+    height: 2.75rem;
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-md);
+    forced-color-adjust: none;
+  }
+
+  .ib-swatch-label {
+    color: var(--ib-color-on-surface);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    line-height: var(--ib-leading-snug);
+  }
+
+  .ib-swatch-value {
+    overflow: hidden;
+    color: var(--ib-color-muted);
+    font-family: var(--ib-font-mono);
+    font-size: var(--ib-text-xs);
+    line-height: var(--ib-leading-snug);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

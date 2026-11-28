@@ -25,11 +25,11 @@
     <a aria-describedby="@ShortcutId"
        aria-keyshortcuts="@KeyShortcuts"
        @attributes="AdditionalAttributes"
-       role="@(Live ? Role : null)"
-       data-ib-role="@(Live ? null : Role)"
-       aria-checked="@(Live ? AriaChecked : null)"
-       data-ib-checked="@(Live ? null : AriaChecked)"
-       aria-current="@(!Live && IsCheckable && IsChecked ? "true" : null)"
+       role="@(Live && !Inline ? Role : null)"
+       data-ib-role="@(Live || Inline ? null : Role)"
+       aria-checked="@(Live && !Inline ? AriaChecked : null)"
+       data-ib-checked="@(Live || Inline ? null : AriaChecked)"
+       aria-current="@((!Live || Inline) && IsCheckable && IsChecked ? "true" : null)"
        class="@_class"
        style="@_style"
        href="@(Disabled ? null : href)"
@@ -41,16 +41,16 @@
 else
 {
     var submit = Submit || RadioGroup?.Name is not null;
-    var closes = !submit && Menu is not null && !KeepOpen;
+    var closes = !submit && Menu is { Inline: false } && !KeepOpen;
     <button aria-describedby="@ShortcutId"
             aria-keyshortcuts="@KeyShortcuts"
             @attributes="AdditionalAttributes"
             type="@(submit ? "submit" : "button")"
-            role="@(Live ? Role : null)"
-            data-ib-role="@(Live ? null : Role)"
-            aria-checked="@(Live ? AriaChecked : null)"
-            data-ib-checked="@(Live ? null : AriaChecked)"
-            aria-pressed="@(!Live && IsCheckable ? AriaChecked : null)"
+            role="@(Live && !Inline ? Role : null)"
+            data-ib-role="@(Live || Inline ? null : Role)"
+            aria-checked="@(Live && !Inline ? AriaChecked : null)"
+            data-ib-checked="@(Live || Inline ? null : AriaChecked)"
+            aria-pressed="@((!Live || Inline) && IsCheckable ? AriaChecked : null)"
             class="@_class"
             style="@_style"
             disabled="@Disabled"
@@ -154,6 +154,9 @@ else
     private string Role => IsRadio ? "menuitemradio" : Checked is not null ? "menuitemcheckbox" : "menuitem";
 
     private bool Live => RendererInfo.IsInteractive;
+
+    // Drawn on the page (Menu Inline): plain links and buttons, never menu roles, even with script.
+    private bool Inline => Menu?.Inline == true;
 
     private string? AriaChecked => IsCheckable ? (IsChecked ? "true" : "false") : null;
 
