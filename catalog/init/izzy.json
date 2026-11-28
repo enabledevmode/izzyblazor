@@ -16,12 +16,12 @@
     "properties": {
       "Preset": {
         "title": "Theme preset", "type": "string", "enum": ["Standard", "Compact", "Soft", "Editorial"], "default": "Standard",
-        "description": "The theme preset: Standard (36px controls, Blue on Neutral), Compact (dense, for data and admin), Soft (roomy, for consumer apps) or Editorial (for reading and docs)."
+        "description": "Standard (36px controls, Blue on Neutral), Compact (dense, for data and admin), Soft (roomy, for consumer apps) or Editorial (for reading and docs)."
       },
       "Brand": {
         "title": "Brand color", "type": "string", "default": "",
         "pattern": "^$|^(blue|ink|indigo|violet|teal|green|rose)$|^#([0-9a-f]{3}|[0-9a-f]{6})$",
-        "description": "The brand color: blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a. Empty keeps the preset's."
+        "description": "Blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a. Empty keeps the preset's."
       },
       "Interactivity": {
         "title": "Render mode", "type": "string", "enum": ["None", "Server"], "default": "None",

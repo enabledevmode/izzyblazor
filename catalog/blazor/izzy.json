@@ -19,7 +19,7 @@
     "properties": {
       "Interactivity": {
         "title": "Render mode", "type": "string", "enum": ["None", "Server", "WebAssembly", "Auto"], "default": "Server",
-        "description": "Which interactive render mode interactive components use. None makes every page static.",
+        "description": "How interactive components run: on the server, in the browser (WebAssembly) or both (Auto). None makes every page static.",
         "x-priority": "important"
       },
       "AllInteractive": {
@@ -28,7 +28,7 @@
       },
       "Auth": {
         "title": "Sign-in", "type": "string", "enum": ["None", "Individual"], "default": "None",
-        "description": "The authentication: None, or Individual (accounts stored in the app's database, with ASP.NET Core Identity's pages drawn in IzzyBlazor).",
+        "description": "None, or Individual: accounts kept in the app's database, with ASP.NET Core Identity's pages in IzzyBlazor's style.",
         "x-priority": "important"
       },
       "Registration": {
@@ -53,12 +53,12 @@
       },
       "Preset": {
         "title": "Theme preset", "type": "string", "enum": ["Standard", "Compact", "Soft", "Editorial"], "default": "Standard",
-        "description": "The theme preset: Standard (36px controls, Blue on Neutral), Compact (dense, for data and admin), Soft (roomy, for consumer apps) or Editorial (for reading and docs)."
+        "description": "Standard (36px controls, Blue on Neutral), Compact (dense, for data and admin), Soft (roomy, for consumer apps) or Editorial (for reading and docs)."
       },
       "Brand": {
         "title": "Brand color", "type": "string", "default": "",
         "pattern": "^$|^(blue|ink|indigo|violet|teal|green|rose)$|^#([0-9a-f]{3}|[0-9a-f]{6})$",
-        "description": "The brand color: blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a. Empty keeps the preset's."
+        "description": "Blue, ink, indigo, violet, teal, green or rose, or a hex color such as #0a7d5a. Empty keeps the preset's."
       },
       "Nav": {
         "title": "Navigation", "type": "string", "enum": ["Sidebar", "Top"], "default": "Sidebar",
@@ -74,7 +74,7 @@
       },
       "Framework": {
         "title": "Target framework", "type": "string", "enum": ["net10.0"], "default": "net10.0",
-        "description": "The target framework."
+        "description": "The .NET version the app is built for."
       },
       "ExcludeLaunchSettings": { "type": "boolean", "default": false, "description": "Leaves out launchSettings.json." },
       "NoHttps": { "type": "boolean", "default": false, "description": "Turns off HTTPS." },
