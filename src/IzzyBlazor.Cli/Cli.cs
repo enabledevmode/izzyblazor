@@ -174,7 +174,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
         catch (AccountRequiredException e)
         {
-            error.WriteLine(account is { SignedIn: false } ? $"{e.Message} Run izzy login." : e.Message);
+            // Signed in, the templates weren't to be had, and why was said: not that an account is needed.
+            if (account is not { CatalogMissing: true }) error.WriteLine(account is { SignedIn: false } ? $"{e.Message} Run izzy login." : e.Message);
             return 4;
         }
         catch (Exception e) when (e is GenerationException or UsageException)

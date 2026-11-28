@@ -134,9 +134,18 @@ sealed class AccountSession(string home, Uri service, IReadOnlyDictionary<string
                 error.WriteLine("Your IzzyBlazor sign-in needs renewing. izzy renews it the next time this machine is online.");
         }
         if (!Directory.Exists(CatalogFolder) && online && Download(credential) is { } problem)
+        {
             error.WriteLine(problem);
+            CatalogMissing = true;
+        }
         return Directory.Exists(CatalogFolder) ? CatalogFolder : null;
     }
+
+    /// <summary>
+    /// Whether <see cref="Catalog"/> said why the account's templates couldn't be downloaded (not published for
+    /// this version, the service unreachable): a refused account item then needs no "comes with a free account".
+    /// </summary>
+    public bool CatalogMissing { get; private set; }
 
     // The account page lists each machine with its system, so two with like names can be told apart.
     static string Os => OperatingSystem.IsMacOS() ? "macOS" : OperatingSystem.IsWindows() ? "Windows" : "Linux";

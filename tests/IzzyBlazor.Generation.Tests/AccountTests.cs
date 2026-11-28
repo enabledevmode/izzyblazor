@@ -64,11 +64,12 @@ public sealed class AccountTests : IDisposable
     {
         var service = new Service(_signing, AccountBundle.Export(Path.Combine(ProjectBuild.RepoRoot, "catalog"), ProjectBuild.PrivateCatalog!));
         string? opened = null;
+        var version = "9.9.9";
         (int Exit, string Out, string Error) Izzy(params string[] args)
         {
             var output = new StringWriter();
             var error = new StringWriter();
-            var session = new AccountSession(_home, new Uri("https://account.test/"), PublicKeys, "9.9.9", handler: service,
+            var session = new AccountSession(_home, new Uri("https://account.test/"), PublicKeys, version, handler: service,
                 clock: () => Now, open: address => opened = address, wait: _ => { });
             var exit = new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _home, output, error, account: session).Run(args);
             return (exit, output.ToString(), error.ToString());
@@ -90,6 +91,13 @@ public sealed class AccountTests : IDisposable
         Assert.Equal(0, created.Exit);
         Assert.Contains("Components/Layout/MainLayout.razor", created.Out);
         Assert.Contains("Plan: Free", Izzy("account").Out);
+
+        // A newer izzy whose templates aren't published yet says so, and not that the item needs an account.
+        (service.Down, version) = (false, "9.9.10");
+        var unpublished = Izzy("new", "starter", "sidebar", "-n", "Acme", "--dry-run");
+        Assert.Equal(4, unpublished.Exit);
+        Assert.Equal("The account's templates for izzy 9.9.10 aren't published yet. Update izzy, or try again later.", unpublished.Error.Trim());
+        version = "9.9.9";
 
         Assert.Equal(0, Izzy("logout").Exit);
         Assert.Empty(Directory.EnumerateFileSystemEntries(_home));
