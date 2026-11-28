@@ -510,6 +510,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             {
                 ["id"] = m.Id, ["name"] = m.Name, ["kind"] = Lower(m.Kind), ["category"] = m.Category,
                 ["tier"] = Lower(m.Tier), ["summary"] = m.Summary,
+                ["keywords"] = new JsonArray(m.Keywords.Select(k => (JsonNode)k).ToArray()),
                 ["docs"] = Pictures.Docs(m), ["picture"] = Pictures.Card(m),
                 ["proChoices"] = ProChoices(m),
             }).Concat(components ? Library.Documented.Select(c => (JsonNode)Components.ListEntry(c)) : []).ToArray()));
@@ -557,10 +558,14 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     {
         if (args.Words.Count > 1 && args.Words[1].Equals("component", StringComparison.OrdinalIgnoreCase)) return DescribeComponent(args);
         if (args.Words.Count > 1 && args.Words[1].Equals("tokens", StringComparison.OrdinalIgnoreCase)) return DescribeTokens(args);
-        var item = Item(args, "izzy describe", "izzy describe starter|kit|block <id> [--json], or izzy describe crud|init");
+        var item = Item(args, "izzy describe", "izzy describe starter|kit|block <id> [--json], or izzy describe crud [--model <Model>]|init");
         var json = args.Switch("json");
-        NoSettings(args);
         var m = item.Manifest;
+        // izzy describe crud --model Activity: the settings' defaults for that model in this app, as add crud works them out.
+        var model = m.Id == "crud" ? args.Take("model") : null;
+        var projectPath = model is not null ? args.Take("project") : null;
+        NoSettings(args);
+        var defaults = model is not null ? Crud.Defaults(ProjectInfo.FromProject(FindProject(projectPath)), model) : null;
         if (json)
         {
             // The schema as written, with each setting's option and a title, for forms and MCP tool inputs.
@@ -571,14 +576,17 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 property["x-option"] = p.Option;
                 // A label for a form: the manifest's own, else the name in words.
                 if (property["title"] is null) property["title"] = Titles.For(p.Name);
+                if (defaults?.GetValueOrDefault(p.Name) is { } value) property["default"] = value is bool b ? JsonValue.Create(b) : JsonValue.Create((string)value);
             }
             Print(new JsonObject
             {
                 ["id"] = m.Id, ["name"] = m.Name, ["kind"] = Lower(m.Kind), ["category"] = m.Category, ["tier"] = Lower(m.Tier),
                 ["summary"] = m.Summary,
+                ["keywords"] = new JsonArray(m.Keywords.Select(k => (JsonNode)k).ToArray()),
                 ["docs"] = Pictures.Docs(m), ["picture"] = Pictures.Card(m), ["screens"] = Pictures.Screens(m),
                 ["components"] = new JsonArray(m.Components.Select(c => (JsonNode)c).ToArray()),
                 ["modes"] = new JsonObject(m.Modes.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)kv.Value))),
+                ["modesNote"] = m.ModesNote,
                 ["accessibility"] = new JsonArray(m.Accessibility.Select(a => (JsonNode)a).ToArray()),
                 ["parameters"] = schema,
             });

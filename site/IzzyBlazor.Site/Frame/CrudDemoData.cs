@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace IzzyBlazor.Site.Frame;
 
-/// <summary>The model the CRUD pages demo is generated from (izzy add crud Customer).</summary>
+/// <summary>The model the Pages for a Model demo is generated from (izzy add crud Customer).</summary>
 public sealed class DemoCustomer
 {
     public int Id { get; set; }

@@ -46,7 +46,7 @@ public static class Articles
                 "Add a component's example to a page, and list every component's options."),
             new("markup", "Wrap, unwrap and extract", "Group",
                 "Put a component around markup you have, take one away, or move part of a page to its own component."),
-            new("crud", "CRUD pages", "Table2",
+            new("crud", "Pages for a Model", "Table2",
                 "A page to list, add, edit and delete a model's records, from a class in your app."),
             new("changes", "Previewing changes", "FileDiff",
                 "See a change first as a diff or JSON, keep the files you've changed, and read the exit codes."),

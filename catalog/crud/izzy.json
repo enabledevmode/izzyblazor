@@ -11,37 +11,46 @@
 // over the Ef or Memory store (InEf says which). Its two files are in the Pro catalog too.
 {
   "id": "crud",
-  "name": "CRUD pages",
+  "name": "Pages for a Model",
+  "keywords": ["CRUD", "admin pages", "list and form", "data grid"],
   "kind": "page",
   "category": "Data",
-  "summary": "Pages to list, show, add, edit and delete a model's records, from the model class in your app: izzy add crud Customer.",
+  "summary": "Pages to list, show, add, edit and delete a model's records, from the model class in your app.",
   "components": ["PageHeader", "FilterForm", "DataGrid", "EmptyState", "FloatingButton", "Breadcrumb", "DescriptionList", "ConfirmButton", "Form", "FormErrors", "FormActions", "Badge"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "partial", "Auto": "partial" },
-  "modesNote": "The pages read the database on the server. With --store Http (Pro) they are written into the .Client project and call an API that crud adds to the server, so they run in the browser.",
+  "screens": [
+    {"file": "list", "caption": "The grid page", "alt": "Customers in a grid with search, columns, a filter on Status and Newsletter, and edit and delete on each row"},
+    {"file": "edit", "caption": "Editing in a dialog", "alt": "The grid's Edit customer dialog: name, email, status, lifetime value, joined date and newsletter"},
+    {"file": "delete", "caption": "Delete, asked first", "alt": "A dialog asking Delete Jonas Becker? over the grid, with Cancel and Delete"},
+    {"file": "pages-list", "caption": "Pages: the list (Pro)", "alt": "The Pages mode's customer list: a search, a status filter, a count, and each name linking to its page"},
+    {"file": "details", "caption": "Pages: a record's page (Pro)", "alt": "One customer's page: their status, every field, and Edit and Delete"},
+    {"file": "form", "caption": "Pages: the form (Pro)", "alt": "The Edit customer form page, with Save changes and Cancel"}
+  ],
+  "modesNote": "WebAssembly and Auto need the Http store (Pro): the pages go into the .Client project and call an API that crud adds to the server. Every other store reads the database on the server.",
   "parameters": {
     "type": "object",
     "properties": {
-      "Model": { "type": "string", "default": "", "x-hidden": true, "description": "The model class, given after crud: izzy add crud Customer." },
-      "Name": { "type": "string", "default": "", "description": "The folder and the pages' names, and the title: the model's plural by default (Customers)." },
-      "Singular": { "type": "string", "default": "", "description": "What one record is called on the pages, such as team member, when it isn't the class's name in words." },
-      "Plural": { "type": "string", "default": "", "description": "What the records are called, such as team members: the title and the nav entry. Defaults to the plural of --singular, else of --name." },
-      "Route": { "type": "string", "default": "", "description": "The address the pages start at, such as customers or admin/customers: the name in kebab case by default." },
+      "Model": { "type": "string", "default": "", "x-hidden": true, "x-priority": "important", "description": "The model class whose records the pages show, such as Customer." },
       "Mode": {
-        "type": "string", "enum": ["Grid", "Pages"], "default": "Grid", "x-tiers": { "Pages": "pro" },
+        "type": "string", "enum": ["Grid", "Pages"], "default": "Grid", "x-tiers": { "Pages": "pro" }, "x-priority": "important",
         "description": "Grid: one page whose grid adds, edits and deletes in a dialog. Pages: a list with filters, a page for each record and a form page, for records with many fields (Pro)."
       },
       "Store": {
-        "type": "string", "enum": ["Ef", "Memory", "Http"], "default": "Memory", "x-tiers": { "Http": "pro" },
+        "type": "string", "enum": ["Ef", "Memory", "Http"], "default": "Memory", "x-tiers": { "Http": "pro" }, "x-priority": "important",
         "description": "Where the records are kept: Ef, through the DbContext with a DbSet of the model (the default when there's one), or Memory, until the app stops. Http is for an app with a .Client project: the pages run in the browser and call an API that crud adds to the server, over the DbContext or memory (Pro)."
       },
-      "Context": { "type": "string", "default": "", "description": "The DbContext, when more than one has a DbSet of the model." },
-      "Folder": { "type": "string", "default": "", "description": "The folder the pages' own folder goes in, from the project's folder: Components/Pages by default, or the .Client project's Pages with --store Http." },
-      "Layout": { "type": "string", "default": "", "description": "The layout component, such as EmptyLayout, when the pages don't use the app's default." },
       "Render": {
-        "type": "string", "enum": ["Default", "Server", "WebAssembly", "Auto"], "default": "Default",
-        "description": "Where the pages' C# runs. Default: on the server once per request, or in the browser with --store Http. Server: over a circuit. WebAssembly and Auto: in the browser, with --store Http only."
+        "type": "string", "enum": ["Default", "Server", "WebAssembly", "Auto"], "default": "Default", "x-priority": "important",
+        "description": "Where the pages' C# runs. Default: on the server once per request, or in the browser when Store is Http. Server: over a circuit. WebAssembly and Auto: in the browser, with Store Http only."
       },
-      "Nav": { "type": "boolean", "default": true, "description": "Adds a link to the pages in the app's nav. --nav false leaves the nav as it is." },
+      "Name": { "type": "string", "default": "", "description": "The folder and the pages' names, and the title: the model's plural by default." },
+      "Singular": { "type": "string", "default": "", "description": "What one record is called on the pages, such as team member, when it isn't the class's name in words." },
+      "Plural": { "type": "string", "default": "", "description": "What the records are called, such as team members: the title and the nav entry. Defaults to the plural of Singular, else of Name." },
+      "Route": { "type": "string", "default": "", "description": "The address the pages start at, such as customers or admin/customers: the name in kebab case by default." },
+      "Context": { "type": "string", "default": "", "description": "The DbContext, when more than one has a DbSet of the model." },
+      "Folder": { "type": "string", "default": "", "description": "The folder the pages' own folder goes in, from the project's folder: Components/Pages by default, or the .Client project's Pages when Store is Http." },
+      "Layout": { "type": "string", "default": "", "description": "The layout component, such as EmptyLayout, when the pages don't use the app's default." },
+      "Nav": { "type": "boolean", "default": true, "description": "Adds a link to the pages in the app's nav. Off leaves the nav as it is." },
       "Authorize": { "type": "boolean", "default": false, "description": "Only signed-in people can open the pages. On by default when the app signs people in." },
       "ViewPolicy": { "type": "string", "default": "", "description": "The authorization policy people need to open the pages, such as ViewSales." },
       "EditPolicy": { "type": "string", "default": "", "description": "The policy people need to add, edit and delete; others see the records read-only." }

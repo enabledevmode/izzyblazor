@@ -19,6 +19,33 @@ static partial class Crud
     /// <param name="notes">Said on every run: what is in the way, or needs a hand.</param>
     /// <param name="written">Said only by a run that writes: what was made, such as where the records are kept.</param>
     /// <param name="pro">Whether the account has Pro, a preview too: the note on linked records says what Pro will add.</param>
+    /// <summary>
+    /// What <see cref="Prepare"/> gives a model's settings when none is given, for a form to show before it runs
+    /// (izzy describe crud --model): Model as the class is named, Name, Singular, Plural, Route, Store, Context and Authorize.
+    /// </summary>
+    public static Dictionary<string, object> Defaults(ProjectInfo project, string model)
+    {
+        var info = ModelReader.Read(SourceFiles(project.Directory!), model, nullableEnabled: false);
+        var name = Plural(info.Name);
+        return new()
+        {
+            ["Model"] = info.Name, ["Name"] = name, ["Singular"] = Words(info.Name), ["Plural"] = Words(name), ["Route"] = Kebab(name),
+            // An app whose pages all run in the browser takes only the Http store.
+            ["Store"] = project.LayoutInBrowser ? "Http" : info.Contexts.Count > 0 ? "Ef" : "Memory",
+            ["Context"] = info.Contexts.Count == 1 ? info.Contexts[0].Name : "",
+            ["Authorize"] = SignsIn(project.ReadFile(project.Host + "Program.cs") ?? ""),
+        };
+    }
+
+    static List<(string, string)> SourceFiles(string root) =>
+        Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Select(f => Path.GetRelativePath(root, f).Replace('\\', '/'))
+            .Where(f => !Regex.IsMatch(f, @"(^|/)(bin|obj|\.izzy|node_modules|\.git)/"))
+            .Select(f => (f, File.ReadAllText(Path.Combine(root, f))))
+            .ToList();
+
+    static bool SignsIn(string program) => Regex.IsMatch(program, @"\b(AddIdentityCore|AddDefaultIdentity|AddIdentity|AddAuthentication)\b");
+
     public static ProjectInfo Prepare(ProjectInfo project, string model, Dictionary<string, string> settings, List<string> notes, List<string> written, bool pro)
     {
         string? Given(string name) => settings.FirstOrDefault(s => s.Key.Equals(name, StringComparison.OrdinalIgnoreCase)).Value;
@@ -30,11 +57,7 @@ static partial class Crud
         if (project.LayoutInBrowser && !http)
             throw new UsageException($"{project.Name}'s pages run in the browser (its Routes are in {project.Client}), and crud's pages read the database on the server. Use --store http (Pro), which adds an API for them to call, or add them to a Blazor Web App whose pages are in the server project.");
         var root = project.Directory!;
-        var files = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
-            .Select(f => Path.GetRelativePath(root, f).Replace('\\', '/'))
-            .Where(f => !Regex.IsMatch(f, @"(^|/)(bin|obj|\.izzy|node_modules|\.git)/"))
-            .Select(f => (f, File.ReadAllText(Path.Combine(root, f))))
-            .ToList();
+        var files = SourceFiles(root);
         // Whether a string that isn't nullable is required is the setting of the project the model is in.
         var csproj = http && Directory.EnumerateFiles(Path.Combine(root, project.Client!), "*.csproj").FirstOrDefault() is { } clientProject
             ? File.ReadAllText(clientProject) : File.ReadAllText(Path.Combine(root, project.Host, project.Name + ".csproj"));
@@ -126,7 +149,7 @@ static partial class Crud
         var layoutFile = project.LayoutInBrowser ? "~/" + project.Client + "Layout/MainLayout.razor" : "Components/Layout/MainLayout.razor";
         var layout = project.ReadFile(project.LayoutInBrowser ? project.Client + "Layout/MainLayout.razor" : project.Host + "Components/Layout/MainLayout.razor");
         var clientProgram = http ? project.ReadFile(project.Client + "Program.cs") ?? "" : "";
-        var authorize = Given("Authorize") ?? (Regex.IsMatch(program, @"\b(AddIdentityCore|AddDefaultIdentity|AddIdentity|AddAuthentication)\b") ? "true" : "false");
+        var authorize = Given("Authorize") ?? (SignsIn(program) ? "true" : "false");
 
         if (http)
         {

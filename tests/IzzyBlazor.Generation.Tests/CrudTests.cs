@@ -72,6 +72,11 @@ public sealed class CrudTests : IDisposable
             "IdentityDbContext<ApplicationUser>(options)\n{\n}",
             "IdentityDbContext<ApplicationUser>(options)\n{\n    public DbSet<Acme.Models.Customer> Customers => Set<Acme.Models.Customer>();\n}"));
 
+        // A form asks for the defaults add crud would pick for the model in this app, to show before it runs.
+        var form = System.Text.Json.Nodes.JsonNode.Parse(Izzy(app, "describe", "crud", "--model", "Customer", "--json").Out)!["parameters"]!["properties"]!;
+        Assert.Equal(("Customers", "Ef", "ApplicationDbContext", true),
+            ((string)form["Name"]!["default"]!, (string)form["Store"]!["default"]!, (string)form["Context"]!["default"]!, (bool)form["Authorize"]!["default"]!));
+
         var customers = Izzy(app, "add", "crud", "Customer");
         Assert.True(customers.Exit == 0, customers.Error);
         Assert.Contains("Invoices links to other records, so the pages leave it out. Pickers for linked records aren't available yet.", customers.Error);

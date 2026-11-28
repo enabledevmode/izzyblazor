@@ -24,6 +24,9 @@ public sealed class ItemManifest
     /// <summary>One sentence on what it's for.</summary>
     public string? Summary { get; init; }
 
+    /// <summary>Other words people search for it by, beside its name, such as <c>CRUD</c> for Pages for a Model.</summary>
+    public IReadOnlyList<string> Keywords { get; init; } = [];
+
     /// <summary>
     /// The code files it writes with its default settings, such as <c>Components/Blocks/Hero.razor</c>, for its
     /// docs page, which has the manifest and not the files. None for an item that goes on a page of yours.
@@ -40,7 +43,7 @@ public sealed class ItemManifest
     public string? ModesNote { get; init; }
 
     /// <summary>
-    /// A starter's or kit's screenshots, in the order to show them: the docs site has each under
+    /// A starter's or kit's screenshots, or the pages an item makes (crud's), in the order to show them: the docs site has each under
     /// <c>img/templates/{id}/</c> as <c>{file}.webp</c>, <c>{file}-dark.webp</c> and a <c>-thumb</c> of each.
     /// </summary>
     public IReadOnlyList<ItemScreen> Screens { get; init; } = [];
@@ -119,6 +122,7 @@ public sealed class ItemManifest
             Category = (string?)root["category"],
             Tier = root["tier"] is { } tier ? ParseEnum<ItemTier>((string)tier!, "tier") : ItemTier.Free,
             Summary = (string?)root["summary"],
+            Keywords = (root["keywords"] as JsonArray)?.Select(k => Text(k, "keywords")).ToList() ?? [],
             Writes = (root["writes"] as JsonArray)?.Select(c => (string)c!).ToList() ?? [],
             Components = (root["components"] as JsonArray)?.Select(c => (string)c!).ToList() ?? [],
             Modes = (root["modes"] as JsonObject)?.ToDictionary(p => p.Key, p => (string)p.Value!) ?? new Dictionary<string, string>(),
@@ -363,5 +367,5 @@ public sealed record VariationOption(string Label, string Value)
     public string Slug => Label.ToLowerInvariant().Replace(' ', '-');
 }
 
-/// <summary>A screenshot of a starter or kit: its file name without the extension, a short caption, what it shows, and whether it was taken at a phone's width.</summary>
+/// <summary>A screenshot of a starter, a kit or what an item makes: its file name without the extension, a short caption, what it shows, and whether it was taken at a phone's width.</summary>
 public sealed record ItemScreen(string File, string Caption, string Alt, bool Phone = false);

@@ -42,6 +42,9 @@ static class Commands
         ("check", 2, "izzy check --json: where the app uses what a release renamed or removed, CSS variables too, with the replacement."),
         ("describe.pictures", 2, "list and describe component --json give each component a picture { light, dark }: its first example."),
         ("describe.code", 2, "Option, event and slot descriptions keep code in Markdown backticks (`Refresh=\"TimeSpan.FromSeconds(30)\"`), from libraries after alpha.30."),
+        ("item.keywords", 2, "list --json and describe <item> --json give each item keywords: other words people search for it by (CRUD)."),
+        ("describe.modes-note", 2, "describe <item> --json gives modesNote: why the item runs only partly in the modes marked partial."),
+        ("describe.crud-defaults", 2, "describe crud --model <Model> --json sets each setting's default to what add crud would pick for that model in this app."),
         ("inspect.choices", 2, "inspect --json gives choices for Accent and Color options, the app's own with the library's."),
     ];
 
@@ -55,7 +58,7 @@ static class Commands
         new("describe component", "izzy describe component <Name> [--json]", "free", null, null),
         new("describe component --all", "izzy describe component --all --json", "free", null, null),
         new("describe tokens", "izzy describe tokens [--json]", "free", null, null),
-        new("describe crud|init", "izzy describe crud|init [--json]", "free", null, null),
+        new("describe crud|init", "izzy describe crud [--model <Model>] [--project <path>] [--json], or izzy describe init [--json]", "free", null, null),
         new("add block", "izzy add block <id> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]", "item", "The plan is the block's: izzy list --json gives each item's tier.", null),
         new("add page", "izzy add page --name <Name> [--route <path>] [--folder <folder>] [--mode Static|Server|WebAssembly|Auto] [--layout <Layout>] [--nav] [--project <path>] [--dry-run] [--diff] [--json]", "free", null, null),
         new("add razor", "izzy add razor --name <Name> [--folder <folder>] [--project <path>] [--dry-run] [--diff] [--json]", "free", null, null),

@@ -1128,7 +1128,7 @@ html:has(> body > .frame) body { margin: 0; }
   :root:not([data-ib-color-scheme="light"]) .site-pic-light { display: none; }
   :root:not([data-ib-color-scheme="light"]) .site-pic-dark { display: block; }
 }
-/* The CRUD pages article's demo (Frame/CrudDemoFramePage.razor): the width switch, then the page in a frame. */
+/* The Pages for a Model article's demo (Frame/CrudDemoFramePage.razor): the width switch, then the page in a frame. */
 .site-crud-demo { display: grid; gap: var(--ib-space-3); justify-items: start; margin-block: var(--ib-space-4); }
 .site-crud-demo > :is(.site-block-phone, .site-crud-frame) { justify-self: stretch; }
 .site-crud-frame {

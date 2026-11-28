@@ -71,10 +71,10 @@
 
     private static readonly Tool[] Tools =
     [
-        new("The izzy CLI", "docs/tools/cli", "Creates an app from a starter or a kit, sets up IzzyBlazor in an app you have, adds blocks, component examples and CRUD pages, and moves an app to a new release.", "In a terminal"),
+        new("The izzy CLI", "docs/tools/cli", "Creates an app from a starter or a kit, sets up IzzyBlazor in an app you have, adds blocks, component examples and pages for a model, and moves an app to a new release.", "In a terminal"),
         new("izzy audit", "docs/accessibility/audit", "Checks a page's accessibility in your own browser with axe-core and checks of its own, and writes reports. It changes no code.", "In a terminal or a build"),
         new("The docs server", "docs/tools/ai-assistants", "Gives a coding agent each component's parameters, examples and known issues for the current release, so it doesn't guess.", "On izzyblazor.com, over MCP"),
-        new("izzy mcp", "docs/tools/ai-assistants", "Runs izzy's commands as tools for a coding agent: add a block, create CRUD pages, audit a page, recheck a finding.", "On your machine, over MCP"),
+        new("izzy mcp", "docs/tools/ai-assistants", "Runs izzy's commands as tools for a coding agent: add a block, make pages for a model, audit a page, recheck a finding.", "On your machine, over MCP"),
         new("izzy agent", "docs/tools/ai-assistants", "Sets up a coding agent in your app: a skill that teaches it to build with IzzyBlazor, and both servers.", "Once in each app"),
     ];
 
@@ -87,7 +87,7 @@
         new("Add a section to a page", "docs/tools/blocks", "Blocks", "izzy add block hero"),
         new("Add a component's example", "docs/tools/components", "Components", "izzy add component"),
         new("Wrap markup or extract a component", "docs/tools/markup", "Wrap, unwrap and extract", "izzy wrap <place> --with Card"),
-        new("Make pages for a model", "docs/tools/crud", "CRUD pages", "izzy add crud Product"),
+        new("Make pages for a model", "docs/tools/crud", "Pages for a Model", "izzy add crud Product"),
         new("Move to a new release", "docs/tools/cli#update", "Update", "izzy update"),
         new("Check a page's accessibility", "docs/accessibility/audit", "Audit a page", "izzy audit /orders --run"),
         new("Set up a coding agent", "docs/tools/ai-assistants", "AI assistants", "izzy agent"),
@@ -98,7 +98,7 @@
     [
         new("Starters and kits", "The IzzyBlazor App starter", "Six app starters and Izzy CRM", "Every starter and kit"),
         new("Blocks", "None", "15 blocks", "Every block"),
-        new("CRUD pages", "A grid page", "A grid page", "List, detail and form pages"),
+        new("Pages for a Model", "A grid page", "A grid page", "List, detail and form pages"),
         new("Editing markup", "None", "izzy set, wrap, unwrap and extract", "The same"),
         new("Updates", "izzy update, with the list of what a release renamed or removed, and izzy check, which finds each use", "The same", "izzy upgrade makes the renames"),
         new("The docs server", "Everything", "Everything", "Everything"),

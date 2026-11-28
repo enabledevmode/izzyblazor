@@ -26,7 +26,7 @@ static class Pictures
         ? new JsonObject { ["light"] = $"{Site}img/{folder}/{m.Id}.webp", ["dark"] = $"{Site}img/{folder}/{m.Id}-dark.webp" }
         : null;
 
-    /// <summary>A starter's or kit's screens, in order, each with its full picture and a thumbnail in both schemes.</summary>
+    /// <summary>A starter's or kit's screens, or the pages crud makes, in order, each with its full picture and a thumbnail in both schemes.</summary>
     public static JsonArray Screens(ItemManifest m)
     {
         var at = $"{Site}img/templates/{m.Id}/";
