@@ -5,8 +5,8 @@ namespace IzzyBlazor;
 /// <summary>
 /// What a theme writes into the page: the meta tags the theme CSS matches, and the style block for what a
 /// stylesheet can't work out (a hex brand's or gray's palette, the charts' brand colors, fonts). IzzyTheme
-/// writes these into <c>&lt;head&gt;</c>; izzy theme vars gives the same, for a preview with no app running
-/// (the izzy CLI compiles this file and the palettes it uses).
+/// writes these into <c>&lt;head&gt;</c>; izzy theme vars renders IzzyTheme for the same, for a preview with no
+/// app running.
 /// </summary>
 internal static class ThemeCss
 {

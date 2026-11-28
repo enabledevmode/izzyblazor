@@ -56,7 +56,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy agent [--project <path>] [--dry-run]
           izzy mcp
           izzy doctor [--build] [--browser <path>] [--project <path>] [--json]
-          izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--json]
+          izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--project <path>] [--json]
           izzy login [--no-browser]
           izzy logout
           izzy account [--json]
@@ -93,7 +93,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         izzy theme vars prints the tags IzzyTheme writes into <head> for these settings, which take IzzyTheme's
         values (a hex brand or gray, or a built-in name): meta tags for what the theme CSS chooses by name, and
         a style block for a hex color's palette, the charts' brand colors and the fonts. A preview with
-        izzyblazor.css puts them in its <head> to show a theme with no app running.
+        izzyblazor.css puts them in its <head> to show a theme with no app running. It renders the IzzyTheme
+        of the app's own IzzyBlazor package once restored, so its options are that version's; else this izzy's.
         izzy audit checks a page's accessibility with axe-core and izzy's own checks (target size, focus
         hidden under a header that stays in place, and focus and indicators in forced colors), in the Chrome
         or Edge on this machine, at two widths, in light and dark and once more in forced colors. It writes
@@ -963,78 +964,54 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         return 0;
     }
 
-    // izzy theme vars --brand #0f766e: the tags IzzyTheme writes into <head> for these settings, worked out by
-    // the library's own code (ThemeCss, compiled in), for a preview with no app running.
+    // izzy theme vars --brand #0f766e: the tags IzzyTheme writes into <head> for these settings, from the app's
+    // own IzzyBlazor (the package it restored) or this izzy's copy, for a preview with no app running.
     int Theme(Args args)
     {
-        const string usage = "izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--json]";
+        const string usage = "izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--project <path>] [--json]";
         if (args.Words.Count != 2 || args.Words[1] != "vars") throw new UsageException($"Usage: {usage}");
         var json = args.Switch("json");
-        var preset = Choice<ThemePreset>(args, "preset");
-        var brand = Color(args, "brand", ThemeColors.Brands);
-        var gray = Color(args, "gray", ThemeColors.Grays);
-        var radius = Choice<ThemeRadius>(args, "radius");
-        var density = Choice<ThemeDensity>(args, "density");
-        var charts = Choice<ThemeChartPalette>(args, "chart-palette");
-        var scrollbars = Choice<ThemeScrollbars>(args, "scrollbars");
-        var scheme = Choice<ColorScheme>(args, "color-scheme", "auto", "light", "dark");
-        var (body, heading, mono) = (args.Take("body-font"), args.Take("heading-font"), args.Take("mono-font"));
-        int? weight = args.Take("heading-weight") is not { } w ? null
-            : int.TryParse(w, NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n is >= 100 and <= 900 ? n
-            : throw new UsageException($"--heading-weight is a CSS font weight, 100 to 900. Got \"{w}\".");
-        NoSettings(args);
+        _projectFolder = args.Take("project");
+        var theme = LoadTheme();
+        var parameters = new Dictionary<string, object?>(StringComparer.Ordinal);
+        foreach (var (option, parameter) in theme.Options)
+            if (args.Take(option) is { } value) parameters[parameter.Name] = theme.Value(option, parameter, value);
+        if (args.Options.Count > 0)
+            throw new UsageException($"IzzyTheme in IzzyBlazor {theme.Version} has no --{args.Options[0].Name}. It takes: {string.Join(", ", theme.Options.Select(o => "--" + o.Option))}.");
 
-        var meta = ThemeCss.Meta(preset, brand.Name, gray.Name, radius, density, charts, scrollbars, scheme);
-        string? css;
-        try
-        {
-            css = ThemeCss.App(preset, brand, gray, charts, body, heading, mono, weight);
-        }
-        catch (ArgumentException e) when (e.ParamName is "BodyFont" or "HeadingFont" or "MonoFont")
-        {
-            var option = e.ParamName switch { "BodyFont" => "body-font", "HeadingFont" => "heading-font", _ => "mono-font" };
-            throw new UsageException($"--{option} is a CSS font-family list, such as \"Inter, system-ui, sans-serif\".");
-        }
+        var (meta, css) = theme.Render(parameters);
         var head = new StringBuilder();
         foreach (var (name, content) in meta) head.Append($"<meta name=\"{name}\" content=\"{WebUtility.HtmlEncode(content)}\" />\n");
         if (css is not null) head.Append($"<style data-ib-theme-style>{css}</style>\n");
         if (!json)
         {
-            _data.Write(head.Length > 0 ? head.ToString() : "");
+            _data.Write(head.ToString());
             if (head.Length == 0) error.WriteLine("These are the library's defaults: there is nothing to write.");
             return 0;
         }
         Print(new JsonObject
         {
-            // The library version the tags are worked out for: this izzy's.
-            ["version"] = Generator.IzzyBlazorVersion,
+            // The library the tags are worked out by: the app's package, or this izzy's copy.
+            ["version"] = theme.Version,
+            ["source"] = theme.Source,
             ["meta"] = new JsonArray(meta.Select(m => (JsonNode)new JsonObject { ["name"] = m.Name, ["content"] = m.Content }).ToArray()),
             ["css"] = css,
             ["head"] = head.ToString(),
         });
         return 0;
+    }
 
-        static T? Choice<T>(Args args, string option, params string[] allowed) where T : struct, Enum
-        {
-            if (args.Take(option) is not { } value) return null;
-            string[] names = allowed.Length > 0 ? allowed : [.. Enum.GetNames<T>().Select(n => Regex.Replace(n, "(?<=[a-z])(?=[A-Z])", "-").ToLowerInvariant())];
-            var match = names.FirstOrDefault(n => n.Equals(value, StringComparison.OrdinalIgnoreCase) || n.Replace("-", "").Equals(value, StringComparison.OrdinalIgnoreCase));
-            return match is not null ? Enum.Parse<T>(match.Replace("-", ""), ignoreCase: true)
-                : throw new UsageException($"--{option} is one of: {string.Join(", ", names)}. Got \"{value}\".");
-        }
-
-        static (string? Name, string? Hex) Color(Args args, string option, string[] names)
-        {
-            if (args.Take(option) is not { } value) return default;
-            try
-            {
-                return ThemeColors.Parse(value, names, option);
-            }
-            catch (ArgumentException)
-            {
-                throw new UsageException($"--{option} is a hex color such as #0a7d5a, or one of: {string.Join(", ", names)}. Got \"{value}\".");
-            }
-        }
+    // The app's own IzzyTheme where its IzzyBlazor.Core package is restored and loads on this runtime; else this
+    // izzy's copy, with a line saying so when the app is on another version.
+    LibraryTheme LoadTheme()
+    {
+        if (PackageFolder() is { } package && LibraryTheme.LibFolder(package) is { } lib && LibraryTheme.Load(lib, "package") is { } packaged)
+            return packaged;
+        var own = LibraryTheme.Load(Path.Combine(AppContext.BaseDirectory, "library"), "tool")
+            ?? throw new UsageException("This izzy has no copy of the library (library/IzzyBlazor.Core.dll is missing beside it), and no app's IzzyBlazor package is restored here. Restore the app, or reinstall the tool.");
+        if (ProjectVersion(_projectFolder) is { } app && app != own.Version)
+            error.WriteLine($"Using this izzy's IzzyBlazor ({own.Version}); the app is on {app}. Restore the app to use its own.");
+        return own;
     }
 
     // izzy set Components/Pages/Home.razor:12:8 --variant Outline --unset size: the edit, as a changeset.
@@ -1416,15 +1393,16 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     Components LoadLibrary()
     {
-        if (PackageData() is { } path && Components.FromPackage(path) is { } packaged) return packaged;
+        if (PackageFolder() is { } package && Path.Combine(package, "tools", "izzy", "components.json") is var path && File.Exists(path)
+            && Components.FromPackage(path) is { } packaged) return packaged;
         var own = Components.Load(Path.Combine(AppContext.BaseDirectory, "components.json"));
         if (ProjectVersion(_projectFolder) is { } app && app != own.Version)
             error.WriteLine($"Using this izzy's component data ({own.Version}); the app is on {app}.");
         return own;
     }
 
-    // tools/izzy/components.json in the IzzyBlazor.Core package the app restored, from its obj/project.assets.json.
-    string? PackageData()
+    // The IzzyBlazor.Core package the app restored (its folder in the package cache), from its obj/project.assets.json.
+    string? PackageFolder()
     {
         try
         {
@@ -1433,7 +1411,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             if (!File.Exists(assets) || JsonNode.Parse(File.ReadAllText(assets)) is not JsonObject restored) return null;
             var library = restored["libraries"]?.AsObject().FirstOrDefault(l => l.Key.StartsWith("IzzyBlazor.Core/", StringComparison.OrdinalIgnoreCase)).Value;
             if ((string?)library?["type"] != "package" || (string?)library["path"] is not { } relative) return null;
-            return (restored["packageFolders"]?.AsObject() ?? []).Select(f => Path.Combine(f.Key, relative, "tools", "izzy", "components.json")).FirstOrDefault(File.Exists);
+            return (restored["packageFolders"]?.AsObject() ?? []).Select(f => Path.Combine(f.Key, relative)).FirstOrDefault(Directory.Exists);
         }
         catch (Exception e) when (e is UsageException or GenerationException or IOException or System.Text.Json.JsonException or InvalidOperationException or UnauthorizedAccessException)
         {

@@ -37,9 +37,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- izzy theme vars: what IzzyTheme writes, from the library's own code. Compiled in rather than referenced,
-         so the tool needs no ASP.NET Core and its build runs no npm. -->
-    <Compile Include="$(RepoRoot)src/IzzyBlazor.Core/Core/ThemeCss.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/ThemeValues.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/Scheme.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/ColorValues.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/ColorMath.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/BrandPalette.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/GrayPalette.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/BrandChartPalette.cs" Link="Theme/%(Filename)%(Extension)" />
+    <!-- izzy theme vars renders the app's IzzyTheme (its restored IzzyBlazor.Core) with ASP.NET Core's HtmlRenderer. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <!-- The library izzy falls back to when the app's isn't restored: built, then copied beside the tool as
+         library/IzzyBlazor.Core.dll (IncludeLibrary below), not referenced as code. Its build runs npm, so it's
+         left out with the components. -->
+    <ProjectReference Condition="'$(IzzyComponents)' != 'false'" Include="$(RepoRoot)src/IzzyBlazor.Core/IzzyBlazor.Core.csproj" ReferenceOutputAssembly="false" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,6 +71,16 @@
       <Output TaskParameter="TargetOutputs" ItemName="DocsGenAssembly" />
     </MSBuild>
     <Exec Command="&quot;$(DocsGenHost)&quot; &quot;@(DocsGenAssembly)&quot; --out &quot;$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor.api.json&quot; --source &quot;$(RepoRoot)src&quot; --cli-out &quot;$(ComponentsFile)&quot; --registry &quot;$(RepoRoot)site/IzzyBlazor.Site/components.json&quot; --examples &quot;$(RepoRoot)site/IzzyBlazor.Site/Examples&quot;" />
+  </Target>
+
+  <!-- The library's copy, beside the tool's dll and beside whatever references it (the tests). -->
+  <Target Name="IncludeLibrary" AfterTargets="ResolveProjectReferences" BeforeTargets="AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true' And '$(IzzyComponents)' != 'false'">
+    <MSBuild Projects="$(RepoRoot)src/IzzyBlazor.Core/IzzyBlazor.Core.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration)" RemoveProperties="RuntimeIdentifier;SelfContained">
+      <Output TaskParameter="TargetOutputs" ItemName="LibraryAssembly" />
+    </MSBuild>
+    <ItemGroup>
+      <None Include="@(LibraryAssembly)" Link="library/IzzyBlazor.Core.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+    </ItemGroup>
   </Target>
 
   <!-- The catalog beside the built tool: cleared, then copied, so a removed item leaves the tool too. -->
