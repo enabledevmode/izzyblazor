@@ -240,9 +240,21 @@ public static partial class CliData
 
     static CliMember Member(ApiMember member) => new(member.Name, member.Type, Plain(member.Summary));
 
-    /// <summary>A doc comment's HTML as one line of text.</summary>
+    /// <summary>
+    /// A doc comment's HTML as one line of text, its code in Markdown backticks: a <c>c</c>, a
+    /// <c>paramref</c> and a <c>see cref</c> with no text of its own all came through as <c>code</c>.
+    /// </summary>
     static string? Plain(string? html) =>
-        html is null ? null : Spaces().Replace(WebUtility.HtmlDecode(Tags().Replace(BlockTags().Replace(html, " "), "")), " ").Trim();
+        html is null ? null : Spaces().Replace(WebUtility.HtmlDecode(Tags().Replace(BlockTags().Replace(CodeTags().Replace(html, Backticked), " "), "")), " ").Trim();
+
+    // Code with a backtick in it takes two, and a space inside when it starts or ends with one.
+    static string Backticked(Match code)
+    {
+        var text = Spaces().Replace(code.Groups[1].Value, " ").Trim();
+        if (!text.Contains('`')) return $"`{text}`";
+        var pad = text.StartsWith('`') || text.EndsWith('`') ? " " : "";
+        return $"``{pad}{text}{pad}``";
+    }
 
     /// <summary>Stands for the namespace of the page an example lands on, in a <c>@using Alias = ...</c> line.</summary>
     public const string PageNamespace = "__PageNamespace__";
@@ -341,6 +353,9 @@ public static partial class CliData
 
     [GeneratedRegex(@"^namespace [\w.]+;", RegexOptions.Multiline)]
     private static partial Regex NamespaceLine();
+
+    [GeneratedRegex("<code>(.*?)</code>", RegexOptions.Singleline)]
+    private static partial Regex CodeTags();
 
     [GeneratedRegex("</?(p|li|ul|ol|br|div|pre)[^>]*>")]
     private static partial Regex BlockTags();

@@ -41,7 +41,8 @@ static class Commands
         ("token.edit", 2, "izzy add token, rename token and remove token: the app's own colors as changesets."),
         ("check", 2, "izzy check --json: where the app uses what a release renamed or removed, CSS variables too, with the replacement."),
         ("describe.pictures", 2, "list and describe component --json give each component a picture { light, dark }: its first example."),
-        ("inspect.choices", 2,"inspect --json gives choices for Accent and Color options, the app's own with the library's."),
+        ("describe.code", 2, "Option, event and slot descriptions keep code in Markdown backticks (`Refresh=\"TimeSpan.FromSeconds(30)\"`), from libraries after alpha.30."),
+        ("inspect.choices", 2, "inspect --json gives choices for Accent and Color options, the app's own with the library's."),
     ];
 
     /// <summary>The options every command that answers with a changeset takes.</summary>
