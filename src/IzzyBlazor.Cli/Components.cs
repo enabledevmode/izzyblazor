@@ -195,6 +195,14 @@ sealed class Components
         c["parameters"]!.AsArray().Select(p => p!.AsObject())
             .Concat((c["bases"]?.AsArray() ?? []).SelectMany(b => _bases.TryGetValue((string)b!, out var shared) ? shared["parameters"]!.AsArray().Select(p => p!.AsObject()) : []));
 
+    /// <summary>
+    /// The types an app can add tokens to (Accent, Color), each with its built-in values in order; empty in data
+    /// from before the list (alpha.30 and earlier).
+    /// </summary>
+    public Dictionary<string, List<(string Name, string? Summary)>> TokenTypes => field ??=
+        (_file["tokenTypes"]?.AsArray() ?? []).ToDictionary(t => (string)t!["name"]!,
+            t => t!["values"]!.AsArray().Select(v => ((string)v!["name"]!, (string?)v["summary"])).ToList(), StringComparer.Ordinal);
+
     /// <summary>The names of the library's CSS variables, public and internal.</summary>
     public HashSet<string> TokenNames => field ??= (_file["tokens"]?.AsArray() ?? []).Select(t => (string)t!["name"]!).ToHashSet(StringComparer.Ordinal);
 

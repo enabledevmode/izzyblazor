@@ -213,6 +213,12 @@ public sealed class ComponentTests : IDisposable
         Assert.Contains("public static Color Promo => Color.Token(\"promo\");", members);
 
         File.AppendAllText(Path.Combine(_work, "Components", "Pages", "Home.razor"), "<Button Accent=\"Accent.Promo\">Upgrade</Button>\n");
+        // A form's choices for the Button's Accent: the library's, then the app's own.
+        var line = File.ReadAllLines(Path.Combine(_work, "Components", "Pages", "Home.razor")).Length;
+        var accents = JsonNode.Parse(Izzy("inspect", $"Components/Pages/Home.razor:{line}:1", "--json").Out)!["choices"]!["Accent"]!.AsArray();
+        Assert.Equal(["Primary", "Neutral", "Danger", "Promo"], accents.Select(a => (string)a!["name"]!));
+        Assert.Equal("promo", (string)accents[3]!["token"]!);
+
         Assert.Equal(0, Izzy("rename", "token", "promo", "offer").Exit);
         Assert.Contains("--ib-color-on-offer:", File.ReadAllText(Path.Combine(_work, "wwwroot", "theme.css")));
         Assert.Contains("public static Accent Offer => Accent.Token(\"offer\");", File.ReadAllText(Path.Combine(_work, "Theme", "AppTokens.cs")));

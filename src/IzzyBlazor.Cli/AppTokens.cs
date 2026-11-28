@@ -158,6 +158,26 @@ static partial class AppTokens
     public static IEnumerable<(string Path, string Text)> Sources(ProjectInfo project) =>
         ReleaseChanges.Files(project.Directory!).Select(p => (p, project.ReadFile(p) ?? "")).Where(s => s.Item2.Length > 0);
 
+    /// <summary>
+    /// The app's own values of a type (its <c>extension(Accent)</c> members), each with the token it reads when it
+    /// is <c>Type.Token("name")</c>, and where it's defined.
+    /// </summary>
+    public static List<(string Member, string? Token, string Path, int Line)> Own(ProjectInfo project, string type)
+    {
+        var own = new List<(string, string?, string, int)>();
+        foreach (var (path, text) in Sources(project))
+            foreach (Match block in Regex.Matches(text, $@"extension\s*\(\s*{Regex.Escape(type)}\s*\)\s*\{{"))
+            {
+                var start = block.Index + block.Length;
+                foreach (Match m in Regex.Matches(Body(text, start), $@"\bpublic\s+static\s+{Regex.Escape(type)}\s+(?<m>[A-Z]\w*)\s*(?:=>|\{{)(?<rest>[^;]*)"))
+                {
+                    var token = Regex.Match(m.Groups["rest"].Value, @"\bToken\(\s*""(?<n>[^""]+)""\s*\)") is { Success: true } t ? t.Groups["n"].Value : null;
+                    own.Add((m.Groups["m"].Value, token, path, text[..(start + m.Index)].Count(c => c == '\n') + 1));
+                }
+            }
+        return own;
+    }
+
     /// <summary>Where the app uses a token: its members (Accent.Promo, Color.Promo), Token("promo"), and var(--ib-color-promo) in its CSS.</summary>
     public static List<(string Path, int Offset, int Length, string Kind)> Uses(ProjectInfo project, string name)
     {

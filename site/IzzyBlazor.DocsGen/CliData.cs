@@ -29,11 +29,20 @@ public sealed record CliFile
     /// <summary>Every example a component lists, by id (<c>button-usage</c>).</summary>
     public required SortedDictionary<string, CliExample> Examples { get; init; }
 
+    /// <summary>
+    /// The types an app can add its own tokens to (those with a <c>Token(string)</c> factory: Accent, Color), each
+    /// with its built-in values (<c>Accent.Primary</c>), for a form's choices beside the app's own.
+    /// </summary>
+    public List<CliTokenType>? TokenTypes { get; init; }
+
     /// <summary>The library's CSS variables, public and internal (izzy describe tokens); null when not asked for.</summary>
     public List<CliToken>? Tokens { get; init; }
 }
 
 public sealed record CliBase(string Name, List<CliParameter> Parameters);
+
+/// <summary>A type that takes <c>Token("name")</c>, with its built-in values.</summary>
+public sealed record CliTokenType(string Name, List<CliMember> Values);
 
 /// <summary>A component, or a part of one (<c>DataGridColumn</c>).</summary>
 public sealed record CliComponent
@@ -194,6 +203,10 @@ public static partial class CliData
             Components = components,
             Examples = examples,
             Tokens = tokens,
+            TokenTypes = api.Types
+                .Where(t => t.Obsolete is null && t.Members.Any(m => m.Name == "Token" && m.Type.StartsWith(t.Name + " Token(string", StringComparison.Ordinal)))
+                .Select(t => new CliTokenType(t.Name, t.Members.Where(m => m.Obsolete is null && m.Type == t.Name).Select(Member).ToList()))
+                .ToList(),
         };
         return JsonSerializer.Serialize(file, Json);
     }

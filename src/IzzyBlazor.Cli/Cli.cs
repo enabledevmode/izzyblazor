@@ -847,6 +847,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 ["groups"] = new JsonArray(tokens.Select(t => (string?)t["group"]).OfType<string>().Distinct().Select(g => (JsonNode)g).ToArray()),
                 ["tokens"] = new JsonArray(tokens.Select(t => (JsonNode)t).ToArray()),
                 ["renamed"] = new JsonArray(renames.Select(r => (JsonNode)r.Json()).ToArray()),
+                // The types that take Token("name"), so an app's own color can be one: Accent and Color.
+                ["tokenTypes"] = new JsonArray((library.TokenTypes.Count > 0 ? library.TokenTypes.Keys.ToArray() : ["Accent", "Color"]).Select(t => (JsonNode)t).ToArray()),
                 ["theme"] = theme,
             });
             return 0;
@@ -1094,8 +1096,29 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             return 4;
         }
         var (page, path, tag) = TagAt(args.Words[1], folder, stdin, usage);
-        Print(TagEdit.Inspect(page, path, tag, Library));
+        var inspected = TagEdit.Inspect(page, path, tag, Library);
+        inspected["choices"] = Choices(Library.Find(tag.Name), ProjectInfo.FromProject(FindProject(folder)));
+        Print(inspected);
         return 0;
+    }
+
+    // The values an option of a token type (Accent, Color) can take, by type, for the types the component's options
+    // have: the library's, then the app's own (its extension members), so a form lists both.
+    JsonObject Choices(JsonObject component, ProjectInfo project)
+    {
+        var library = Library.TokenTypes.Count > 0 ? Library : Components.Load(Path.Combine(AppContext.BaseDirectory, "components.json"));
+        var choices = new JsonObject();
+        var used = Library.Parameters(component).Select(p => Regex.Replace((string)p["type"]!, @"^Responsive<(.+)>$", "$1").TrimEnd('?')).ToHashSet(StringComparer.Ordinal);
+        foreach (var (type, values) in library.TokenTypes.Where(t => used.Contains(t.Key)))
+        {
+            var list = new JsonArray();
+            foreach (var (name, summary) in values)
+                list.Add(new JsonObject { ["name"] = name, ["write"] = $"{type}.{name}", ["summary"] = summary, ["own"] = false, ["token"] = null, ["path"] = null, ["line"] = null });
+            foreach (var (member, token, file, line) in AppTokens.Own(project, type).Where(o => !values.Any(v => v.Name == o.Member)))
+                list.Add(new JsonObject { ["name"] = member, ["write"] = $"{type}.{member}", ["summary"] = null, ["own"] = true, ["token"] = token, ["path"] = file, ["line"] = line });
+            choices[type] = list;
+        }
+        return choices;
     }
 
     // izzy theme vars --brand #0f766e: the tags IzzyTheme writes into <head> for these settings, from the app's
