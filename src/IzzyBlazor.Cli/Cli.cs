@@ -412,7 +412,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var loads = urls.Count * (widths.Count * schemes.Count + 1);
         var browsers = loads >= 24 ? Math.Clamp(Environment.ProcessorCount / 2, 1, 3) : 1;
         // report.html has a picture of each element it shows: taken now, while its page is open.
-        var pictures = formats.Contains("html") && !json ? new Audit.Pictures() : null;
+        // --json alone writes no files, so it takes none; with --out it writes report.html, pictures and all.
+        var pictures = formats.Contains("html") && (!json || outFolder is not null) ? new Audit.Pictures() : null;
         var results = Audit.Run(browser, urls, widths, schemes, Generator.IzzyBlazorVersion, Progress, judge, cookies, browsers, tracer, pictures, sweeps: true,
             // One page names the elements axe couldn't decide, up to 20 of a rule; a site's run would carry tens of thousands.
             undecided: urls.Count == 1 ? 20 : 0).GetAwaiter().GetResult();

@@ -112,11 +112,12 @@ public sealed class AuditTests : IDisposable
         Assert.True(kept.Exit == 0, kept.Error);
         Assert.Contains("Still there, accepted: `color-contrast` on `/`", kept.Output);
         Assert.DoesNotContain("Fixed", kept.Output);
-        // For an editor: --json with --out prints the results, writes the files and names them.
+        // For an editor: --json with --out prints the results, writes the files and names them, report.html with its pictures.
         var answer = JsonNode.Parse(Audit("--recheck", accepted, "--baseline", "first/results.json", "--out", "kept", "--json").Output)!;
         Assert.Equal("closed", (string)answer["recheck"]!["state"]!);
-        Assert.Contains("report.md", answer["written"]!["files"]!.AsArray().Select(f => (string)f!));
+        Assert.Contains("report.html", answer["written"]!["files"]!.AsArray().Select(f => (string)f!));
         Assert.True(File.Exists(Path.Combine((string)answer["written"]!["folder"]!, "report.md")));
+        Assert.Contains("<img src=\"data:image/webp;base64,", File.ReadAllText(Path.Combine((string)answer["written"]!["folder"]!, "report.html")));
 
         // The picture gets its text and a button arrives with no name: one fixed, one new.
         body = body.Replace(picture, "<img alt=\"Orders by month\" src=\"data:image/gif;base64,R0lGODlhAQABAAAAACw=\"><button></button>");
