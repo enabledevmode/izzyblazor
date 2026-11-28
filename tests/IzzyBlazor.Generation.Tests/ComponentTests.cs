@@ -172,6 +172,29 @@ public sealed class ComponentTests : IDisposable
         Assert.Equal("9.9.9", (string)described["version"]!);
     }
 
+    // The CSS variables come from the library's own CSS and the registry: values per scheme, the names they
+    // replaced, and IzzyTheme's settings by the option theme vars takes.
+    [Fact]
+    public void The_tokens_are_described_with_their_values_and_old_names()
+    {
+        var described = JsonNode.Parse(Izzy("describe", "tokens", "--json").Out)!;
+        var tokens = described["tokens"]!.AsArray().ToDictionary(t => (string)t!["name"]!);
+
+        var fill = tokens["--ib-color-fill"]!;
+        Assert.Equal(("Page and surfaces", "color", true), ((string)fill["group"]!, (string)fill["type"]!, (bool)fill["public"]!));
+        Assert.StartsWith("#", (string)fill["light"]!);
+        Assert.NotEqual((string)fill["light"]!, (string)fill["dark"]!);
+        Assert.Equal(["--ib-color-surface-container"], fill["replaces"]!.AsArray().Select(n => (string)n!));
+        // A family's member, and one read from another variable.
+        Assert.Equal("0.75rem", (string)tokens["--ib-space-3"]!["light"]!);
+        Assert.Equal("600", (string)tokens["--ib-weight-heading"]!["light"]!);
+        // A component's own variable, which tokens.css doesn't declare, and one the library keeps to itself.
+        Assert.Equal("--ib-radius-control", (string)tokens["--ib-btn-radius"]!["default"]!);
+        Assert.False((bool)tokens["--ib-on-light"]!["public"]!);
+
+        Assert.Equal("heading-weight", (string)described["theme"]!["properties"]!["HeadingWeight"]!["x-option"]!);
+    }
+
     [Fact]
     public void A_tag_is_inspected_with_an_account_and_its_options_set_with_Pro()
     {

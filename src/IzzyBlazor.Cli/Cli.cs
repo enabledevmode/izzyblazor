@@ -33,6 +33,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy describe starter|kit|block <id> [--json]
           izzy describe component <Name> [--json]
           izzy describe component --all --json
+          izzy describe tokens [--json]
           izzy describe crud|init [--json]
           izzy add block <id> [--<setting> <value> ...] [--at <file>:<line>] [--project <path>] [--dry-run] [--diff] [--json] [--overwrite]
           izzy add page --name <Name> [--route <path>] [--folder <folder>] [--mode Static|Server|WebAssembly|Auto] [--layout <Layout>] [--nav] [--project <path>] [--dry-run] [--diff] [--json]
@@ -659,6 +660,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     int Describe(Args args)
     {
         if (args.Words.Count > 1 && args.Words[1].Equals("component", StringComparison.OrdinalIgnoreCase)) return DescribeComponent(args);
+        if (args.Words.Count > 1 && args.Words[1].Equals("tokens", StringComparison.OrdinalIgnoreCase)) return DescribeTokens(args);
         var item = Item(args, "izzy describe", "izzy describe starter|kit|block <id> [--json], or izzy describe crud|init");
         var json = args.Switch("json");
         NoSettings(args);
@@ -746,6 +748,58 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             };
         return Finish(item, changes, project, project.Directory!, existing: true, flags);
     }
+
+    // izzy describe tokens: the library's CSS variables (the public ones by group, with their light and dark values,
+    // then the internal ones by name) and IzzyTheme's settings, from the app's own version of the library.
+    int DescribeTokens(Args args)
+    {
+        Words(args, 2, "izzy describe tokens [--json] [--project <path>]");
+        var json = args.Switch("json");
+        var folder = _projectFolder = args.Take("project");
+        NoSettings(args);
+        var library = Library.HasTokens ? Library : ToolLibrary("tokens");
+        var renames = ReleaseChanges.Load(ReleaseChanges.Beside).Variables(library.Version);
+        var tokens = library.Tokens(renames).ToList();
+        if (json)
+        {
+            var theme = library.Describe(library.Find("IzzyTheme"))["parameters"]!.DeepClone().AsObject();
+            foreach (var (name, property) in theme["properties"]!.AsObject()) property!["x-option"] = Kebab(name);
+            Print(new JsonObject
+            {
+                ["version"] = library.Version,
+                ["source"] = library.Source,
+                ["projectVersion"] = ProjectVersion(folder),
+                ["groups"] = new JsonArray(tokens.Select(t => (string?)t["group"]).OfType<string>().Distinct().Select(g => (JsonNode)g).ToArray()),
+                ["tokens"] = new JsonArray(tokens.Select(t => (JsonNode)t).ToArray()),
+                ["renamed"] = new JsonArray(renames.Select(r => (JsonNode)r.Json()).ToArray()),
+                ["theme"] = theme,
+            });
+            return 0;
+        }
+        foreach (var group in tokens.Where(t => (bool)t["public"]!).GroupBy(t => (string)t["group"]!))
+        {
+            output.WriteLine($"{group.Key}:");
+            foreach (var t in group)
+            {
+                var value = (string?)t["light"] is { } light ? light == (string?)t["dark"] ? light : $"{light} | dark {(string?)t["dark"]}" : (string?)t["default"] is { } d ? $"default {d}" : null;
+                output.WriteLine($"  {(string)t["name"]!}{(value is null ? "" : "  " + value)}");
+                if ((string?)t["description"] is { } description) output.WriteLine($"      {description}");
+            }
+            output.WriteLine();
+        }
+        output.WriteLine($"Any other --ib-* variable ({tokens.Count(t => !(bool)t["public"]!)} in IzzyBlazor {library.Version}) is internal and may change. izzy theme vars lists IzzyTheme's settings.");
+        return 0;
+    }
+
+    // This izzy's own data, for what an app's package predates, with a line saying so.
+    Components ToolLibrary(string what)
+    {
+        var own = Components.Load(Path.Combine(AppContext.BaseDirectory, "components.json"));
+        error.WriteLine($"IzzyBlazor {Library.Version} has no {what} data: using this izzy's ({own.Version}).");
+        return own;
+    }
+
+    static string Kebab(string name) => Regex.Replace(name, "(?<=[a-z0-9])(?=[A-Z])", "-").ToLowerInvariant();
 
     // izzy describe component Button: its options, content and events. --all --json is every component and
     // part in one answer, for an editor's inspector to keep.

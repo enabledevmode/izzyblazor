@@ -41,6 +41,9 @@
     <None Include="Api\released.api.json" />
     <Content Remove="Api\changes.json" />
     <None Include="Api\changes.json" />
+    <!-- The CSS variables' registry, which DocsGen reads for izzy describe tokens. -->
+    <Content Remove="tokens.json" />
+    <None Include="tokens.json" />
     <!-- Each example's source, shown under its preview: example:{Folder}/{Name}. -->
     <EmbeddedResource Include="Examples\**\*.razor" LogicalName="example:%(RecursiveDir)%(Filename)" />
     <!-- A .cs file an example names with @* file: Name.cs *@, shown on a tab beside it. -->

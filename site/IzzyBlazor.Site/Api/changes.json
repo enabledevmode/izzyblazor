@@ -2,8 +2,20 @@
   "format": 1,
   "releases": [
     {
+      "version": "0.1.0-alpha.2",
+      "changes": [
+        {"of": "variable", "name": "--ib-font-sans", "to": "--ib-font-body"},
+        {"of": "variable", "name": "--ib-font-serif", "note": "Set --ib-font-heading or --ib-font-body to the serif fonts you want."}
+      ]
+    },
+    {
       "version": "0.1.0-alpha.16",
       "changes": [
+        {"of": "variable", "name": "--ib-color-surface-container", "to": "--ib-color-fill"},
+        {"of": "variable", "name": "--ib-color-surface-container-high", "to": "--ib-color-fill-strong"},
+        {"of": "variable", "name": "--ib-color-surface-container-low", "to": "--ib-color-fill-subtle"},
+        {"of": "variable", "name": "--ib-color-surface-raised", "to": "--ib-color-surface-overlay"},
+        {"of": "variable", "name": "--ib-color-raised-border", "to": "--ib-color-overlay-border"},
         {"of": "type", "name": "Color", "member": "SurfaceContainer", "to": "Fill"},
         {"of": "type", "name": "Color", "member": "SurfaceContainerHigh", "to": "FillStrong"},
         {"of": "type", "name": "Color", "member": "SurfaceContainerLow", "to": "FillSubtle"},

@@ -195,6 +195,23 @@ sealed class Components
         c["parameters"]!.AsArray().Select(p => p!.AsObject())
             .Concat((c["bases"]?.AsArray() ?? []).SelectMany(b => _bases.TryGetValue((string)b!, out var shared) ? shared["parameters"]!.AsArray().Select(p => p!.AsObject()) : []));
 
+    /// <summary>Whether the data lists the library's CSS variables (after alpha.30).</summary>
+    public bool HasTokens => _file["tokens"] is JsonArray;
+
+    /// <summary>
+    /// The CSS variables for <c>izzy describe tokens --json</c>: every field present, public ones first in their
+    /// groups, and each with the old names releases renamed to it.
+    /// </summary>
+    public IEnumerable<JsonObject> Tokens(IReadOnlyList<ReleaseChange> renames) =>
+        (_file["tokens"]?.AsArray() ?? []).Select(t => t!.AsObject()).Select(t => new JsonObject
+        {
+            ["name"] = (string)t["name"]!, ["group"] = (string?)t["group"], ["type"] = (string?)t["type"],
+            ["public"] = (bool?)t["public"] ?? false, ["description"] = (string?)t["description"],
+            ["value"] = (string?)t["value"], ["light"] = (string?)t["light"], ["dark"] = (string?)t["dark"], ["default"] = (string?)t["default"],
+            ["components"] = t["components"]?.DeepClone() ?? new JsonArray(),
+            ["replaces"] = new JsonArray(renames.Where(r => r.To == (string)t["name"]!).Select(r => (JsonNode)r.Name).ToArray()),
+        });
+
     /// <summary>Whether a tag is a component on this base.</summary>
     public bool HasBase(string tag, string name) =>
         _byName.TryGetValue(tag, out var c) && (c["bases"]?.AsArray() ?? []).Any(b => (string?)b == name);

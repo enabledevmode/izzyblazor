@@ -5,7 +5,7 @@ using IzzyBlazor.DocsGen;
 // Writes izzyblazor.api.json from the built library and its XML docs.
 //
 //   dotnet run --project site/IzzyBlazor.DocsGen -- --out izzyblazor.api.json [--previous released.api.json] [--source src] [--baseline released.api.json --changes changes.json]
-//       [--cli-out components.json --registry components.json --examples Examples]
+//       [--cli-out components.json --registry components.json --examples Examples [--tokens tokens.json]]
 //
 // With --source (the library's source folder), components written as .razor files take their
 // summary and example from their header comment, since they can't carry an XML doc comment.
@@ -80,7 +80,11 @@ if (!File.Exists(output) || File.ReadAllText(output) != json)
 
 if (cliPath is not null)
 {
-    var cli = CliData.Write(file, Arg("--registry") ?? throw new ArgumentException("--cli-out needs --registry."), Arg("--examples") ?? throw new ArgumentException("--cli-out needs --examples."), RootClasses.Read(assemblies));
+    // With --tokens (the site's tokens.json) and --source, the library's CSS variables too.
+    var tokens = Arg("--tokens") is { } registry && sourceRoot is not null
+        ? TokenData.Read(registry, Path.Combine(sourceRoot, "IzzyBlazor.Core", "Styles"), file.Components.Select(c => c.Name).ToHashSet(StringComparer.Ordinal))
+        : null;
+    var cli = CliData.Write(file, Arg("--registry") ?? throw new ArgumentException("--cli-out needs --registry."), Arg("--examples") ?? throw new ArgumentException("--cli-out needs --examples."), RootClasses.Read(assemblies), tokens);
     Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(cliPath))!);
     if (!File.Exists(cliPath) || File.ReadAllText(cliPath) != cli)
     {

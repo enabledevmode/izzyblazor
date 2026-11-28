@@ -70,7 +70,7 @@
     <MSBuild Projects="$(RepoRoot)site/IzzyBlazor.DocsGen/IzzyBlazor.DocsGen.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration)" RemoveProperties="RuntimeIdentifier;SelfContained">
       <Output TaskParameter="TargetOutputs" ItemName="DocsGenAssembly" />
     </MSBuild>
-    <Exec Command="&quot;$(DocsGenHost)&quot; &quot;@(DocsGenAssembly)&quot; --out &quot;$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor.api.json&quot; --source &quot;$(RepoRoot)src&quot; --cli-out &quot;$(ComponentsFile)&quot; --registry &quot;$(RepoRoot)site/IzzyBlazor.Site/components.json&quot; --examples &quot;$(RepoRoot)site/IzzyBlazor.Site/Examples&quot;" />
+    <Exec Command="&quot;$(DocsGenHost)&quot; &quot;@(DocsGenAssembly)&quot; --out &quot;$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor.api.json&quot; --source &quot;$(RepoRoot)src&quot; --cli-out &quot;$(ComponentsFile)&quot; --registry &quot;$(RepoRoot)site/IzzyBlazor.Site/components.json&quot; --examples &quot;$(RepoRoot)site/IzzyBlazor.Site/Examples&quot; --tokens &quot;$(RepoRoot)site/IzzyBlazor.Site/tokens.json&quot;" />
   </Target>
 
   <!-- The library's copy, beside the tool's dll and beside whatever references it (the tests). -->

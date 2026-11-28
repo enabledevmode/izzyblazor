@@ -28,6 +28,9 @@ public sealed record CliFile
 
     /// <summary>Every example a component lists, by id (<c>button-usage</c>).</summary>
     public required SortedDictionary<string, CliExample> Examples { get; init; }
+
+    /// <summary>The library's CSS variables, public and internal (izzy describe tokens); null when not asked for.</summary>
+    public List<CliToken>? Tokens { get; init; }
 }
 
 public sealed record CliBase(string Name, List<CliParameter> Parameters);
@@ -121,7 +124,7 @@ public static partial class CliData
 
     static readonly string[] NeedsSite = ["IzzyBlazor.Site", "./examples/", "Microsoft.Extensions.AI"];
 
-    public static string Write(ApiFile api, string registryPath, string examplesRoot, Dictionary<string, RootMarks>? roots = null)
+    public static string Write(ApiFile api, string registryPath, string examplesRoot, Dictionary<string, RootMarks>? roots = null, List<CliToken>? tokens = null)
     {
         var registry = JsonNode.Parse(File.ReadAllText(registryPath), documentOptions: new() { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true })!;
         var documented = registry["components"]!.AsArray().Select(c => c!.AsObject()).ToList();
@@ -190,6 +193,7 @@ public static partial class CliData
             Bases = api.Bases.Select(b => new CliBase(b.Name, Parameters(b.Properties, enums))).ToList(),
             Components = components,
             Examples = examples,
+            Tokens = tokens,
         };
         return JsonSerializer.Serialize(file, Json);
     }

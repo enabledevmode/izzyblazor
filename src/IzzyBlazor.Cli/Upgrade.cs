@@ -8,7 +8,7 @@ namespace IzzyBlazor.Cli;
 /// Something a release removed or renamed: a component, a base or a type, or one member of it.
 /// </summary>
 /// <param name="Release">The release that made the change.</param>
-/// <param name="Of">What <paramref name="Name"/> is: component, base or type.</param>
+/// <param name="Of">What <paramref name="Name"/> is: component, base, type, or variable (a CSS variable, --ib-*).</param>
 /// <param name="Member">The parameter, enum member or other member; null when the whole of it changed.</param>
 /// <param name="To">The new name, when the change is a plain rename.</param>
 /// <param name="Note">What to do instead, when there is more to it than a new name.</param>
@@ -69,6 +69,11 @@ sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
         all.Where(c => Releases.Compare(c.Release, from) > 0 && Releases.Compare(c.Release, to) <= 0)
             .OrderBy(c => c.Release, Comparer<string>.Create(Releases.Compare)).ToList();
 
+    /// <summary>The CSS variables renamed or removed up to and with <paramref name="version"/>, oldest first.</summary>
+    public List<ReleaseChange> Variables(string version) =>
+        all.Where(c => c.Of == "variable" && Releases.Compare(c.Release, version) <= 0)
+            .OrderBy(c => c.Release, Comparer<string>.Create(Releases.Compare)).ToList();
+
     /// <summary>The app's files to look in, from its folder.</summary>
     public static IEnumerable<string> Files(string root) =>
         Directory.EnumerateFiles(root, "*", new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true })
@@ -97,15 +102,15 @@ sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
         if (razor)
         {
             // The page's tags, and the changed components' tags written as markup in its C# code.
-            var owners = changes.Where(c => c.Of != "type").Select(c => c.Name).ToHashSet(StringComparer.Ordinal);
+            var owners = changes.Where(c => c.Of is "component" or "base").Select(c => c.Name).ToHashSet(StringComparer.Ordinal);
             var inCode = RazorPage.CodeBlocks(text).SelectMany(b => TagStart().Matches(text[b.Open..b.Close]).Select(m => RazorPage.TagAt(text, b.Open + m.Index)))
-                .Where(t => t is not null && changes.Any(c => c.Of != "type" && Owns(c, Short(t.Name), library)));
+                .Where(t => t is not null && changes.Any(c => c.Of is "component" or "base" && Owns(c, Short(t.Name), library)));
             foreach (var tag in RazorPage.Tags(text).Concat(inCode!).OrderBy(t => t!.Start))
             {
                 var name = Short(tag!.Name);
                 names.Add((tag.Start, tag.NameEnd));
                 names.AddRange(tag.Attributes.Select(a => (a.Start, a.Start + a.Name.Length)));
-                foreach (var change in changes.Where(c => c.Of != "type" && Owns(c, name, library)))
+                foreach (var change in changes.Where(c => c.Of is "component" or "base" && Owns(c, name, library)))
                 {
                     if (change.Member is null)
                     {
