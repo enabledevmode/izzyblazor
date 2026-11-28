@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using IzzyBlazor.Cli;
 
 namespace IzzyBlazor.Generation.Tests;
@@ -15,6 +16,30 @@ public sealed class UpgradeTests : IDisposable
     {
         var (output, error) = (new StringWriter(), new StringWriter());
         return (new Cli.Cli(Path.Combine(ProjectBuild.RepoRoot, "catalog"), _app, output, error, access: access).Run(args), output.ToString(), error.ToString());
+    }
+
+    // An app on a release lists, for free, what it still uses that its release or one before renamed or removed:
+    // a component's option, a type, and a CSS variable in its stylesheet, each with where and what replaces it.
+    [Fact]
+    public void Check_lists_uses_of_renamed_names_in_code_and_stylesheets()
+    {
+        File.WriteAllText(Path.Combine(_app, "Acme.csproj"), """
+            <Project Sdk="Microsoft.NET.Sdk.Web">
+              <ItemGroup>
+                <PackageReference Include="IzzyBlazor" Version="0.1.0-alpha.22" />
+              </ItemGroup>
+            </Project>
+            """);
+        File.WriteAllText(Path.Combine(_app, "Home.razor"), "<Icon Role=\"IconRole.Close\" />\n");
+        Directory.CreateDirectory(Path.Combine(_app, "wwwroot"));
+        File.WriteAllText(Path.Combine(_app, "wwwroot", "app.css"), ".promo { background: var(--ib-color-surface-container); }\n");
+
+        var check = Izzy(ItemTier.Free, "check", "--json");
+        Assert.Equal(0, check.Exit);
+        var uses = JsonNode.Parse(check.Out)!["uses"]!.AsArray().Select(u => ((string)u!["path"]!, (int)u["line"]!, (string)u["name"]!, (string?)u["to"])).ToList();
+        Assert.Contains(("Home.razor", 1, "Icon", "Purpose"), uses);
+        Assert.Contains(("Home.razor", 1, "IconRole", "IconPurpose"), uses);
+        Assert.Contains(("wwwroot/app.css", 1, "--ib-color-surface-container", "--ib-color-fill"), uses);
     }
 
     [Fact]
@@ -43,7 +68,7 @@ public sealed class UpgradeTests : IDisposable
         Assert.Contains("    Icon.Role → Purpose", update.Out);
         Assert.Contains("    Step.Hidden: Use Visible", update.Out);
 
-        // Finding the uses is Pro's.
+        // The plan and the renames are Pro's (izzy check lists the uses for free).
         Assert.Equal(3, Izzy(ItemTier.Free, "upgrade").Exit);
 
         // The release the app came from is the one update recorded. Without --apply it is a plan.

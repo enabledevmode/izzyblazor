@@ -68,6 +68,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "init" => Init(args),
                 "update" => Update(args),
                 "upgrade" => Upgrade(args),
+                "check" => Check(args),
                 "audit" => AuditPages(args),
                 "agent" => Agent(args),
                 "mcp" => Mcp(args),
@@ -77,7 +78,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "account" => Account(args, "izzy account [--json]", "json").Status(output, args.Switch("json")),
                 "feedback" => Feedback(args),
                 "capabilities" => Capabilities(args),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, rename, remove, inspect, set, wrap, unwrap, extract, new, init, update, upgrade, audit, agent, mcp, doctor, theme, capabilities, login, logout, account, feedback."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, rename, remove, inspect, check, set, wrap, unwrap, extract, new, init, update, upgrade, audit, agent, mcp, doctor, theme, capabilities, login, logout, account, feedback."),
             };
         }
         catch (PreviewChangedException e)
@@ -1723,6 +1724,65 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // izzy upgrade: where the app uses what the releases between two versions removed or renamed. It is a plan,
     // and writes nothing, until --apply says the plan is approved. What has a new name is
     // renamed, as a changeset; the rest is listed by file and line with what to do.
+    // izzy check: where the app uses what a release renamed or removed, for an editor's warnings. It writes nothing;
+    // izzy upgrade (Pro) makes the renames.
+    int Check(Args args)
+    {
+        const string usage = "izzy check [--to <version>] [--project <path>] [--json]";
+        Words(args, 1, usage);
+        var to = args.Take("to");
+        var folder = args.Take("project");
+        var json = args.Switch("json");
+        NoSettings(args);
+        if (to is not null && !ToolManifest.Exact(to)) throw new UsageException($"--to takes a version, such as 0.1.0: \"{to}\" isn't one.");
+        var project = ProjectInfo.FromProject(FindProject(folder));
+        var root = project.Directory!;
+        var version = to ?? AppVersion(root) ?? Generator.IzzyBlazorVersion;
+        var warnings = new List<string>();
+        if (Releases.Compare(version, Generator.IzzyBlazorVersion) > 0)
+            warnings.Add($"This izzy is {Generator.IzzyBlazorVersion}, and doesn't know what the releases after it changed. To update it: izzy update --global");
+        var changes = Changes.UpTo(version);
+        var uses = new List<ChangeUse>();
+        var files = 0;
+        foreach (var path in ReleaseChanges.Files(root))
+        {
+            try
+            {
+                uses.AddRange(ReleaseChanges.Find(path, File.ReadAllText(Path.Combine(root, path)), changes, Library).Where(u => !u.Closing));
+                files++;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                warnings.Add($"{path} couldn't be read, so it wasn't looked in.");
+            }
+        }
+        foreach (var warning in warnings) error.WriteLine($"warning: {warning}");
+        if (json)
+        {
+            Print(new JsonObject
+            {
+                ["version"] = version,
+                ["files"] = files,
+                ["uses"] = new JsonArray(uses.Select(u =>
+                {
+                    var use = u.Change.Json();
+                    use["path"] = u.Path;
+                    use["line"] = u.Line;
+                    use["column"] = u.Column;
+                    use["offset"] = u.Offset;
+                    use["length"] = u.Length;
+                    return (JsonNode)use;
+                }).ToArray()),
+                ["warnings"] = new JsonArray(warnings.Select(w => (JsonNode)w).ToArray()),
+            });
+            return 0;
+        }
+        foreach (var u in uses) output.WriteLine($"{u.Path}:{u.Line}:{u.Column}: {u.Change.Line} ({(u.Change.To is null ? "removed" : "renamed")} in {u.Change.Release})");
+        output.WriteLine(uses.Count == 0 ? $"Nothing in the app's {files} files uses what IzzyBlazor {version} and earlier renamed or removed."
+            : $"{uses.Count} {(uses.Count == 1 ? "use" : "uses")} of what IzzyBlazor {version} and earlier renamed or removed. izzy upgrade (Pro) makes the renames.");
+        return 0;
+    }
+
     int Upgrade(Args args)
     {
         const string usage = "izzy upgrade [--apply] [--from <version>] [--to <version>] [--project <path>] [--diff] [--json]";

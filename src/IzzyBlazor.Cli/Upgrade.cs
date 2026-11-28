@@ -41,6 +41,10 @@ sealed record ReleaseChange(string Release, string Of, string Name, string? Memb
 /// <summary>A place in the app that uses what a release changed, and the rename that mends it, if one does.</summary>
 sealed record ChangeUse(ReleaseChange Change, string Path, int Line, int Column, TextInsert? Fix)
 {
+    /// <summary>Where the changed name is in the file, in characters, and how long it is.</summary>
+    public int Offset { get; init; }
+    public int Length { get; init; }
+
     /// <summary>The tag that closes a renamed component: renamed with its opening tag, and not a use of its own.</summary>
     public bool Closing => Line == 0;
 }
@@ -69,17 +73,23 @@ sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
         all.Where(c => Releases.Compare(c.Release, from) > 0 && Releases.Compare(c.Release, to) <= 0)
             .OrderBy(c => c.Release, Comparer<string>.Create(Releases.Compare)).ToList();
 
+    /// <summary>The changes of every release up to and with <paramref name="version"/>, oldest first: what no longer is, in that version.</summary>
+    public List<ReleaseChange> UpTo(string version) =>
+        all.Where(c => Releases.Compare(c.Release, version) <= 0)
+            .OrderBy(c => c.Release, Comparer<string>.Create(Releases.Compare)).ToList();
+
     /// <summary>The CSS variables renamed or removed up to and with <paramref name="version"/>, oldest first.</summary>
     public List<ReleaseChange> Variables(string version) =>
         all.Where(c => c.Of == "variable" && Releases.Compare(c.Release, version) <= 0)
             .OrderBy(c => c.Release, Comparer<string>.Create(Releases.Compare)).ToList();
 
-    /// <summary>The app's files to look in, from its folder.</summary>
+    /// <summary>The app's files to look in, from its folder: its .razor, .cs and .css files.</summary>
     public static IEnumerable<string> Files(string root) =>
         Directory.EnumerateFiles(root, "*", new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true })
-            .Where(f => f.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+            .Where(f => f.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
             .Select(f => Path.GetRelativePath(root, f).Replace('\\', '/'))
-            .Where(p => !p.Split('/').Any(part => part is "bin" or "obj" or "node_modules" || part.StartsWith('.')))
+            // Not the packages an app copies in (wwwroot/lib: Bootstrap and the like), nor what a build makes.
+            .Where(p => !p.Split('/').Any(part => part is "bin" or "obj" or "node_modules" || part.StartsWith('.')) && !p.Contains("wwwroot/lib/", StringComparison.OrdinalIgnoreCase))
             .Order(StringComparer.Ordinal);
 
     /// <summary>Every use of the changes in one file, in the file's order.</summary>
@@ -91,8 +101,15 @@ sealed partial class ReleaseChanges(IReadOnlyList<ReleaseChange> all)
         {
             var (line, column) = Place(text, at);
             var fix = replacement is null ? null : new TextInsert(path, at, replacement, hash.Value) { Length = length };
-            uses.Add(new ChangeUse(change, path, line, column, fix));
+            uses.Add(new ChangeUse(change, path, line, column, fix) { Offset = at, Length = length });
         }
+
+        // A CSS variable, as written anywhere: a stylesheet, a style attribute, a string in C#.
+        foreach (var change in changes.Where(c => c.Of == "variable"))
+            foreach (Match match in Regex.Matches(text, $@"(?<![\w-]){Regex.Escape(change.Name)}(?![\w-])"))
+                Add(change, match.Index, match.Length, change.To);
+        // A stylesheet holds nothing else a release renames.
+        if (path.EndsWith(".css", StringComparison.OrdinalIgnoreCase)) return uses.OrderBy(u => u.Line).ThenBy(u => u.Column).ToList();
 
         var razor = path.EndsWith(".razor", StringComparison.OrdinalIgnoreCase);
         var comments = razor ? RazorPage.Comments(text) : [];

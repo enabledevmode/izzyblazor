@@ -39,6 +39,7 @@ static class Commands
         ("theme.sample", 2, "izzy theme sample --json: a page showing the theme on the library's components."),
         ("describe.tokens", 2, "izzy describe tokens --json: the library's CSS variables, their values per scheme, renames and token types."),
         ("token.edit", 2, "izzy add token, rename token and remove token: the app's own colors as changesets."),
+        ("check", 2, "izzy check --json: where the app uses what a release renamed or removed, CSS variables too, with the replacement."),
         ("inspect.choices", 2, "inspect --json gives choices for Accent and Color options, the app's own with the library's."),
     ];
 
@@ -70,6 +71,7 @@ static class Commands
         new("new", "izzy new starter|kit <id> [-n <name>] [-o <folder>] [--<setting> <value> ...] [--dry-run] [--diff] [--json] [--overwrite]", "item", "The plan is the starter's or kit's: izzy list --json gives each item's tier.", null),
         new("init", "izzy init [--preset <preset>] [--brand <color>] [--interactivity None|Server] [--keep-css] [--mcp] [--project <path>] [--no-build] [--dry-run] [--diff] [--json] [--overwrite]", "free", null, null),
         new("update", "izzy update [--to <version>] [--global] [--project <path>] [--no-build] [--dry-run] [--diff] [--json]", "free", null, null),
+        new("check", "izzy check [--to <version>] [--project <path>] [--json]", "free", null, null),
         new("upgrade", "izzy upgrade [--apply] [--from <version>] [--to <version>] [--project <path>] [--diff] [--json]", "pro", null, null),
         new("audit", "izzy audit <url> [--sizes 1440,375] [--schemes light,dark] [--cookie <name=value>] [--out <folder>] [--format md,json,tasks,html,sarif] [--fail-on any|real|new] [--baseline <results.json>] [--browser <path>] [--json]", "free", "One page, with everything, free; the verdicts come with a free account (signed out, the checks still run). Several pages in a run are Pro.", null),
         new("audit --site", "izzy audit --site <url> [--max-pages 500], or izzy audit --urls <file>", "pro", null, null),

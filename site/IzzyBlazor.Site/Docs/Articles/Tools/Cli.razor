@@ -67,8 +67,12 @@
             parameter name without a warning, and the page fails when it opens, so read the list.
         </TextBlock>
         <TextBlock>
-            With IzzyBlazor Pro, <Code>izzy upgrade</Code> finds where your app uses them, in its
-            <Code>.razor</Code> and <Code>.cs</Code> files. It prints a plan and writes nothing: each rename it
+            <Code>izzy check</Code> lists where your app still uses them, by file, line and column, with what
+            replaces each. It looks in the <Code>.razor</Code>, <Code>.cs</Code> and <Code>.css</Code> files, so a
+            renamed CSS variable shows up too. Add <Code>--to</Code> with a version to see what moving to it would break.
+        </TextBlock>
+        <TextBlock>
+            With IzzyBlazor Pro, <Code>izzy upgrade</Code> makes the changes. It prints a plan and writes nothing: each rename it
             would make, and what is left to change by hand, by file and line with what to use instead. Add
             <Code>--diff</Code> to see the renames as a diff. When the plan is right,
             <Code>izzy upgrade --apply</Code> makes the renames. It starts from the release <Code>izzy update</Code> moved your app from, kept in
@@ -153,7 +157,8 @@
         new("izzy new starter|kit <id> -n <name>", "Creates a new app from a starter or an app kit, as dotnet new does, such as izzy new starter sidebar or izzy new kit crm. See Create an app and Templates."),
         new("izzy init", "Sets up IzzyBlazor in an app you already have. See Add to an existing app."),
         new("izzy update", "Moves your app to the newest IzzyBlazor: the package and the app's izzy. Outside an app, it updates the izzy on your machine. See Update."),
-        new("izzy upgrade", "Finds where your app uses what the releases between its old version and the new one removed or renamed. With --apply, renames what has a new name (Pro). See Update."),
+        new("izzy check", "Lists where your app uses what a release renamed or removed, CSS variables too, with what replaces each. See Update."),
+        new("izzy upgrade", "Plans the changes for what the releases between your app's old version and the new one removed or renamed. With --apply, renames what has a new name (Pro). See Update."),
         new("izzy add block <id>", "Adds a block to your app, such as izzy add block hero."),
         new("izzy add page --name <Name>", "Adds a new page with its route and title, and with --nav a link in the app's nav. See Pages and components."),
         new("izzy add razor --name <Name>", "Adds a component with no route, and the @using its folder needs. See Pages and components."),
