@@ -588,6 +588,8 @@
    column keeps a Width it sets. */
 .site-params-prose td:not(:last-child) { white-space: normal; }
 .site-params-prose :is(td, th):last-child { width: auto; }
+/* A prose table's name column (a tool's name) keeps its name on one line; the prose beside it wraps. */
+.site-params-prose td.site-name { white-space: nowrap; }
 /* Component status: one table a category, the same four columns in each, so they line up down the page. */
 @media (min-width: 40rem) { .site-params-status table { table-layout: fixed; width: 100%; } }
 /* On a phone a quarter is too narrow for a component's name: the table keeps its own widths and scrolls. */

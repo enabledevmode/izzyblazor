@@ -16,7 +16,7 @@
         <Heading Level="2">The tools</Heading>
         <Table Items="Tools" Caption="IzzyBlazor's developer tools" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
-                <TemplateColumn Title="Tool"><Anchor Href="@context!.Href">@context.Name</Anchor></TemplateColumn>
+                <TemplateColumn Title="Tool" Class="site-name"><Anchor Href="@context!.Href">@context.Name</Anchor></TemplateColumn>
                 <TemplateColumn Title="What it does">@context!.Text</TemplateColumn>
                 <TemplateColumn Title="Runs">@context!.Runs</TemplateColumn>
             </Columns>
@@ -42,7 +42,7 @@
         </TextBlock>
         <Table Items="Needs" Caption="What each tool does, by account" Size="ControlSize.Sm" Class="site-params site-params-prose site-params-stack" Bordered="false" SmallScreen="TableSmallScreen.Stack" StackBelow="Length.Rem(40)">
             <Columns>
-                <TemplateColumn Title="Tool">@context!.Name</TemplateColumn>
+                <TemplateColumn Title="Tool" Class="site-name">@context!.Name</TemplateColumn>
                 <TemplateColumn Title="No account">@context!.Open</TemplateColumn>
                 <TemplateColumn Title="A free account">@context!.Free</TemplateColumn>
                 <TemplateColumn Title="Pro">@context!.Pro</TemplateColumn>
