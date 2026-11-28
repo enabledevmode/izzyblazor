@@ -28,9 +28,13 @@
                 </EmptyState>
             </EmptyContent>
             <Columns>
-                <PropertyColumn Property="x => x.FirstName" Title="First name" Sortable />
-                <PropertyColumn Property="x => x.LastName" Title="Last name" Sortable />
-                <PropertyColumn Property="x => x.Email" Title="Email" Sortable />
+                <TemplateColumn Title="Name" SortBy="x => x.LastName" SortKey="lastname" Sortable Priority="2" Context="x">
+                    <TextBlock Weight="FontWeight.Medium">@($"{x.FirstName} {x.LastName}")</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@x.Email</TextBlock>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.FirstName" Title="First name" SortKey="firstname-column" Visible="false" />
+                <PropertyColumn Property="x => x.LastName" Title="Last name" SortKey="lastname-column" Visible="false" />
+                <PropertyColumn Property="x => x.Email" Title="Email" SortKey="email-column" Visible="false" />
                 <PropertyColumn Property="x => x.Status" Title="Status" Width="Length.Rem(7.5)" Priority="1" Sortable />
                 <PropertyColumn Property="x => x.LifetimeValue" Title="Lifetime value" Format="C" Width="Length.Rem(10.5)" Sortable />
                 <PropertyColumn Property="x => x.Joined" Title="Joined" Format="MMM d, yyyy" Width="Length.Rem(8.5)" Sortable />

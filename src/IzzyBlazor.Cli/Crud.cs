@@ -252,7 +252,8 @@ static partial class Crud
             .OrderBy(f => f == status ? -1 : shown.ToList().IndexOf(f))
             .ToList();
         // The grid page shows the same columns as the list (title, then these); the rest only in its dialog.
-        IReadOnlyCollection<ModelField> columns = [.. new[] { title, last, subtitle }.OfType<ModelField>(), .. list];
+        IReadOnlyCollection<ModelField> inName = [.. new[] { title, last, subtitle }.OfType<ModelField>()];
+        IReadOnlyCollection<ModelField> columns = [.. inName, .. list];
         // Newest first by the last date shown, else by the title.
         var sortDate = list.LastOrDefault(f => f.Kind is FieldKind.Date or FieldKind.DateTime);
         var titleKey = (last ?? title ?? info.Key).Name.ToLowerInvariant();
@@ -283,10 +284,10 @@ static partial class Crud
         var facts = new Dictionary<string, object>(project.Facts)
         {
             ["Aliases"] = aliases.Select(a => (IReadOnlyDictionary<string, object>)new Dictionary<string, object> { ["Name"] = a.Key, ["Type"] = a.Value }).ToList(),
-            ["Fields"] = Records(shown, status, columns, TypeOf),
-            ["FormFields"] = Records(form, status, columns, TypeOf),
-            ["ListFields"] = Records(list, status, columns, TypeOf),
-            ["SearchFields"] = Records(search, status, columns, TypeOf),
+            ["Fields"] = Records(shown, status, columns, inName, TypeOf),
+            ["FormFields"] = Records(form, status, columns, inName, TypeOf),
+            ["ListFields"] = Records(list, status, columns, inName, TypeOf),
+            ["SearchFields"] = Records(search, status, columns, inName, TypeOf),
             ["StatusValues"] = status is null ? new List<IReadOnlyDictionary<string, object>>() : Values(status),
             ["HasTitle"] = title is not null,
             ["HasSubtitle"] = subtitle is not null,
@@ -444,7 +445,7 @@ static partial class Crud
         return dates.Count == 0 ? "()" : $" {{ {string.Join(", ", dates)} }}";
     }
 
-    static List<IReadOnlyDictionary<string, object>> Records(IEnumerable<ModelField> fields, ModelField? status, IReadOnlyCollection<ModelField> columns, Func<ModelField, string> typeOf) =>
+    static List<IReadOnlyDictionary<string, object>> Records(IEnumerable<ModelField> fields, ModelField? status, IReadOnlyCollection<ModelField> columns, IReadOnlyCollection<ModelField> inName, Func<ModelField, string> typeOf) =>
         [.. fields.Select(f => (IReadOnlyDictionary<string, object>)new Dictionary<string, object>
         {
             ["Name"] = f.Name,
@@ -452,6 +453,9 @@ static partial class Crud
             ["Label"] = f.Label + Zone(f),
             ["Column"] = f.ShortLabel + Zone(f),
             ["InList"] = columns.Contains(f),
+            // Shown in the list as the record's name (first and last name, with the email under them): the grid's
+            // own column for it is hidden, kept for its dialog and its column picker.
+            ["InName"] = inName.Contains(f),
             ["LabelLower"] = Lower(f.Label),
             ["Article"] = Article(Lower(f.Label)),
             ["Enter"] = Enter(Lower(f.Label)),
@@ -480,8 +484,9 @@ static partial class Crud
             // Required by the model but not by an attribute the form reads, such as a string that isn't
             // nullable: the page checks it itself.
             ["CheckRequired"] = f.Required && f.Kind is FieldKind.Text or FieldKind.LongText or FieldKind.Email or FieldKind.Phone or FieldKind.Url,
-            // Marked required in the form: a value type always has a value, so it isn't "(optional)".
-            ["RequiredAttr"] = f.Required && f.Kind != FieldKind.Bool ? " Required" : "",
+            // Marked required in the form when it can be left empty, as the grid's dialog marks it: text, or a
+            // value that can be null. A number or a date always has a value, and a yes or no is never required.
+            ["RequiredAttr"] = f.Required && f.Kind != FieldKind.Bool && (f.Nullable || f.Kind is FieldKind.Text or FieldKind.LongText or FieldKind.Email or FieldKind.Phone or FieldKind.Url) ? " Required" : "",
             ["Nullable"] = f.Nullable,
             ["ReadOnly"] = f.ReadOnly,
             ["Numeric"] = f.Numeric,

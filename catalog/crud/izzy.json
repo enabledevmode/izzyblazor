@@ -19,12 +19,13 @@
   "components": ["PageHeader", "FilterForm", "DataGrid", "EmptyState", "FloatingButton", "Breadcrumb", "DescriptionList", "ConfirmButton", "Form", "FormErrors", "FormActions", "Badge"],
   "modes": { "Static SSR": "full", "Server": "full", "WebAssembly": "partial", "Auto": "partial" },
   "screens": [
-    {"file": "list", "caption": "The grid page", "alt": "Customers in a grid with search, columns, a filter on Status and Newsletter, and edit and delete on each row"},
+    {"file": "list", "caption": "The grid page", "alt": "Customers in a grid: each name with its email under it, status, lifetime value, joined date and newsletter, with edit and delete on each row"},
     {"file": "edit", "caption": "Editing in a dialog", "alt": "The grid's Edit customer dialog: name, email, status, lifetime value, joined date and newsletter"},
     {"file": "delete", "caption": "Delete, asked first", "alt": "A dialog asking Delete Jonas Becker? over the grid, with Cancel and Delete"},
     {"file": "pages-list", "caption": "Pages: the list (Pro)", "alt": "The Pages mode's customer list: a search, a status filter, a count, and each name linking to its page"},
     {"file": "details", "caption": "Pages: a record's page (Pro)", "alt": "One customer's page: their status, every field, and Edit and Delete"},
-    {"file": "form", "caption": "Pages: the form (Pro)", "alt": "The Edit customer form page, with Save changes and Cancel"}
+    {"file": "form", "caption": "Pages: the form (Pro)", "alt": "The Edit customer form page, with Save changes and Cancel"},
+    {"file": "phone-list", "caption": "The grid page on a phone", "alt": "The grid at a phone's width: each customer's name with their email under it", "phone": true}
   ],
   "modesNote": "WebAssembly and Auto need the Http store (Pro): the pages go into the .Client project and call an API that crud adds to the server. Every other store reads the database on the server.",
   "parameters": {

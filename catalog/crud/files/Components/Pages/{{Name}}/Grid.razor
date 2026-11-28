@@ -69,8 +69,20 @@
             </EmptyState>
         </EmptyContent>
         <Columns>
+@*#if (HasTitle) *@
+            @* The {{SingularLower}}'s name, with its email under it: on a phone, the one column the grid keeps. *@
+            <TemplateColumn Title="{{TitleLabel}}" SortBy="x => x.{{TitleSortField}}" SortKey="{{TitleSortKey}}" Sortable Priority="2" Context="x">
+                <TextBlock Weight="FontWeight.Medium">@($"{{RowName}}")</TextBlock>
+@*#if (HasSubtitle) *@
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@x.{{SubtitleField}}</TextBlock>
+@*#endif *@
+            </TemplateColumn>
+@*#endif *@
 @*#each (Field in Fields) *@
-@*#if (Field.InList && Field.IsStatus) *@
+@*#if (Field.InName) *@
+            @* In the name column, which sorts by it; here for the edit dialog, and the column picker can show it. *@
+            <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.EditableAttr}} SortKey="{{Field.Key}}-column" Visible="false" />
+@*#elif (Field.InList && Field.IsStatus) *@
             <PropertyColumn Property="x => x.{{Field.Name}}" Title="{{Field.Column}}"{{Field.WidthAttr}}{{Field.PriorityAttr}}{{Field.EditableAttr}} Sortable{{Field.FilterAttr}} Context="x">
                 <Badge Status="Tone(x.{{Field.Name}})" Dot>@Label(x.{{Field.Name}})</Badge>
             </PropertyColumn>
