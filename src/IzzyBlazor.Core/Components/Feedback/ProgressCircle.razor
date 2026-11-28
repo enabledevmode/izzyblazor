@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits ProgressBase
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Value), nameof(Max), nameof(Label), nameof(ValueText), nameof(ShowValue), nameof(Size))]
 
 @*
     Progress as a ring, for a compact status such as on a card or a tile: the value in its middle

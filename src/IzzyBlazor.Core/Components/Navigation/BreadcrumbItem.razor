@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
+@attribute [ImportantParameters(nameof(Href), nameof(Icon), nameof(Current), nameof(TextOnly))]
 
 @* One step of a Breadcrumb: a link, the current page when it has no Href, or with TextOnly a
    level that has no page of its own. *@

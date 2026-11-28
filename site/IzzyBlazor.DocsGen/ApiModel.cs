@@ -63,6 +63,12 @@ public sealed record ApiComponent
     /// <summary>Shared bases whose props it takes (see <see cref="ApiFile.Bases"/>).</summary>
     public required List<string> Bases { get; init; }
     public ApiModes? Modes { get; init; }
+
+    /// <summary>
+    /// The options a form shows first, most important first: the required ones, then those the component
+    /// names with <c>[ImportantParameters]</c> (a field's Label and Hint from FieldBase). Null when none.
+    /// </summary>
+    public List<string>? Important { get; init; }
     public required List<ApiMember> Properties { get; init; }
     public required List<ApiMember> Events { get; init; }
     public required List<ApiMember> Methods { get; init; }

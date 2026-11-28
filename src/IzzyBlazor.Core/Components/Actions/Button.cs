@@ -22,6 +22,7 @@ namespace IzzyBlazor;
 /// </list>
 /// </accessibility>
 [ModeSupport(Notes = "OnClick runs only on interactive pages; Submit, Reset and Href work everywhere; Print needs JavaScript.")]
+[ImportantParameters(nameof(Accent), nameof(Variant), nameof(StartIcon), nameof(Href), nameof(Submit), nameof(Size))]
 public class Button : ButtonBase, IDisposable
 {
     /// <summary>

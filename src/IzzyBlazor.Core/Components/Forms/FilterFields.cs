@@ -151,6 +151,7 @@ public abstract class FilterFieldBase : ComponentBase, IDisposable
 }
 
 /// <summary>A search box for a <see cref="FilterForm"/>. Its value is <c>?q=</c> by default.</summary>
+[ImportantParameters(nameof(Placeholder), nameof(Name))]
 public sealed class FilterSearch : FilterFieldBase
 {
     /// <summary>Creates the field with the name <c>q</c>.</summary>
@@ -215,6 +216,7 @@ public sealed class FilterSearch : FilterFieldBase
 /// A select for a <see cref="FilterForm"/>, with an "all" option first. Options come from
 /// <see cref="Items"/> or an enum (<see cref="EnumType"/>, using [Display(Name)]).
 /// </summary>
+[ImportantParameters(nameof(Name), nameof(Label), nameof(Items), nameof(EnumType), nameof(AllText))]
 public sealed class FilterSelect : FilterFieldBase
 {
     /// <summary>The values to choose from.</summary>
@@ -288,6 +290,7 @@ public sealed class FilterSelect : FilterFieldBase
 }
 
 /// <summary>A checkbox for a <see cref="FilterForm"/>: when checked the URL has <c>name=true</c>.</summary>
+[ImportantParameters(nameof(Name), nameof(Label))]
 public sealed class FilterCheckbox : FilterFieldBase
 {
     private protected override bool RequiresLabel => true;
@@ -325,6 +328,7 @@ public sealed class FilterCheckbox : FilterFieldBase
 /// zone, so the page decides which zone it's in (UTC, say, and the label says so). Its <c>Label</c>
 /// shows before the date, since a date input has no placeholder to say what it's for.
 /// </summary>
+[ImportantParameters(nameof(Name), nameof(Label), nameof(Type), nameof(Min), nameof(Max))]
 public sealed class FilterDate : FilterFieldBase
 {
     /// <summary>A date (the default), or a date and time.</summary>

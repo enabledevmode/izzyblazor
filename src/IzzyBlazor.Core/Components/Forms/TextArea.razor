@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits FieldBase<string?>
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the character count doesn't update as you type.")]
+@attribute [ImportantParameters(nameof(Rows), nameof(Placeholder), nameof(AutoGrow), nameof(MaxLength), nameof(ShowCount))]
 
 @*
     Multi-line text with label, hint and errors.

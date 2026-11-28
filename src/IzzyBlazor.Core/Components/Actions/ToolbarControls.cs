@@ -20,6 +20,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Toolbar"/>
 /// <seealso cref="ToolbarIconButton"/>
 [ModeSupport(Notes = "OnClick runs only on interactive pages, from the bar or the menu; Submit and Href work everywhere.")]
+[ImportantParameters(nameof(StartIcon), nameof(Position), nameof(Overflow), nameof(Priority), nameof(Accent), nameof(Variant), nameof(Href))]
 public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
 {
     private readonly ToolbarControl _control;
@@ -124,6 +125,7 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
 /// <seealso cref="Toolbar"/>
 /// <seealso cref="ToolbarButton"/>
 [ModeSupport(Notes = "OnClick runs only on interactive pages, from the bar or the menu; Submit and Href work everywhere.")]
+[ImportantParameters(nameof(Icon), nameof(Position), nameof(Overflow), nameof(Priority), nameof(Href), nameof(Variant))]
 public sealed class ToolbarIconButton : IconButton, IToolbarItem, IDisposable
 {
     private readonly ToolbarControl _control;
@@ -204,6 +206,7 @@ public sealed class ToolbarIconButton : IconButton, IToolbarItem, IDisposable
 /// </example>
 /// <seealso cref="Toolbar"/>
 [ModeSupport]
+[ImportantParameters(nameof(Label), nameof(Position), nameof(Priority), nameof(Overflow), nameof(Variant))]
 public sealed class ToolbarButtonGroup : ButtonGroup, IToolbarItem, IDisposable
 {
     private readonly ToolbarSlot _slot;
@@ -315,6 +318,7 @@ public sealed class ToolbarButtonGroup : ButtonGroup, IToolbarItem, IDisposable
 /// </example>
 /// <seealso cref="Toolbar"/>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the menu opens and closes, but arrow keys and type-ahead don't move between items.")]
+[ImportantParameters(nameof(Label), nameof(StartIcon), nameof(Position), nameof(Priority), nameof(Overflow))]
 public sealed class ToolbarMenu : Menu, IToolbarItem, IDisposable
 {
     private readonly ToolbarSlot _slot;
@@ -398,6 +402,7 @@ public sealed class ToolbarMenu : Menu, IToolbarItem, IDisposable
 /// <seealso cref="Toolbar"/>
 /// <seealso cref="ToolbarMenu"/>
 [ModeSupport(NoScript = ModeLevel.Partial, Notes = "OnClick runs only on interactive pages, from the bar or the menu; Submit and Href work everywhere.", NoScriptNotes = "With JavaScript off, the menu opens and closes, but Alt+Down and the arrow keys don't work.")]
+[ImportantParameters(nameof(MenuLabel), nameof(StartIcon), nameof(Position), nameof(Overflow), nameof(Priority), nameof(Accent))]
 public sealed class ToolbarSplitButton : SplitButton, IToolbarItem, IDisposable
 {
     private readonly ToolbarSlot _slot;

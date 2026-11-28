@@ -20,6 +20,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Announcer"/>
 /// <seealso cref="Alert"/>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the text changes only with a new page, and text a page loads with isn't read.")]
+[ImportantParameters(nameof(Text), nameof(Assertive))]
 public class LiveRegion : IzzyComponentBase
 {
     /// <summary>What's read when it changes.</summary>

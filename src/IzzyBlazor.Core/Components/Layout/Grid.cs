@@ -21,6 +21,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Table{TItem}"/>
 /// <seealso cref="Card"/>
 [ModeSupport]
+[ImportantParameters(nameof(Columns), nameof(Gap), nameof(MinChildWidth), nameof(Template), nameof(Align))]
 public class Grid : Box
 {
     /// <summary>The number of equal columns (1 to 12), per breakpoint.</summary>
@@ -78,6 +79,7 @@ public class Grid : Box
 /// <c>ColSpan</c>; GridItem adds <see cref="RowSpan"/>.
 /// </summary>
 /// <example><code>&lt;GridItem ColSpan="new() { Base = 1, Lg = 2 }"&gt;...&lt;/GridItem&gt;</code></example>
+[ImportantParameters(nameof(ColSpan), nameof(RowSpan))]
 public class GridItem : Box
 {
     /// <summary>How many rows it spans, per breakpoint.</summary>
@@ -139,6 +141,7 @@ public enum ContainerAlign
 /// <seealso cref="AppShell"/>
 /// <seealso cref="PageHeader"/>
 [ModeSupport]
+[ImportantParameters(nameof(Size), nameof(Align), nameof(Gutters))]
 public class Container : Box
 {
     /// <summary>The widest it gets. Defaults to <see cref="ContainerSize.Xl"/>.</summary>
@@ -173,6 +176,7 @@ public class Container : Box
 /// <seealso cref="EmptyState"/>
 /// <seealso cref="AspectRatio"/>
 [ModeSupport]
+[ImportantParameters(nameof(Height), nameof(Width), nameof(Bg), nameof(Radius), nameof(Inline))]
 public class Center : Box
 {
     /// <summary>Renders as <c>inline-flex</c>, to sit in a line of text.</summary>
@@ -194,6 +198,7 @@ public class Center : Box
 /// <seealso cref="Stack"/>
 /// <seealso cref="Box"/>
 [ModeSupport]
+[ImportantParameters]
 public class Spacer : Box
 {
     /// <inheritdoc />
@@ -214,6 +219,7 @@ public class Spacer : Box
 /// <seealso cref="VideoEmbed"/>
 /// <seealso cref="Box"/>
 [ModeSupport]
+[ImportantParameters(nameof(Ratio), nameof(Radius))]
 public class AspectRatio : Box
 {
     /// <summary>Width divided by height. Defaults to 16:9.</summary>

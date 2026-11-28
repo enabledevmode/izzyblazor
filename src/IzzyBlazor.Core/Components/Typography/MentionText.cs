@@ -17,6 +17,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Mentions{TItem}"/>
 /// <seealso cref="Comment"/>
 [ModeSupport]
+[ImportantParameters(nameof(Href), nameof(Prefixes))]
 public class MentionText : LayoutItemBase
 {
     /// <summary>The text to show.</summary>

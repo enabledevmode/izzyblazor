@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the section in view isn't highlighted, and headings in raw HTML aren't listed.")]
+@attribute [ImportantParameters(nameof(Title), nameof(MinLevel), nameof(MaxLevel))]
 
 @*
     "On this page": links to the page's sections, for an AppAside.

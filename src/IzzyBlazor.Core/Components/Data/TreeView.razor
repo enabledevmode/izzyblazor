@@ -3,6 +3,7 @@
 @inherits StyledComponentBase
 @inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a tree you select from is a list of checkboxes or radio buttons in branches that open: no arrow keys, and checking a parent doesn't check its children. Children that load and the search box need it.")]
+@attribute [ImportantParameters(nameof(Items), nameof(ItemChildren), nameof(ItemKey), nameof(ItemText), nameof(ItemHref), nameof(SelectionMode), nameof(Searchable), nameof(Label))]
 
 @*
     Items nested in items, from data: folders, categories, a company's teams. Items are the top

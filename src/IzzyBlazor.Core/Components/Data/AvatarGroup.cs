@@ -22,6 +22,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Avatar"/>
 /// <seealso cref="Popover"/>
 [ModeSupport]
+[ImportantParameters(nameof(Max), nameof(Size), nameof(Label))]
 public class AvatarGroup : LayoutItemBase
 {
     private readonly List<Avatar> _avatars = [];

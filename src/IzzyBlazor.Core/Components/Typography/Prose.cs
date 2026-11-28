@@ -33,6 +33,7 @@ public enum ProseSize
 /// <seealso cref="TextBlock"/>
 /// <seealso cref="Code"/>
 [ModeSupport]
+[ImportantParameters(nameof(Size))]
 public class Prose : Box
 {
     /// <summary>Text size. Defaults to <see cref="ProseSize.Md"/>.</summary>

@@ -27,6 +27,7 @@ public sealed record ListContext(IconData? Icon, Color? IconColor);
 /// <seealso cref="Prose"/>
 /// <seealso cref="Timeline"/>
 [ModeSupport]
+[ImportantParameters(nameof(Ordered), nameof(Plain), nameof(Icon), nameof(Dividers), nameof(Gap))]
 public class List : Box
 {
     /// <summary>Creates a list, rendered as a <c>ul</c>.</summary>
@@ -104,6 +105,7 @@ public class List : Box
 /// <see cref="Description"/> or <see cref="ListItemActions"/>, it's a row: the icon, the text with
 /// a muted line under it, and the actions at the end, which wrap under the text when it's narrow.
 /// </summary>
+[ImportantParameters(nameof(Icon), nameof(Description), nameof(IconColor))]
 public class ListItem : IzzyComponentBase
 {
     /// <summary>The content: the item's text, and any <see cref="ListItemActions"/>.</summary>

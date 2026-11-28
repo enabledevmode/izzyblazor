@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inject IServiceProvider Services
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Label), nameof(Id), nameof(Hint), nameof(HintId), nameof(Errors), nameof(ErrorId), nameof(Required))]
 
 @*
     The shared frame around every field: label, control, hint, errors. Field components use it;

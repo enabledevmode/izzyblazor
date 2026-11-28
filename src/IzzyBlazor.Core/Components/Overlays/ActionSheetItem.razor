@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
 @using Microsoft.AspNetCore.Components.Web
+@attribute [ImportantParameters(nameof(Href), nameof(Submit), nameof(Name), nameof(Value), nameof(Icon), nameof(Accent))]
 
 @*
     One action in an ActionSheet: a menu row, larger for a finger. It takes MenuItem's parameters,

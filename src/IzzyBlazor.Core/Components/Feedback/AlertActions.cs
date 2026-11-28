@@ -17,6 +17,7 @@ namespace IzzyBlazor;
 /// &lt;/Alert&gt;
 /// </code>
 /// </example>
+[ImportantParameters]
 public class AlertActions : FlexBase
 {
     /// <inheritdoc />

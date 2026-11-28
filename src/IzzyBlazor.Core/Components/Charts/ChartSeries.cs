@@ -436,6 +436,7 @@ public abstract class ChartValueSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// chart's <c>Stacking</c>.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(SeriesBy), nameof(Labels), nameof(LabelFormat), nameof(Target))]
 public sealed class ChartBarSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     /// <summary>
@@ -467,6 +468,7 @@ public sealed class ChartBarSeries<TItem> : ChartValueSeriesBase<TItem>
 /// Each line series is one line, and several lines differ by dash as well as by color.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(SeriesBy), nameof(EndLabel), nameof(Curve), nameof(Markers))]
 public sealed class ChartLineSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     /// <summary>
@@ -515,6 +517,7 @@ public sealed class ChartLineSeries<TItem> : ChartValueSeriesBase<TItem>
 /// by channel.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(SeriesBy), nameof(Curve))]
 public sealed class ChartAreaSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     /// <summary>How the area's line is drawn. Defaults to the next of solid, dashed, dotted and dash-dot.</summary>
@@ -556,6 +559,7 @@ public sealed class ChartAreaSeries<TItem> : ChartValueSeriesBase<TItem>
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(SeriesBy), nameof(Trend), nameof(LabelText))]
 public sealed class ChartScatterSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     private protected override ChartType Type => ChartType.Scatter;
@@ -569,6 +573,7 @@ public sealed class ChartScatterSeries<TItem> : ChartValueSeriesBase<TItem>
 /// Each circle's area is in proportion to its <see cref="Size"/>.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(LabelText), nameof(SizeFormat), nameof(SeriesBy), nameof(ShowSizeKey))]
 public sealed class ChartBubbleSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     /// <summary>
@@ -612,6 +617,7 @@ public sealed class ChartBubbleSeries<TItem> : ChartValueSeriesBase<TItem>
 /// waterfall is its chart's only series, and the chart's legend keys its three colors.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Total), nameof(Labels), nameof(LabelFormat))]
 public sealed class ChartWaterfallSeries<TItem> : ChartValueSeriesBase<TItem>
 {
     private Expression<Func<TItem, bool>>? _lastTotal;
@@ -727,6 +733,7 @@ public abstract class ChartRangeSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// The value axis needn't start at zero: a range bar's length is the spread, not the amount.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name))]
 public sealed class ChartRangeBarSeries<TItem> : ChartRangeSeriesBase<TItem>
 {
     /// <summary>
@@ -749,6 +756,7 @@ public sealed class ChartRangeBarSeries<TItem> : ChartRangeSeriesBase<TItem>
 /// on top, and say in the band's <c>Name</c> what it spans, such as "80% interval".
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(Curve))]
 public sealed class ChartRangeAreaSeries<TItem> : ChartRangeSeriesBase<TItem>
 {
     /// <summary>How the band's edges are drawn. Defaults to the next of solid, dashed, dotted and dash-dot.</summary>
@@ -855,6 +863,7 @@ public abstract class ChartPriceSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// cref="ChartOhlcSeries{TItem}"/> is thinner. Stands upright only.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name))]
 public sealed class ChartCandlestickSeries<TItem> : ChartPriceSeriesBase<TItem>
 {
     /// <summary>Each item's opening price, such as <c>d =&gt; d.Open</c>.</summary>
@@ -886,6 +895,7 @@ public sealed class ChartCandlestickSeries<TItem> : ChartPriceSeriesBase<TItem>
 /// Stands upright only.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Open), nameof(Name))]
 public sealed class ChartOhlcSeries<TItem> : ChartPriceSeriesBase<TItem>
 {
     /// <summary>Each item's opening price, such as <c>d =&gt; d.Open</c>, drawn as a tick to the left. Leave it out for high-low-close.</summary>

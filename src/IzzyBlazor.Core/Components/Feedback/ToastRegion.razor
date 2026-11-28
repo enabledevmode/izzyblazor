@@ -3,6 +3,7 @@
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceProvider Services
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, toasts stay until closed instead of closing by themselves, and their close buttons are checkboxes to screen readers.")]
+@attribute [ImportantParameters(nameof(Placement), nameof(Duration))]
 
 @*
     Where toasts appear. Put one in the layout. Toasts come from ToastService:

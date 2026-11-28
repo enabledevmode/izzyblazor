@@ -38,6 +38,7 @@ public enum SectionSpacing
 /// <seealso cref="Box"/>
 /// <seealso cref="AppShell"/>
 [ModeSupport]
+[ImportantParameters(nameof(Spacing), nameof(Bg), nameof(FullBleed))]
 public class Section : Box
 {
     /// <summary>Creates a section, rendered as a <c>section</c> element.</summary>

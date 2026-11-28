@@ -24,6 +24,7 @@ namespace IzzyBlazor;
 /// <seealso cref="PageHeader"/>
 /// <seealso cref="Heading"/>
 [ModeSupport]
+[ImportantParameters(nameof(Description), nameof(Eyebrow), nameof(Align), nameof(TitleLevel), nameof(Size))]
 public class SectionHeader : StyledComponentBase
 {
     /// <summary>The heading, such as "Everything you need to run your work".</summary>

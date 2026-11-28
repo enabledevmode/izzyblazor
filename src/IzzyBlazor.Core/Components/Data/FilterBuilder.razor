@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off, the builder is hidden. A filter already in the address still applies.")]
+@attribute [ImportantParameters(nameof(Name), nameof(Value))]
 
 @*
     Builds a filter of nested groups and rules from fields. Apply puts it in the address (?filter=),

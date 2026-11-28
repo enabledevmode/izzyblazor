@@ -6,6 +6,7 @@ namespace IzzyBlazor;
 
 /// <summary>Rows of the same fields that people add and remove, such as invoice lines; see the component's overview.</summary>
 /// <typeparam name="TItem">One row's item, such as an invoice line. It keeps its members when trimmed, which the rows' validation reads.</typeparam>
+[ImportantParameters(nameof(NewItem), nameof(AddText), nameof(ItemLabel), nameof(MinItems), nameof(MaxItems), nameof(Layout))]
 public partial class FieldRepeater<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TItem>
 {
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "TItem is annotated to keep all its members, which the validator reads.")]

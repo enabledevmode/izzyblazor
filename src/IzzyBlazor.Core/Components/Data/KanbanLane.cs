@@ -10,6 +10,7 @@ namespace IzzyBlazor;
 /// </summary>
 /// <seealso cref="Kanban{TItem}"/>
 [ModeSupport]
+[ImportantParameters(nameof(Title))]
 public sealed class KanbanLane : ComponentBase, IDisposable
 {
     private bool _collapsed;

@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits StyledComponentBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, each link opens its image on its own, and there's no viewer.")]
+@attribute [ImportantParameters(nameof(Counter), nameof(Nav), nameof(Arrows), nameof(Loop), nameof(Transition))]
 
 @*
     Pictures that open full size in a viewer over the page: screenshots, a photo gallery, product

@@ -59,6 +59,7 @@ public abstract class ChartAxisBase : ComponentBase, IDisposable
 /// units that name it as their <c>ValueAxis</c>:
 /// <c>&lt;ChartValueAxis Name="margin" Format="P0" Title="Margin" /&gt;</c>.
 /// </summary>
+[ImportantParameters(nameof(Format), nameof(Title), nameof(Min), nameof(Max), nameof(Name))]
 public sealed class ChartValueAxis : ChartAxisBase
 {
     /// <summary>
@@ -164,6 +165,7 @@ public sealed class ChartValueAxis : ChartAxisBase
 /// A chart's argument axis, where each item is plotted: its format, title, grid lines and how
 /// crowded names fit: <c>&lt;ChartArgumentAxis Title="Month" LabelFit="ChartLabelFit.Rotate" /&gt;</c>.
 /// </summary>
+[ImportantParameters(nameof(Title), nameof(Format), nameof(Zoom), nameof(LabelFit))]
 public sealed class ChartArgumentAxis : ChartAxisBase
 {
     /// <summary>A .NET format string for the arguments, such as <c>MMM</c> or <c>N0</c>.</summary>

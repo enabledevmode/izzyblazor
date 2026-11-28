@@ -11,6 +11,7 @@ namespace IzzyBlazor;
 /// </summary>
 /// <typeparam name="TItem">The chart's item type.</typeparam>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(SeriesBy), nameof(Fill))]
 public sealed class RadarSeries<TItem> : ComponentBase, IDisposable
 {
     private Expression<Func<TItem, object?>>? _lastValue;

@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits MenuBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the menu opens and closes, but arrow keys and type-ahead don't move between items.")]
+@attribute [ImportantParameters(nameof(Label), nameof(StartIcon), nameof(ContextFor), nameof(Placement))]
 
 @*
     A dropdown of actions or links, built on the Popover API: a button with popovertarget

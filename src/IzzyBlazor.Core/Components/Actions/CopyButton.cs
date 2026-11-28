@@ -26,6 +26,7 @@ namespace IzzyBlazor;
 /// <seealso cref="IconButton"/>
 /// <seealso cref="TextField"/>
 [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "Copying needs JavaScript: with it off, the button doesn't appear.")]
+[ImportantParameters(nameof(Text), nameof(For), nameof(Label), nameof(Variant))]
 public class CopyButton : ButtonBase
 {
     /// <summary>Creates the button: neutral and ghost unless set.</summary>

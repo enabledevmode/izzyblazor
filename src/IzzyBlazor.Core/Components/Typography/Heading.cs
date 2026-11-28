@@ -31,6 +31,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Prose"/>
 [ModeSupport]
 [RefusesParameter(nameof(As))]
+[ImportantParameters(nameof(Level), nameof(Size), nameof(Anchor), nameof(OnThisPage))]
 public class Heading : TextBase, IDisposable
 {
     /// <summary>The heading level, 1 to 6, which sets the element (<c>h1</c> to <c>h6</c>). Defaults to 2.</summary>

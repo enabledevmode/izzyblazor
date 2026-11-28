@@ -2,6 +2,7 @@
 @inherits LayoutItemBase
 @using Microsoft.AspNetCore.Components.Forms
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, files can't be dropped on the zone, and type and size aren't checked before posting.")]
+@attribute [ImportantParameters(nameof(Label), nameof(Accept), nameof(MaxFileSize), nameof(Multiple), nameof(Hint), nameof(Required))]
 
 @*
     A drop zone around a real file input: "Choose a file or drag it here", with a hint built from

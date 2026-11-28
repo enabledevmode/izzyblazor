@@ -3,6 +3,7 @@
 @inherits LayoutItemBase
 @implements IDisposable
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Title), nameof(ValueFormat), nameof(ColumnFormat), nameof(Palette))]
 @using System.Globalization
 @using System.Linq.Expressions
 @using System.Text.Json

@@ -664,6 +664,7 @@ public enum ColumnFrozen
 /// sort key come from the property ([Display(Name)] is used when present).
 /// </summary>
 /// <example><code>&lt;PropertyColumn Property="o =&gt; o.Total" Format="C" Sortable /&gt;</code></example>
+[ImportantParameters(nameof(Title), nameof(Format), nameof(Sortable), nameof(Filterable), nameof(Width), nameof(Align))]
 public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue> : ColumnBase<TItem>
 {
     private Expression<Func<TItem, TValue>>? _lastProperty;
@@ -936,6 +937,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
 /// &lt;/TemplateColumn&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Title), nameof(SortBy), nameof(Sortable), nameof(Width), nameof(Align))]
 public class TemplateColumn<TItem> : ColumnBase<TItem>
 {
     /// <summary>The cell content; <c>context</c> is the item.</summary>

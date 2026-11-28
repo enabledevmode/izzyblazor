@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Page), nameof(PageCount), nameof(TotalItems), nameof(PageSize), nameof(QueryKey))]
 
 @*
     Page links. Each page is a link that sets the page in the query string, so paging works on

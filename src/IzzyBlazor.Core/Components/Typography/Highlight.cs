@@ -22,6 +22,7 @@ namespace IzzyBlazor;
 /// <seealso cref="FilterForm"/>
 /// <seealso cref="Table{TItem}"/>
 [ModeSupport]
+[ImportantParameters(nameof(Query), nameof(Match))]
 public class Highlight : LayoutItemBase
 {
     /// <summary>The text to show.</summary>

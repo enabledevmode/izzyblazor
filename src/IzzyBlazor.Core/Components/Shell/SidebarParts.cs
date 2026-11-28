@@ -50,6 +50,7 @@ public sealed class SidebarFooter : ComponentPart
 /// &lt;/SidebarBody&gt;
 /// </code>
 /// </example>
+[ImportantParameters]
 public class SidebarBody : FlexBase
 {
     /// <inheritdoc />

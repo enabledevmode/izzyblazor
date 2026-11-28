@@ -20,6 +20,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Image"/>
 /// <seealso cref="Section"/>
 [ModeSupport]
+[ImportantParameters(nameof(Address))]
 public class BrowserFrame : StyledComponentBase
 {
     /// <summary>The address shown in the top bar, such as <c>app.example.com</c>. Without it, the bar shows only the dots.</summary>

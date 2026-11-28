@@ -112,7 +112,8 @@ sealed class Components
         // The options it shares with others (style props, a field's label and help) come after its own.
         foreach (var b in c["bases"]?.AsArray() ?? [])
             if (_bases.TryGetValue((string)b!, out var shared)) Take(shared["parameters"]!.AsArray(), (string)b!);
-        foreach (var name in Important(c, required.Select(r => (string)r!), properties)) properties[name]!["x-priority"] = "important";
+        // The options a form shows first, which the library names beside each component ([ImportantParameters]).
+        foreach (var name in (c["important"]?.AsArray() ?? []).Select(n => (string)n!).Where(properties.ContainsKey)) properties[name]!["x-priority"] = "important";
 
         return new JsonObject
         {
@@ -132,39 +133,6 @@ sealed class Components
                 ["interactiveOnly"] = (bool?)e["interactiveOnly"] ?? false,
             }).ToArray()),
         };
-    }
-
-    /// <summary>The most options a component marks important.</summary>
-    public const int MostImportant = 8;
-
-    // Options chosen beside the hero example's, for the large components whose first example is kept small.
-    static readonly Dictionary<string, string[]> Chosen = new(StringComparer.Ordinal)
-    {
-        ["DataGrid"] = ["Searchable", "SelectionMode", "EditMode", "FilterRow"],
-        ["Chart"] = ["Height", "Legend", "Orientation"],
-        ["Form"] = ["Columns", "Layout", "ConfirmLeave"],
-    };
-
-    /// <summary>
-    /// The options a form shows first: the required ones; a field's Label and Hint, which its examples leave to
-    /// the model's [Display]; those chosen for it; then those its hero example (the first on its docs page, or
-    /// its parent's for a part with none) sets on its tag, in the order written. At most <see cref="MostImportant"/>.
-    /// </summary>
-    IEnumerable<string> Important(JsonObject c, IEnumerable<string> required, JsonObject properties)
-    {
-        var name = (string)c["name"]!;
-        string[] field = (c["bases"]?.AsArray() ?? []).Any(b => (string?)b == "FieldBase") ? ["Label", "Hint"] : [];
-        required = required.Concat(field).Concat(Chosen.GetValueOrDefault(name) ?? []);
-        var hero = (c["examples"]?.AsArray() ?? []).FirstOrDefault()
-            ?? ((string?)c["partOf"] is { } parent && _byName.TryGetValue(parent, out var whole) ? (whole["examples"]?.AsArray() ?? []).FirstOrDefault() : null);
-        var source = hero is null ? null : (string?)Example((string)hero["id"]!)?["source"];
-        var set = source is null ? [] : RazorPage.Tags(source).Where(t => t.Name == name)
-            .SelectMany(t => t.Attributes).Select(a => a.Name.StartsWith("@bind-", StringComparison.Ordinal) ? a.Name["@bind-".Length..].Split(':')[0] : a.Name);
-        // Where the example sits on its docs page (Grow in a Row, a MaxWidth) isn't a choice about the component.
-        return required.Concat(set.Where(o => !Placement(o, properties))).Where(properties.ContainsKey).Distinct(StringComparer.Ordinal).Take(MostImportant);
-
-        static bool Placement(string option, JsonObject properties) =>
-            option is "Grow" or "Basis" or "MaxWidth" ||(string?)properties[option]?["x-group"] == "LayoutItemBase";
     }
 
     static JsonObject Property(JsonObject p, string? group)

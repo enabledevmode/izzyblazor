@@ -20,6 +20,7 @@ namespace IzzyBlazor;
 /// </accessibility>
 /// <seealso cref="Image"/>
 [ModeSupport]
+[ImportantParameters(nameof(Label), nameof(Size))]
 public class QrCode : LayoutItemBase
 {
     /// <summary>The text to encode, such as a URL. Longer text makes a denser code.</summary>

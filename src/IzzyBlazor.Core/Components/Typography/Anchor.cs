@@ -32,6 +32,7 @@ public enum AnchorUnderline
 /// <seealso cref="IconButton"/>
 /// <seealso cref="Prose"/>
 [ModeSupport]
+[ImportantParameters(nameof(External), nameof(Underline), nameof(InheritColor))]
 public class Anchor : LayoutItemBase
 {
     /// <summary>Where it goes.</summary>

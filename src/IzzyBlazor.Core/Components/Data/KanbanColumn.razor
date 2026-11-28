@@ -4,6 +4,7 @@
 @implements IDisposable
 @using System.Globalization
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Title), nameof(Limit), nameof(Accent))]
 
 @*
     A column of a Kanban: the cards whose ColumnOf is its Value, under a header with its Title

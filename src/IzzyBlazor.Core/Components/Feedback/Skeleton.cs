@@ -18,6 +18,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Progress"/>
 /// <seealso cref="EmptyState"/>
 [ModeSupport]
+[ImportantParameters(nameof(Lines), nameof(Circle), nameof(Height), nameof(Loaded))]
 public class Skeleton : StyledComponentBase
 {
     /// <summary>Lines of text to stand in for. The last of several is shorter. Defaults to 1.</summary>

@@ -17,6 +17,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Row"/>
 /// <seealso cref="Spacer"/>
 [ModeSupport]
+[ImportantParameters(nameof(Label), nameof(Orientation), nameof(Dashed))]
 public class Divider : StyledComponentBase
 {
     /// <summary>Horizontal (the default) or vertical, for use in a row.</summary>

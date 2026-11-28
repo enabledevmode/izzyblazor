@@ -4,6 +4,7 @@
 @using System.Globalization
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Name), nameof(Order), nameof(SubmitOnMove))]
 
 @*
     Moves items between lists: a board's columns, a list of available items and a list of chosen

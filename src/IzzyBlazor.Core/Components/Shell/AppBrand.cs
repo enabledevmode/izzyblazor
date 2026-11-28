@@ -19,6 +19,7 @@ namespace IzzyBlazor;
 /// &lt;/AppHeader&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Href), nameof(Icon), nameof(Description))]
 public class AppBrand : LayoutItemBase, IDisposable
 {
     /// <summary>The name, shown and used as the link's name.</summary>

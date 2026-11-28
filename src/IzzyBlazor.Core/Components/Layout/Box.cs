@@ -18,6 +18,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Section"/>
 /// <seealso cref="Container"/>
 [ModeSupport]
+[ImportantParameters(nameof(Padding), nameof(Bg), nameof(Radius), nameof(Border), nameof(As))]
 public class Box : StyledComponentBase
 {
     /// <summary>The element to render: <c>div</c> on a Box; components built on it set their own (List a <c>ul</c>, Section a <c>section</c>).</summary>

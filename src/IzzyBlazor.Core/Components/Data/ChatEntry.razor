@@ -3,6 +3,7 @@
 @using System.Text.RegularExpressions
 @inherits IzzyComponentBase
 @implements IDisposable
+@attribute [ImportantParameters(nameof(Mine), nameof(Author), nameof(Text), nameof(Markdown), nameof(Time), nameof(Pending), nameof(Initials))]
 
 @*
     One message in a Chat: yours (Mine), or someone else's, with their name and avatar.

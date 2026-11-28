@@ -25,6 +25,7 @@ namespace IzzyBlazor;
 /// <seealso cref="TextBlock"/>
 /// <seealso cref="Heading"/>
 [ModeSupport]
+[ImportantParameters(nameof(As), nameof(Focusable))]
 public class VisuallyHidden : IzzyComponentBase
 {
     /// <summary>The element: <c>span</c> by default, so it fits inside text; <c>div</c> or <c>h2</c> for a block or a hidden heading.</summary>

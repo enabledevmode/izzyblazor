@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits CalendarFieldBase<DateRange?>
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the browser's own calendar opens on each date in place of the library's two months, and the end's minimum follows the start only after the form posts.")]
+@attribute [ImportantParameters(nameof(Min), nameof(Max), nameof(MinDays), nameof(MaxDays), nameof(Presets), nameof(DateDisabled))]
 
 @*
     Two whole days, both included: the browser's own date inputs in one box, so each posts with the

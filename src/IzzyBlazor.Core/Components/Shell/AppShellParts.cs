@@ -139,6 +139,7 @@ public abstract class AppShellPart : IzzyComponentBase
 }
 
 /// <summary>The top bar of an <see cref="AppShell"/>: brand, <see cref="SidebarToggle"/>, actions.</summary>
+[ImportantParameters]
 public class AppHeader : AppShellPart
 {
     /// <summary>Keeps it at the top while the page scrolls. On by default; false lets it scroll away with the page.</summary>
@@ -175,6 +176,7 @@ public class AppHeader : AppShellPart
 }
 
 /// <summary>The main content of an <see cref="AppShell"/>, usually <c>@Body</c>. The skip link targets it.</summary>
+[ImportantParameters(nameof(ContentWidth))]
 public class AppMain : AppShellPart
 {
     /// <summary>
@@ -300,6 +302,7 @@ public class AppMain : AppShellPart
 /// <see cref="Id"/>s if both are drawers.
 /// </remarks>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a drawer (AsideSmallScreen.Drawer) doesn't close on Escape or move focus, and the scroll box isn't a tab stop.")]
+[ImportantParameters(nameof(Breakpoint), nameof(SmallScreen), nameof(Width))]
 public class AppAside : AppShellPart, IDisposable
 {
     /// <summary>The width, such as <c>Length.Px(420)</c> for a detail panel. Defaults to 15rem.</summary>
@@ -470,6 +473,7 @@ public class AppAside : AppShellPart, IDisposable
 }
 
 /// <summary>The bottom bar of an <see cref="AppShell"/>.</summary>
+[ImportantParameters]
 public class AppFooter : AppShellPart
 {
     /// <summary>Keeps it at the bottom while the page scrolls, instead of scrolling away with it. Off by default.</summary>

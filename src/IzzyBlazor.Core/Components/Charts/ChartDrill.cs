@@ -18,6 +18,7 @@ namespace IzzyBlazor;
 /// </summary>
 /// <typeparam name="TItem">The chart's items.</typeparam>
 [ModeSupport]
+[ImportantParameters(nameof(Name))]
 public sealed class ChartDrillLevel<TItem> : ComponentBase, IDisposable
 {
     private Expression<Func<TItem, object?>>? _last;

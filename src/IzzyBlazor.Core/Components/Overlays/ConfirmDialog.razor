@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inject IServiceProvider Services
 @attribute [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off, the buttons and links it's for act without asking.")]
+@attribute [ImportantParameters(nameof(Message), nameof(ConfirmText), nameof(Accent))]
 
 @*
     One dialog that asks before any of several things act: a menu item, a row's action, an icon

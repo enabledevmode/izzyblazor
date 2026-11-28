@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, links that don't fit scroll by touch, trackpad or Shift+wheel only, and the current one isn't scrolled into view.")]
+@attribute [ImportantParameters(nameof(Label), nameof(Variant), nameof(Size), nameof(FullWidth))]
 
 @*
     Tabs that are links to pages of their own, for sections split across routes

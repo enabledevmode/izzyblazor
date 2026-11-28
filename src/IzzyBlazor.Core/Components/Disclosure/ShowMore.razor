@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits StyledComponentBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, everything shows and there's no button.")]
+@attribute [ImportantParameters(nameof(Lines))]
 
 @*
     Long content cut to its first lines, with a "Show more" button under them: a bio, a

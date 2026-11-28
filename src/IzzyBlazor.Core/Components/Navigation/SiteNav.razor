@@ -2,6 +2,7 @@
 @inherits LayoutItemBase
 @implements IDisposable
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the panel opens and closes, but focus doesn't move into it.")]
+@attribute [ImportantParameters(nameof(Breakpoint), nameof(MenuButtonPosition))]
 
 @*
     A site's links in an AppHeader: a row of links on wide screens and, below Breakpoint, a menu

@@ -4,6 +4,7 @@
 @implements IDisposable
 @implements ISchedulerToolbar
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Items), nameof(View), nameof(Detail), nameof(AllDay), nameof(Category))]
 @using System.Globalization
 @using System.Linq.Expressions
 @using Microsoft.Extensions.Logging

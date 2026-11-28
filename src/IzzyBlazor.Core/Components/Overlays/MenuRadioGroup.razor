@@ -3,6 +3,7 @@
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
+@attribute [ImportantParameters(nameof(Label), nameof(Value), nameof(QueryKey), nameof(Name))]
 
 @*
     A set of menu options where one is chosen (menuitemradio), each a MenuItem with a Value.

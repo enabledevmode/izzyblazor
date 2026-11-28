@@ -11,6 +11,7 @@ namespace IzzyBlazor;
 /// it's under (the last range keeps its To). A value in no range is drawn as no data, with its
 /// value still in the cell, the tooltip and the table. Up to nine.
 /// </summary>
+[ImportantParameters(nameof(Label))]
 public sealed class HeatmapRange : ComponentBase, IDisposable
 {
     [CascadingParameter] private HeatmapContext? Context { get; set; }

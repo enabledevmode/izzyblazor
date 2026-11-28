@@ -16,6 +16,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Code"/>
 /// <seealso cref="Tooltip"/>
 [ModeSupport]
+[ImportantParameters(nameof(Keys))]
 public class Kbd : LayoutItemBase
 {
     /// <summary>One key, such as "Esc". For a combination, use <see cref="Keys"/>.</summary>

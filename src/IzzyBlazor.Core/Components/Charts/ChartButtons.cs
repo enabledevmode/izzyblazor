@@ -99,6 +99,7 @@ public abstract class ChartButtonBase : IzzyComponentBase, IDisposable
 /// </code>
 /// </example>
 [ModeSupport(NoScript = ModeLevel.None)]
+[ImportantParameters]
 public sealed class ChartDownload : ChartButtonBase
 {
     private protected override string Act => "download";
@@ -129,6 +130,7 @@ public sealed class ChartDownload : ChartButtonBase
 /// </code>
 /// </example>
 [ModeSupport(NoScript = ModeLevel.None)]
+[ImportantParameters]
 public sealed class ChartResetZoom : ChartButtonBase
 {
     private protected override string Act => "reset";
@@ -154,6 +156,7 @@ public sealed class ChartResetZoom : ChartButtonBase
 /// </code>
 /// </example>
 [ModeSupport(NoScript = ModeLevel.None)]
+[ImportantParameters]
 public sealed class ChartZoom : ChartButtonBase
 {
     private protected override string Act => "zoom-out";
@@ -192,6 +195,7 @@ public sealed class ChartZoom : ChartButtonBase
 /// </code>
 /// </example>
 [ModeSupport(NoScript = ModeLevel.None)]
+[ImportantParameters]
 public sealed class ChartPause : ChartButtonBase
 {
     private protected override string Act => "pause";

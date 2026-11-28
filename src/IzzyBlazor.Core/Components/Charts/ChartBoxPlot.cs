@@ -151,6 +151,7 @@ public abstract class ChartBoxSeriesBase<TItem> : ChartSeriesBase<TItem>
 /// cref="ChartBoxSummarySeries{TItem}"/>.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(SeriesBy), nameof(ShowMean), nameof(Whiskers))]
 public sealed class ChartBoxPlotSeries<TItem> : ChartBoxSeriesBase<TItem>
 {
     /// <summary>Each item's value, such as <c>d =&gt; d.Days</c>: a number, or null to leave the item out.</summary>
@@ -187,6 +188,7 @@ public sealed class ChartBoxPlotSeries<TItem> : ChartBoxSeriesBase<TItem>
 /// plot and violin series.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(SeriesBy), nameof(ShowMean))]
 public sealed class ChartViolinSeries<TItem> : ChartBoxSeriesBase<TItem>
 {
     /// <summary>Each item's value, such as <c>d =&gt; d.Days</c>: a number, or null to leave the item out.</summary>
@@ -229,6 +231,7 @@ public sealed class ChartViolinSeries<TItem> : ChartBoxSeriesBase<TItem>
 /// </code>
 /// </example>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(Mean), nameof(Outliers))]
 public sealed class ChartBoxSummarySeries<TItem> : ChartBoxSeriesBase<TItem>
 {
     private object?[] _last = [];

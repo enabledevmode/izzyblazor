@@ -9,6 +9,7 @@ namespace IzzyBlazor;
 /// the chart's flows; this only changes how one looks. It renders nothing itself.
 /// </summary>
 [ModeSupport]
+[ImportantParameters(nameof(Color), nameof(Label))]
 public sealed class SankeyNode : ComponentBase, IDisposable
 {
     [CascadingParameter] private SankeyNodes? Nodes { get; set; }

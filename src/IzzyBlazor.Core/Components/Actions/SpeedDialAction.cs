@@ -12,6 +12,7 @@ namespace IzzyBlazor;
 /// <example><code>&lt;SpeedDialAction Icon="Lucide.FileText" Label="Invoice" Href="invoices/new" /&gt;</code></example>
 /// <seealso cref="SpeedDial"/>
 [ModeSupport(Notes = "OnClick runs only on interactive pages; Href and Submit work everywhere.")]
+[ImportantParameters(nameof(Href), nameof(Submit))]
 public sealed class SpeedDialAction : ComponentBase
 {
     /// <summary>The icon, such as <c>Lucide.FileText</c>.</summary>

@@ -177,6 +177,7 @@ public abstract class SchedulerToolbarItem : ComponentBase, IToolbarItem, IDispo
 }
 
 /// <summary>The Scheduler's Today link, placed in its <c>ToolbarContent</c>.</summary>
+[ImportantParameters(nameof(Position))]
 public sealed class SchedulerToday : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.Start;
@@ -185,6 +186,7 @@ public sealed class SchedulerToday : SchedulerToolbarItem
 }
 
 /// <summary>The Scheduler's previous and next arrows, placed in its <c>ToolbarContent</c>.</summary>
+[ImportantParameters(nameof(Position))]
 public sealed class SchedulerArrows : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.Start;
@@ -193,6 +195,7 @@ public sealed class SchedulerArrows : SchedulerToolbarItem
 }
 
 /// <summary>The Scheduler's period ("November 2026"), which opens a month to go to any date, placed in its <c>ToolbarContent</c>.</summary>
+[ImportantParameters(nameof(Position))]
 public sealed class SchedulerPeriod : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.Start;
@@ -201,6 +204,7 @@ public sealed class SchedulerPeriod : SchedulerToolbarItem
 }
 
 /// <summary>The Scheduler's Categories menu, placed in its <c>ToolbarContent</c>; it shows when the Scheduler has categories.</summary>
+[ImportantParameters(nameof(Position))]
 public sealed class SchedulerCategories : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.End;
@@ -209,6 +213,7 @@ public sealed class SchedulerCategories : SchedulerToolbarItem
 }
 
 /// <summary>The Scheduler's view menu, placed in its <c>ToolbarContent</c>; it shows when there's more than one view.</summary>
+[ImportantParameters(nameof(Position))]
 public sealed class SchedulerViews : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.End;
@@ -217,6 +222,7 @@ public sealed class SchedulerViews : SchedulerToolbarItem
 }
 
 /// <summary>The Scheduler's New button, placed in its <c>ToolbarContent</c>; it shows with OnSave or an EditDialogForm.</summary>
+[ImportantParameters(nameof(Position))]
 public sealed class SchedulerNew : SchedulerToolbarItem
 {
     private protected override ToolbarPosition DefaultPosition => ToolbarPosition.End;

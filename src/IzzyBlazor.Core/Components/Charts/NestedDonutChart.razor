@@ -2,6 +2,7 @@
 @typeparam TItem
 @inherits PieChartBase<TItem>
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Argument), nameof(Title), nameof(ValueFormat))]
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @using System.Globalization
 

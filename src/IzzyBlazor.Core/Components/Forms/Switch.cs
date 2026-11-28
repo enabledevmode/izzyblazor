@@ -18,6 +18,7 @@ namespace IzzyBlazor;
 /// <seealso cref="CheckboxGroup{TValue, TItem}"/>
 [ModeSupport]
 [RefusesParameter(nameof(Indeterminate))]
+[ImportantParameters(nameof(ControlPosition), nameof(SubmitOnChange), nameof(Icon))]
 public class Switch : Checkbox
 {
     /// <inheritdoc />

@@ -4,6 +4,7 @@
 @implements IDisposable
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Argument), nameof(Title), nameof(Stacking), nameof(Orientation), nameof(Height), nameof(Legend))]
 @using System.Globalization
 @using System.Linq.Expressions
 

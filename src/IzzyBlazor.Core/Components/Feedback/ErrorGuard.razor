@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @inherits ErrorBoundary
+@attribute [ImportantParameters(nameof(ResetOnNavigation), nameof(ShowDetails), nameof(Title), nameof(Message))]
 @implements IDisposable
 @attribute [ModeSupport(Static = ModeLevel.Partial, NoScript = ModeLevel.Partial, Notes = "On static pages it catches what throws while the page renders on the server, and offers a link that reloads the page; event handlers run only on interactive pages.", NoScriptNotes = "With JavaScript off, the page is static: it catches what throws while rendering, and the Reload link works.")]
 @using Microsoft.AspNetCore.Components.Routing

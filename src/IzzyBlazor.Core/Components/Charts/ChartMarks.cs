@@ -68,6 +68,7 @@ public abstract class ChartMark : ComponentBase, IDisposable
 /// <see cref="Statistic"/> and <see cref="Series"/>, the value is the series' average or median.
 /// The line is dashed, so it reads apart from the series.
 /// </summary>
+[ImportantParameters(nameof(Value), nameof(Argument), nameof(Label), nameof(Statistic), nameof(Series))]
 public sealed class ChartReferenceLine : ChartMark
 {
     /// <summary>The value the line is drawn at, on the value axis.</summary>
@@ -150,6 +151,7 @@ public sealed class ChartReferenceLine : ChartMark
 /// <c>&lt;ChartReferenceBand ArgumentFrom="@("Nov")" ArgumentTo="@("Dec")" Label="Holiday season" /&gt;</c>.
 /// Its edges are drawn, so it reads apart from the grid.
 /// </summary>
+[ImportantParameters(nameof(From), nameof(To), nameof(ArgumentFrom), nameof(ArgumentTo), nameof(Label))]
 public sealed class ChartReferenceBand : ChartMark
 {
     /// <summary>Where a band of values starts, on the value axis.</summary>
@@ -205,6 +207,7 @@ public sealed class ChartReferenceBand : ChartMark
 /// A short note at a point on a chart, with a line down to it:
 /// <c>&lt;ChartAnnotation Argument="@("Jun")" Value="98_000" Text="Price change" /&gt;</c>.
 /// </summary>
+[ImportantParameters]
 public sealed class ChartAnnotation : ChartMark
 {
     /// <summary>The argument the note is at: a name, number or date.</summary>

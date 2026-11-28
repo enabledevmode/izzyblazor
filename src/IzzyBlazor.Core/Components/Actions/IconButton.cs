@@ -24,6 +24,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Tooltip"/>
 /// <seealso cref="CopyButton"/>
 [ModeSupport]
+[ImportantParameters(nameof(Icon), nameof(Variant), nameof(Accent), nameof(Href), nameof(Size))]
 public class IconButton : ButtonBase
 {
     /// <summary>The icon. Set this or the content (an <see cref="Avatar"/>, say), not both.</summary>

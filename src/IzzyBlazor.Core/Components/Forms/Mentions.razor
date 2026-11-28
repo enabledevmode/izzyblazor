@@ -3,6 +3,7 @@
 @inherits FieldBase<string?>
 @inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a plain text area: names typed after @ post as text, with no suggestions.")]
+@attribute [ImportantParameters(nameof(Items), nameof(Search), nameof(ItemText), nameof(Prefixes), nameof(Placeholder), nameof(Rows))]
 
 @*
     A text area where typing @ suggests names: choosing one writes "@name " into the text. The

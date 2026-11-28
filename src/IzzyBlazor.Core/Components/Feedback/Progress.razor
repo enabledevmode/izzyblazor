@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits ProgressBase
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Value), nameof(Max), nameof(Label), nameof(ValueText), nameof(ShowValue), nameof(Size))]
 
 @*
     A progress bar. With a Value it shows how far along something is; without one it's

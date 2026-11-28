@@ -25,6 +25,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Prose"/>
 /// <seealso cref="RichTextSanitizer"/>
 [ModeSupport]
+[ImportantParameters(nameof(Html), nameof(TopHeading), nameof(Size))]
 public class RichText : RichContentBase
 {
     /// <summary>The HTML to show. It's sanitized first.</summary>

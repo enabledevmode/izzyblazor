@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits ButtonBase
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Message), nameof(ConfirmText), nameof(Accent), nameof(Name), nameof(Value))]
 
 @*
     A button that asks first: it opens a small dialog ("Delete this project?") and only the

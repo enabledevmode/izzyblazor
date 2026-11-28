@@ -11,6 +11,7 @@ namespace IzzyBlazor;
 /// and export to CSV or Excel. For a plain list of records, use Table.
 /// </summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
+[ImportantParameters(nameof(Items), nameof(ItemKey), nameof(Searchable), nameof(SelectionMode), nameof(EditMode), nameof(FilterRow), nameof(PageSize), nameof(Caption))]
 public partial class DataGrid<TItem>
 {
     /// <summary>

@@ -310,6 +310,7 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
 /// </code>
 /// </example>
 [ModeSupport(NoScriptNotes = "With JavaScript off, the panel opens in browsers with popovers, and its Apply posts the filter.")]
+[ImportantParameters(nameof(Position))]
 public sealed class DataGridFilter : DataGridToolbarItem
 {
     /// <summary>Creates it, at the toolbar's start.</summary>
@@ -340,6 +341,7 @@ public sealed class DataGridFilter : DataGridToolbarItem
 /// </code>
 /// </example>
 [ModeSupport(NoScriptNotes = "With JavaScript off, the search applies on Enter.")]
+[ImportantParameters(nameof(Position))]
 public sealed class DataGridSearch : DataGridToolbarItem
 {
     private protected override bool On => Grid.HasSearch;
@@ -355,6 +357,7 @@ public sealed class DataGridSearch : DataGridToolbarItem
 /// It stays in the bar, at the start unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
 /// </summary>
 [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off it isn't shown: the builder's rows need script.")]
+[ImportantParameters(nameof(Position), nameof(ShowLabel))]
 public sealed class DataGridFilterBuilder : DataGridToolbarItem
 {
     /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
@@ -375,6 +378,7 @@ public sealed class DataGridFilterBuilder : DataGridToolbarItem
 /// <see cref="DataGridToolbarItem.Position"/> says otherwise; what acts on the data (export, add) is at the end.
 /// </summary>
 [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off it isn't shown: its checkboxes need script.")]
+[ImportantParameters(nameof(Position), nameof(ShowLabel))]
 public sealed class DataGridColumnPicker : DataGridToolbarItem
 {
     /// <summary>Creates it, at the toolbar's start.</summary>
@@ -412,6 +416,7 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
 /// bar, at the end unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
 /// </summary>
 [ModeSupport]
+[ImportantParameters(nameof(Position), nameof(FloatBelow), nameof(ShowLabel))]
 public sealed class DataGridAdd : DataGridToolbarItem
 {
     /// <summary>Creates it, at the toolbar's end.</summary>
@@ -522,6 +527,7 @@ public sealed class DataGridAdd : DataGridToolbarItem
 /// button with a chevron that opens a menu of links. At the end unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
 /// </summary>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the links download. A menu of them opens and closes, but arrow keys don't move between items.")]
+[ImportantParameters(nameof(Position), nameof(ShowLabel))]
 public sealed class DataGridExport : DataGridToolbarItem
 {
     /// <summary>Creates it, at the toolbar's end.</summary>
@@ -581,6 +587,7 @@ internal interface IDataGridExportFormats
 ///                           Href="/orders/export.pdf" /&gt;
 /// &lt;/DataGrid&gt;</code></example>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the link downloads. A menu of formats opens and closes, but arrow keys don't move between items.")]
+[ImportantParameters]
 public sealed class DataGridExportFormat : ComponentBase, IDisposable
 {
     private (string?, string?) _shown;

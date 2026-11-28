@@ -22,6 +22,7 @@ namespace IzzyBlazor;
 /// <seealso cref="RichText"/>
 /// <seealso cref="RichTextMarkdown"/>
 [ModeSupport]
+[ImportantParameters(nameof(Text), nameof(TopHeading), nameof(Size))]
 public class Markdown : RichContentBase
 {
     /// <summary>The Markdown to show.</summary>

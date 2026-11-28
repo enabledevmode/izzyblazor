@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @using Microsoft.Extensions.DependencyInjection
 @inherits ThemeBase
+@attribute [ImportantParameters(nameof(Preset), nameof(Brand), nameof(Gray), nameof(ColorScheme), nameof(Radius), nameof(Density), nameof(BodyFont), nameof(HeadingFont))]
 @inject IServiceProvider Services
 @attribute [ModeSupport]
 

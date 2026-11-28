@@ -19,6 +19,7 @@ namespace IzzyBlazor;
 /// <c>[Required]</c> becomes <c>required</c>, <c>[StringLength]</c> becomes <c>maxlength</c>.
 /// The browser checks those before posting; the server still validates.
 /// </remarks>
+[ImportantParameters(nameof(Label), nameof(Hint))]
 public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue> : InputBase<TValue>, ILayoutItem
 {
     [Inject] private IServiceProvider IzzyServices { get; set; } = default!;

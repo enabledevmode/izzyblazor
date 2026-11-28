@@ -11,6 +11,7 @@ namespace IzzyBlazor;
 /// its <see cref="Label"/> shows under the value. In a <see cref="BulletChart{TItem}"/>, a range
 /// every row shares.
 /// </summary>
+[ImportantParameters(nameof(Label), nameof(Accent))]
 public sealed class GaugeBand : ComponentBase, IDisposable
 {
     [CascadingParameter] private GaugeContext? Context { get; set; }
@@ -91,6 +92,7 @@ internal sealed class GaugeContext
 /// the one that fills.
 /// </summary>
 /// <remarks>Each pointer is a meter of its own, named by its label, after the gauge's.</remarks>
+[ImportantParameters]
 public sealed class GaugePointer : ComponentBase, IDisposable
 {
     [CascadingParameter] private GaugeContext? Context { get; set; }

@@ -32,6 +32,7 @@ public enum ImageFit
 /// <seealso cref="Avatar"/>
 /// <seealso cref="VideoEmbed"/>
 [ModeSupport]
+[ImportantParameters(nameof(Ratio), nameof(Fit), nameof(Caption), nameof(DarkSrc))]
 public class Image : StyledComponentBase
 {
     /// <summary>The image URL.</summary>
@@ -163,6 +164,7 @@ public class Image : StyledComponentBase
 /// <seealso cref="Image"/>
 /// <seealso cref="AspectRatio"/>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the play button opens the video on YouTube instead of playing it in place.")]
+[ImportantParameters(nameof(YouTubeId), nameof(Poster), nameof(Ratio))]
 public partial class VideoEmbed : StyledComponentBase
 {
     /// <summary>

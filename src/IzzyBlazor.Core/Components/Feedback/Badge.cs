@@ -46,6 +46,7 @@ public enum BadgeSize
 /// <seealso cref="Stat"/>
 /// <seealso cref="Alert"/>
 [ModeSupport]
+[ImportantParameters(nameof(Status), nameof(Variant), nameof(Accent), nameof(Pill), nameof(Dot))]
 public class Badge : LayoutItemBase
 {
     /// <summary>What the badge means. Defaults to <see cref="IzzyBlazor.Status.Neutral"/>.</summary>

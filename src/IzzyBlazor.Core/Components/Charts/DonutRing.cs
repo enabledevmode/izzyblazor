@@ -10,6 +10,7 @@ namespace IzzyBlazor;
 /// outer one. It renders nothing itself.
 /// </summary>
 [ModeSupport]
+[ImportantParameters(nameof(Name))]
 public sealed class DonutRing<TItem> : ComponentBase, IDisposable
 {
     [CascadingParameter] private DonutRings<TItem>? Rings { get; set; }

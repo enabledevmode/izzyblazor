@@ -16,6 +16,7 @@ namespace IzzyBlazor;
 /// {
 ///     &lt;DynamicColumn @key="name" Field="@name" Type="type" Sortable Filterable /&gt;
 /// }</code></example>
+[ImportantParameters(nameof(Type), nameof(Title), nameof(Format), nameof(Sortable), nameof(Filterable))]
 public class DynamicColumn<TItem> : ColumnBase<TItem>
 {
     private (string Field, Type Type)? _built;

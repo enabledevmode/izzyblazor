@@ -116,8 +116,8 @@ public sealed class CliTests : IDisposable
         var all = JsonNode.Parse(Izzy(_work, "describe", "component", "--all", "--json").Out)!;
         Assert.Contains("ActionColumn", all["components"]!.AsArray().Select(c => (string)c!["name"]!));
 
-        // What a form shows first: the hero example's options and those chosen beside them, a field's
-        // Label and Hint, never where the example sits on its page (Grow).
+        // What a form shows first, as the library names it ([ImportantParameters]): a field's Label and Hint
+        // from FieldBase, never where an example sits on its page (Grow).
         string[] Important(string name) => [.. all["components"]!.AsArray().Single(c => (string)c!["name"]! == name)!["parameters"]!["properties"]!.AsObject()
             .Where(p => (string?)p.Value!["x-priority"] == "important").Select(p => p.Key).Order(StringComparer.Ordinal)];
         Assert.Equal(["Caption", "EditMode", "FilterRow", "ItemKey", "Items", "PageSize", "Searchable", "SelectionMode"], Important("DataGrid"));

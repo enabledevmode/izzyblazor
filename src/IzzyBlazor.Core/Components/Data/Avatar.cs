@@ -54,6 +54,7 @@ public enum AvatarVariant
 /// <seealso cref="Badge"/>
 /// <seealso cref="Image"/>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(Src), nameof(Size), nameof(Square), nameof(Variant), nameof(Status))]
 public class Avatar : LayoutItemBase, IDisposable
 {
     // Soft hues for initials, picked from the name so a person keeps the same color everywhere.

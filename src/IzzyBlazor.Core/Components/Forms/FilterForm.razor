@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, filters apply when you press Apply, not as you type, and empty fields stay in the address (?q=&status=), as with any GET form.")]
+@attribute [ImportantParameters(nameof(Live), nameof(CollapseBelow))]
 
 @*
     A search-and-filter bar that puts its values in the URL, for a table or any list. The page

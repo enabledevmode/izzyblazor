@@ -18,6 +18,7 @@ namespace IzzyBlazor;
 /// <seealso cref="SegmentedControl{TValue}"/>
 /// <seealso cref="CheckboxGroup{TValue, TItem}"/>
 [ModeSupport]
+[ImportantParameters(nameof(Label), nameof(Accent), nameof(Variant), nameof(Size))]
 public sealed class ToggleGroup : ButtonGroup
 {
 }

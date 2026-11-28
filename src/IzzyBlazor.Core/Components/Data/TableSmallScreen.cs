@@ -19,6 +19,7 @@ public enum TableSmallScreen
 // Stacking a table when it's narrow: container queries in the table's own style, worked out on the
 // server, so it's right at the first paint with or without script.
 /// <inheritdoc />
+[ImportantParameters(nameof(Items), nameof(PageSize), nameof(InitialSort), nameof(SelectionMode), nameof(SmallScreen), nameof(Caption))]
 public partial class Table<TItem>
 {
     /// <summary>

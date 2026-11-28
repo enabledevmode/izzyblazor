@@ -16,6 +16,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Prose"/>
 /// <seealso cref="Code"/>
 [ModeSupport]
+[ImportantParameters(nameof(Size), nameof(Color), nameof(Weight), nameof(As), nameof(Align), nameof(Truncate))]
 public class TextBlock : TextBase
 {
     /// <summary>Creates a TextBlock that renders a paragraph.</summary>

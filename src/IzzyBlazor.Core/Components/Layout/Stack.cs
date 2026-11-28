@@ -59,6 +59,7 @@ public abstract class FlexBase : Box
 /// <seealso cref="Grid"/>
 /// <seealso cref="Spacer"/>
 [ModeSupport]
+[ImportantParameters(nameof(Direction), nameof(Gap), nameof(Align), nameof(Justify), nameof(Wrap))]
 public class Stack : FlexBase
 {
     /// <summary>Layout direction. Defaults to <see cref="IzzyBlazor.Direction.Column"/> (vertical).</summary>
@@ -74,6 +75,7 @@ public class Stack : FlexBase
 /// <seealso cref="Spacer"/>
 /// <seealso cref="Grid"/>
 [ModeSupport]
+[ImportantParameters(nameof(Gap), nameof(Align), nameof(Justify), nameof(Wrap))]
 public class Row : FlexBase
 {
     /// <summary>Not available: a Row is always horizontal. Use <see cref="Stack"/> for a direction that changes.</summary>
@@ -95,6 +97,7 @@ public class Row : FlexBase
 /// <seealso cref="Row"/>
 /// <seealso cref="Grid"/>
 [ModeSupport]
+[ImportantParameters(nameof(Gap), nameof(Align), nameof(Justify))]
 public class Column : FlexBase
 {
     /// <summary>Not available: a Column is always vertical. Use <see cref="Stack"/> for a direction that changes.</summary>

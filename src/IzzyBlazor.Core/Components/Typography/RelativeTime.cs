@@ -29,6 +29,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Timeline"/>
 /// <seealso cref="Comment"/>
 [ModeSupport]
+[ImportantParameters(nameof(Value), nameof(Threshold))]
 public class RelativeTime : LayoutItemBase
 {
     /// <summary>The time. Nothing renders without one.</summary>

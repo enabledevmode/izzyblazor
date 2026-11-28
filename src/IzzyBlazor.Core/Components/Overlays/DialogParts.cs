@@ -46,6 +46,7 @@ public sealed class DialogHeader : ComponentPart
 /// &lt;/Dialog&gt;
 /// </code>
 /// </example>
+[ImportantParameters]
 public class DialogFooter : FlexBase
 {
     [CascadingParameter] private FormOwner? Owner { get; set; }
@@ -147,6 +148,7 @@ internal sealed record FormOwner(string? Id, bool Detached = false)
 /// &lt;/Drawer&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Flush), nameof(Gap))]
 public class DialogBody : FlexBase
 {
     /// <summary>Layout direction. Defaults to a column.</summary>

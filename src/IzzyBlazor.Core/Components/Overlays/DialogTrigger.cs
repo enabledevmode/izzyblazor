@@ -12,6 +12,7 @@ namespace IzzyBlazor;
 /// &lt;DialogTrigger For="invite"&gt;Invite people&lt;/DialogTrigger&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(StartIcon), nameof(Variant), nameof(Accent))]
 public class DialogTrigger : Button
 {
     /// <summary>The id of the dialog to open.</summary>
@@ -51,6 +52,7 @@ public class DialogTrigger : Button
 /// &lt;/DialogFooter&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Variant), nameof(Accent))]
 [RefusesParameter(nameof(Reset))]
 public class DialogClose : Button
 {

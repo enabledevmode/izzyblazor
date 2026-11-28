@@ -19,6 +19,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Skeleton"/>
 /// <seealso cref="Button"/>
 [ModeSupport]
+[ImportantParameters(nameof(Size), nameof(Color), nameof(Label))]
 public class Spinner : LayoutItemBase
 {
     /// <summary>Size, on the same scale as icons (relative to the text). Defaults to <see cref="IconSize.Md"/> (1em).</summary>

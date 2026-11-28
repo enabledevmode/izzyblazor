@@ -2,6 +2,7 @@
 @inherits LayoutItemBase
 @implements IDisposable
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Type), nameof(ValueFormat), nameof(Points), nameof(Height))]
 @using System.Globalization
 
 @*

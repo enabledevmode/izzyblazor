@@ -76,6 +76,7 @@ public abstract class RangeSelectorBase : ComponentBase, IRangeSelector
 /// </remarks>
 /// <seealso cref="RangeSelector{TItem}"/>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the strip shows the range View sets, and its handles and buttons don't move it.")]
+[ImportantParameters(nameof(Ranges), nameof(Presets))]
 public sealed class ChartRangeSelector : RangeSelectorBase, IDisposable
 {
     [CascadingParameter] private ChartContextBase? Context { get; set; }
@@ -119,6 +120,7 @@ public sealed class ChartRangeSelector : RangeSelectorBase, IDisposable
 /// <seealso cref="ChartRangeSelector"/>
 [CascadingTypeParameter(nameof(TItem))]
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the strip shows the range View sets, and its handles and buttons don't move it.")]
+[ImportantParameters(nameof(Sync), nameof(View), nameof(Ranges))]
 public sealed class RangeSelector<TItem> : RangeSelectorBase
 {
     private readonly RangeSelectorHost _host = new();

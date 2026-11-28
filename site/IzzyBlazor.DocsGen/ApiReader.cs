@@ -166,6 +166,7 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
             Bases = componentBases,
             // The attribute isn't inherited: DialogClose derives from Button, but Button's modes aren't its.
             Modes = Modes(type.GetCustomAttribute<ModeSupportAttribute>(inherit: false)),
+            Important = Important(type, parameters, names),
             Properties = properties,
             Events = events,
             Methods = methods,
@@ -413,6 +414,44 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
 
     private static bool IsEvent(Type type) =>
         type == typeof(EventCallback) || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(EventCallback<>));
+
+    /// <summary>The most options a component marks important.</summary>
+    public const int MostImportant = 8;
+
+    /// <summary>
+    /// The options a form shows first (<see cref="ImportantParametersAttribute"/>): the required ones, those a
+    /// shared base names (FieldBase's Label and Hint), then those the component names. A component with
+    /// options of its own must state its choice, even none; a name it gives must be an option it takes.
+    /// </summary>
+    private static List<string>? Important(Type type, List<PropertyInfo> parameters, HashSet<string> names)
+    {
+        var options = parameters.Where(p => !IsEvent(p.PropertyType) && !IsRenderFragment(p.PropertyType)
+            && !(p.Name.EndsWith("Expression", StringComparison.Ordinal) && names.Contains(p.Name[..^"Expression".Length]))).ToList();
+        var stated = type.GetCustomAttribute<ImportantParametersAttribute>(inherit: false);
+        if (stated is null)
+        {
+            return options.Any(p => !SharedBases.Contains(TypeNames.Plain(p.DeclaringType!)))
+                ? throw new InvalidOperationException($"{TypeNames.Plain(type)} has options of its own but no [ImportantParameters]: name those a form should show first, or none ([ImportantParameters]).")
+                : null;
+        }
+
+        var shared = Ancestors(type).Where(a => SharedBases.Contains(TypeNames.Plain(a))).Reverse()
+            .SelectMany(a => a.GetCustomAttribute<ImportantParametersAttribute>(inherit: false)?.Names ?? []);
+        var known = options.Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+        if (stated.Names.FirstOrDefault(n => !known.Contains(n)) is { } wrong)
+        {
+            throw new InvalidOperationException($"{TypeNames.Plain(type)} marks {wrong} important, which isn't an option it takes (a slot, an event or a refused parameter isn't one).");
+        }
+
+        var important = options.Where(p => p.GetCustomAttribute<EditorRequiredAttribute>() is not null).Select(p => p.Name)
+            .Concat(shared.Where(known.Contains)).Concat(stated.Names).Distinct(StringComparer.Ordinal).ToList();
+        return important.Count > MostImportant
+            ? throw new InvalidOperationException($"{TypeNames.Plain(type)} marks {important.Count} options important ({string.Join(", ", important)}), more than {MostImportant}.")
+            : important.Count > 0 ? important : null;
+    }
+
+    private static bool IsRenderFragment(Type type) =>
+        type == typeof(RenderFragment) || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RenderFragment<>));
 
     private static readonly HashSet<string> LifecycleMethods =
         ["SetParametersAsync", "Dispose", "DisposeAsync", "Attach", "HandleEventAsync", "OnAfterRenderAsync"];

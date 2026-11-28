@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a sheet opened from the server isn't modal: focus can leave it, and Escape or a click outside closes it only in browsers with closedby (not Safari).")]
+@attribute [ImportantParameters(nameof(Title), nameof(Description), nameof(Id), nameof(ShowCancel))]
 
 @*
     ActionSheet: a few actions on one thing, such as a photo or a message, in a sheet that slides

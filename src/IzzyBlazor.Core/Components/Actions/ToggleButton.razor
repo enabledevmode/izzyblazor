@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits FieldBase<bool>
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Icon), nameof(CheckedIcon), nameof(IconOnly), nameof(SubmitOnChange))]
 
 @*
     A button that stays on or off: a real checkbox drawn as a button, so it toggles with JavaScript

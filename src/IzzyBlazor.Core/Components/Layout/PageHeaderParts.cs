@@ -31,6 +31,7 @@ public sealed class PageHeaderMedia : ComponentPart
 /// &lt;/PageHeaderActions&gt;
 /// </code>
 /// </example>
+[ImportantParameters]
 public sealed class PageHeaderActions : ComponentPart
 {
     internal override Type HostType => typeof(PageHeader);

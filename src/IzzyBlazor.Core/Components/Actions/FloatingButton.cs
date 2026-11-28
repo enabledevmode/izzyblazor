@@ -19,6 +19,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Button"/>
 /// <seealso cref="IconButton"/>
 [ModeSupport]
+[ImportantParameters(nameof(ShowLabel), nameof(Href), nameof(Placement), nameof(Accent))]
 public class FloatingButton : IzzyComponentBase
 {
     /// <summary>The icon, such as <c>Lucide.Plus</c>.</summary>

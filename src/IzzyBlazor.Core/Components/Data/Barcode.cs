@@ -21,6 +21,7 @@ namespace IzzyBlazor;
 /// </accessibility>
 /// <seealso cref="QrCode"/>
 [ModeSupport]
+[ImportantParameters(nameof(Type), nameof(Label))]
 public class Barcode : LayoutItemBase
 {
     /// <summary>

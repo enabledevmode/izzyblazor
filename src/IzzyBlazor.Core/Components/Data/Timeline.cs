@@ -21,6 +21,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Stepper"/>
 /// <seealso cref="List"/>
 [ModeSupport]
+[ImportantParameters(nameof(TimePlacement), nameof(Marker), nameof(Size))]
 public class Timeline : Box
 {
     /// <summary>Creates a timeline, rendered as an ordered list.</summary>
@@ -145,6 +146,7 @@ public enum TimelineMarker
 }
 
 /// <summary>One event in a <see cref="Timeline"/>.</summary>
+[ImportantParameters(nameof(Title), nameof(Time), nameof(Value), nameof(Done), nameof(Current), nameof(Status), nameof(Href))]
 public class TimelineItem : IzzyComponentBase
 {
     /// <summary>What happened.</summary>

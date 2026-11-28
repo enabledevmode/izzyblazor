@@ -2,6 +2,7 @@
 @inherits FieldBase<string?>
 @inject NavigationManager Navigation
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the browser's own suggestions show (a datalist), styled and announced as the browser does.")]
+@attribute [ImportantParameters(nameof(Items), nameof(ItemsProvider), nameof(Search), nameof(Placeholder))]
 
 @*
     A text field that suggests as you type. Whatever is typed is the value; a suggestion only

@@ -5,6 +5,7 @@
 @inject NavigationManager Navigation
 @inject IServiceProvider Services
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, tabs switch as a radio group, but screen readers don't hear them as tabs, the URL doesn't follow, and tabs that don't fit scroll by touch, trackpad or Shift+wheel only, with the selected one not scrolled into view.")]
+@attribute [ImportantParameters(nameof(Label), nameof(Variant), nameof(Orientation), nameof(QueryKey), nameof(Selected), nameof(FullWidth))]
 
 @*
     A set of tabs, in three layers:

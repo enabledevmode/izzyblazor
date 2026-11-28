@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @inject IServiceProvider Services
+@attribute [ImportantParameters(nameof(Message), nameof(Options))]
 
 @* DialogService.ConfirmAsync's content: the message, and Cancel (focused first) and confirm buttons. *@
 

@@ -14,6 +14,7 @@ namespace IzzyBlazor;
 /// &lt;FieldRepeaterValue Label="Amount"&gt;@line.Amount.ToString("C")&lt;/FieldRepeaterValue&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Width), nameof(Align))]
 public sealed class FieldRepeaterValue : ComponentBase
 {
     /// <summary>The column heading, and the value's label when the rows are stacked. Required.</summary>

@@ -2,6 +2,7 @@
 @typeparam TNumber where TNumber : struct, System.Numerics.INumber<TNumber>
 @inherits FieldBase<NumberRange<TNumber>?>
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the thumbs can pass each other (the server puts the ends in order when the form posts), the track doesn't fill between them, and a click on the track doesn't move a thumb.")]
+@attribute [ImportantParameters(nameof(Min), nameof(Max), nameof(Step), nameof(ValueFormat), nameof(ValueTooltip), nameof(ShowEnds))]
 
 @*
     Two thumbs on one track, for a span such as a price filter: two native range inputs, so each

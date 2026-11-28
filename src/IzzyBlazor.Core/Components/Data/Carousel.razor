@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits StyledComponentBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the slides scroll and swipe, and the previous and next buttons and dots don't show.")]
+@attribute [ImportantParameters(nameof(ItemsPerView), nameof(Loop), nameof(Dots), nameof(Autoplay), nameof(Transition))]
 
 @*
     Slides in a row that scrolls a slide at a time, with previous and next buttons and a dot for

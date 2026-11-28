@@ -5,6 +5,7 @@
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Logging
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Items), nameof(ItemKey), nameof(ItemText), nameof(ItemDescription), nameof(ItemIcon), nameof(ItemHref), nameof(Bordered), nameof(SelectionMode))]
 
 @*
     A list of items from data, each drawn by a template: contacts, notifications, files, results.

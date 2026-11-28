@@ -57,6 +57,7 @@ public enum RowActionOverflow
 /// &lt;/ActionColumn&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Overflow))]
 public sealed class ActionColumn<TItem> : ComponentBase
 {
     /// <summary>The row's actions: <see cref="EditAction"/>, <see cref="DeleteAction"/> and <see cref="RowAction"/>. <c>context</c> is the row.</summary>
@@ -192,6 +193,7 @@ public abstract class RowActionBase : ComponentBase
 }
 
 /// <summary>The row's edit action: a pencil, or an item in its menu. Drawn only where the row can be edited.</summary>
+[ImportantParameters]
 public sealed class EditAction : RowActionBase
 {
     /// <summary>
@@ -205,6 +207,7 @@ public sealed class EditAction : RowActionBase
 }
 
 /// <summary>The row's delete action, which asks first: a trash can, or an item in its menu. Drawn only where the row can be deleted.</summary>
+[ImportantParameters]
 public sealed class DeleteAction : RowActionBase
 {
     /// <summary>
@@ -221,6 +224,7 @@ public sealed class DeleteAction : RowActionBase
 /// A TreeList row's Add child action: adds a row under it, from the tree list's <c>NewChild</c>, in
 /// the edit dialog or in place under it, and opens it so the new row shows.
 /// </summary>
+[ImportantParameters]
 public sealed class AddChildAction : RowActionBase
 {
     private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope) =>
@@ -232,6 +236,7 @@ public sealed class AddChildAction : RowActionBase
 /// tree list's <c>OnReparent</c> to save. Its own branch can't be chosen. Works on static pages and
 /// with the keyboard alone.
 /// </summary>
+[ImportantParameters]
 public sealed class MoveAction : RowActionBase
 {
     private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope) =>
@@ -279,6 +284,7 @@ public sealed class DataGridEditFormContext<TItem>
 internal sealed record DataGridEditFields(Func<EditField, RenderFragment?> Field);
 
 /// <summary>A column's generated field, placed in a <c>DataGrid</c>'s <c>EditDialog</c>.</summary>
+[ImportantParameters(nameof(ColSpan), nameof(Label))]
 public sealed class EditField : ComponentBase
 {
     /// <summary>The column's key: its <c>SortKey</c>, or its property's name in lower case, as in the address.</summary>
@@ -358,6 +364,7 @@ public sealed class EditField : ComponentBase
 
 /// <summary>An action of your own on a row: an icon button with a tooltip, or an item in its menu.</summary>
 /// <example><code>&lt;RowAction Icon="Lucide.Copy" Label="@($"Duplicate {o.Id}")" Href="@($"/orders/new?from={o.Id}")" /&gt;</code></example>
+[ImportantParameters(nameof(Icon), nameof(Href))]
 public sealed class RowAction : RowActionBase
 {
     /// <summary>Its icon.</summary>

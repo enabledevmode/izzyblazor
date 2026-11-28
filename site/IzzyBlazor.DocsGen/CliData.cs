@@ -53,6 +53,9 @@ public sealed record CliComponent
     public required List<string> Bases { get; init; }
     public required List<CliParameter> Parameters { get; init; }
 
+    /// <summary>The options a form shows first, most important first (the library's <c>[ImportantParameters]</c>, after the required ones).</summary>
+    public List<string>? Important { get; init; }
+
     /// <summary>Render fragments: content, not options.</summary>
     public required List<CliMember> Slots { get; init; }
     public required List<CliMember> Events { get; init; }
@@ -168,6 +171,7 @@ public static partial class CliData
                 TypeParameters = c.TypeParameters,
                 Bases = c.Bases,
                 Parameters = Parameters(c.Properties, enums),
+                Important = c.Important,
                 Slots = c.Properties.Where(IsSlot).Select(Member).ToList(),
                 Events = c.Events.Where(e => e.Obsolete is null).Select(Member).ToList(),
                 Parts = entry?["parts"]?.AsArray().Select(p => (string)p!).ToList(),

@@ -13,6 +13,7 @@ namespace IzzyBlazor;
 /// static pages too.
 /// </summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
+[ImportantParameters(nameof(Items), nameof(ItemKey), nameof(ItemParentKey), nameof(ItemChildren), nameof(ItemExpanded), nameof(Searchable), nameof(Caption))]
 public partial class TreeList<TItem>
 {
     private const int MaxOpenKeys = 50;

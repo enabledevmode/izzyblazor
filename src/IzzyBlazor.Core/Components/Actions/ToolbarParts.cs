@@ -68,6 +68,7 @@ public enum ToolbarOverflow
 /// &lt;/ToolbarItem&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Position), nameof(Priority), nameof(Overflow))]
 public sealed class ToolbarItem : LayoutItemBase, IToolbarItem, IDisposable
 {
     private readonly ToolbarSlot _slot;
@@ -163,6 +164,7 @@ public sealed class ToolbarItem : LayoutItemBase, IToolbarItem, IDisposable
 /// &lt;ToolbarText Position="ToolbarPosition.Center" Width="Length.Rem(9)"&gt;Q3 report.pdf&lt;/ToolbarText&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Position))]
 public sealed class ToolbarText : LayoutItemBase, IToolbarItem, IDisposable
 {
     private readonly ToolbarSlot _slot;
@@ -226,6 +228,7 @@ public sealed class ToolbarText : LayoutItemBase, IToolbarItem, IDisposable
 }
 
 /// <summary>A vertical line between groups of a <see cref="Toolbar"/>'s items; in its "…" menu, a divider.</summary>
+[ImportantParameters(nameof(Position))]
 public sealed class ToolbarSeparator : IzzyComponentBase, IToolbarItem, IDisposable
 {
     private static readonly RenderFragment MenuDivider = builder =>

@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits FieldBase<string?>
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's one text field with wide letter spacing, not boxes; paste and autofill work the same.")]
+@attribute [ImportantParameters(nameof(Length), nameof(Secret), nameof(Letters), nameof(AutoComplete))]
 
 @*
     A short code typed into boxes: a one-time code from an authenticator app, a text message or an

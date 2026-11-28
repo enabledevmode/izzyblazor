@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits FieldBase<string?>
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the swatches (or, with none, the hex field) choose the color and post; the picker, sliders and number fields need script.")]
+@attribute [ImportantParameters(nameof(Swatches), nameof(ShowPicker), nameof(ShowFields), nameof(ShowAlpha), nameof(Clearable))]
 
 @*
     A color, chosen inline: swatches, a picker (a saturation and brightness area and a hue slider),

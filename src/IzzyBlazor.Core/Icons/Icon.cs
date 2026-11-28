@@ -20,6 +20,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Badge"/>
 /// <seealso cref="Image"/>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(Purpose), nameof(Size), nameof(Color), nameof(Label))]
 public class Icon : IzzyComponentBase
 {
     /// <summary>The icon to show, such as <c>Lucide.House</c>. Set this or <see cref="Purpose"/>.</summary>

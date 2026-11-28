@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inherits StyledComponentBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a message posts with the Send button, and Enter adds a line.")]
+@attribute [ImportantParameters(nameof(Variant), nameof(Status), nameof(FormName), nameof(Placeholder), nameof(Suggestions), nameof(AllowFiles))]
 
 @*
     A conversation: its entries in a log that scrolls, and a box to write the next message in.

@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits MenuBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the button opens and closes the actions, but arrow keys don't move between them, and OpenOn=\"Hover\" opens on click.")]
+@attribute [ImportantParameters(nameof(Icon), nameof(Direction), nameof(Placement), nameof(OpenOn), nameof(ShowLabels))]
 
 @*
     A floating button that opens a line of actions, such as the things a page can create: a speed

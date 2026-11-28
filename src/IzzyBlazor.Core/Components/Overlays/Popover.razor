@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits ToggleComponentBase
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it opens and closes, but focus moves into it only to an autofocus element, and Open from the server doesn't show it.")]
+@attribute [ImportantParameters(nameof(Label), nameof(Title), nameof(StartIcon), nameof(Placement), nameof(PanelWidth))]
 
 @*
     Floating, non-modal content next to its trigger: filters, a small form, an info card.

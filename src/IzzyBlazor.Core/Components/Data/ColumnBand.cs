@@ -15,6 +15,7 @@ namespace IzzyBlazor;
 ///     &lt;PropertyColumn Property="r =&gt; r.Q1Margin" Title="Margin" /&gt;
 /// &lt;/ColumnBand&gt;
 /// </code></example>
+[ImportantParameters]
 public sealed class ColumnBand : ComponentBase, IDisposable
 {
     /// <summary>

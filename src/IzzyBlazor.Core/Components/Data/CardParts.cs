@@ -14,6 +14,7 @@ namespace IzzyBlazor;
 /// &lt;/CardMedia&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Width))]
 public sealed class CardMedia : ComponentPart
 {
     internal override Type HostType => typeof(Card);
@@ -64,6 +65,7 @@ public sealed class CardActions : ComponentPart
 /// or a list.
 /// </summary>
 /// <example><code>&lt;CardBody Gap="2"&gt;...&lt;/CardBody&gt;</code></example>
+[ImportantParameters(nameof(Flush), nameof(Gap), nameof(Direction))]
 public class CardBody : FlexBase
 {
     /// <summary>Layout direction. Defaults to a column.</summary>
@@ -96,6 +98,7 @@ public class CardBody : FlexBase
 /// &lt;/CardFooter&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Justify), nameof(Gap))]
 public class CardFooter : FlexBase
 {
     /// <inheritdoc />

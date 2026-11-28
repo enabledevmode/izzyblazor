@@ -33,6 +33,7 @@ public enum TagVariant
 /// <seealso cref="MultiSelect{TValue, TItem}"/>
 /// <seealso cref="FilterForm"/>
 [ModeSupport]
+[ImportantParameters(nameof(Label), nameof(Status), nameof(Variant), nameof(Href), nameof(Pill), nameof(RemoveHref))]
 public class Tag : LayoutItemBase
 {
     /// <summary>The text. Also used in the remove button's name.</summary>

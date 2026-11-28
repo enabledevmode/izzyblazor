@@ -3,6 +3,7 @@
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @inherits PieChartBase<TItem>
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Argument), nameof(Title), nameof(Donut), nameof(Labels), nameof(ValueFormat))]
 @using System.Globalization
 @using System.Linq.Expressions
 

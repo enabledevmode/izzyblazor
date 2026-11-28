@@ -4,6 +4,7 @@
 @inherits LayoutItemBase
 @implements IDisposable
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Target), nameof(Title), nameof(Ranges), nameof(RangeLabels), nameof(ValueFormat))]
 @using System.Globalization
 @using System.Linq.Expressions
 

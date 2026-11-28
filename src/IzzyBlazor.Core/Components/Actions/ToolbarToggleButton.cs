@@ -19,6 +19,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Toolbar"/>
 /// <seealso cref="ToggleButton"/>
 [ModeSupport(Notes = "In the bar it toggles in every mode. In the \"…\" menu, choosing it changes the value only on interactive pages.")]
+[ImportantParameters(nameof(Icon), nameof(CheckedIcon), nameof(IconOnly), nameof(Position), nameof(Overflow), nameof(Priority))]
 public sealed class ToolbarToggleButton : ToggleButton, IToolbarItem, IDisposable
 {
     private readonly ToolbarControl _control;

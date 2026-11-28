@@ -2,6 +2,7 @@
 @using System.Globalization
 @inherits LayoutItemBase
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Author), nameof(Time), nameof(RelativeTime), nameof(Text), nameof(Avatar))]
 
 @*
     Comment: one comment in a discussion, such as feedback under an article or a review on a pull

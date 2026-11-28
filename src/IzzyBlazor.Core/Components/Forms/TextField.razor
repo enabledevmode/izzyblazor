@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits TextFieldBase
 @attribute [ModeSupport]
+@attribute [ImportantParameters(nameof(Type), nameof(Placeholder), nameof(AutoComplete), nameof(StartIcon), nameof(Mask), nameof(Clearable))]
 
 @*
     A single-line text input with label, hint and errors.

@@ -64,6 +64,7 @@ public sealed record ChartBins
 /// <c>Argument</c>, such as a target time.
 /// </remarks>
 [ModeSupport]
+[ImportantParameters(nameof(Name), nameof(SeriesBy), nameof(Bins))]
 public sealed class ChartHistogramSeries<TItem> : ChartSeriesBase<TItem>
 {
     private object? _sample;

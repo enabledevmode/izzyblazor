@@ -4,6 +4,7 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a text box holding the HTML, which still posts and is sanitized.")]
+@attribute [ImportantParameters(nameof(Tools), nameof(Rows), nameof(Placeholder), nameof(MaxLength), nameof(ShowCount), nameof(ImageUploadUrl))]
 
 @*
     Formatted text with label, hint and errors: headings, lists, quotes, code, bold, italic and the

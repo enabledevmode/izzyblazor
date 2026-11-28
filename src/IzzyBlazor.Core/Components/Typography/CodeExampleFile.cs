@@ -15,6 +15,7 @@ namespace IzzyBlazor;
 /// &lt;/CodeExample&gt;
 /// </code>
 /// </example>
+[ImportantParameters(nameof(Language), nameof(HighlightLines))]
 public sealed class CodeExampleFile : ComponentBase, IDisposable
 {
     /// <summary>The file name, shown on its tab.</summary>

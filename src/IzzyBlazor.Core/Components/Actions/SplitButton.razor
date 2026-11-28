@@ -3,6 +3,7 @@
 @using System.Globalization
 @using Microsoft.AspNetCore.Components.Web
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, Notes = "OnClick runs only on interactive pages; Submit and Href work everywhere.", NoScriptNotes = "With JavaScript off, the menu opens and closes, but Alt+Down and the arrow keys don't work: Tab to the arrow and press Enter.")]
+@attribute [ImportantParameters(nameof(MenuLabel), nameof(Accent), nameof(Variant), nameof(StartIcon), nameof(Href), nameof(Submit))]
 
 @*
     A button with a main action and, joined to it, an arrow that opens a menu of related actions.
