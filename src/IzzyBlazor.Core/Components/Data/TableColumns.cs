@@ -776,6 +776,12 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     internal override string? CellText(TItem item)
     {
         var value = _compiled!(item);
+        // A true/false value reads as its filter and its field's choices do, not as .NET writes it (True).
+        if (value is bool yes)
+        {
+            return yes ? Table?.Text?.Yes ?? "Yes" : Table?.Text?.No ?? "No";
+        }
+
         return Format is not null && value is IFormattable formattable
             ? formattable.ToString(Format, CultureInfo.CurrentCulture)
             : value?.ToString();
