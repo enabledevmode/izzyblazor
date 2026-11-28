@@ -125,6 +125,16 @@ public sealed class CliTests : IDisposable
         Assert.DoesNotContain("Grow", Important("Card"));
     }
 
+    // What IzzyTheme writes, for a preview with no app: a name as a meta tag, a hex as its palette.
+    [Fact]
+    public void A_theme_preview_gets_the_tags_IzzyTheme_writes()
+    {
+        var theme = JsonNode.Parse(Izzy(_work, "theme", "vars", "--preset", "compact", "--brand", "#0F766E", "--json").Out)!;
+        Assert.Equal("compact", (string)theme["meta"]!.AsArray().Single(m => (string)m!["name"]! == "ib-preset")!["content"]!);
+        Assert.Contains("--ib-color-primary: light-dark(#0f766e", (string)theme["css"]!);
+        Assert.Contains("<style data-ib-theme-style>@layer izzy.tokens", (string)theme["head"]!);
+    }
+
     [Fact]
     public async Task The_packed_tool_installs_and_carries_the_catalog()
     {

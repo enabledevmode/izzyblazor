@@ -61,26 +61,7 @@ public abstract class ThemeBase : ComponentBase
     /// page with a brand of its own writes that brand's; one that asks for Brand by name takes the app's.
     /// A brand with no color (ink, a gray) has no palette of its own: its charts are Contrast's.
     /// </summary>
-    private protected string? BrandChartCss(bool app)
-    {
-        var brand = ChartPalette is null or ThemeChartPalette.Brand;
-        var hex = BrandColor.Hex is { } value ? BrandPalette.From(value) : null;
-        var name = BrandColor.Name ?? (app ? BrandChartPalette.BrandOf(Preset) : null);
-        var colorless = hex is not null ? BrandChartPalette.Colorless(hex) : name is not null && BrandChartPalette.Colorless(name);
-        if (app)
-        {
-            // tokens.css's own are Contrast.
-            if (colorless) return null;
-            var palette = hex is not null ? BrandChartPalette.Css(hex, app: true) : BrandChartPalette.Css(name!, app: true);
-            return brand ? $"{palette} {BrandChartPalette.Use(orContrast: false)}" : palette;
-        }
-
-        if (!brand) return null;
-        if (colorless) return BrandChartPalette.Contrast;
-        if (hex is not null) return BrandChartPalette.Css(hex);
-        if (name is not null) return BrandChartPalette.Css(name);
-        return ChartPalette is null ? null : BrandChartPalette.Use(orContrast: true);
-    }
+    private protected string? BrandChartCss(bool app) => ThemeCss.BrandCharts(BrandColor, Preset, ChartPalette, app);
 
     /// <summary>The brand color as parsed: a built-in name or a hex color.</summary>
     private protected (string? Name, string? Hex) BrandColor { get; private set; }

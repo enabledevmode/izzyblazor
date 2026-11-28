@@ -37,6 +37,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- izzy theme vars: what IzzyTheme writes, from the library's own code. Compiled in rather than referenced,
+         so the tool needs no ASP.NET Core and its build runs no npm. -->
+    <Compile Include="$(RepoRoot)src/IzzyBlazor.Core/Core/ThemeCss.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/ThemeValues.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/Scheme.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/ColorValues.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/ColorMath.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/BrandPalette.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/GrayPalette.cs;$(RepoRoot)src/IzzyBlazor.Core/Core/BrandChartPalette.cs" Link="Theme/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- The skill izzy agent writes. -->
     <EmbeddedResource Include="Agent/SKILL.md" LogicalName="SKILL.md" />
     <!-- izzy audit's engine: axe-core, unmodified (MPL 2.0; see THIRD-PARTY-NOTICES.md). Replace the file to update it. -->

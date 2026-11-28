@@ -40,37 +40,9 @@
        izzyblazor.css uses. *@
     <link rel="preload" href="_content/IzzyBlazor.Core/fonts/inter-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin />
 }
-@if (Preset is { } preset)
+@foreach (var (name, content) in _meta)
 {
-    <meta name="ib-preset" content="@Name(preset)" />
-}
-@if (BrandColor.Name is { } brand)
-{
-    <meta name="ib-brand" content="@brand" />
-}
-@if (GrayColor.Name is { } gray)
-{
-    <meta name="ib-gray" content="@gray" />
-}
-@if (Radius is { } radius)
-{
-    <meta name="ib-radius" content="@Name(radius)" />
-}
-@if (Density is { } density)
-{
-    <meta name="ib-density" content="@Name(density)" />
-}
-@if (ChartPaletteName is { } chartPalette)
-{
-    <meta name="ib-chart-palette" content="@chartPalette" />
-}
-@if (Scrollbars is { } scrollbars && scrollbars != ThemeScrollbars.Auto)
-{
-    <meta name="ib-scrollbars" content="@Name(scrollbars)" />
-}
-@if (_scheme is IzzyBlazor.ColorScheme.Light or IzzyBlazor.ColorScheme.Dark)
-{
-    <meta name="ib-color-scheme" content="@ColorSchemes.Name(_scheme.Value)" />
+    <meta name="@name" content="@content" />
 }
 @if (_css is not null)
 {
@@ -119,6 +91,7 @@
 
     private string? _css;
     private IzzyBlazor.ColorScheme? _scheme;
+    private List<(string Name, string Content)> _meta = [];
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -139,88 +112,7 @@
         // registers IRequestCookies), else the app's default.
         _scheme = ColorSchemes.Parse(Services.GetService<IRequestCookies>()?.Get(ColorSchemes.CookieName)) ?? ColorScheme;
 
-        var declarations = new List<string>();
-        if (BrandColor.Hex is { } brandHex)
-        {
-            declarations.Add(BrandPalette.From(brandHex).ToCss());
-        }
-
-        if (GrayColor.Hex is { } grayHex)
-        {
-            declarations.Add(GrayPalette.From(grayHex).ToCss());
-        }
-
-        // The charts' colors for this brand: a stylesheet can't work them out, so tokens.css's own are Contrast.
-        if (BrandChartCss(app: true) is { } charts)
-        {
-            declarations.Add(charts);
-        }
-
-        if (!string.IsNullOrWhiteSpace(BodyFont))
-        {
-            declarations.Add($"--ib-font-body: {FontList(BodyFont, nameof(BodyFont))};");
-        }
-
-        if (!string.IsNullOrWhiteSpace(HeadingFont))
-        {
-            declarations.Add($"--ib-font-heading: {FontList(HeadingFont, nameof(HeadingFont))};");
-        }
-
-        if (!string.IsNullOrWhiteSpace(MonoFont))
-        {
-            declarations.Add($"--ib-font-mono: {FontList(MonoFont, nameof(MonoFont))};");
-        }
-
-        if (HeadingWeight is { } weight)
-        {
-            if (weight is < 100 or > 900)
-            {
-                throw new ArgumentOutOfRangeException(nameof(HeadingWeight), weight, "HeadingWeight is a CSS font weight, 100 to 900.");
-            }
-
-            declarations.Add(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"--ib-weight-heading: {weight};"));
-        }
-
-        // In the tokens layer like the library's own values, and written as :root:root:root so it
-        // beats a preset's or an accent's values on <html> whatever order the stylesheets load in.
-        _css = declarations.Count == 0
-            ? null
-            : "@layer izzy.tokens { :root:root:root { " + string.Join(" ", declarations) + " } }";
-    }
-
-    // A font-family list goes into a style block as is, so it may not close the declaration,
-    // the rule or the element.
-    private static string FontList(string value, string parameter)
-    {
-        // No way out of the declaration or the style element, and no open string or block: an
-        // unclosed quote, bracket or parenthesis (or a newline, which ends a CSS string) would
-        // swallow every declaration after it. A font-family list needs none of ( ) [ ].
-        var list = value.Trim();
-        if (list.IndexOfAny([';', '{', '}', '<', '>', '\\', '(', ')', '[', ']']) >= 0 || list.Contains("/*", StringComparison.Ordinal)
-            || list.Any(char.IsControl) || !QuotesClose(list))
-        {
-            throw new ArgumentException($"{parameter} is a CSS font-family list, such as \"Inter, system-ui, sans-serif\".", parameter);
-        }
-
-        return list;
-    }
-
-    // Every quoted family name ends with the quote it started with.
-    private static bool QuotesClose(string list)
-    {
-        char? open = null;
-        foreach (var c in list)
-        {
-            if (open is null && c is '\'' or '"')
-            {
-                open = c;
-            }
-            else if (c == open)
-            {
-                open = null;
-            }
-        }
-
-        return open is null;
+        _meta = ThemeCss.Meta(Preset, BrandColor.Name, GrayColor.Name, Radius, Density, ChartPalette, Scrollbars, _scheme);
+        _css = ThemeCss.App(Preset, BrandColor, GrayColor, ChartPalette, BodyFont, HeadingFont, MonoFont, HeadingWeight);
     }
 }

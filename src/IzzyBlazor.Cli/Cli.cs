@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Globalization;
+using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -54,6 +56,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy agent [--project <path>] [--dry-run]
           izzy mcp
           izzy doctor [--build] [--browser <path>] [--project <path>] [--json]
+          izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--json]
           izzy login [--no-browser]
           izzy logout
           izzy account [--json]
@@ -87,6 +90,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         izzy doctor checks what izzy needs on this machine and in this app: the .NET SDK, the app's IzzyBlazor
         package and its own izzy against this izzy, your account and the browser for the audit. --build builds
         the app too. It changes nothing.
+        izzy theme vars prints the tags IzzyTheme writes into <head> for these settings, which take IzzyTheme's
+        values (a hex brand or gray, or a built-in name): meta tags for what the theme CSS chooses by name, and
+        a style block for a hex color's palette, the charts' brand colors and the fonts. A preview with
+        izzyblazor.css puts them in its <head> to show a theme with no app running.
         izzy audit checks a page's accessibility with axe-core and izzy's own checks (target size, focus
         hidden under a header that stays in place, and focus and indicators in forced colors), in the Chrome
         or Edge on this machine, at two widths, in light and dark and once more in forced colors. It writes
@@ -155,6 +162,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "unwrap" => Unwrap(args),
                 "extract" => Extract(args),
                 "doctor" => Doctor(args),
+                "theme" => Theme(args),
                 "new" => New(args),
                 "init" => Init(args),
                 "update" => Update(args),
@@ -167,7 +175,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account [--json]", "json").Status(output, args.Switch("json")),
                 "feedback" => Feedback(args),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, wrap, unwrap, extract, new, init, update, upgrade, audit, agent, mcp, doctor, login, logout, account, feedback."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, wrap, unwrap, extract, new, init, update, upgrade, audit, agent, mcp, doctor, theme, login, logout, account, feedback."),
             };
         }
         catch (PreviewChangedException e)
@@ -953,6 +961,80 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var (page, path, tag) = TagAt(args.Words[1], folder, stdin, usage);
         Print(TagEdit.Inspect(page, path, tag, Library));
         return 0;
+    }
+
+    // izzy theme vars --brand #0f766e: the tags IzzyTheme writes into <head> for these settings, worked out by
+    // the library's own code (ThemeCss, compiled in), for a preview with no app running.
+    int Theme(Args args)
+    {
+        const string usage = "izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--json]";
+        if (args.Words.Count != 2 || args.Words[1] != "vars") throw new UsageException($"Usage: {usage}");
+        var json = args.Switch("json");
+        var preset = Choice<ThemePreset>(args, "preset");
+        var brand = Color(args, "brand", ThemeColors.Brands);
+        var gray = Color(args, "gray", ThemeColors.Grays);
+        var radius = Choice<ThemeRadius>(args, "radius");
+        var density = Choice<ThemeDensity>(args, "density");
+        var charts = Choice<ThemeChartPalette>(args, "chart-palette");
+        var scrollbars = Choice<ThemeScrollbars>(args, "scrollbars");
+        var scheme = Choice<ColorScheme>(args, "color-scheme", "auto", "light", "dark");
+        var (body, heading, mono) = (args.Take("body-font"), args.Take("heading-font"), args.Take("mono-font"));
+        int? weight = args.Take("heading-weight") is not { } w ? null
+            : int.TryParse(w, NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n is >= 100 and <= 900 ? n
+            : throw new UsageException($"--heading-weight is a CSS font weight, 100 to 900. Got \"{w}\".");
+        NoSettings(args);
+
+        var meta = ThemeCss.Meta(preset, brand.Name, gray.Name, radius, density, charts, scrollbars, scheme);
+        string? css;
+        try
+        {
+            css = ThemeCss.App(preset, brand, gray, charts, body, heading, mono, weight);
+        }
+        catch (ArgumentException e) when (e.ParamName is "BodyFont" or "HeadingFont" or "MonoFont")
+        {
+            var option = e.ParamName switch { "BodyFont" => "body-font", "HeadingFont" => "heading-font", _ => "mono-font" };
+            throw new UsageException($"--{option} is a CSS font-family list, such as \"Inter, system-ui, sans-serif\".");
+        }
+        var head = new StringBuilder();
+        foreach (var (name, content) in meta) head.Append($"<meta name=\"{name}\" content=\"{WebUtility.HtmlEncode(content)}\" />\n");
+        if (css is not null) head.Append($"<style data-ib-theme-style>{css}</style>\n");
+        if (!json)
+        {
+            _data.Write(head.Length > 0 ? head.ToString() : "");
+            if (head.Length == 0) error.WriteLine("These are the library's defaults: there is nothing to write.");
+            return 0;
+        }
+        Print(new JsonObject
+        {
+            // The library version the tags are worked out for: this izzy's.
+            ["version"] = Generator.IzzyBlazorVersion,
+            ["meta"] = new JsonArray(meta.Select(m => (JsonNode)new JsonObject { ["name"] = m.Name, ["content"] = m.Content }).ToArray()),
+            ["css"] = css,
+            ["head"] = head.ToString(),
+        });
+        return 0;
+
+        static T? Choice<T>(Args args, string option, params string[] allowed) where T : struct, Enum
+        {
+            if (args.Take(option) is not { } value) return null;
+            string[] names = allowed.Length > 0 ? allowed : [.. Enum.GetNames<T>().Select(n => Regex.Replace(n, "(?<=[a-z])(?=[A-Z])", "-").ToLowerInvariant())];
+            var match = names.FirstOrDefault(n => n.Equals(value, StringComparison.OrdinalIgnoreCase) || n.Replace("-", "").Equals(value, StringComparison.OrdinalIgnoreCase));
+            return match is not null ? Enum.Parse<T>(match.Replace("-", ""), ignoreCase: true)
+                : throw new UsageException($"--{option} is one of: {string.Join(", ", names)}. Got \"{value}\".");
+        }
+
+        static (string? Name, string? Hex) Color(Args args, string option, string[] names)
+        {
+            if (args.Take(option) is not { } value) return default;
+            try
+            {
+                return ThemeColors.Parse(value, names, option);
+            }
+            catch (ArgumentException)
+            {
+                throw new UsageException($"--{option} is a hex color such as #0a7d5a, or one of: {string.Join(", ", names)}. Got \"{value}\".");
+            }
+        }
     }
 
     // izzy set Components/Pages/Home.razor:12:8 --variant Outline --unset size: the edit, as a changeset.
