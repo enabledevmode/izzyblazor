@@ -180,6 +180,7 @@ public static class Generator
         {
             Creates = creates, Inserts = inserts, Packages = packages, Conflicts = conflicts, Warnings = warnings,
             Settings = manifest.Parameters.ToDictionary(p => p.Name, p => values[p.Name] is bool b ? (b ? "true" : "false") : Convert.ToString(values[p.Name], CultureInfo.InvariantCulture)!),
+            Generated = [.. manifest.Parameters.Where(p => (p.Port is not null || p.Guid) && !settings.Keys.Any(k => k.Equals(p.Name, StringComparison.OrdinalIgnoreCase))).Select(p => p.Name)],
             Restore = manifest.Restore is not null && Condition.Evaluate(manifest.Restore, values),
         };
     }

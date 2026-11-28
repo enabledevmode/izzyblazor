@@ -25,10 +25,15 @@ public sealed class CliTests : IDisposable
     [AccountFact]
     public void A_new_app_takes_a_hero_once_and_records_both()
     {
-        // Ids are found in any case, and recorded as the catalog writes them.
-        Assert.Equal(0, Izzy(_work, "new", "starter", "Blazor", "-n", "Acme", "--no-restore").Exit);
+        // An editor previews, then writes what it showed: the ports izzy picked given back, and the preview's hash.
         var app = Path.Combine(_work, "Acme");
+        string[] starter = ["new", "starter", "Blazor", "-n", "Acme", "--no-restore"];
+        var made = JsonNode.Parse(Izzy(_work, [.. starter, "--dry-run", "--json"]).Out)!;
+        string[] generated = [.. made["generated"]!.AsObject().SelectMany(g => new[] { "--" + g.Key, (string)g.Value! })];
+        Assert.Contains("--KestrelHttpPort", generated);
+        Assert.Equal(0, Izzy(_work, [.. starter, .. generated, "--expect", (string)made["hash"]!]).Exit);
 
+        // Ids are found in any case, and recorded as the catalog writes them.
         var preview = Izzy(app, "add", "block", "Hero", "--layout", "Split", "--dry-run", "--json");
         Assert.Equal(0, preview.Exit);
         var json = JsonNode.Parse(preview.Out)!;
@@ -36,7 +41,17 @@ public sealed class CliTests : IDisposable
         Assert.Equal(["Components/Blocks/Hero.razor", "wwwroot/images/hero-screenshot.svg"], json["creates"]!.AsArray().Select(c => (string)c!["path"]!));
         Assert.False(File.Exists(Path.Combine(app, "Components", "Blocks", "Hero.razor")));
 
-        Assert.Equal(0, Izzy(app, "add", "block", "hero", "--layout", "Split").Exit);
+        // A page changed after the preview: nothing is written, and the editor previews again.
+        var homePath = Path.Combine(app, "Components", "Pages", "Home.razor");
+        var before = File.ReadAllText(homePath);
+        File.AppendAllText(homePath, "<p>Edited</p>\n");
+        var stale = Izzy(app, "add", "block", "hero", "--layout", "Split", "--expect", (string)json["hash"]!);
+        Assert.Equal(6, stale.Exit);
+        Assert.Contains("Preview them again", stale.Error);
+        Assert.False(File.Exists(Path.Combine(app, "Components", "Blocks", "Hero.razor")));
+        File.WriteAllText(homePath, before);
+
+        Assert.Equal(0, Izzy(app, "add", "block", "hero", "--layout", "Split", "--expect", (string)json["hash"]!).Exit);
         Assert.Contains("<Grid Columns=", File.ReadAllText(Path.Combine(app, "Components", "Blocks", "Hero.razor")));
         Assert.Contains("Nothing to change", Izzy(Path.Combine(app, "Components"), "add", "block", "hero", "--layout", "Split").Out);
 

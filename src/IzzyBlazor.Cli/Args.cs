@@ -67,5 +67,5 @@ sealed class Args
 
     /// <summary>The names the CLI takes for itself, which no item's setting may be given under.</summary>
     public static bool Reserved(string name) =>
-        Switches.Contains(name) || Short.ContainsKey(name) || name is "project" or "at" or "kind" or "example" or "unset" or "to" or "with";
+        Switches.Contains(name) || Short.ContainsKey(name) || name is "project" or "at" or "expect" or "kind" or "example" or "unset" or "to" or "with";
 }

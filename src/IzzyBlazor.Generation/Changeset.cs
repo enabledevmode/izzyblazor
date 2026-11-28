@@ -28,8 +28,43 @@ public sealed class Changeset
     /// </summary>
     public IReadOnlyDictionary<string, string> Settings { get; init; } = new Dictionary<string, string>();
 
+    /// <summary>
+    /// The settings izzy picked itself because none was given (a port, a GUID), by name: given again, they make
+    /// the same changes, so a preview's run without <c>--dry-run</c> writes what was previewed.
+    /// </summary>
+    public IReadOnlyList<string> Generated { get; init; } = [];
+
     /// <summary>Whether to restore packages once the files are written (a new starter, unless asked not to).</summary>
     public bool Restore { get; init; }
+
+    /// <summary>
+    /// The SHA-256 (hex) of what this changeset writes: its files, changes, packages and conflicts, not its
+    /// warnings or settings. A preview's hash given back with <c>--expect</c> makes a run write only those changes.
+    /// </summary>
+    public string Hash()
+    {
+        using var sha = System.Security.Cryptography.IncrementalHash.CreateHash(System.Security.Cryptography.HashAlgorithmName.SHA256);
+        void Add(string part)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(part);
+            sha.AppendData(BitConverter.GetBytes(bytes.Length));
+            sha.AppendData(bytes);
+        }
+        foreach (var c in Creates)
+        {
+            Add("create"); Add(c.Path);
+            if (c.Text is not null) Add(c.Text);
+            else Add(Convert.ToBase64String(c.Bytes!));
+        }
+        foreach (var i in Inserts)
+        {
+            Add("insert"); Add(i.Path); Add(i.Offset.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            Add(i.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)); Add(i.Text); Add(i.OriginalHash);
+        }
+        foreach (var p in Packages) { Add("package"); Add(p.Project); Add(p.Id); Add(p.Version); }
+        foreach (var c in Conflicts) { Add("conflict"); Add(c); }
+        return Convert.ToHexStringLower(sha.GetHashAndReset());
+    }
 }
 
 /// <summary>A file to create.</summary>

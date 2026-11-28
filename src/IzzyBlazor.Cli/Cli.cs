@@ -10,7 +10,8 @@ namespace IzzyBlazor.Cli;
 
 /// <summary>
 /// The izzy commands. Exit codes: 0 done, 1 an error, 2 files exist with other content (nothing written), 3 a Pro
-/// item or choice, 4 an item that comes with a free account, 5 an audit with findings under <c>--fail-on</c>.
+/// item or choice, 4 an item that comes with a free account, 5 an audit with findings under <c>--fail-on</c>, 6 changes
+/// that aren't the ones <c>--expect</c> names (nothing written).
 /// </summary>
 /// <param name="catalogRoot">The free catalog folder.</param>
 /// <param name="workingDirectory">Where relative paths start and the project is looked for.</param>
@@ -81,6 +82,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         Settings are the item's, as izzy describe lists them (izzy describe block hero), such as --layout Split.
         --dry-run writes nothing; --diff shows the changes as a unified diff; --json prints them as data.
         Files that exist with other content are never replaced without --overwrite.
+        To write what a preview showed, run the command again without --dry-run, with each of the preview's
+        "generated" settings and --expect <its "hash">: if the changes differ, nothing is written (exit code 6).
         izzy doctor checks what izzy needs on this machine and in this app: the .NET SDK, the app's IzzyBlazor
         package and its own izzy against this izzy, your account and the browser for the audit. --build builds
         the app too. It changes nothing.
@@ -166,6 +169,11 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "feedback" => Feedback(args),
                 var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, wrap, unwrap, extract, new, init, update, upgrade, audit, agent, mcp, doctor, login, logout, account, feedback."),
             };
+        }
+        catch (PreviewChangedException e)
+        {
+            error.WriteLine(e.Message);
+            return 6;
         }
         catch (ProRequiredException e)
         {
@@ -720,7 +728,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             changes = new Changeset
             {
                 Creates = changes.Creates, Inserts = changes.Inserts, Packages = changes.Packages, Conflicts = changes.Conflicts,
-                Warnings = [.. notes, .. changes.Warnings], Settings = changes.Settings, Restore = changes.Restore,
+                Warnings = [.. notes, .. changes.Warnings], Settings = changes.Settings, Generated = changes.Generated, Restore = changes.Restore,
             };
         return Finish(item, changes, project, project.Directory!, existing: true, flags);
     }
@@ -899,6 +907,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         }
 
         var changes = new Changeset { Creates = creates, Inserts = inserts, Packages = [], Conflicts = [], Warnings = warnings };
+        Expect(changes);
         var write = !flags.DryRun && !stdin;
         if (flags.Diff && !stdin && !flags.Json) output.Write(ChangesetWriter.Diff(changes, project));
         if (flags.Json) Print(ChangesetJson(changes, write));
@@ -969,6 +978,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var project = ProjectInfo.FromProject(FindProject(folder));
         var edits = TagEdit.Set(page, path, tag, Library, changes);
         var changeset = new Changeset { Creates = [], Inserts = edits, Packages = [], Conflicts = [], Warnings = [] };
+        Expect(changeset);
         var write = !flags.DryRun && !stdin;
         if (flags.Diff && !stdin && !flags.Json) output.Write(ChangesetWriter.Diff(changeset, project));
         if (flags.Json) Print(ChangesetJson(changeset, write));
@@ -1204,6 +1214,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // A changeset printed, shown or written, as izzy set does: an editor's buffer (--stdin) is never written.
     int Edited(Changeset changeset, ProjectInfo project, (bool Json, bool DryRun, bool Diff, bool Overwrite) flags, bool stdin)
     {
+        Expect(changeset);
         var write = !flags.DryRun && !stdin;
         if (flags.Diff && !stdin && !flags.Json) output.Write(ChangesetWriter.Diff(changeset, project));
         if (flags.Json) Print(ChangesetJson(changeset, write));
@@ -1378,7 +1389,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
             {
                 Creates = [.. changes.Creates.Where(c => !c.Path.EndsWith("mcp.json", StringComparison.Ordinal))], Inserts = changes.Inserts,
                 Packages = changes.Packages, Conflicts = [.. changes.Conflicts.Where(c => !c.EndsWith("mcp.json", StringComparison.Ordinal))],
-                Warnings = changes.Warnings, Settings = changes.Settings, Restore = changes.Restore,
+                Warnings = changes.Warnings, Settings = changes.Settings, Generated = changes.Generated, Restore = changes.Restore,
             };
         var exit = Finish(item, changes, project, directory, existing: false, flags);
         if (exit == 0 && agent) AgentFiles.Write(directory, flags.DryRun, flags.Json ? TextWriter.Null : output, error);
@@ -1450,6 +1461,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (ToolManifest.Change(project.ReadFile, target) is { Insert: { Length: > 0 } tool }) inserts.Add(tool);
 
         var changes = new Changeset { Creates = [], Inserts = inserts, Packages = [], Conflicts = [], Warnings = warnings };
+        Expect(changes);
         var write = !flags.DryRun && inserts.Count > 0;
         // What the releases in between removed or renamed. An izzy without the record still updates the app.
         var between = from is not null && File.Exists(ReleaseChanges.Beside) ? Changes.Between(from, target) : [];
@@ -1612,6 +1624,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var found = uses.Where(u => !u.Closing).ToList();
         var byHand = found.Count(u => u.Fix is null);
         var changeset = new Changeset { Creates = [], Inserts = fixes, Packages = [], Conflicts = [], Warnings = warnings };
+        Expect(changeset);
         var write = apply && !flags.DryRun && fixes.Count > 0;
         // Written first: a file that can't be written ends the command before it says anything was.
         if (write) ChangesetWriter.Apply(changeset, root);
@@ -1813,6 +1826,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // Shows or writes a changeset, then adds packages, restores and records the item.
     int Finish(ItemDefinition item, Changeset changes, ProjectInfo project, string directory, bool existing, (bool Json, bool DryRun, bool Diff, bool Overwrite) flags)
     {
+        Expect(changes);
         var blocked = changes.Conflicts.Count > 0 && !flags.Overwrite;
         var write = !flags.DryRun && !blocked;
         if (flags.Diff) _data.Write(ChangesetWriter.Diff(changes, project));
@@ -1947,8 +1961,22 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         if (args.Words.Count != count) throw new UsageException($"Usage: {usage}");
     }
 
-    static (bool Json, bool DryRun, bool Diff, bool Overwrite) Flags(Args args) =>
-        (args.Switch("json"), args.Switch("dry-run"), args.Switch("diff"), args.Switch("overwrite"));
+    (bool Json, bool DryRun, bool Diff, bool Overwrite) Flags(Args args)
+    {
+        _expect = args.Take("expect");
+        if (_expect is not null && !Regex.IsMatch(_expect, "^[0-9a-fA-F]{64}$"))
+            throw new UsageException($"--expect takes the hash a preview printed (--dry-run --json), not \"{_expect}\".");
+        return (args.Switch("json"), args.Switch("dry-run"), args.Switch("diff"), args.Switch("overwrite"));
+    }
+
+    // --expect: the hash of the changes a preview showed. A run whose changes differ writes nothing.
+    string? _expect;
+
+    void Expect(Changeset changes)
+    {
+        if (_expect is not null && !_expect.Equals(changes.Hash(), StringComparison.OrdinalIgnoreCase))
+            throw new PreviewChangedException();
+    }
 
     static void NoSettings(Args args)
     {
@@ -2041,6 +2069,8 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         ["conflicts"] = new JsonArray(c.Conflicts.Select(p => (JsonNode)p).ToArray()),
         ["warnings"] = new JsonArray(c.Warnings.Select(w => (JsonNode)w).ToArray()),
         ["settings"] = new JsonObject(c.Settings.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)kv.Value))),
+        ["generated"] = new JsonObject(c.Generated.Select(name => KeyValuePair.Create(name, (JsonNode?)c.Settings[name]))),
+        ["hash"] = c.Hash(),
     };
 
     static JsonObject ProChoices(ItemManifest m) =>
@@ -2051,3 +2081,6 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
 
     static string Lower<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
 }
+
+/// <summary>The changes aren't the ones a preview showed (<c>--expect</c>): nothing was written.</summary>
+sealed class PreviewChangedException() : Exception("These aren't the changes that were previewed, so nothing was written: a file they change has changed since. Preview them again.");
