@@ -43,8 +43,9 @@ sealed record ContextInfo(string Name, string Namespace, string SetName);
 /// <param name="Fields">The other properties crud shows, in the order written.</param>
 /// <param name="Skipped">Properties left out, each with why.</param>
 /// <param name="Contexts">The DbContexts with a DbSet of it.</param>
+/// <param name="Linked">Properties left out because they link to other records: another model, or a list of them.</param>
 sealed record ModelInfo(string Name, string Namespace, string File, ModelField Key, bool KeyGenerated,
-    IReadOnlyList<ModelField> Fields, IReadOnlyList<string> Skipped, IReadOnlyList<ContextInfo> Contexts);
+    IReadOnlyList<ModelField> Fields, IReadOnlyList<string> Skipped, IReadOnlyList<ContextInfo> Contexts, IReadOnlyList<string> Linked);
 
 /// <summary>
 /// Reads a model class from the app's source, with no build: Roslyn's syntax trees, not a compilation, so
@@ -84,6 +85,7 @@ static partial class ModelReader
 
         var fields = new List<ModelField>();
         var skipped = new List<string>();
+        var linked = new List<string>();
         ModelField? key = null;
         var keyGenerated = false;
         // Its base classes in the app come first (an Entity with the Id), as their properties come first at run time.
@@ -181,6 +183,11 @@ static partial class ModelReader
             var setter = p.AccessorList?.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration);
             var writable = setter is not null && !setter.Modifiers.Any(m => m.Kind() is SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.InternalKeyword);
             var field = Field(name, TypeOf(p), attributes, writable, p.Modifiers.Any(SyntaxKind.RequiredKeyword), EnumFor, classes, NullableAt(p, nullableEnabled), out var why);
+            if (field is null && why is null)
+            {
+                linked.Add(name);
+                continue;
+            }
             if (field is null)
             {
                 skipped.Add($"{name}: {why}");
@@ -224,12 +231,13 @@ static partial class ModelReader
             .DistinctBy(c => (c.Namespace, c.Name))
             .ToList();
 
-        return new ModelInfo(simple, ns, parts[0].Path, key, keyGenerated, fields, skipped, contexts);
+        return new ModelInfo(simple, ns, parts[0].Path, key, keyGenerated, fields, skipped, contexts, linked);
     }
 
     static ModelField? Field(string name, TypeSyntax type, SyntaxList<AttributeListSyntax> attributes, bool writable, bool required,
-        Func<TypeSyntax, EnumDeclarationSyntax?> enumFor, HashSet<string> classes, bool nullableEnabled, out string why)
+        Func<TypeSyntax, EnumDeclarationSyntax?> enumFor, HashSet<string> classes, bool nullableEnabled, out string? why)
     {
+        // why is null for a property that links to other records: the run names them together.
         why = "";
         var nullable = type is NullableTypeSyntax;
         var inner = type is NullableTypeSyntax n ? n.ElementType : type;
@@ -250,7 +258,8 @@ static partial class ModelReader
         }
         if (inner is GenericNameSyntax or ArrayTypeSyntax)
         {
-            why = "a list (related records are a Pro option)";
+            var item = inner is ArrayTypeSyntax array ? array.ElementType : ((GenericNameSyntax)inner).TypeArgumentList.Arguments.LastOrDefault();
+            why = item is not null && classes.Contains(LastName(item)) ? null : "a list, which crud's pages don't show";
             return null;
         }
 
@@ -279,7 +288,7 @@ static partial class ModelReader
         };
         if (kind is null)
         {
-            why = classes.Contains(typeName) ? $"a related {typeName} (related records are a Pro option)" : $"its type {typeName} isn't one crud knows";
+            why = classes.Contains(typeName) ? null : $"its type {typeName} isn't one crud knows";
             return null;
         }
 

@@ -707,7 +707,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         var settings = Settings(item.Manifest, args);
         var notes = new List<string>();
         var written = new List<string>();
-        if (crud) project = Crud.Prepare(project, args.Words[2], settings, notes, written);
+        if (crud) project = Crud.Prepare(project, args.Words[2], settings, notes, written, Plan == ItemTier.Pro);
         // A component named as one of the library's makes its tag mean two things on every page that has both.
         if (made == "razor" && settings.FirstOrDefault(kv => kv.Key.Equals("Name", StringComparison.OrdinalIgnoreCase)).Value is { } razorName && Library.Options(razorName) is not null)
             throw new UsageException($"{razorName} is an IzzyBlazor component's name. Pick another --name.");

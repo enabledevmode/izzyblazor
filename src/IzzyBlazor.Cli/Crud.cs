@@ -18,7 +18,8 @@ static partial class Crud
 
     /// <param name="notes">Said on every run: what is in the way, or needs a hand.</param>
     /// <param name="written">Said only by a run that writes: what was made, such as where the records are kept.</param>
-    public static ProjectInfo Prepare(ProjectInfo project, string model, Dictionary<string, string> settings, List<string> notes, List<string> written)
+    /// <param name="pro">Whether the account has Pro, a preview too: the note on linked records says what Pro will add.</param>
+    public static ProjectInfo Prepare(ProjectInfo project, string model, Dictionary<string, string> settings, List<string> notes, List<string> written, bool pro)
     {
         string? Given(string name) => settings.FirstOrDefault(s => s.Key.Equals(name, StringComparison.OrdinalIgnoreCase)).Value;
 
@@ -41,6 +42,13 @@ static partial class Crud
             || DirectoryBuildProps(root).Any(p => Regex.IsMatch(p, @"<Nullable>\s*enable\s*</Nullable>", RegexOptions.IgnoreCase));
         var info = ModelReader.Read(files, model, nullable);
         foreach (var skipped in info.Skipped) written.Add($"{info.Name}.{skipped}: left out.");
+        // One sentence for the properties that link to other records: pickers for them aren't made yet.
+        if (info.Linked.Count > 0)
+        {
+            var them = info.Linked.Count == 1 ? info.Linked[0] : $"{string.Join(", ", info.Linked.Take(info.Linked.Count - 1))} and {info.Linked[^1]}";
+            written.Add((info.Linked.Count == 1 ? $"{them} links to other records, so the pages leave it out." : $"{them} link to other records, so the pages leave them out.")
+                + (pro ? " Pickers for linked records aren't available yet." : " Pickers for linked records are planned for IzzyBlazor Pro."));
+        }
 
         // The pages in the .Client project can't see a class in the server project; the server sees the client's.
         if (http && !info.File.StartsWith(project.Client!, StringComparison.Ordinal) && (project.Host.Length == 0 || info.File.StartsWith(project.Host, StringComparison.Ordinal)))

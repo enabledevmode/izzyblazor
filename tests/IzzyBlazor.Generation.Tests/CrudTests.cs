@@ -74,6 +74,7 @@ public sealed class CrudTests : IDisposable
 
         var customers = Izzy(app, "add", "crud", "Customer");
         Assert.True(customers.Exit == 0, customers.Error);
+        Assert.Contains("Invoices links to other records, so the pages leave it out. Pickers for linked records aren't available yet.", customers.Error);
         // Task's page says where it goes and how it runs, as a page from izzy add page does: its folder, its layout,
         // a circuit, and no link in the nav.
         var tasks = Izzy(app, "add", "crud", "Task", "--folder", "Components/Pages/Admin", "--layout", "MainLayout", "--render", "InteractiveServer", "--nav", "false");
