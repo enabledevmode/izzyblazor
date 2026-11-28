@@ -195,6 +195,9 @@ sealed class Components
         c["parameters"]!.AsArray().Select(p => p!.AsObject())
             .Concat((c["bases"]?.AsArray() ?? []).SelectMany(b => _bases.TryGetValue((string)b!, out var shared) ? shared["parameters"]!.AsArray().Select(p => p!.AsObject()) : []));
 
+    /// <summary>The names of the library's CSS variables, public and internal.</summary>
+    public HashSet<string> TokenNames => field ??= (_file["tokens"]?.AsArray() ?? []).Select(t => (string)t!["name"]!).ToHashSet(StringComparer.Ordinal);
+
     /// <summary>Whether the data lists the library's CSS variables (after alpha.30).</summary>
     public bool HasTokens => _file["tokens"] is JsonArray;
 

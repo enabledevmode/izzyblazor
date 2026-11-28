@@ -80,6 +80,20 @@ sealed class LibraryTheme
             .OrderByDescending(d => int.Parse(d.Match.Groups[1].Value, CultureInfo.InvariantCulture))
             .Select(d => d.Folder).FirstOrDefault();
 
+    /// <summary>
+    /// The fill and the text on it, light and dark, that this version's BrandPalette derives from a hex color:
+    /// the fill moved only as far as text on it needs to reach 4.5:1, and in dark mode lifted until it shows.
+    /// </summary>
+    public (string Fill, string OnFill, string DarkFill, string DarkOnFill) Palette(string hex)
+    {
+        var type = _library.GetType("IzzyBlazor.BrandPalette") ?? throw new UsageException($"IzzyBlazor {Version} has no BrandPalette: give --dark and --on.");
+        object palette;
+        try { palette = type.GetMethod("From", [typeof(string)])!.Invoke(null, [hex])!; }
+        catch (TargetInvocationException e) when (e.InnerException is ArgumentException) { throw new UsageException($"\"{hex}\" isn't a hex color such as #7c3aed."); }
+        string Get(string name) => (string)type.GetProperty(name)!.GetValue(palette)!;
+        return (Get("Fill"), Get("OnFill"), Get("DarkFill"), Get("DarkOnFill"));
+    }
+
     /// <summary>An option's value as the parameter takes it, or a usage error naming what it takes.</summary>
     public object Value(string option, PropertyInfo parameter, string value)
     {

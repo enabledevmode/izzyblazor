@@ -42,6 +42,12 @@
         </TextBlock>
         <Code Block Language="csharp">@OwnColorName</Code>
         <Code Block Language="razor">@OwnColorUse</Code>
+        <TextBlock>
+            <Code>izzy add token promo --light #7c3aed</Code> writes both: the two variables in <Code>wwwroot/theme.css</Code>,
+            linked after the library's stylesheet, and the <Code>Accent</Code> and <Code>Color</Code> members. It works out
+            the dark color and the text on each with the same contrast checks as <Code>Brand</Code>, unless you give
+            <Code>--dark</Code> and <Code>--on</Code>. <Code>izzy rename token</Code> renames one everywhere your app uses it.
+        </TextBlock>
 
         <Heading Level="2">Brand shades by hand</Heading>
         <TextBlock>

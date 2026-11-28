@@ -195,6 +195,30 @@ public sealed class ComponentTests : IDisposable
         Assert.Equal("heading-weight", (string)described["theme"]!["properties"]!["HeadingWeight"]!["x-option"]!);
     }
 
+    // An app's own color: its variables in theme.css (made and linked), its members beside the built-in ones, then
+    // renamed wherever the app has it.
+    [Fact]
+    public void An_apps_own_token_is_added_and_renamed()
+    {
+        ChangesetWriter.Apply(Generator.Generate(ProjectBuild.Item("blazor"), ProjectBuild.StarterSettings(), ProjectInfo.ForNewProject("Acme")), _work);
+        var result = Izzy("add", "token", "promo", "--light", "#7c3aed");
+        Assert.Equal(0, result.Exit);
+
+        var css = File.ReadAllText(Path.Combine(_work, "wwwroot", "theme.css"));
+        Assert.Matches(@"--ib-color-promo: light-dark\(#7c3aed, #[0-9a-f]{6}\);", css);
+        Assert.Matches(@"--ib-color-on-promo: light-dark\(#ffffff, #[0-9a-f]{6}\);", css);
+        Assert.Contains("<link rel=\"stylesheet\" href=\"@Assets[\"theme.css\"]\" />", File.ReadAllText(Path.Combine(_work, "Components", "App.razor")));
+        var members = File.ReadAllText(Path.Combine(_work, "Theme", "AppTokens.cs"));
+        Assert.Contains("public static Accent Promo => Accent.Token(\"promo\");", members);
+        Assert.Contains("public static Color Promo => Color.Token(\"promo\");", members);
+
+        File.AppendAllText(Path.Combine(_work, "Components", "Pages", "Home.razor"), "<Button Accent=\"Accent.Promo\">Upgrade</Button>\n");
+        Assert.Equal(0, Izzy("rename", "token", "promo", "offer").Exit);
+        Assert.Contains("--ib-color-on-offer:", File.ReadAllText(Path.Combine(_work, "wwwroot", "theme.css")));
+        Assert.Contains("public static Accent Offer => Accent.Token(\"offer\");", File.ReadAllText(Path.Combine(_work, "Theme", "AppTokens.cs")));
+        Assert.Contains("Accent=\"Accent.Offer\"", File.ReadAllText(Path.Combine(_work, "Components", "Pages", "Home.razor")));
+    }
+
     [Fact]
     public void A_tag_is_inspected_with_an_account_and_its_options_set_with_Pro()
     {

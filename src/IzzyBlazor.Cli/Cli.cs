@@ -39,6 +39,9 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy add page --name <Name> [--route <path>] [--folder <folder>] [--mode Static|Server|WebAssembly|Auto] [--layout <Layout>] [--nav] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add razor --name <Name> [--folder <folder>] [--project <path>] [--dry-run] [--diff] [--json]
           izzy add component <Name> [--example <name> | --tag] --at <file>:<line>[:<col>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy add token <name> --light <color> [--dark <color>] [--on <color>[,<dark color>]] [--types accent,color] [--project <path>] [--dry-run] [--diff] [--json]
+          izzy rename token <name> <new name> [--project <path>] [--dry-run] [--diff] [--json]
+          izzy remove token <name> [--project <path>] [--dry-run] [--diff] [--json]
           izzy inspect <file>:<line>:<col> [--stdin] [--project <path>] --json
           izzy set <file>:<line>:<col> --<option> <value> ... [--unset <option>] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
           izzy wrap <file>:<line>:<col>[-<line>:<col>] --with <component> [--<option> <value> ...] [--stdin] [--project <path>] [--dry-run] [--diff] [--json]
@@ -164,6 +167,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "describe" => Describe(args),
                 "add" => Add(args),
                 "inspect" => Inspect(args),
+                "rename" or "remove" => ChangeToken(args),
                 "set" => Set(args),
                 "wrap" => Wrap(args),
                 "unwrap" => Unwrap(args),
@@ -182,7 +186,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 "logout" => Account(args, "izzy logout").Logout(output),
                 "account" => Account(args, "izzy account [--json]", "json").Status(output, args.Switch("json")),
                 "feedback" => Feedback(args),
-                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, inspect, set, wrap, unwrap, extract, new, init, update, upgrade, audit, agent, mcp, doctor, theme, login, logout, account, feedback."),
+                var other => throw new UsageException($"Unknown command \"{other}\". Commands: list, describe, add, rename, remove, inspect, set, wrap, unwrap, extract, new, init, update, upgrade, audit, agent, mcp, doctor, theme, login, logout, account, feedback."),
             };
         }
         catch (PreviewChangedException e)
@@ -712,6 +716,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     int Add(Args args)
     {
         if (args.Words.Count > 1 && args.Words[1].Equals("component", StringComparison.OrdinalIgnoreCase)) return AddComponent(args);
+        if (args.Words.Count > 1 && args.Words[1].Equals("token", StringComparison.OrdinalIgnoreCase)) return AddToken(args);
         // izzy add block hero: the kind, then the id. izzy add crud <Model>: the model after it.
         // izzy add page --name Orders, izzy add razor --name OrderSummary: a new page, or a component with no route.
         var made = args.Words.Count == 2 && args.Words[1].ToLowerInvariant() is "page" or "razor" ? args.Words[1].ToLowerInvariant() : null;
@@ -747,6 +752,76 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
                 Warnings = [.. notes, .. changes.Warnings], Settings = changes.Settings, Generated = changes.Generated, Restore = changes.Restore,
             };
         return Finish(item, changes, project, project.Directory!, existing: true, flags);
+    }
+
+    // izzy add token promo --light #7c3aed: the app's own color, as the Tokens docs describe it. What isn't given
+    // is worked out by the library's BrandPalette: the dark fill, and the text on each.
+    int AddToken(Args args)
+    {
+        const string usage = "izzy add token <name> --light <color> [--dark <color>] [--on <color>[,<dark color>]] [--types accent,color]";
+        Words(args, 3, usage);
+        var name = args.Words[2];
+        AppTokens.CheckName(name);
+        _projectFolder = args.Take("project");
+        var light = args.Take("light") ?? throw new UsageException($"Give the token's color: --light, such as --light #7c3aed. Usage: {usage}");
+        var dark = args.Take("dark");
+        var on = args.Take("on")?.Split(',', StringSplitOptions.TrimEntries);
+        var types = (args.Take("types") ?? "accent,color").Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(t => t.ToLowerInvariant()).ToList();
+        var flags = Flags(args);
+        NoSettings(args);
+        if (types.FirstOrDefault(t => t is not ("accent" or "color")) is { } wrong) throw new UsageException($"--types takes accent, color or both (accent,color). Got \"{wrong}\".");
+        if (on is { Length: > 2 }) throw new UsageException("--on takes one color, or the light and the dark one: --on #ffffff,#1e1b4b.");
+        var project = AppProject();
+        var library = Library.HasTokens ? Library : Components.Load(Path.Combine(AppContext.BaseDirectory, "components.json"));
+        if (library.TokenNames.Contains($"--ib-color-{name}") || library.TokenNames.Contains($"--ib-color-on-{name}"))
+            throw new UsageException($"--ib-color-{name} is the library's. Pick another name, or set the library's variable in your stylesheet.");
+
+        foreach (var color in new[] { light, dark }.Concat(on ?? []).OfType<string>())
+            if (!AppTokens.IsHex(color) && !Regex.IsMatch(color, @"^[\w#%.,()/ -]+$")) throw new UsageException($"\"{color}\" isn't a CSS color izzy can write.");
+        var warnings = new List<string>();
+        string Hex(string c) => AppTokens.IsHex(c) ? c.ToLowerInvariant() : c;
+        light = Hex(light);
+        LibraryTheme? theme = null;
+        (string Fill, string OnFill, string DarkFill, string DarkOnFill) Palette(string hex) => (theme ??= LoadTheme()).Palette(hex);
+        if ((dark is null || on is null) && !AppTokens.IsHex(light))
+            throw new UsageException("izzy works out the dark color and the text on it from a hex color (--light #7c3aed). For another CSS color, give --dark and --on too.");
+        var derived = dark is null || on is null ? Palette(light) : default;
+        dark = dark is null ? derived.DarkFill : Hex(dark);
+        var onLight = on is { Length: > 0 } ? Hex(on[0]) : derived.OnFill;
+        var onDark = on is { Length: 2 } ? Hex(on[1]) : on is { Length: 1 } ? onLight : AppTokens.IsHex(dark) && dark != derived.DarkFill ? Palette(dark).OnFill : derived.DarkOnFill;
+        foreach (var (fill, text, scheme) in new[] { (light, onLight, "light"), (dark, onDark, "dark") })
+            if (AppTokens.Contrast(fill, text) is { } ratio && ratio < 4.5)
+                warnings.Add($"Text on {fill} ({text}) is {ratio.ToString("0.0", CultureInfo.InvariantCulture)}:1 in {scheme} mode, under the 4.5:1 text needs."
+                    + (on is null && AppTokens.IsHex(fill) && Palette(fill).Fill is var nearest && nearest != fill ? $" {nearest} is the nearest that reaches it." : ""));
+        var changes = AppTokens.Add(project, name, new AppTokens.Colors(light, dark, onLight, onDark), types.Contains("accent"), types.Contains("color"), warnings);
+        return Edited(changes, project, flags, stdin: false);
+    }
+
+    // izzy rename token promo offer, izzy remove token promo: the app's own token, wherever it has it.
+    int ChangeToken(Args args)
+    {
+        var rename = args.Words[0] == "rename";
+        var usage = rename ? "izzy rename token <name> <new name>" : "izzy remove token <name>";
+        if (args.Words.Count < 2 || !args.Words[1].Equals("token", StringComparison.OrdinalIgnoreCase)) throw new UsageException($"Usage: {usage}");
+        Words(args, rename ? 4 : 3, usage);
+        _projectFolder = args.Take("project");
+        var flags = Flags(args);
+        NoSettings(args);
+        AppTokens.CheckName(args.Words[2]);
+        if (rename) AppTokens.CheckName(args.Words[3], "The new name");
+        var project = AppProject();
+        var changes = rename ? AppTokens.Rename(project, args.Words[2], args.Words[3]) : AppTokens.Remove(project, args.Words[2]);
+        return Edited(changes, project, flags, stdin: false);
+    }
+
+    // The app in this folder (or --project), which must use IzzyBlazor.
+    ProjectInfo AppProject()
+    {
+        var project = ProjectInfo.FromProject(FindProject(_projectFolder));
+        var host = Path.Combine(project.Directory!, project.Host, project.Name + ".csproj");
+        if (!ReferencesIzzyBlazor(File.ReadAllText(host)))
+            throw new UsageException($"{Path.GetFileName(host)} doesn't reference IzzyBlazor. Run izzy init first.");
+        return project;
     }
 
     // izzy describe tokens: the library's CSS variables (the public ones by group, with their light and dark values,
