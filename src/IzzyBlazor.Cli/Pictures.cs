@@ -6,7 +6,8 @@ namespace IzzyBlazor.Cli;
 /// <summary>
 /// Where the docs site has an item's page and pictures, for a front end (an editor's panel, a coding agent) to
 /// show: izzy holds no pictures itself. A block has one picture, a starter or kit a card picture and its
-/// screens; each comes in the light and the dark scheme.
+/// screens, a component one of its first example; each comes in the light
+/// and the dark scheme.
 /// </summary>
 static class Pictures
 {
@@ -36,6 +37,14 @@ static class Pictures
             ["thumbnail"] = $"{at}{s.File}-thumb.webp", ["thumbnailDark"] = $"{at}{s.File}-dark-thumb.webp",
         }).ToArray());
     }
+
+    /// <summary>
+    /// A component's picture: its docs page's first example, 720px wide; null for a part, which has no page.
+    /// Every component the site lists has one (ComponentPictureTests).
+    /// </summary>
+    public static JsonObject? Component(JsonObject c) => (string?)c["id"] is { } id
+        ? new() { ["light"] = $"{Site}img/components/{id}.webp", ["dark"] = $"{Site}img/components/{id}-dark.webp" }
+        : null;
 
     static string? Folder(ItemManifest m) => m.Kind switch
     {

@@ -84,7 +84,7 @@ sealed class Components
     public static JsonObject ListEntry(JsonObject c) => new()
     {
         ["id"] = (string)c["id"]!, ["name"] = (string)c["name"]!, ["kind"] = "component", ["category"] = (string?)c["category"],
-        ["tier"] = "free", ["summary"] = (string?)c["summary"], ["docs"] = (string?)c["docs"], ["picture"] = null,
+        ["tier"] = "free", ["summary"] = (string?)c["summary"], ["docs"] = (string?)c["docs"], ["picture"] = Pictures.Component(c),
         ["proChoices"] = new JsonObject(),
     };
 
@@ -120,6 +120,7 @@ sealed class Components
             ["name"] = (string)c["name"]!, ["tag"] = (string)c["name"]!, ["displayName"] = (string)c["displayName"]!,
             ["id"] = (string?)c["id"], ["partOf"] = (string?)c["partOf"], ["kind"] = "component", ["tier"] = "free",
             ["category"] = (string?)c["category"], ["summary"] = (string?)c["summary"], ["docs"] = (string?)c["docs"],
+            ["picture"] = Pictures.Component(c),
             ["modes"] = c["modes"]?.DeepClone(),
             ["typeParameters"] = c["typeParameters"]?.DeepClone() ?? new JsonArray(),
             ["parameters"] = new JsonObject { ["type"] = "object", ["properties"] = properties, ["required"] = required },

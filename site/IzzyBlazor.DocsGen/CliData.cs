@@ -74,6 +74,7 @@ public sealed record CliComponent
     public List<string>? Parts { get; init; }
     public List<CliExampleRef>? Examples { get; init; }
 
+
     /// <summary>
     /// What marks its outermost element in a page, whatever its options: its tag when it is one of ours
     /// (<c>&lt;ib-dialog&gt;</c>) and its classes. Null for one that can't be drawn alone.

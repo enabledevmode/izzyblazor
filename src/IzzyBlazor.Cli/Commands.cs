@@ -40,7 +40,8 @@ static class Commands
         ("describe.tokens", 2, "izzy describe tokens --json: the library's CSS variables, their values per scheme, renames and token types."),
         ("token.edit", 2, "izzy add token, rename token and remove token: the app's own colors as changesets."),
         ("check", 2, "izzy check --json: where the app uses what a release renamed or removed, CSS variables too, with the replacement."),
-        ("inspect.choices", 2, "inspect --json gives choices for Accent and Color options, the app's own with the library's."),
+        ("describe.pictures", 2, "list and describe component --json give each component a picture { light, dark }: its first example."),
+        ("inspect.choices", 2,"inspect --json gives choices for Accent and Color options, the app's own with the library's."),
     ];
 
     /// <summary>The options every command that answers with a changeset takes.</summary>

@@ -170,6 +170,9 @@ public sealed class ComponentTests : IDisposable
         var described = JsonNode.Parse(Izzy("describe", "component", "--all", "--json").Out)!;
         Assert.Equal("package", (string)described["source"]!);
         Assert.Equal("9.9.9", (string)described["version"]!);
+        // A component's picture is of its docs page's first example.
+        var button = described["components"]!.AsArray().First(c => (string)c!["name"]! == "Button")!;
+        Assert.Equal("https://izzyblazor.com/img/components/button-dark.webp", (string)button["picture"]!["dark"]!);
     }
 
     // The CSS variables come from the library's own CSS and the registry: values per scheme, the names they
