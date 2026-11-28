@@ -199,8 +199,10 @@
     display: none;
   }
 
+  /* data-ib-show="hover" draws the highlight at rest, for the theme sample (internal). */
   .ib-menu-item:hover,
-  .ib-menu-item:focus-visible {
+  .ib-menu-item:focus-visible,
+  .ib-menu-item[data-ib-show="hover"] {
     background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
     outline: none;
   }

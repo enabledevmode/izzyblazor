@@ -80,6 +80,11 @@
     </MSBuild>
     <ItemGroup>
       <None Include="@(LibraryAssembly)" Link="library/IzzyBlazor.Core.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+      <!-- Its stylesheets and fonts, which izzy theme sample links to. -->
+      <LibraryStyle Include="$(RepoRoot)src/IzzyBlazor.Core/wwwroot/*.css" />
+      <LibraryFont Include="$(RepoRoot)src/IzzyBlazor.Core/wwwroot/fonts/*" />
+      <None Include="@(LibraryStyle)" Link="library/wwwroot/%(LibraryStyle.Filename)%(LibraryStyle.Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+      <None Include="@(LibraryFont)" Link="library/wwwroot/fonts/%(LibraryFont.Filename)%(LibraryFont.Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
     </ItemGroup>
   </Target>
 

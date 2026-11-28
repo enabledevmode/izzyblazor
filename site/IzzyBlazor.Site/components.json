@@ -308,7 +308,8 @@
     {
       "id": "swatch", "icon": "SwatchBook", "name": "Swatch", "category": "Utilities", "summary": "Shows a color with its name.", "keywords": ["color chip", "palette", "token", "brand colors"],
       "examples": [
-        { "id": "swatch-usage", "title": "Tokens and your own colors", "lead": "Set `Color` to a token, such as `Color.PrimarySoft`, one of your own (`Color.Token(\"promo\")`) or a CSS color (`Color.Of(\"#0f766e\")`), and name it with `Label`. Its variable, or the CSS color, shows under the name." }
+        { "id": "swatch-usage", "title": "Tokens and your own colors", "lead": "Set `Color` to a token, such as `Color.PrimarySoft`, one of your own (`Color.Token(\"promo\")`) or a CSS color (`Color.Of(\"#0f766e\")`), and name it with `Label`. Its variable, or the CSS color, shows under the name." },
+        { "id": "swatch-pairs", "title": "Text on a color", "lead": "To show a pair, set `TextColor`: the chip shows \"Aa\" in it, and its variable shows under the chip's. Use it for the soft and text colors that go together, such as `Color.SuccessSoft` and `Color.SuccessText`." }
       ]
     },
 

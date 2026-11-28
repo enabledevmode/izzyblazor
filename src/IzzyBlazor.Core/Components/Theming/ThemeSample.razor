@@ -1,0 +1,535 @@
+@namespace IzzyBlazor
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using IzzyBlazor.Units
+@using Microsoft.AspNetCore.Components.Rendering
+@inherits ComponentBase
+@attribute [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+
+@*
+    The theme sample: one long page of the library's parts in their common states, for izzy theme
+    sample (the VS Code extension's Theme page renders it as the settings change). Built from the
+    design's TS1 sheet ("TS · Theme sample" on the board), for a product called Relay. Public only
+    because Razor components are; hidden from IntelliSense and the docs.
+
+    It's static: everything is drawn in its state on load, with no script. Two states can't be
+    reached at rest, so the sample asks for them with data-ib-show: the focus ring on Description
+    ("focus") and the highlighted menu item ("hover"). Each section has an id and
+    data-izzy-section, so the Theme page can scroll to what a setting changes.
+
+    Its own rules are in the style block below: the section headers' row and the AppShell fitted
+    into a strip (a shell takes the window's height otherwise), its body as tall as the sidebar's four links. Everything else is the
+    library's components with their own looks, so a theme moves all of it.
+*@
+
+<div class="ib-theme-sample">
+    <style>
+        .ib-theme-sample-head { display: flex; align-items: baseline; gap: var(--ib-space-3); padding-bottom: var(--ib-space-2); border-bottom: 1px solid var(--ib-color-border); }
+        .ib-theme-sample-head > :last-child { margin-inline-start: auto; text-align: end; }
+        .ib-theme-sample-shell .ib-shell { min-height: 0; grid-template-rows: auto auto 11.5rem auto; }
+        .ib-theme-sample-shell .ib-shell-sidebar > .ib-shell-sidebar-inner { position: static; height: auto; }
+    </style>
+
+    <Stack Gap="10" Padding="new() { Base = 6, Lg = 8 }" PaddingBottom="new() { Base = 10, Lg = 12 }">
+
+        @* 1. Shell *@
+        <Stack As="section" id="shell" data-izzy-section="shell" Gap="3">
+            @Head("Shell", "shell", "AppShell · AppHeader · AppSidebar · NavMenu · Avatar")
+            <Card Flush Overflow="Overflow.Hidden" class="ib-theme-sample-shell">
+                <AppShell MainId="ib-theme-sample-main">
+                    <AppHeader>
+                        <AppBrand Href="#" Label="Relay">
+                            <Logo><Avatar Initials="R" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" Size="AvatarSize.Xs" Decorative /></Logo>
+                        </AppBrand>
+                        <Box As="nav" aria-label="Main">
+                            <NavMenu Orientation="Orientation.Horizontal">
+                                <NavItem Href="#" Current="true">Overview</NavItem>
+                                <NavItem Href="#" Current="false">Projects</NavItem>
+                                <NavItem Href="#" Current="false">Reports</NavItem>
+                            </NavMenu>
+                        </Box>
+                        <Box Grow />
+                        @* From 1024px: at 768 the header has no room for it beside the links. *@
+                        <TextField VisibleFrom="Breakpoint.Lg" @bind-Value="_search.Query" Type="TextFieldType.Search" StartIcon="Lucide.Search" Label="Search" HideLabel
+                                   Placeholder="Search projects" Size="ControlSize.Sm" Width="15.Rem" />
+                        <Button Size="ControlSize.Sm" StartIcon="Lucide.Plus">New project</Button>
+                        <Avatar Name="Maya Chen" Size="AvatarSize.Sm" />
+                    </AppHeader>
+                    <AppSidebar Width="13.125.Rem" Label="Relay">
+                        <NavMenu>
+                            <NavItem Href="#" Icon="Lucide.Inbox" Badge="4" BadgeVariant="BadgeVariant.Plain" Current="false">Inbox</NavItem>
+                            <NavItem Href="#" Icon="Lucide.ListChecks" Badge="12" BadgeVariant="BadgeVariant.Plain" Current="true">My tasks</NavItem>
+                            <NavItem Href="#" Icon="Lucide.Folder" Current="false">Projects</NavItem>
+                            <NavItem Href="#" Icon="Lucide.Users" Current="false">Team</NavItem>
+                        </NavMenu>
+                    </AppSidebar>
+                    <AppMain>
+                        <Stack Gap="1" PaddingX="6" PaddingY="5">
+                            <Heading Level="3">My tasks</Heading>
+                            <TextBlock Color="Color.Muted">Twelve tasks across three projects. Four are due this week.</TextBlock>
+                        </Stack>
+                    </AppMain>
+                </AppShell>
+            </Card>
+        </Stack>
+
+        @* 2. Type *@
+        <Stack As="section" id="type" data-izzy-section="type" Gap="3">
+            @Head("Type", "type", "Heading · TextBlock · Anchor · Code · Kbd")
+            <Card>
+                <Grid MinChildWidth="22.Rem" Gap="7">
+                    <Stack Gap="3">
+                        <Heading Level="1">Website relaunch</Heading>
+                        <Heading Level="2">Launch checklist</Heading>
+                        <Heading Level="3">Design review</Heading>
+                        <Heading Level="4">Open questions</Heading>
+                    </Stack>
+                    <Stack Gap="3">
+                        <TextBlock>
+                            The new site goes live on March 3. Before then, the team signs off on the copy, runs the
+                            <Anchor Href="#">accessibility checklist</Anchor> and moves the old blog posts.
+                        </TextBlock>
+                        <TextBlock Color="Color.Muted">Muted: last updated by Maya Chen, 2 hours ago.</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Subtle">Subtle: 14 comments are hidden.</TextBlock>
+                        <TextBlock>Deploy with <Code>relay deploy --prod</Code>, or press <Kbd>⌘</Kbd> <Kbd>K</Kbd> to search.</TextBlock>
+                    </Stack>
+                </Grid>
+            </Card>
+        </Stack>
+
+        @* 3. Color *@
+        <Stack As="section" id="color" data-izzy-section="color" Gap="3">
+            @Head("Color", "color", "Swatch")
+            <Card>
+                <Stack Gap="5">
+                    <Stack Gap="3">
+                        <TextBlock Size="TextSize.Xs" Color="Color.Muted">Brand</TextBlock>
+                        <Grid Columns="4" Gap="4">
+                            <Swatch Color="Color.Primary" Label="Brand" />
+                            <Swatch Color="Color.PrimarySoft" Label="Brand soft" />
+                            <Swatch Color="Color.PrimaryText" Label="Brand text" />
+                        </Grid>
+                    </Stack>
+                    <Stack Gap="3">
+                        <TextBlock Size="TextSize.Xs" Color="Color.Muted">Status, each with its soft and text forms</TextBlock>
+                        <Grid Columns="4" Gap="4">
+                            @foreach (var (name, fill, soft, text) in Statuses)
+                            {
+                                <Stack Gap="3">
+                                    <Swatch Color="fill" Label="@name" />
+                                    <Swatch Color="soft" TextColor="text" Label="@($"{name} soft")" />
+                                </Stack>
+                            }
+                        </Grid>
+                    </Stack>
+                    <Stack Gap="3">
+                        <TextBlock Size="TextSize.Xs" Color="Color.Muted">Surfaces, from the page up</TextBlock>
+                        <Grid Columns="new() { Base = 4, Lg = 7 }" Gap="3">
+                            <Swatch Color="Color.Background" Label="Background" />
+                            <Swatch Color="Color.Surface" Label="Surface" />
+                            <Swatch Color="Color.SurfaceSunken" Label="Sunken" />
+                            <Swatch Color="Color.SurfaceOverlay" Label="Overlay" />
+                            <Swatch Color="Color.FillSubtle" Label="Fill subtle" />
+                            <Swatch Color="Color.Fill" Label="Fill" />
+                            <Swatch Color="Color.FillStrong" Label="Fill strong" />
+                        </Grid>
+                    </Stack>
+                </Stack>
+            </Card>
+        </Stack>
+
+        @* 4. Actions *@
+        <Stack As="section" id="actions" data-izzy-section="actions" Gap="3">
+            @Head("Actions", "actions", "Button · IconButton · ButtonGroup · SplitButton · SegmentedControl · Badge · Tag")
+            <Card>
+                <Stack Gap="5">
+                    <Grid Template='"4.5rem repeat(5, max-content)"' Gap="3" Align="Align.Center">
+                        <span></span>
+                        @foreach (var variant in Variants)
+                        {
+                            <TextBlock Size="TextSize.Xs" Color="Color.Muted">@variant</TextBlock>
+                        }
+                        @foreach (var (accent, name, text) in Accents)
+                        {
+                            <TextBlock Size="TextSize.Xs" Color="Color.Muted">@name</TextBlock>
+                            @foreach (var variant in Variants)
+                            {
+                                <Box><Button Accent="accent" Variant="variant">@text</Button></Box>
+                            }
+                        }
+                    </Grid>
+                    <Divider />
+                    <Row Gap="3" Align="Align.Center" Wrap>
+                        <Button Size="ControlSize.Sm">Small</Button>
+                        <Button>Medium</Button>
+                        <Button Size="ControlSize.Lg">Large</Button>
+                        <IconButton Icon="Lucide.Ellipsis" Label="More" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" />
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Plus">New task</Button>
+                        <Button Disabled>Disabled</Button>
+                    </Row>
+                    <Row Gap="4" Align="Align.Center" Wrap>
+                        <ButtonGroup Label="Range" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+                            <Button>Day</Button>
+                            <Button>Week</Button>
+                            <Button>Month</Button>
+                        </ButtonGroup>
+                        <SplitButton Label="Publish" MenuLabel="More publish options">
+                            <MenuItem>Schedule</MenuItem>
+                            <MenuItem>Save as draft</MenuItem>
+                        </SplitButton>
+                        <SegmentedControl @bind-Value="_view.View" Label="View" HideLabel />
+                    </Row>
+                    <Row Gap="2" Align="Align.Center" Wrap>
+                        <Badge Status="Status.Success" Dot>On track</Badge>
+                        <Badge Status="Status.Warning" Dot>At risk</Badge>
+                        <Badge Status="Status.Danger" Dot>Blocked</Badge>
+                        <Badge Status="Status.Info">In review</Badge>
+                        <Badge>Draft</Badge>
+                        <Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid">New</Badge>
+                        <Box Width="0.75.Rem" />
+                        <Tag Label="Design" RemoveHref="#" />
+                        <Tag Label="Frontend" RemoveHref="#" />
+                    </Row>
+                </Stack>
+            </Card>
+        </Stack>
+
+        @* 5. Forms *@
+        <Stack As="section" id="forms" data-izzy-section="forms" Gap="3">
+            @Head("Forms", "forms", "Form · TextField · Select · DateField · Checkbox · RadioGroup · Switch · FieldError")
+            <Card>
+                <Form EditContext="_form" FormName="theme-sample-project" Columns="2" Gap="4">
+                    <TextField @bind-Value="_project.Name" Placeholder="For example, Website relaunch" />
+                    <TextField @bind-Value="_project.Owner" StartIcon="Lucide.CircleUser" />
+                    <DateField @bind-Value="_project.Due" />
+                    <TextField @bind-Value="_project.BudgetCode" Disabled Hint="Set by finance." />
+                    <Select @bind-Value="_project.Status" />
+                    <TextArea @bind-Value="_project.Description" Rows="2" data-ib-show="focus" />
+                    <Grid Columns="3" Gap="4" ColSpan="GridSpan.Full" PaddingTop="1">
+                        <CheckboxGroup @bind-Value="_project.Notify" Items="NotifyChoices" />
+                        <RadioGroup @bind-Value="_project.Visibility" />
+                        @* Labeled as the groups beside it are: a Fieldset's legend is a section's heading. *@
+                        <Stack Gap="2" role="group" aria-labelledby="ib-theme-sample-email">
+                            <TextBlock id="ib-theme-sample-email" Size="TextSize.Sm" Weight="FontWeight.Medium">Email me</TextBlock>
+                            <Switch @bind-Value="_project.WeeklySummary" />
+                            <Switch @bind-Value="_project.DailyDigest" />
+                        </Stack>
+                    </Grid>
+                    <Divider ColSpan="GridSpan.Full" />
+                    <FormActions Justify="Justify.End">
+                        <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Cancel</Button>
+                        <Button>Create project</Button>
+                    </FormActions>
+                </Form>
+            </Card>
+        </Stack>
+
+        @* 6. Data *@
+        <Stack As="section" id="data" data-izzy-section="data" Gap="3">
+            @Head("Data", "data", "Card · Stat · Sparkline · Chart · Table · Pagination · Progress · AvatarGroup")
+            <Stack Gap="4">
+                <Grid Columns="3" Gap="4">
+                    <Card Style="--ib-sparkline-color: var(--ib-chart-1)">
+                        <Stat Label="Open tasks" Value="128" Change="12%" Trend="StatTrend.Up" Description="vs last week"
+                              Sparkline="OpenWeeks" SparklineLabel="Open tasks, last 12 weeks" SparklineFormat="N0" />
+                    </Card>
+                    <Card Style="--ib-sparkline-color: var(--ib-chart-2)">
+                        <Stat Label="Completed" Value="342" Change="8%" Trend="StatTrend.Up" Description="vs last week"
+                              Sparkline="DoneWeeks" SparklineLabel="Completed tasks, last 12 weeks" SparklineFormat="N0" />
+                    </Card>
+                    <Card Style="--ib-sparkline-color: var(--ib-chart-3)">
+                        <Stat Label="On time" Value="94%" Change="1 pt" Trend="StatTrend.Down" ChangeStatus="Status.Neutral" Description="vs last week"
+                              Sparkline="OnTimeWeeks" SparklineLabel="Tasks on time, last 12 weeks" SparklineFormat="0'%'" />
+                    </Card>
+                </Grid>
+                @TasksTable
+                <Grid Template='"minmax(0, 1.3fr) minmax(0, 1fr)"' Gap="4">
+                    <Card Title="Tasks by team" TitleId="theme-sample-teams" TitleLevel="3">
+                        <Chart Items="Teams" Argument="t => t.Team" TitledBy="theme-sample-teams" Height="10.Rem">
+                            <ChartBarSeries Value="t => t.Open" Name="Open" />
+                            <ChartBarSeries Value="t => t.Done" Name="Done" />
+                        </Chart>
+                    </Card>
+                    <Card>
+                        <Stack Gap="4">
+                            <Stack Gap="2">
+                                <Progress Value="23" Max="34" Label="Sprint 14" ShowValue />
+                                <TextBlock Size="TextSize.Xs" Color="Color.Muted">23 of 34 tasks done · ends Friday</TextBlock>
+                            </Stack>
+                            <Stack Gap="2">
+                                <TextBlock Size="TextSize.Xs" Color="Color.Muted">Team</TextBlock>
+                                <AvatarGroup Max="4" Label="Sprint 14 team">
+                                    @foreach (var name in Team)
+                                    {
+                                        <Avatar Name="@name" />
+                                    }
+                                </AvatarGroup>
+                            </Stack>
+                        </Stack>
+                    </Card>
+                </Grid>
+            </Stack>
+        </Stack>
+
+        @* 7. Navigation *@
+        <Stack As="section" id="navigation" data-izzy-section="navigation" Gap="3">
+            @Head("Navigation", "navigation", "Tabs · Breadcrumb · Stepper")
+            <Card>
+                <Stack Gap="6">
+                    <Breadcrumb>
+                        <BreadcrumbItem Href="#">Projects</BreadcrumbItem>
+                        <BreadcrumbItem Href="#">Website relaunch</BreadcrumbItem>
+                        <BreadcrumbItem>Tasks</BreadcrumbItem>
+                    </Breadcrumb>
+                    <TabNav Label="Project">
+                        <TabLink Href="#" Label="Overview" Icon="Lucide.LayoutDashboard" Current="false" />
+                        <TabLink Href="#" Label="Tasks" Icon="Lucide.ListChecks" Badge="12" Current="true" />
+                        <TabLink Href="#" Label="Files" Icon="Lucide.Paperclip" Current="false" />
+                        <TabLink Href="#" Label="Settings" Icon="Lucide.Settings" Current="false" />
+                    </TabNav>
+                    <Stepper Current="3" Label="Launch plan">
+                        <Step Label="Plan" Href="#" />
+                        <Step Label="Design" Href="#" />
+                        <Step Label="Build" />
+                        <Step Label="Launch" />
+                    </Stepper>
+                </Stack>
+            </Card>
+        </Stack>
+
+        @* 8. Feedback and overlays *@
+        <Stack As="section" id="feedback" data-izzy-section="feedback" Gap="3">
+            @Head("Feedback and overlays", "feedback", "Alert · Toast · Menu · Dialog")
+            <Stack Gap="4">
+                <Grid Columns="2" Gap="4">
+                    <Alert Status="Status.Info" Title="Launch is in 6 days.">Review the checklist before Friday.</Alert>
+                    <Alert Status="Status.Success" Title="Project created.">Your team can see it now.</Alert>
+                    <Alert Status="Status.Warning" Title="2 tasks are at risk.">They are due before their blockers.</Alert>
+                    <Alert Status="Status.Danger" Title="Couldn’t save.">Check your connection and try again.</Alert>
+                </Grid>
+                <Card Bg="Color.SurfaceSunken">
+                    <Row Gap="5" Align="Align.Start" Wrap>
+                        <Stack Gap="2">
+                            <TextBlock Size="TextSize.Xs" Color="Color.Muted">Toast</TextBlock>
+                            <Toast Status="Status.Success" Title="Task moved" Width="18.75.Rem">
+                                “Move blog posts” is now in Build.
+                                <AlertActions><Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Undo</Button></AlertActions>
+                            </Toast>
+                        </Stack>
+                        <Stack Gap="2">
+                            <TextBlock Size="TextSize.Xs" Color="Color.Muted">Menu</TextBlock>
+                            <Menu Label="Task" Inline>
+                                <MenuItem Icon="Lucide.Pencil" Shortcut="R">Rename</MenuItem>
+                                <MenuItem Icon="Lucide.Copy" Shortcut="D" data-ib-show="hover">Duplicate</MenuItem>
+                                <MenuItem Icon="Lucide.FolderInput">Move to…</MenuItem>
+                                <MenuDivider />
+                                <MenuItem Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                            </Menu>
+                        </Stack>
+                        <Stack Gap="2" Width="21.25.Rem">
+                            <TextBlock Size="TextSize.Xs" Color="Color.Muted">Dialog</TextBlock>
+                            <Dialog Title="Archive this project?" Size="DialogSize.Sm" Inline>
+                                <TextBlock Color="Color.Muted">Website relaunch and its 48 tasks move to the archive. You can restore them at any time.</TextBlock>
+                                <DialogFooter>
+                                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Cancel</Button>
+                                    <Button>Archive</Button>
+                                </DialogFooter>
+                            </Dialog>
+                        </Stack>
+                    </Row>
+                </Card>
+            </Stack>
+        </Stack>
+    </Stack>
+</div>
+
+@code {
+    // Each section's header row: its name, its id in mono and the components it uses.
+    private static RenderFragment Head(string name, string id, string components) => @<div class="ib-theme-sample-head">
+        <TextBlock As="h2" Size="TextSize.Sm" Weight="FontWeight.Semibold">@name</TextBlock>
+        <TextBlock As="span" Size="TextSize.Xs" Family="FontFamily.Mono" Color="Color.Subtle">#@id</TextBlock>
+        <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">@components</TextBlock>
+    </div>;
+
+    // The Table is built in C#: in this project's own .razor files, Table isn't known as a tag (a
+    // .NET 11 Razor generator quirk with its .razor base class); apps using the package are fine.
+    private RenderFragment TasksTable => builder =>
+    {
+        builder.OpenComponent<Table<SampleTask>>(0);
+        builder.AddComponentParameter(1, nameof(Table<SampleTask>.Items), Tasks);
+        builder.AddComponentParameter(2, nameof(Table<SampleTask>.PageSize), (int?)5);
+        builder.AddComponentParameter(3, nameof(Table<SampleTask>.Caption), "Tasks");
+        builder.AddComponentParameter(4, nameof(Table<SampleTask>.SelectionMode), SelectionMode.Multiple);
+        builder.AddComponentParameter(5, nameof(Table<SampleTask>.ItemKey), (Func<SampleTask, string>)(t => t.Id));
+        builder.AddComponentParameter(6, nameof(Table<SampleTask>.RowLabel), (Func<SampleTask, string>)(t => t.Name));
+        builder.AddComponentParameter(7, nameof(Table<SampleTask>.Selection), _selected);
+        builder.AddComponentParameter(8, nameof(Table<SampleTask>.QueryPrefix), "theme-sample-");
+        builder.AddComponentParameter(9, nameof(Table<SampleTask>.Columns), (RenderFragment)(columns =>
+        {
+            Column(columns, 0, t => t.Name, "Task", cell: TaskCell);
+            Column(columns, 1, t => t.Owner, cell: OwnerCell);
+            Column(columns, 2, t => t.Status, cell: StatusCell);
+            Column(columns, 3, t => t.Due, format: "MMM d", align: CellAlign.End);
+        }));
+        builder.CloseComponent();
+    };
+
+    private static void Column<[System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)] TValue>(RenderTreeBuilder builder, int key, System.Linq.Expressions.Expression<Func<SampleTask, TValue>> property,
+        string? title = null, RenderFragment<SampleTask>? cell = null, string? format = null, CellAlign? align = null)
+    {
+        builder.OpenComponent<PropertyColumn<SampleTask, TValue>>(0);
+        builder.SetKey(key);
+        builder.AddComponentParameter(1, nameof(PropertyColumn<SampleTask, TValue>.Property), property);
+        if (title is not null) builder.AddComponentParameter(2, nameof(PropertyColumn<SampleTask, TValue>.Title), title);
+        if (cell is not null) builder.AddComponentParameter(3, nameof(PropertyColumn<SampleTask, TValue>.ChildContent), cell);
+        if (format is not null) builder.AddComponentParameter(4, nameof(PropertyColumn<SampleTask, TValue>.Format), format);
+        if (align is not null) builder.AddComponentParameter(5, nameof(PropertyColumn<SampleTask, TValue>.Align), align);
+        builder.CloseComponent();
+    }
+
+    private static readonly RenderFragment<SampleTask> TaskCell = task => @<TextBlock As="span" Weight="FontWeight.Medium">@task.Name</TextBlock>;
+
+    private static readonly RenderFragment<SampleTask> OwnerCell = task => @<Row Gap="2" Align="Align.Center">
+        <Avatar Name="@task.Owner" Size="AvatarSize.Xs" Decorative />
+        <span>@task.Owner</span>
+    </Row>;
+
+    private static readonly RenderFragment<SampleTask> StatusCell = task => @<Badge Status="StatusOf(task.Status)">@StatusText(task.Status)</Badge>;
+
+    private static readonly (string Name, Color Fill, Color Soft, Color Text)[] Statuses =
+    [
+        ("Success", Color.Success, Color.SuccessSoft, Color.SuccessText),
+        ("Warning", Color.Warning, Color.WarningSoft, Color.WarningText),
+        ("Danger", Color.Danger, Color.DangerSoft, Color.DangerText),
+        ("Info", Color.Info, Color.InfoSoft, Color.InfoText),
+    ];
+
+    private static readonly ButtonVariant[] Variants =
+        [ButtonVariant.Solid, ButtonVariant.Soft, ButtonVariant.Outline, ButtonVariant.Ghost, ButtonVariant.Link];
+
+    private static readonly (Accent Accent, string Name, string Text)[] Accents =
+        [(Accent.Primary, "Primary", "Save"), (Accent.Neutral, "Neutral", "Share"), (Accent.Danger, "Danger", "Delete")];
+
+    private static readonly string[] NotifyChoices = ["Comments", "Status changes"];
+
+    private static readonly double?[] OpenWeeks = [96, 101, 99, 108, 112, 109, 115, 118, 114, 121, 114, 128];
+    private static readonly double?[] DoneWeeks = [251, 262, 270, 268, 281, 290, 296, 301, 309, 318, 317, 342];
+    private static readonly double?[] OnTimeWeeks = [91, 92, 90, 93, 94, 93, 95, 94, 96, 95, 95, 94];
+
+    private static readonly string[] Team =
+        ["Maya Chen", "Kenji Watanabe", "Priya Raman", "Tomás Ortega", "Sofia Nowak", "Amara Okafor", "Lena Fischer"];
+
+    private static readonly TeamTasks[] Teams =
+    [
+        new("Design", 18, 42), new("Frontend", 31, 56), new("Backend", 24, 61), new("Content", 12, 38),
+    ];
+
+    private static readonly SampleTask[] Tasks = BuildTasks();
+
+    private readonly SearchModel _search = new();
+    private readonly ViewModel _view = new();
+    private readonly ProjectModel _project = new();
+    private readonly Selection _selected = Selection.Of("2");
+    private EditContext _form = default!;
+
+    protected override void OnInitialized()
+    {
+        // Due date is drawn with its error, as after a failed post.
+        _form = new EditContext(_project);
+        var messages = new ValidationMessageStore(_form);
+        messages.Add(_form.Field(nameof(ProjectModel.Due)), "Pick a date after today.");
+    }
+
+    private static Status StatusOf(TaskStatus status) => status switch
+    {
+        TaskStatus.OnTrack => Status.Success,
+        TaskStatus.AtRisk => Status.Warning,
+        TaskStatus.Blocked => Status.Danger,
+        TaskStatus.InReview => Status.Info,
+        _ => Status.Neutral,
+    };
+
+    private static string StatusText(TaskStatus status) => status switch
+    {
+        TaskStatus.OnTrack => "On track",
+        TaskStatus.AtRisk => "At risk",
+        TaskStatus.InReview => "In review",
+        _ => status.ToString(),
+    };
+
+    // The five on the first page, then enough more for 48 in all (ten pages).
+    private static SampleTask[] BuildTasks()
+    {
+        SampleTask[] first =
+        [
+            new("1", "Write launch email", "Maya Chen", TaskStatus.InReview, new(2027, 2, 24)),
+            new("2", "Move blog posts", "Tomás Ortega", TaskStatus.Blocked, new(2027, 2, 26)),
+            new("3", "Accessibility checklist", "Priya Raman", TaskStatus.OnTrack, new(2027, 2, 27)),
+            new("4", "Redirect old URLs", "Kenji Watanabe", TaskStatus.AtRisk, new(2027, 3, 1)),
+            new("5", "Final copy sign-off", "Sofia Nowak", TaskStatus.Draft, new(2027, 3, 2)),
+        ];
+        var rest = Enumerable.Range(6, 43).Select(i =>
+            new SampleTask(i.ToString(), $"Launch task {i}", Team[i % Team.Length], TaskStatus.OnTrack, new DateOnly(2027, 3, 3).AddDays(i / 4)));
+        return [.. first, .. rest];
+    }
+
+    private enum TaskStatus { OnTrack, AtRisk, Blocked, InReview, Draft }
+
+    private sealed record SampleTask(string Id, string Name, string Owner, TaskStatus Status, DateOnly Due);
+
+    private sealed record TeamTasks(string Team, int Open, int Done);
+
+    private sealed class SearchModel
+    {
+        public string? Query { get; set; }
+    }
+
+    private sealed class ViewModel
+    {
+        public ProjectView View { get; set; } = ProjectView.Board;
+    }
+
+    private enum ProjectView { Board, List, Timeline }
+
+    private enum ProjectStatus
+    {
+        Planned,
+        [Display(Name = "In progress")] InProgress,
+        Done,
+    }
+
+    private enum Visibility
+    {
+        [Display(Name = "Team only")] TeamOnly,
+        Everyone,
+    }
+
+    private sealed class ProjectModel
+    {
+        [Display(Name = "Project name")]
+        public string? Name { get; set; }
+
+        public string? Owner { get; set; } = "Maya Chen";
+
+        [Display(Name = "Due date")]
+        public DateOnly Due { get; set; } = new(2026, 1, 12);
+
+        [Display(Name = "Budget code")]
+        public string? BudgetCode { get; set; } = "WEB-2026";
+
+        public ProjectStatus Status { get; set; } = ProjectStatus.InProgress;
+
+        public string? Description { get; set; } = "Relaunch the marketing site with the new brand.";
+
+        [Display(Name = "Notify me about")]
+        public IEnumerable<string> Notify { get; set; } = ["Comments"];
+
+        public Visibility Visibility { get; set; } = Visibility.TeamOnly;
+
+        [Display(Name = "Weekly summary")]
+        public bool WeeklySummary { get; set; } = true;
+
+        [Display(Name = "Daily digest")]
+        public bool DailyDigest { get; set; }
+    }
+}

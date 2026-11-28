@@ -13,6 +13,7 @@ namespace IzzyBlazor;
 /// <list type="bullet">
 /// <item>It renders a <c>span</c>: the chip is decorative (<c>aria-hidden</c>), and the label is text, so screen readers read the name.</item>
 /// <item>The color itself isn't spoken, so name it in <see cref="Label"/> when its value matters, as in "Promo, #7c3aed".</item>
+/// <item>With <see cref="TextColor"/>, the chip's "Aa" is decorative too: the variables under the name say which pair it is.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="ColorPicker"/>
@@ -30,7 +31,13 @@ public class Swatch : LayoutItemBase
     /// </summary>
     [Parameter] public string? Label { get; set; }
 
-    private string Value => Color.TokenName is { } name ? $"--ib-color-{name}" : Color.Css ?? "";
+    /// <summary>
+    /// A text color to show on the chip, as "Aa": for a pair such as <c>Color.SuccessSoft</c> with
+    /// <c>Color.SuccessText</c>. Its variable shows under the chip's.
+    /// </summary>
+    [Parameter] public Color? TextColor { get; set; }
+
+    private static string ValueOf(Color color) => color.TokenName is { } name ? $"--ib-color-{name}" : color.Css ?? "";
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -63,20 +70,37 @@ public class Swatch : LayoutItemBase
         builder.AddAttribute(5, "class", "ib-swatch-chip");
         builder.AddAttribute(6, "style", $"background-color: {Color.Css}");
         builder.AddAttribute(7, "aria-hidden", "true");
+        if (TextColor is { Css: { } text })
+        {
+            builder.OpenElement(8, "span");
+            builder.AddAttribute(9, "class", "ib-swatch-text");
+            builder.AddAttribute(10, "style", $"color: {text}");
+            builder.AddContent(11, "Aa");
+            builder.CloseElement();
+        }
+
         builder.CloseElement();
 
         if (!string.IsNullOrWhiteSpace(Label))
         {
-            builder.OpenElement(8, "span");
-            builder.AddAttribute(9, "class", "ib-swatch-label");
-            builder.AddContent(10, Label);
+            builder.OpenElement(12, "span");
+            builder.AddAttribute(13, "class", "ib-swatch-label");
+            builder.AddContent(14, Label);
             builder.CloseElement();
         }
 
-        builder.OpenElement(11, "span");
-        builder.AddAttribute(12, "class", "ib-swatch-value");
-        builder.AddContent(13, Value);
+        builder.OpenElement(15, "span");
+        builder.AddAttribute(16, "class", "ib-swatch-value");
+        builder.AddContent(17, ValueOf(Color));
         builder.CloseElement();
+
+        if (TextColor is { Css: not null } textColor)
+        {
+            builder.OpenElement(18, "span");
+            builder.AddAttribute(19, "class", "ib-swatch-value");
+            builder.AddContent(20, ValueOf(textColor));
+            builder.CloseElement();
+        }
 
         builder.CloseElement();
     }

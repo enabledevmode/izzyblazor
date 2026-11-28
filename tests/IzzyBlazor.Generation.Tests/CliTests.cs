@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using IzzyBlazor.Cli;
 using IzzyBlazor.Generation;
 
@@ -133,6 +134,15 @@ public sealed class CliTests : IDisposable
         Assert.Equal("compact", (string)theme["meta"]!.AsArray().Single(m => (string)m!["name"]! == "ib-preset")!["content"]!);
         Assert.Contains("--ib-color-primary: light-dark(#0f766e", (string)theme["css"]!);
         Assert.Contains("<style data-ib-theme-style>@layer izzy.tokens", (string)theme["head"]!);
+
+        // The theme sample: the same settings, on the library's own components, linked to its stylesheets.
+        var sample = JsonNode.Parse(Izzy(_work, "theme", "sample", "--preset", "compact", "--json").Out)!;
+        var html = (string)sample["html"]!;
+        Assert.True(File.Exists(Path.Combine((string)sample["assets"]!, "izzyblazor.css")));
+        Assert.Contains("<meta name=\"ib-preset\" content=\"compact\" />", html);
+        Assert.Equal(["shell", "type", "color", "actions", "forms", "data", "navigation", "feedback"],
+            Regex.Matches(html, "data-izzy-section=\"([a-z]+)\"").Select(m => m.Groups[1].Value));
+        Assert.Contains("href=\"chart.css\"", html);
     }
 
     [Fact]

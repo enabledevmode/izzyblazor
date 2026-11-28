@@ -17,12 +17,17 @@ namespace IzzyBlazor.Cli;
 sealed class LibraryTheme
 {
     readonly Type _theme;
+    readonly Type? _sample;
+    readonly Assembly _library;
 
-    LibraryTheme(Type theme, string version, string source)
+    LibraryTheme(Assembly library, Type theme, string version, string source, string? assets)
     {
+        _library = library;
         _theme = theme;
+        _sample = library.GetType("IzzyBlazor.ThemeSample");
         Version = version;
         Source = source;
+        Assets = assets;
         Options = [.. theme.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p.IsDefined(typeof(ParameterAttribute)) && p.Name != "Nonce" && Kind(p.PropertyType) is not null)
             .Select(p => (Kebab(p.Name), p))];
@@ -34,11 +39,20 @@ sealed class LibraryTheme
     /// <summary>"package" (the app's) or "tool" (this izzy's copy), as describe says it.</summary>
     public string Source { get; }
 
+    /// <summary>The folder of the library's stylesheets and fonts (izzyblazor.css), or null when it has none.</summary>
+    public string? Assets { get; }
+
+    /// <summary>Whether this version has the theme sample (IzzyBlazor 0.1.0-alpha.31 and later).</summary>
+    public bool HasSample => _sample is not null;
+
     /// <summary>IzzyTheme's settings, as options (<c>chart-palette</c>), with the parameter each sets.</summary>
     public IReadOnlyList<(string Option, PropertyInfo Parameter)> Options { get; }
 
-    /// <summary>The library in this folder (IzzyBlazor.Core.dll), or null when it can't be loaded on this runtime.</summary>
-    public static LibraryTheme? Load(string folder, string source)
+    /// <summary>
+    /// The library in this folder (IzzyBlazor.Core.dll), with its stylesheets in <paramref name="assets"/>, or null
+    /// when it can't be loaded on this runtime.
+    /// </summary>
+    public static LibraryTheme? Load(string folder, string source, string? assets)
     {
         var path = Path.Combine(folder, "IzzyBlazor.Core.dll");
         if (!File.Exists(path)) return null;
@@ -48,7 +62,8 @@ sealed class LibraryTheme
             if (assembly.GetType("IzzyBlazor.IzzyTheme") is not { } theme) return null;
             var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
                 ?? assembly.GetName().Version!.ToString();
-            return new LibraryTheme(theme, version, source);
+            return new LibraryTheme(assembly, theme, version, source,
+                assets is not null && File.Exists(Path.Combine(assets, "izzyblazor.css")) ? assets : null);
         }
         catch (Exception e) when (e is BadImageFormatException or FileLoadException or FileNotFoundException or TypeLoadException)
         {
@@ -87,10 +102,50 @@ sealed class LibraryTheme
     /// </summary>
     public (List<(string Name, string Content)> Meta, string? Css) Render(Dictionary<string, object?> parameters)
     {
-        string html;
+        var html = Settings(() => RenderAsync(_theme, parameters, null).GetAwaiter().GetResult());
+        var meta = Regex.Matches(html, """<meta name="([^"]*)" content="([^"]*)"\s*/?>""")
+            .Select(m => (WebUtility.HtmlDecode(m.Groups[1].Value), WebUtility.HtmlDecode(m.Groups[2].Value))).ToList();
+        var style = Regex.Match(html, "<style[^>]*>([\\s\\S]*?)</style>");
+        return (meta, style.Success ? style.Groups[1].Value : null);
+    }
+
+    /// <summary>
+    /// The theme sample as a page: the library's stylesheet, what IzzyTheme writes for these settings and the
+    /// sample, with stylesheet links relative to <paramref name="baseHref"/> (the <see cref="Assets"/> folder, or
+    /// where the caller serves it).
+    /// </summary>
+    public string Sample(Dictionary<string, object?> parameters, string baseHref)
+    {
+        var head = Settings(() => RenderAsync(_theme, parameters, null).GetAwaiter().GetResult());
+        var body = RenderAsync(_sample!, [], _library).GetAwaiter().GetResult();
+        // A component's own stylesheet (Chart's chart.css) is linked from _content/IzzyBlazor.Core/, the
+        // library's path in an app: here it's beside izzyblazor.css.
+        body = body.Replace("\"_content/IzzyBlazor.Core/", "\"", StringComparison.Ordinal);
+        return $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <base href="{WebUtility.HtmlEncode(baseHref)}" />
+            <title>Theme sample</title>
+            <link rel="stylesheet" href="izzyblazor.css" />
+            {head}
+            </head>
+            <body>
+            {body}
+            </body>
+            </html>
+
+            """;
+    }
+
+    // An error the theme gives for a setting, as a usage error on its option.
+    T Settings<T>(Func<T> render)
+    {
         try
         {
-            html = RenderAsync(parameters).GetAwaiter().GetResult();
+            return render();
         }
         catch (ArgumentException e) when (Options.FirstOrDefault(o => o.Parameter.Name == e.ParamName) is { Option: not null } bad)
         {
@@ -100,19 +155,53 @@ sealed class LibraryTheme
                 ? "--" + bad.Option + message[bad.Parameter.Name.Length..]
                 : $"--{bad.Option}: {message}");
         }
-
-        var meta = Regex.Matches(html, """<meta name="([^"]*)" content="([^"]*)"\s*/?>""")
-            .Select(m => (WebUtility.HtmlDecode(m.Groups[1].Value), WebUtility.HtmlDecode(m.Groups[2].Value))).ToList();
-        var style = Regex.Match(html, "<style[^>]*>([\\s\\S]*?)</style>");
-        return (meta, style.Success ? style.Groups[1].Value : null);
     }
 
-    async Task<string> RenderAsync(Dictionary<string, object?> parameters)
+    // A component rendered as a static page renders it. With the library given, its services (AddIzzyBlazorCore,
+    // found by name, as this izzy doesn't reference it) and what a static page has: an address, no script and
+    // a logger for an error boundary.
+    static async Task<string> RenderAsync(Type component, Dictionary<string, object?> parameters, Assembly? library)
     {
-        await using var services = new ServiceCollection().BuildServiceProvider();
+        var collection = new ServiceCollection();
+        if (library is not null)
+        {
+            library.GetType("Microsoft.Extensions.DependencyInjection.IzzyBlazorCoreServiceCollectionExtensions")
+                ?.GetMethod("AddIzzyBlazorCore", [typeof(IServiceCollection)])?.Invoke(null, [collection]);
+            collection.AddScoped<NavigationManager, SampleNavigation>();
+            collection.AddScoped<Microsoft.JSInterop.IJSRuntime, NoScript>();
+            collection.AddScoped<IErrorBoundaryLogger, ErrorLog>();
+        }
+
+        await using var services = collection.BuildServiceProvider();
         await using var renderer = new HtmlRenderer(services, NullLoggerFactory.Instance);
         return await renderer.Dispatcher.InvokeAsync(async () =>
-            (await renderer.RenderComponentAsync(_theme, ParameterView.FromDictionary(parameters))).ToHtmlString());
+            (await renderer.RenderComponentAsync(component, ParameterView.FromDictionary(parameters))).ToHtmlString());
+    }
+
+    // A static page has no script: a call is a bug in the sample, as it would be on an app's static page.
+    sealed class NoScript : Microsoft.JSInterop.IJSRuntime
+    {
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
+            throw new InvalidOperationException($"The theme sample is static: it can't call {identifier}.");
+
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args) =>
+            InvokeAsync<TValue>(identifier, args);
+    }
+
+    // An error a part of the sample shows in its error boundary goes to standard error.
+    sealed class ErrorLog : IErrorBoundaryLogger
+    {
+        public ValueTask LogErrorAsync(Exception exception)
+        {
+            Console.Error.WriteLine(exception);
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    // The sample's address: its links are "#", and a table reads its page from the query (none).
+    sealed class SampleNavigation : NavigationManager
+    {
+        public SampleNavigation() => Initialize("https://sample.izzyblazor.invalid/", "https://sample.izzyblazor.invalid/");
     }
 
     static string? Kind(Type type) => (Nullable.GetUnderlyingType(type) ?? type) is var t && (t == typeof(string) || t == typeof(int) || t == typeof(bool) || t.IsEnum) ? t.Name : null;

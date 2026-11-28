@@ -57,6 +57,7 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
           izzy mcp
           izzy doctor [--build] [--browser <path>] [--project <path>] [--json]
           izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--project <path>] [--json]
+          izzy theme sample [the same settings] [--base <url>] [--project <path>] [--json]
           izzy login [--no-browser]
           izzy logout
           izzy account [--json]
@@ -95,6 +96,10 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         a style block for a hex color's palette, the charts' brand colors and the fonts. A preview with
         izzyblazor.css puts them in its <head> to show a theme with no app running. It renders the IzzyTheme
         of the app's own IzzyBlazor package once restored, so its options are that version's; else this izzy's.
+        izzy theme sample takes the same settings and prints a page that shows the theme on the library's own
+        components (a project tracker's shell, type, colors, buttons, a form, data, navigation and overlays),
+        drawn with no script. Its stylesheets and fonts are linked from the library's folder (--base sets the
+        address they're served from). Each section has an id and data-izzy-section, to scroll to.
         izzy audit checks a page's accessibility with axe-core and izzy's own checks (target size, focus
         hidden under a header that stays in place, and focus and indicators in forced colors), in the Chrome
         or Edge on this machine, at two widths, in light and dark and once more in forced colors. It writes
@@ -968,16 +973,20 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
     // own IzzyBlazor (the package it restored) or this izzy's copy, for a preview with no app running.
     int Theme(Args args)
     {
-        const string usage = "izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--project <path>] [--json]";
-        if (args.Words.Count != 2 || args.Words[1] != "vars") throw new UsageException($"Usage: {usage}");
+        const string usage = "izzy theme vars [--preset <preset>] [--brand <color>] [--gray <color>] [--radius <radius>] [--density <density>] [--chart-palette <palette>] [--scrollbars <scrollbars>] [--color-scheme auto|light|dark] [--body-font <fonts>] [--heading-font <fonts>] [--mono-font <fonts>] [--heading-weight <weight>] [--project <path>] [--json]\n       izzy theme sample [the same settings] [--base <url>] [--project <path>] [--json]";
+        if (args.Words.Count != 2 || args.Words[1] is not ("vars" or "sample")) throw new UsageException($"Usage: {usage}");
+        var sample = args.Words[1] == "sample";
         var json = args.Switch("json");
         _projectFolder = args.Take("project");
-        var theme = LoadTheme();
+        var baseHref = sample ? args.Take("base") : null;
+        var theme = LoadTheme(sample);
         var parameters = new Dictionary<string, object?>(StringComparer.Ordinal);
         foreach (var (option, parameter) in theme.Options)
             if (args.Take(option) is { } value) parameters[parameter.Name] = theme.Value(option, parameter, value);
         if (args.Options.Count > 0)
             throw new UsageException($"IzzyTheme in IzzyBlazor {theme.Version} has no --{args.Options[0].Name}. It takes: {string.Join(", ", theme.Options.Select(o => "--" + o.Option))}.");
+
+        if (sample) return ThemeSample(theme, parameters, baseHref, json);
 
         var (meta, css) = theme.Render(parameters);
         var head = new StringBuilder();
@@ -1001,13 +1010,41 @@ sealed class Cli(string catalogRoot, string workingDirectory, TextWriter output,
         return 0;
     }
 
-    // The app's own IzzyTheme where its IzzyBlazor.Core package is restored and loads on this runtime; else this
-    // izzy's copy, with a line saying so when the app is on another version.
-    LibraryTheme LoadTheme()
+    // izzy theme sample: the page, from the library's own ThemeSample, with its stylesheets linked from the
+    // library's folder (or --base). The JSON names the folder, so a preview can serve it at an address of its own.
+    int ThemeSample(LibraryTheme theme, Dictionary<string, object?> parameters, string? baseHref, bool json)
     {
-        if (PackageFolder() is { } package && LibraryTheme.LibFolder(package) is { } lib && LibraryTheme.Load(lib, "package") is { } packaged)
-            return packaged;
-        var own = LibraryTheme.Load(Path.Combine(AppContext.BaseDirectory, "library"), "tool")
+        if (theme.Assets is null && baseHref is null)
+            throw new UsageException($"IzzyBlazor {theme.Version} here has no stylesheets beside it to link the sample to. Pass --base with the address izzyblazor.css is served from.");
+        var page = theme.Sample(parameters, baseHref ?? new Uri(Path.TrimEndingDirectorySeparator(theme.Assets!) + Path.DirectorySeparatorChar).AbsoluteUri);
+        if (!json)
+        {
+            _data.Write(page);
+            return 0;
+        }
+        Print(new JsonObject
+        {
+            ["version"] = theme.Version,
+            ["source"] = theme.Source,
+            // The folder izzyblazor.css, the other stylesheets and the fonts are in, which the page's <base> points at.
+            ["assets"] = theme.Assets,
+            ["html"] = page,
+        });
+        return 0;
+    }
+
+    // The app's own IzzyTheme where its IzzyBlazor.Core package is restored and loads on this runtime; else this
+    // izzy's copy, with a line saying so when the app is on another version. With sample, an older package
+    // without the theme sample gives way to this izzy's copy too.
+    LibraryTheme LoadTheme(bool sample = false)
+    {
+        if (PackageFolder() is { } package && LibraryTheme.LibFolder(package) is { } lib
+            && LibraryTheme.Load(lib, "package", Path.Combine(package, "staticwebassets")) is { } packaged)
+        {
+            if (!sample || packaged.HasSample) return packaged;
+            error.WriteLine($"IzzyBlazor {packaged.Version} has no theme sample: using this izzy's.");
+        }
+        var own = LibraryTheme.Load(Path.Combine(AppContext.BaseDirectory, "library"), "tool", Path.Combine(AppContext.BaseDirectory, "library", "wwwroot"))
             ?? throw new UsageException("This izzy has no copy of the library (library/IzzyBlazor.Core.dll is missing beside it), and no app's IzzyBlazor package is restored here. Restore the app, or reinstall the tool.");
         if (ProjectVersion(_projectFolder) is { } app && app != own.Version)
             error.WriteLine($"Using this izzy's IzzyBlazor ({own.Version}); the app is on {app}. Restore the app to use its own.");

@@ -220,8 +220,10 @@
     border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
   }
 
-  /* A transparent outline, not none: forced colors drop the halo and draw this one instead. */
-  .ib-field-input:focus-visible {
+  /* A transparent outline, not none: forced colors drop the halo and draw this one instead.
+     data-ib-show="focus" draws it at rest, for the theme sample (internal). */
+  .ib-field-input:focus-visible,
+  .ib-field-input[data-ib-show="focus"] {
     outline: 2px solid transparent;
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));

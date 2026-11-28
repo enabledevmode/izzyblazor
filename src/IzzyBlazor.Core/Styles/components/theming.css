@@ -128,6 +128,19 @@
     forced-color-adjust: none;
   }
 
+  /* A text color on the chip (TextColor): "Aa" in its middle. */
+  .ib-swatch-chip:has(> .ib-swatch-text) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ib-swatch-text {
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-semibold);
+    line-height: 1;
+  }
+
   .ib-swatch-label {
     color: var(--ib-color-on-surface);
     font-size: var(--ib-text-sm);
